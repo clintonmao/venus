@@ -12,7 +12,7 @@
  * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package com.meidusa.venus.client;
+package com.meidusa.venus.client.xml;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -23,12 +23,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.meidusa.venus.client.InvocationListenerContainer;
+import com.meidusa.venus.client.VenusInvocationHandler;
+import com.meidusa.venus.client.xml.bean.EndpointConfig;
+import com.meidusa.venus.client.xml.bean.ServiceConfig;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.pool.ObjectPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.ObjectFactory;
 
 import com.meidusa.fastjson.JSON;
 import com.meidusa.fastmark.feature.SerializerFeature;
@@ -42,8 +44,6 @@ import com.meidusa.venus.annotations.PerformanceLevel;
 import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
-import com.meidusa.venus.client.xml.bean.EndpointConfig;
-import com.meidusa.venus.client.xml.bean.ServiceConfig;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.DefaultVenusException;
 import com.meidusa.venus.exception.InvalidParameterException;
@@ -77,15 +77,15 @@ import com.meidusa.venus.util.VenusTracerUtil;
  * @author Struct
  * 
  */
-public class RemotingInvocationHandler extends VenusInvocationHandler{
+public class XmlInvocationHandler extends VenusInvocationHandler {
 	private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
-    private static Logger logger = LoggerFactory.getLogger(RemotingInvocationHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(XmlInvocationHandler.class);
     private static Logger performanceLogger = LoggerFactory.getLogger("venus.client.performance");
     private InvocationListenerContainer container;
     private ObjectPool bioConnPool;
     private BackendConnectionPool nioConnPool;
     private static AtomicLong sequenceId = new AtomicLong(1);
-    private VenusServiceFactory serviceFactory;
+    private XmlServiceFactory serviceFactory;
     private VenusExceptionFactory venusExceptionFactory;
     private boolean enableAsync = true;
     private byte serializeType = PacketConstant.CONTENT_TYPE_JSON;
@@ -106,7 +106,7 @@ public class RemotingInvocationHandler extends VenusInvocationHandler{
         this.venusExceptionFactory = venusExceptionFactory;
     }
 
-    public void setServiceFactory(VenusServiceFactory serviceFactory) {
+    public void setServiceFactory(XmlServiceFactory serviceFactory) {
         this.serviceFactory = serviceFactory;
     }
 
