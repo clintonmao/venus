@@ -17,18 +17,19 @@
 		<fastjson-hexnova.version>1.4.3</fastjson-hexnova.version>
 	</properties>
 	<modules>
-		<module>venus-backend</module>
 		<module>venus-commons</module>
-		<module>venus-client</module>
-		<module>venus-benchmark</module>
-		<module>venus-extension</module>
-		<module>venus-http</module>
 		<module>venus-annotations</module>
-        <module>venus-registry</module>
+		<module>venus-backend</module>
+		<module>venus-client</module>
+		<module>venus-registry</module>
 		<module>venus-remoting</module>
+		<module>venus-rpc</module>
 		<module>venus-monitor</module>
-        <module>venus-rpc</module>
-    </modules>
+		<module>venus-http</module>
+		<module>venus-extension</module>
+		<module>venus-test</module>
+		<module>venus-demo</module>
+	</modules>
 
 	<dependencies>
 		<dependency>
