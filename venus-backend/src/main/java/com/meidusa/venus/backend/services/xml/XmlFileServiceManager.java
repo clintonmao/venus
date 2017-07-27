@@ -21,13 +21,11 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.io.Resource;
-import org.springframework.util.ResourceUtils;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
-import com.meidusa.toolkit.common.bean.config.ConfigUtil;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.toolkit.common.util.StringUtil;
 import com.meidusa.venus.VenusMetaInfo;

@@ -23,7 +23,6 @@ import com.meidusa.venus.backend.network.handler.LogHandler;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 
 import com.meidusa.fastjson.JSON;
 import com.meidusa.fastjson.JSONException;
@@ -39,7 +38,6 @@ import com.meidusa.venus.backend.Response;
 import com.meidusa.venus.backend.profiling.UtilTimerStack;
 import com.meidusa.venus.backend.view.MediaTypes;
 import com.meidusa.venus.exception.CodedException;
-import com.meidusa.venus.exception.ExceptionLevel;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.exception.VenusExceptionLevel;
 import com.meidusa.venus.io.network.VenusBIOConnection;

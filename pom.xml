@@ -24,7 +24,11 @@
 		<module>venus-extension</module>
 		<module>venus-http</module>
 		<module>venus-annotations</module>
-	</modules>
+        <module>venus-registry</module>
+		<module>venus-remoting</module>
+		<module>venus-monitor</module>
+        <module>venus-rpc</module>
+    </modules>
 
 	<dependencies>
 		<dependency>

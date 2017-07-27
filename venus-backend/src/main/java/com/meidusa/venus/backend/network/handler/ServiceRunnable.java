@@ -12,8 +12,6 @@ import com.meidusa.venus.backend.profiling.UtilTimerStack;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.services.Service;
 import com.meidusa.venus.exception.*;
-import com.meidusa.venus.extension.athena.AthenaProblemReporter;
-import com.meidusa.venus.extension.athena.AthenaServerTransaction;
 import com.meidusa.venus.extension.athena.AthenaTransactionId;
 import com.meidusa.venus.extension.athena.delegate.AthenaReporterDelegate;
 import com.meidusa.venus.extension.athena.delegate.AthenaTransactionDelegate;
