@@ -1,9 +1,8 @@
-package com.meidusa.venus.backend.network;
+package com.meidusa.venus.io.network;
 
 import java.nio.channels.SocketChannel;
 
 import com.meidusa.toolkit.net.FrontendConnection;
-import com.meidusa.venus.io.network.VenusFrontendConnectionFactory;
 
 public class VenusBackendFrontendConnectionFactory extends VenusFrontendConnectionFactory {
 

@@ -1,11 +1,10 @@
-package com.meidusa.venus.backend.network;
+package com.meidusa.venus.io.network;
 
 import java.nio.channels.SocketChannel;
 
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.config.ExceptionCodeConstant;
 import com.meidusa.toolkit.util.TimeUtil;
-import com.meidusa.venus.io.network.VenusFrontendConnection;
 
 public class VenusBackendFrontendConnection extends VenusFrontendConnection {
 
