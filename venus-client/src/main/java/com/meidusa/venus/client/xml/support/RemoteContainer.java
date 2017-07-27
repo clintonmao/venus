@@ -1,4 +1,4 @@
-package com.meidusa.venus.client;
+package com.meidusa.venus.client.xml.support;
 
 import com.meidusa.toolkit.common.poolable.ObjectPool;
 import com.meidusa.toolkit.net.BackendConnectionPool;

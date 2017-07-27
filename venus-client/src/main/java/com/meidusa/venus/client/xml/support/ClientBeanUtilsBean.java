@@ -1,4 +1,4 @@
-package com.meidusa.venus.client;
+package com.meidusa.venus.client.xml.support;
 
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.config.ConfigUtil;
