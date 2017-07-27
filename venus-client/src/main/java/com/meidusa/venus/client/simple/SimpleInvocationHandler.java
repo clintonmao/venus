@@ -48,20 +48,33 @@ import com.meidusa.venus.util.VenusAnnotationUtils;
  * 
  */
 public class SimpleInvocationHandler extends VenusInvocationHandler {
+
     private static Logger logger = LoggerFactory.getLogger(SimpleInvocationHandler.class);
 
     @Autowired
     private VenusExceptionFactory venusExceptionFactory;
+
     private static AtomicLong sequenceId = new AtomicLong(1);
+
     private InvocationListenerContainer container = new InvocationListenerContainer();
-    private VenusBIOConnectionFactory connFactory = new VenusBIOConnectionFactory();
+
+    private VenusBIOConnectionFactory connFactory = null;
+
+    private String host;
+
+    private int port;
+
+    private int coTimeout;
+
+    private int soTimeout;
 
     private Authenticator<HandshakePacket, AuthenPacket> authenticator = null;
+
     public SimpleInvocationHandler(String host, int port, int coTimeout, int soTimeout) {
-        connFactory.setHost(host);
-        connFactory.setPort(port);
-        connFactory.setCoTimeout(coTimeout);
-        connFactory.setSoTimeout(soTimeout);
+        this.host = host;
+        this.port = port;
+        this.coTimeout = coTimeout;
+        this.soTimeout = soTimeout;
     }
 
     public Authenticator<HandshakePacket, AuthenPacket> getAuthenticator() {
@@ -71,7 +84,6 @@ public class SimpleInvocationHandler extends VenusInvocationHandler {
 	public void setAuthenticator(
 			Authenticator<HandshakePacket, AuthenPacket> authenticator) {
 		this.authenticator = authenticator;
-		connFactory.setAuthenticator(authenticator);
 	}
 
 	public VenusExceptionFactory getVenusExceptionFactory() {
@@ -122,15 +134,12 @@ public class SimpleInvocationHandler extends VenusInvocationHandler {
          * PerformanceLevel pLevel = AnnotationUtil.getAnnotation(method.getAnnotations(), PerformanceLevel.class); long
          * start = TimeUtil.currentTimeMillis();
          */
-        VenusBIOConnection conn = connFactory.makeObject();
+        //获取连接
+        VenusBIOConnection conn = getConnection(host,port,coTimeout,soTimeout,endpoint.timeWait(),authenticator);
+
         try {
+            //写数据并等待响应
             conn.write(serviceRequestPacket.toByteArray());
-            if (endpoint.timeWait() > 0) {
-                conn.setSoTimeout(endpoint.timeWait());
-            }
-            if (connFactory.getSoTimeout() > 0 && connFactory.getSoTimeout() != endpoint.timeWait()) {
-                conn.setSoTimeout(connFactory.getSoTimeout());
-            }
             byte[] bts = conn.read();
 
             int type = AbstractServicePacket.getType(bts);
@@ -177,5 +186,35 @@ public class SimpleInvocationHandler extends VenusInvocationHandler {
                 }
             }
         }
+    }
+
+    /**
+     * 获取连接
+     * @param host
+     * @param port
+     * @param coTimeout
+     * @param soTimeout
+     * @param timeWait
+     * @param authenticator
+     * @return
+     * @throws Exception
+     */
+    VenusBIOConnection getConnection(String host, int port, int coTimeout, int soTimeout,int timeWait,Authenticator<HandshakePacket, AuthenPacket> authenticator) throws Exception {
+        if(connFactory == null){
+            connFactory = new VenusBIOConnectionFactory();
+            connFactory.setHost(host);
+            connFactory.setPort(port);
+            connFactory.setCoTimeout(coTimeout);
+            connFactory.setSoTimeout(soTimeout);
+		    connFactory.setAuthenticator(authenticator);
+        }
+        VenusBIOConnection conn = connFactory.makeObject();
+        if (timeWait > 0) {
+            conn.setSoTimeout(timeWait);
+        }
+        if (connFactory.getSoTimeout() > 0 && connFactory.getSoTimeout() != timeWait) {
+            conn.setSoTimeout(connFactory.getSoTimeout());
+        }
+        return conn;
     }
 }
