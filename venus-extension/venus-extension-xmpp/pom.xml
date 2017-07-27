@@ -14,10 +14,6 @@
   		<version>1.2.3</version>
   	</dependency>
   	<dependency>
-  		<groupId>com.meidusa.venus.commons</groupId>
-  		<artifactId>venus-common-io</artifactId>
-  	</dependency>
-  	<dependency>
   		<groupId>xpp3</groupId>
   		<artifactId>xpp3</artifactId>
   		<version>1.1.4c</version>
@@ -26,5 +22,10 @@
   		<groupId>org.ini4j</groupId>
    	 	<artifactId>ini4j</artifactId>
   	</dependency>
+	  <dependency>
+		  <groupId>com.meidusa.venus</groupId>
+		  <artifactId>venus-remoting</artifactId>
+		  <version>${project.version}</version>
+	  </dependency>
   </dependencies>
 </project>

@@ -50,10 +50,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.meidusa.venus.commons</groupId>
-			<artifactId>venus-common-io</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.meidusa.venus.commons</groupId>
 			<artifactId>venus-common-exception</artifactId>
 		</dependency>
 		<dependency>
@@ -69,20 +65,12 @@
 			<artifactId>toolkit-common-spring</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.meidusa.venus.commons</groupId>
-			<artifactId>venus-common-service</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>com.meidusa.venus.extension</groupId>
 			<artifactId>venus-extension-athena</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>commons-cli</groupId>
 			<artifactId>commons-cli</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.meidusa.venus</groupId>
-			<artifactId>venus-client</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.meidusa.venus</groupId>

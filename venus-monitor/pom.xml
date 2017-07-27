@@ -30,8 +30,8 @@
             <artifactId>venus-common-exception</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.meidusa.venus.commons</groupId>
-            <artifactId>venus-common-io</artifactId>
+            <groupId>com.meidusa.toolkit.net</groupId>
+            <artifactId>toolkit-net-nio</artifactId>
         </dependency>
     </dependencies>
 </project>

@@ -26,10 +26,6 @@
         </dependency>
         <dependency>
         	<groupId>com.meidusa.venus.commons</groupId>
-        	<artifactId>venus-common-io</artifactId>
-        </dependency>
-        <dependency>
-        	<groupId>com.meidusa.venus.commons</groupId>
         	<artifactId>venus-common-exception</artifactId>
         </dependency>
 		<dependency>

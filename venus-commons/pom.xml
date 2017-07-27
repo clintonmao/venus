@@ -15,7 +15,6 @@
 	
 	<modules>
 		<module>venus-common-base</module>
-		<module>venus-common-io</module>
 		<module>venus-common-validator</module>
 		<module>venus-common-exception</module>
 	</modules>
