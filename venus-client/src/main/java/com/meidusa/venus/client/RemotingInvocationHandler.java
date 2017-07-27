@@ -199,275 +199,307 @@ public class RemotingInvocationHandler extends VenusInvocationHandler{
         }
         setTransactionId(serviceRequestPacket, athenaTransactionId);
 
-        PerformanceLevel pLevel = AnnotationUtil.getAnnotation(method.getAnnotations(), PerformanceLevel.class);
+        //调用
+        if (async) {
+            return invokeRemoteServiceWithAsync(service,serviceRequestPacket,endpoint,traceID);
+        } else {
+            return invokeRemoteServiceWithSync(service,serviceRequestPacket,endpoint,traceID,method,serializer);
+        }
+    }
+
+    /**
+     * async异步调用
+     * @param service
+     * @param serviceRequestPacket
+     * @param endpoint
+     * @param traceID
+     * @return
+     * @throws Exception
+     */
+    Object invokeRemoteServiceWithAsync(Service service,SerializeServiceRequestPacket serviceRequestPacket,Endpoint endpoint,byte[] traceID) throws Exception{
+        if (!this.isEnableAsync()) {
+            throw new VenusConfigException("service async call disabled");
+        }
+
         long start = TimeUtil.currentTimeMillis();
         long borrowed = start;
 
-        if (async) {
-            if (!this.isEnableAsync()) {
-                throw new VenusConfigException("service async call disabled");
+        BackendConnection conn = null;
+        try {
+
+            if (nioConnPool instanceof RequestLoadbalanceObjectPool) {
+                conn = (BackendConnection) ((RequestLoadbalanceObjectPool) nioConnPool).borrowObject(serviceRequestPacket.parameterMap, endpoint);
+            } else {
+                conn = nioConnPool.borrowObject();
             }
-
-            BackendConnection conn = null;
-            try {
-
-                if (nioConnPool instanceof RequestLoadbalanceObjectPool) {
-                    conn = (BackendConnection) ((RequestLoadbalanceObjectPool) nioConnPool).borrowObject(serviceRequestPacket.parameterMap, endpoint);
-                } else {
-                    conn = nioConnPool.borrowObject();
-                }
-                borrowed = TimeUtil.currentTimeMillis();
-                ByteBuffer buffer = serviceRequestPacket.toByteBuffer();
-                if(service.athenaFlag()) {
-                    AthenaTransactionDelegate.getDelegate().setClientOutputSize(buffer.limit());
-                }
-                conn.write(buffer);
-                VenusTracerUtil.logRequest(traceID, serviceRequestPacket.apiName, JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
-                return null;
-            } finally {
-                if (service.athenaFlag()) {
-                    AthenaTransactionDelegate.getDelegate().completeClientTransaction();
-                }
-                if (performanceLogger.isDebugEnabled()) {
-                    long end = TimeUtil.currentTimeMillis();
-                    long time = end - borrowed;
-                    StringBuffer buffer = new StringBuffer();
-                    buffer.append("[").append(borrowed - start).append(",").append(time).append("]ms (client-async) traceID=").append(UUID.toString(traceID)).append(", api=").append(serviceRequestPacket.apiName);
-
-                    performanceLogger.debug(buffer.toString());
-                }
-
-                if (conn != null) {
-                    nioConnPool.returnObject(conn);
-                }
+            borrowed = TimeUtil.currentTimeMillis();
+            ByteBuffer buffer = serviceRequestPacket.toByteBuffer();
+            if(service.athenaFlag()) {
+                AthenaTransactionDelegate.getDelegate().setClientOutputSize(buffer.limit());
             }
-        } else {
-            AbstractBIOConnection conn = null;
-            int soTimeout = 0;
-            int oldTimeout = 0;
-            boolean success = true;
-            int errorCode = 0;
-            AbstractServicePacket packet = null;
-            String remoteAddress = null;
-            boolean invalided = false;
-            boolean nullForSystemException = false;
-            try {
-                if (bioConnPool instanceof RequestLoadbalanceObjectPool) {
-                    conn = (AbstractBIOConnection) ((RequestLoadbalanceObjectPool) bioConnPool).borrowObject(serviceRequestPacket.parameterMap, endpoint);
-                } else {
-                    conn = (AbstractBIOConnection) bioConnPool.borrowObject();
-                }
-                remoteAddress =  conn.getRemoteAddress();
-                borrowed = TimeUtil.currentTimeMillis();
-                ServiceConfig config = this.serviceFactory.getServiceConfig(method.getDeclaringClass());
-
-                oldTimeout = conn.getSoTimeout();
-                if (config != null) {
-                    EndpointConfig endpointConfig = config.getEndpointConfig(endpoint.name());
-                    if (endpointConfig != null) {
-                        int eTimeOut = endpointConfig.getTimeWait();
-                        if (eTimeOut > 0) {
-                            soTimeout = eTimeOut;
-                        }
-                    } else {
-                        if (config.getTimeWait() > 0) {
-                            soTimeout = config.getTimeWait();
-                        } else {
-                            if (endpoint.timeWait() > 0) {
-                                soTimeout = endpoint.timeWait();
-                            }
-                        }
-                    }
-
-                } else {
-
-                    if (endpoint.timeWait() > 0) {
-                        soTimeout = endpoint.timeWait();
-                    }
-                }
-                
-                byte[] bts;
-                
-                try {
-                
-                	if (soTimeout > 0) {
-                		conn.setSoTimeout(soTimeout);
-                	}
-
-                    byte[] buff = serviceRequestPacket.toByteArray();
-                    if(service.athenaFlag() && buff != null) {
-                        AthenaTransactionDelegate.getDelegate().setClientOutputSize(buff.length);
-                    }
-                    conn.write(buff);
-                    VenusTracerUtil.logRequest(traceID, serviceRequestPacket.apiName, JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
-                    bts = conn.read();
-                    if(service.athenaFlag() && bts != null) {
-                        AthenaTransactionDelegate.getDelegate().setClientInputSize(bts.length);
-                    }
-                }catch(IOException e){
-                	try {
-                        conn.close();
-                    } catch (Exception e1) {
-                        // ignore
-                    }
-                    
-                	bioConnPool.invalidateObject(conn);
-                	invalided = true;
-                	Class<?>[] eClass = method.getExceptionTypes();
-                	
-                	if(eClass != null && eClass.length > 0){
-	                	for(Class<?> clazz : eClass){
-	                		if(e.getClass().isAssignableFrom(clazz)){
-	                			throw e;
-	                		}
-	                	}
-                	}
-                	
-                    throw new RemoteSocketIOException("api="+serviceRequestPacket.apiName+ ", remoteIp=" + conn.getRemoteAddress()+",("+e.getMessage() + ")",e);
-                }
-
-                int type = AbstractServicePacket.getType(bts);
-                switch (type) {
-                    case PacketConstant.PACKET_TYPE_ERROR:
-                        ErrorPacket error = new ErrorPacket();
-                        error.init(bts);
-                        packet = error;
-                        Exception e = venusExceptionFactory.getException(error.errorCode, error.message);
-                        if (e == null) {
-                            throw new DefaultVenusException(error.errorCode, error.message);
-                        } else {
-                            if (error.additionalData != null) {
-                                Map<String, Type> tmap = Utils.getBeanFieldType(e.getClass(), Exception.class);
-                                if (tmap != null && tmap.size() > 0) {
-                                    Object obj = serializer.decode(error.additionalData, tmap);
-                                    BeanUtils.copyProperties(e, obj);
-                                }
-                            }
-                            throw e;
-                        }
-                    case PacketConstant.PACKET_TYPE_OK:
-                        OKPacket ok = new OKPacket();
-                        ok.init(bts);
-                        packet = ok;
-                        return null;
-                    case PacketConstant.PACKET_TYPE_SERVICE_RESPONSE:
-                        ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, method.getGenericReturnType());
-                        response.init(bts);
-                        packet = response;
-                        return response.result;
-                    default: {
-                        logger.warn("unknow response type=" + type);
-                        success = false;
-                        return null;
-                    }
-                }
-            } catch (Exception e) {
-                success = false;
-                
-                if (e instanceof CodedException || (errorCode = venusExceptionFactory.getErrorCode(e.getClass())) != 0 || e instanceof RuntimeException) {
-                    if(e instanceof CodedException){
-                        errorCode = ((CodedException) e).getErrorCode();
-                    }
-                    throw e;
-                } else {
-                    RemoteException code = e.getClass().getAnnotation(RemoteException.class);
-                    if(code != null){
-                        errorCode = code.errorCode();
-                        throw e;
-                    }else{
-                        ExceptionCode eCode =   e.getClass().getAnnotation(ExceptionCode.class);
-                        if(eCode != null){
-                            errorCode = eCode.errorCode();
-                            throw e;
-                        }else{
-                            errorCode = -1;
-                            if (conn == null) {
-                                throw new DefaultVenusException(e.getMessage(), e);
-                            } else {
-                                throw new DefaultVenusException(e.getMessage() + ". remoteAddress=" + conn.getRemoteAddress(), e);
-                            }
-                        }
-                    }
-                }
-            } finally {
-                if (service.athenaFlag()) {
-                    AthenaTransactionDelegate.getDelegate().completeClientTransaction();
-                }
+            conn.write(buffer);
+            VenusTracerUtil.logRequest(traceID, serviceRequestPacket.apiName, JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
+            return null;
+        } finally {
+            if (service.athenaFlag()) {
+                AthenaTransactionDelegate.getDelegate().completeClientTransaction();
+            }
+            if (performanceLogger.isDebugEnabled()) {
                 long end = TimeUtil.currentTimeMillis();
                 long time = end - borrowed;
                 StringBuffer buffer = new StringBuffer();
-                buffer.append("[").append(borrowed - start).append(",").append(time).append("]ms (client-sync) traceID=").append(UUID.toString(traceID)).append(", api=").append(serviceRequestPacket.apiName);
-                if (remoteAddress != null) {
-                    buffer.append(", remote=").append(remoteAddress);
-                }else{
-                	buffer.append(", pool=").append(bioConnPool.toString());
-                }
-                buffer.append(", clientID=").append(PacketConstant.VENUS_CLIENT_ID).append(", requestID=").append(serviceRequestPacket.clientRequestId);
+                buffer.append("[").append(borrowed - start).append(",").append(time).append("]ms (client-async) traceID=").append(UUID.toString(traceID)).append(", api=").append(serviceRequestPacket.apiName);
 
-                if(packet != null){
-                	if(packet instanceof ErrorPacket){
-                		buffer.append(", errorCode=").append(((ErrorPacket) packet).errorCode);
-                		buffer.append(", message=").append(((ErrorPacket) packet).message);
-                	}else {
-                		buffer.append(", errorCode=0");
-                	}
-                }
-                
-                if (pLevel != null) {
+                performanceLogger.debug(buffer.toString());
+            }
 
-                    if (pLevel.printParams()) {
-                        buffer.append(", params=");
-                        buffer.append(JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
-                    }
+            if (conn != null) {
+                nioConnPool.returnObject(conn);
+            }
+        }
+    }
 
-                    if (time > pLevel.error() && pLevel.error() > 0) {
-                        if (performanceLogger.isErrorEnabled()) {
-                            performanceLogger.error(buffer.toString());
-                        }
-                    } else if (time > pLevel.warn() && pLevel.warn() > 0) {
-                        if (performanceLogger.isWarnEnabled()) {
-                            performanceLogger.warn(buffer.toString());
-                        }
-                    } else if (time > pLevel.info() && pLevel.info() > 0) {
-                        if (performanceLogger.isInfoEnabled()) {
-                            performanceLogger.info(buffer.toString());
-                        }
-                    } else {
-                        if (performanceLogger.isDebugEnabled()) {
-                            performanceLogger.debug(buffer.toString());
-                        }
+    /**
+     * sync同步调用
+     * @param service
+     * @param serviceRequestPacket
+     * @param endpoint
+     * @param traceID
+     * @param method
+     * @param serializer
+     * @return
+     * @throws Exception
+     */
+    Object invokeRemoteServiceWithSync(Service service,SerializeServiceRequestPacket serviceRequestPacket,Endpoint endpoint,byte[] traceID,Method method,Serializer serializer) throws Exception{
+        long start = TimeUtil.currentTimeMillis();
+        long borrowed = start;
+
+        AbstractBIOConnection conn = null;
+        int soTimeout = 0;
+        int oldTimeout = 0;
+        boolean success = true;
+        int errorCode = 0;
+        AbstractServicePacket packet = null;
+        String remoteAddress = null;
+        boolean invalided = false;
+        boolean nullForSystemException = false;
+        try {
+            if (bioConnPool instanceof RequestLoadbalanceObjectPool) {
+                conn = (AbstractBIOConnection) ((RequestLoadbalanceObjectPool) bioConnPool).borrowObject(serviceRequestPacket.parameterMap, endpoint);
+            } else {
+                conn = (AbstractBIOConnection) bioConnPool.borrowObject();
+            }
+            remoteAddress =  conn.getRemoteAddress();
+            borrowed = TimeUtil.currentTimeMillis();
+            ServiceConfig config = this.serviceFactory.getServiceConfig(method.getDeclaringClass());
+
+            oldTimeout = conn.getSoTimeout();
+            if (config != null) {
+                EndpointConfig endpointConfig = config.getEndpointConfig(endpoint.name());
+                if (endpointConfig != null) {
+                    int eTimeOut = endpointConfig.getTimeWait();
+                    if (eTimeOut > 0) {
+                        soTimeout = eTimeOut;
                     }
                 } else {
-            		buffer.append(", params=");
-            		buffer.append(JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
-                	
-                    if (time >= 30 * 1000) {
-                        if (performanceLogger.isErrorEnabled()) {
-                            performanceLogger.error(buffer.toString());
-                        }
-                    } else if (time >= 10 * 1000) {
-                        if (performanceLogger.isWarnEnabled()) {
-                            performanceLogger.warn(buffer.toString());
-                        }
-                    } else if (time >= 5 * 1000) {
-                        if (performanceLogger.isInfoEnabled()) {
-                            performanceLogger.info(buffer.toString());
-                        }
+                    if (config.getTimeWait() > 0) {
+                        soTimeout = config.getTimeWait();
                     } else {
-                        if (performanceLogger.isDebugEnabled()) {
-                            performanceLogger.debug(buffer.toString());
+                        if (endpoint.timeWait() > 0) {
+                            soTimeout = endpoint.timeWait();
                         }
                     }
                 }
 
-                if (conn != null && !invalided) {
-                    if (!conn.isClosed() && soTimeout > 0) {
-                        conn.setSoTimeout(oldTimeout);
-                    }
-                    bioConnPool.returnObject(conn);
+            } else {
+
+                if (endpoint.timeWait() > 0) {
+                    soTimeout = endpoint.timeWait();
+                }
+            }
+
+            byte[] bts;
+
+            try {
+
+                if (soTimeout > 0) {
+                    conn.setSoTimeout(soTimeout);
                 }
 
+                byte[] buff = serviceRequestPacket.toByteArray();
+                if(service.athenaFlag() && buff != null) {
+                    AthenaTransactionDelegate.getDelegate().setClientOutputSize(buff.length);
+                }
+                conn.write(buff);
+                VenusTracerUtil.logRequest(traceID, serviceRequestPacket.apiName, JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
+                bts = conn.read();
+                if(service.athenaFlag() && bts != null) {
+                    AthenaTransactionDelegate.getDelegate().setClientInputSize(bts.length);
+                }
+            }catch(IOException e){
+                try {
+                    conn.close();
+                } catch (Exception e1) {
+                    // ignore
+                }
+
+                bioConnPool.invalidateObject(conn);
+                invalided = true;
+                Class<?>[] eClass = method.getExceptionTypes();
+
+                if(eClass != null && eClass.length > 0){
+                    for(Class<?> clazz : eClass){
+                        if(e.getClass().isAssignableFrom(clazz)){
+                            throw e;
+                        }
+                    }
+                }
+
+                throw new RemoteSocketIOException("api="+serviceRequestPacket.apiName+ ", remoteIp=" + conn.getRemoteAddress()+",("+e.getMessage() + ")",e);
             }
+
+            int type = AbstractServicePacket.getType(bts);
+            switch (type) {
+                case PacketConstant.PACKET_TYPE_ERROR:
+                    ErrorPacket error = new ErrorPacket();
+                    error.init(bts);
+                    packet = error;
+                    Exception e = venusExceptionFactory.getException(error.errorCode, error.message);
+                    if (e == null) {
+                        throw new DefaultVenusException(error.errorCode, error.message);
+                    } else {
+                        if (error.additionalData != null) {
+                            Map<String, Type> tmap = Utils.getBeanFieldType(e.getClass(), Exception.class);
+                            if (tmap != null && tmap.size() > 0) {
+                                Object obj = serializer.decode(error.additionalData, tmap);
+                                BeanUtils.copyProperties(e, obj);
+                            }
+                        }
+                        throw e;
+                    }
+                case PacketConstant.PACKET_TYPE_OK:
+                    OKPacket ok = new OKPacket();
+                    ok.init(bts);
+                    packet = ok;
+                    return null;
+                case PacketConstant.PACKET_TYPE_SERVICE_RESPONSE:
+                    ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, method.getGenericReturnType());
+                    response.init(bts);
+                    packet = response;
+                    return response.result;
+                default: {
+                    logger.warn("unknow response type=" + type);
+                    success = false;
+                    return null;
+                }
+            }
+        } catch (Exception e) {
+            success = false;
+
+            if (e instanceof CodedException || (errorCode = venusExceptionFactory.getErrorCode(e.getClass())) != 0 || e instanceof RuntimeException) {
+                if(e instanceof CodedException){
+                    errorCode = ((CodedException) e).getErrorCode();
+                }
+                throw e;
+            } else {
+                RemoteException code = e.getClass().getAnnotation(RemoteException.class);
+                if(code != null){
+                    errorCode = code.errorCode();
+                    throw e;
+                }else{
+                    ExceptionCode eCode =   e.getClass().getAnnotation(ExceptionCode.class);
+                    if(eCode != null){
+                        errorCode = eCode.errorCode();
+                        throw e;
+                    }else{
+                        errorCode = -1;
+                        if (conn == null) {
+                            throw new DefaultVenusException(e.getMessage(), e);
+                        } else {
+                            throw new DefaultVenusException(e.getMessage() + ". remoteAddress=" + conn.getRemoteAddress(), e);
+                        }
+                    }
+                }
+            }
+        } finally {
+            if (service.athenaFlag()) {
+                AthenaTransactionDelegate.getDelegate().completeClientTransaction();
+            }
+            long end = TimeUtil.currentTimeMillis();
+            long time = end - borrowed;
+            StringBuffer buffer = new StringBuffer();
+            buffer.append("[").append(borrowed - start).append(",").append(time).append("]ms (client-sync) traceID=").append(UUID.toString(traceID)).append(", api=").append(serviceRequestPacket.apiName);
+            if (remoteAddress != null) {
+                buffer.append(", remote=").append(remoteAddress);
+            }else{
+                buffer.append(", pool=").append(bioConnPool.toString());
+            }
+            buffer.append(", clientID=").append(PacketConstant.VENUS_CLIENT_ID).append(", requestID=").append(serviceRequestPacket.clientRequestId);
+
+            if(packet != null){
+                if(packet instanceof ErrorPacket){
+                    buffer.append(", errorCode=").append(((ErrorPacket) packet).errorCode);
+                    buffer.append(", message=").append(((ErrorPacket) packet).message);
+                }else {
+                    buffer.append(", errorCode=0");
+                }
+            }
+
+            PerformanceLevel pLevel = AnnotationUtil.getAnnotation(method.getAnnotations(), PerformanceLevel.class);
+            if (pLevel != null) {
+
+                if (pLevel.printParams()) {
+                    buffer.append(", params=");
+                    buffer.append(JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
+                }
+
+                if (time > pLevel.error() && pLevel.error() > 0) {
+                    if (performanceLogger.isErrorEnabled()) {
+                        performanceLogger.error(buffer.toString());
+                    }
+                } else if (time > pLevel.warn() && pLevel.warn() > 0) {
+                    if (performanceLogger.isWarnEnabled()) {
+                        performanceLogger.warn(buffer.toString());
+                    }
+                } else if (time > pLevel.info() && pLevel.info() > 0) {
+                    if (performanceLogger.isInfoEnabled()) {
+                        performanceLogger.info(buffer.toString());
+                    }
+                } else {
+                    if (performanceLogger.isDebugEnabled()) {
+                        performanceLogger.debug(buffer.toString());
+                    }
+                }
+            } else {
+                buffer.append(", params=");
+                buffer.append(JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
+
+                if (time >= 30 * 1000) {
+                    if (performanceLogger.isErrorEnabled()) {
+                        performanceLogger.error(buffer.toString());
+                    }
+                } else if (time >= 10 * 1000) {
+                    if (performanceLogger.isWarnEnabled()) {
+                        performanceLogger.warn(buffer.toString());
+                    }
+                } else if (time >= 5 * 1000) {
+                    if (performanceLogger.isInfoEnabled()) {
+                        performanceLogger.info(buffer.toString());
+                    }
+                } else {
+                    if (performanceLogger.isDebugEnabled()) {
+                        performanceLogger.debug(buffer.toString());
+                    }
+                }
+            }
+
+            if (conn != null && !invalided) {
+                if (!conn.isClosed() && soTimeout > 0) {
+                    conn.setSoTimeout(oldTimeout);
+                }
+                bioConnPool.returnObject(conn);
+            }
+
         }
     }
 
