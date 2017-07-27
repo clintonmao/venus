@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>venus-rpc</artifactId>
+    <artifactId>venus-cluster</artifactId>
 
 
 </project>

@@ -23,13 +23,13 @@
 		<module>venus-client</module>
 		<module>venus-registry</module>
 		<module>venus-remoting</module>
-		<module>venus-rpc</module>
 		<module>venus-monitor</module>
-		<module>venus-http</module>
+		<module>venus-cluster</module>
 		<module>venus-extension</module>
+		<module>venus-http</module>
 		<module>venus-test</module>
 		<module>venus-demo</module>
-	</modules>
+    </modules>
 
 	<dependencies>
 		<dependency>
