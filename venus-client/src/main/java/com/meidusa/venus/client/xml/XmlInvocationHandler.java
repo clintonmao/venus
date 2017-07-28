@@ -227,6 +227,7 @@ public class XmlInvocationHandler extends VenusInvocationHandler {
         BackendConnection conn = null;
         try {
             nioConnPool = getNioConnPool();
+            //TODO 处理loadbanlance问题
             if (nioConnPool instanceof RequestLoadbalanceObjectPool) {
                 conn = (BackendConnection) ((RequestLoadbalanceObjectPool) nioConnPool).borrowObject(serviceRequestPacket.parameterMap, endpoint);
             } else {

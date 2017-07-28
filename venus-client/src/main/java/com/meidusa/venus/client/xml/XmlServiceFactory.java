@@ -316,6 +316,8 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
                 remoteConfig = RemoteConfig.newInstace(serviceConfig.getIpAddressList());
             }
 
+            //TODO 处理走注册中心场景
+
             /*
             if (serviceConfig.getInstance() != null) {
                 ServiceDefinedBean defined = new ServiceDefinedBean(serviceConfig.getBeanName(),serviceConfig.getType(),serviceConfig.getInstance(), null);
