@@ -128,25 +128,46 @@ public class XmlInvocationHandler extends VenusInvocationHandler {
      * @throws Exception
      */
     protected Object invokeRemoteService(Service service, Endpoint endpoint, Method method, EndpointParameter[] params, Object[] args) throws Exception {
+        byte[] traceID = VenusTracerUtil.getTracerID();
+        if (traceID == null) {
+            traceID = VenusTracerUtil.randomTracerID();
+        }
+
+        boolean async = false;
+        if (endpoint.async()) {
+            async = true;
+        }
+
+        Serializer serializer = SerializerFactory.getSerializer(serializeType);
+
+        //构造请求消息体
+        SerializeServiceRequestPacket serviceRequestPacket = buildInvocation(service,endpoint,method,params,args,traceID,async,serializer);
+
+        //调用
+        if (async) {
+            return invokeRemoteServiceWithAsync(traceID, service, endpoint, serviceRequestPacket);
+        } else {
+            return invokeRemoteServiceWithSync(traceID, service, endpoint, method, serviceRequestPacket, serializer);
+        }
+    }
+
+    /**
+     * 构造请求消息体
+     * @param service
+     * @param endpoint
+     * @param method
+     * @param params
+     * @param args
+     * @param async
+     * @return
+     */
+    SerializeServiceRequestPacket buildInvocation(Service service, Endpoint endpoint, Method method,EndpointParameter[] params, Object[] args,byte[] traceID,boolean async,Serializer serializer){
         String apiName = VenusAnnotationUtils.getApiname(method, service, endpoint);
 
         AthenaTransactionId athenaTransactionId = null;
         if (service.athenaFlag()) {
             athenaTransactionId = AthenaTransactionDelegate.getDelegate().startClientTransaction(apiName);
         }
-        boolean async = false;
-
-        if (endpoint.async()) {
-            async = true;
-        }
-
-        byte[] traceID = VenusTracerUtil.getTracerID();
-
-        if (traceID == null) {
-            traceID = VenusTracerUtil.randomTracerID();
-        }        
-
-        Serializer serializer = SerializerFactory.getSerializer(serializeType);
 
         SerializeServiceRequestPacket serviceRequestPacket = new SerializeServiceRequestPacket(serializer, null);
 
@@ -182,13 +203,7 @@ public class XmlInvocationHandler extends VenusInvocationHandler {
             }
         }
         setTransactionId(serviceRequestPacket, athenaTransactionId);
-
-        //调用
-        if (async) {
-            return invokeRemoteServiceWithAsync(traceID, service, endpoint, serviceRequestPacket);
-        } else {
-            return invokeRemoteServiceWithSync(traceID, service, endpoint, method, serviceRequestPacket, serializer);
-        }
+        return serviceRequestPacket;
     }
 
     /**
