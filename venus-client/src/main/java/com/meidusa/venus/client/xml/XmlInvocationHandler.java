@@ -145,9 +145,9 @@ public class XmlInvocationHandler extends VenusInvocationHandler {
 
         //调用
         if (async) {
-            return invokeRemoteServiceWithAsync(traceID, service, endpoint, serviceRequestPacket);
+            return doInvokeWithAsync(traceID, service, endpoint, serviceRequestPacket);
         } else {
-            return invokeRemoteServiceWithSync(traceID, service, endpoint, method, serviceRequestPacket, serializer);
+            return doInvokeWithSync(traceID, service, endpoint, method, serviceRequestPacket, serializer);
         }
     }
 
@@ -215,7 +215,7 @@ public class XmlInvocationHandler extends VenusInvocationHandler {
      * @return
      * @throws Exception
      */
-    Object invokeRemoteServiceWithAsync(byte[] traceID, Service service, Endpoint endpoint, SerializeServiceRequestPacket serviceRequestPacket) throws Exception{
+    Object doInvokeWithAsync(byte[] traceID, Service service, Endpoint endpoint, SerializeServiceRequestPacket serviceRequestPacket) throws Exception{
         if (!this.isEnableAsync()) {
             throw new VenusConfigException("service async call disabled");
         }
@@ -270,7 +270,7 @@ public class XmlInvocationHandler extends VenusInvocationHandler {
      * @return
      * @throws Exception
      */
-    Object invokeRemoteServiceWithSync(byte[] traceID, Service service, Endpoint endpoint, Method method, SerializeServiceRequestPacket serviceRequestPacket, Serializer serializer) throws Exception{
+    Object doInvokeWithSync(byte[] traceID, Service service, Endpoint endpoint, Method method, SerializeServiceRequestPacket serviceRequestPacket, Serializer serializer) throws Exception{
         long start = TimeUtil.currentTimeMillis();
         long borrowed = start;
         int soTimeout = 0;
@@ -511,6 +511,7 @@ public class XmlInvocationHandler extends VenusInvocationHandler {
      * @throws Exception
      */
     public ObjectPool getBioConnPool() throws Exception {
+        //从本地内存查找，若不存在则创建
         String ipAddressList = remoteConfig.getFactory().getIpAddressList();
         if(bioPoolMap.get(ipAddressList) != null){
             return bioPoolMap.get(ipAddressList);
