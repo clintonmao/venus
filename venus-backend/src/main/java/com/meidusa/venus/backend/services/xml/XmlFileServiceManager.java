@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.meidusa.venus.backend.services.xml.support.BackendBeanContext;
+import com.meidusa.venus.backend.services.xml.support.BackendBeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.digester.Digester;

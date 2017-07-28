@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.services.xml;
+package com.meidusa.venus.backend.services.xml.support;
 
 import com.meidusa.toolkit.common.bean.BeanContext;
 import org.springframework.beans.factory.BeanFactory;

@@ -1,12 +1,16 @@
 /**
  * 
  */
-package com.meidusa.venus.backend.services;
+package com.meidusa.venus.backend.services.simple;
 
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
+import com.meidusa.venus.backend.services.AbstractServiceManager;
+import com.meidusa.venus.backend.services.Endpoint;
+import com.meidusa.venus.backend.services.Service;
+import com.meidusa.venus.backend.services.SingletonService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
