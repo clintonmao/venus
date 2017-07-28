@@ -14,20 +14,29 @@
 
 package com.meidusa.venus.client.xml;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Timer;
-
-import com.meidusa.venus.client.*;
-import com.meidusa.venus.client.xml.bean.*;
+import com.meidusa.toolkit.common.bean.BeanContext;
+import com.meidusa.toolkit.common.bean.BeanContextBean;
+import com.meidusa.toolkit.common.bean.config.ConfigurationException;
+import com.meidusa.toolkit.common.bean.util.InitialisationException;
+import com.meidusa.toolkit.common.poolable.ObjectPool;
+import com.meidusa.toolkit.common.util.Tuple;
+import com.meidusa.toolkit.net.BackendConnectionPool;
+import com.meidusa.toolkit.net.ConnectionConnector;
+import com.meidusa.toolkit.net.ConnectionManager;
+import com.meidusa.venus.annotations.Endpoint;
+import com.meidusa.venus.client.InvocationListenerContainer;
+import com.meidusa.venus.client.ServiceFactory;
+import com.meidusa.venus.client.ServiceFactoryBean;
+import com.meidusa.venus.client.xml.bean.RemoteConfig;
+import com.meidusa.venus.client.xml.bean.ServiceConfig;
+import com.meidusa.venus.client.xml.bean.VenusClientConfig;
 import com.meidusa.venus.client.xml.support.*;
-import org.apache.commons.beanutils.BeanUtils;
+import com.meidusa.venus.digester.DigesterRuleParser;
+import com.meidusa.venus.exception.*;
+import com.meidusa.venus.extension.athena.AthenaExtensionResolver;
+import com.meidusa.venus.io.packet.PacketConstant;
+import com.meidusa.venus.util.FileWatchdog;
+import com.meidusa.venus.util.VenusBeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.digester.Digester;
@@ -53,26 +62,15 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
-import com.meidusa.toolkit.common.bean.BeanContext;
-import com.meidusa.toolkit.common.bean.BeanContextBean;
-import com.meidusa.toolkit.common.bean.config.ConfigurationException;
-import com.meidusa.toolkit.common.bean.util.InitialisationException;
-import com.meidusa.toolkit.common.poolable.ObjectPool;
-import com.meidusa.toolkit.common.util.Tuple;
-import com.meidusa.toolkit.net.BackendConnectionPool;
-import com.meidusa.toolkit.net.ConnectionConnector;
-import com.meidusa.toolkit.net.ConnectionManager;
-import com.meidusa.venus.annotations.Endpoint;
-import com.meidusa.venus.digester.DigesterRuleParser;
-import com.meidusa.venus.exception.CodedException;
-import com.meidusa.venus.exception.ServiceNotFoundException;
-import com.meidusa.venus.exception.VenusConfigException;
-import com.meidusa.venus.exception.VenusExceptionFactory;
-import com.meidusa.venus.exception.XmlVenusExceptionFactory;
-import com.meidusa.venus.extension.athena.AthenaExtensionResolver;
-import com.meidusa.venus.io.packet.PacketConstant;
-import com.meidusa.venus.util.FileWatchdog;
-import com.meidusa.venus.util.VenusBeanUtilsBean;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Timer;
 
 /**
  * 基于xml配置服务工厂
@@ -303,37 +301,6 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             throws Exception {
 	    //加载客户端配置信息
         VenusClientConfig clientConfig = loadClientConfig();
-
-        // 初始化Pool
-        /*
-        for (Map.Entry<String, RemoteConfig> remoteConfig : clientConfig.getRemoteConfigMap().entrySet()) {
-            RemoteContainer remoteContainer = createRemoteContainer(remoteConfig.getValue(), realPoolMap);
-            Tuple<ObjectPool, BackendConnectionPool> tuple = new Tuple<ObjectPool, BackendConnectionPool>();
-            tuple.left = remoteContainer.getBioPool();
-            tuple.right = remoteContainer.getNioPool();
-            poolMap.put(remoteConfig.getKey(), tuple);
-        }
-        for (ServiceConfig serviceConfig : clientConfig.getServiceConfigs()) {
-            RemoteConfig remoteConfig = clientConfig.getRemoteConfigMap().get(serviceConfig.getRemote());
-            Tuple<ObjectPool, BackendConnectionPool> tuple = null;
-            if (!StringUtil.isEmpty(serviceConfig.getRemote())) {
-                tuple = poolMap.get(serviceConfig.getRemote());
-                if (tuple == null) {
-                    throw new ConfigurationException("remoteConfig=" + serviceConfig.getRemote() + " not found!!");
-                }
-            } else {
-                String ipAddress = serviceConfig.getIpAddressList();
-                tuple = poolMap.get(ipAddress);
-                if (ipAddress != null && tuple == null) {
-                    RemoteContainer remoteContainer = createRemoteContainer(ipAddress, realPoolMap, true);
-                    tuple = new Tuple<ObjectPool, BackendConnectionPool>();
-                    tuple.left = remoteContainer.getBioPool();
-                    tuple.right = remoteContainer.getNioPool();
-                    poolMap.put(ipAddress, tuple);
-                }
-            }
-        }
-        */
 
         //初始化service实例
         for (ServiceConfig serviceConfig : clientConfig.getServiceConfigs()) {

@@ -8,20 +8,20 @@ import com.meidusa.venus.client.xml.XmlInvocationHandler;
  */
 public class ServiceDefinedBean {
 
-        private String beanName;
+    private String beanName;
 
-        private Class<?> clazz;
+    private Class<?> clazz;
 
-        private Object service;
+    private Object service;
 
-        private XmlInvocationHandler handler;
+    private XmlInvocationHandler handler;
 
-        public ServiceDefinedBean(String beanName,Class<?> clazz, Object service,XmlInvocationHandler handler){
-            this.beanName = beanName;
-            this.clazz = clazz;
-            this.service = service;
-            this.handler = handler;
-        }
+    public ServiceDefinedBean(String beanName,Class<?> clazz, Object service,XmlInvocationHandler handler){
+        this.beanName = beanName;
+        this.clazz = clazz;
+        this.service = service;
+        this.handler = handler;
+    }
 
     public String getBeanName() {
         return beanName;

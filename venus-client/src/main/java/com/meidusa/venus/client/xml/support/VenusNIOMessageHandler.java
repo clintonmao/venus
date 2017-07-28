@@ -39,7 +39,9 @@ import com.meidusa.venus.util.Utils;
 import com.meidusa.venus.util.VenusTracerUtil;
 
 public class VenusNIOMessageHandler implements MessageHandler<VenusBackendConnection, byte[]> {
+
     private static Logger logger = LoggerFactory.getLogger(VenusNIOMessageHandler.class);
+
     private InvocationListenerContainer container;
 
     private VenusExceptionFactory venusExceptionFactory;
