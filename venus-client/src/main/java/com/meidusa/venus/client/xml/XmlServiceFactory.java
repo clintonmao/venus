@@ -23,14 +23,10 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
-import java.util.TimerTask;
 
 import com.meidusa.venus.client.*;
 import com.meidusa.venus.client.xml.bean.*;
-import com.meidusa.venus.client.xml.support.ClientBeanContext;
-import com.meidusa.venus.client.xml.support.ClientBeanUtilsBean;
-import com.meidusa.venus.client.xml.support.RemoteContainer;
-import com.meidusa.venus.client.xml.support.VenusNIOMessageHandler;
+import com.meidusa.venus.client.xml.support.*;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
@@ -88,42 +84,69 @@ import com.meidusa.venus.util.VenusBeanUtilsBean;
  * 基于xml配置服务工厂
  */
 public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware, InitializingBean, BeanFactoryPostProcessor {
+
     private static Logger logger = LoggerFactory.getLogger(ServiceFactory.class);
-    private Map<Class<?>, ServiceDefinedBean> servicesMap = new HashMap<Class<?>, ServiceDefinedBean>();
-    private Map<String, ServiceDefinedBean> serviceBeanMap = new HashMap<String, ServiceDefinedBean>();
-    private ConnectionManager connManager;
-    private ConnectionConnector connector;
+
+    /**
+     * 配置文件列表
+     */
     private Resource[] configFiles;
-    private BeanContext beanContext;
-    private boolean enableAsync = true;
-    private boolean shutdown = false;
+
+    /**
+     * 服务配置映射表
+     */
+    private Map<Class<?>, ServiceConfig> serviceConfigMap = new HashMap<Class<?>, ServiceConfig>();
+
+    /**
+     * 连接池映射表
+     */
     private Map<String, Tuple<ObjectPool, BackendConnectionPool>> poolMap = new HashMap<String, Tuple<ObjectPool, BackendConnectionPool>>(); // NOPMD
-    
-    private Map<String, Object> realPools = new HashMap<String, Object>();
+
+    /**
+     * 连接池映射表
+     */
+    private Map<String, Object> realPoolMap = new HashMap<String, Object>();
+
+    /**
+     * 服务实例映射表
+     */
+    private Map<Class<?>, ServiceDefinedBean> servicesMap = new HashMap<Class<?>, ServiceDefinedBean>();
+
+    /**
+     * 服务实例映射表
+     */
+    private Map<String, ServiceDefinedBean> serviceBeanMap = new HashMap<String, ServiceDefinedBean>();
+
+    private ConnectionManager connManager;
+
+    private ConnectionConnector connector;
+
+    private boolean enableAsync = true;
+
+    private boolean shutdown = false;
+
     private InvocationListenerContainer container = new InvocationListenerContainer();
+
     private VenusNIOMessageHandler handler = new VenusNIOMessageHandler();
+
     private VenusExceptionFactory venusExceptionFactory;
-    private Map<Class<?>, ServiceConfig> serviceConfig = new HashMap<Class<?>, ServiceConfig>();
+
     private int asyncExecutorSize = 10;
+
     private boolean needPing = false;
+
     private Timer reloadTimer = new Timer();
+
     private boolean enableReload = false;
+
     private boolean inited = false;
+
     private ResourceLoader resourceLoader = new DefaultResourceLoader();
+
+    private BeanContext beanContext;
+
 	private ApplicationContext applicationContext;
-	class ServiceDefinedBean {
-		String beanName;
-		Class<?> clazz;
-		Object service;
-		XmlInvocationHandler handler;
-		public ServiceDefinedBean(String beanName,Class<?> clazz, Object service,XmlInvocationHandler handler){
-			this.beanName = beanName;
-			this.clazz = clazz;
-			this.service = service;
-			this.handler = handler;
-		}
-		
-	}
+
     public boolean isEnableReload() {
         return enableReload;
     }
@@ -191,7 +214,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         	throw new ServiceNotFoundException(t.getName() +" not defined");
         }
         
-        return (T) object.service;
+        return (T) object.getService();
     }
     
     @SuppressWarnings("unchecked")
@@ -205,7 +228,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         	throw new ServiceNotFoundException(t.getName() +" not defined");
         }
         
-        return (T) object.service;
+        return (T) object.getService();
     }
 
 
@@ -294,11 +317,11 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
     }
 
     private synchronized void reloadConfiguration() throws Exception {
-        Map<Class<?>, ServiceDefinedBean> servicesMap = new HashMap<Class<?>, ServiceDefinedBean>();
-        Map<String, Tuple<ObjectPool, BackendConnectionPool>> poolMap = new HashMap<String, Tuple<ObjectPool, BackendConnectionPool>>();
         Map<Class<?>, ServiceConfig> serviceConfig = new HashMap<Class<?>, ServiceConfig>();
-
+        Map<String, Tuple<ObjectPool, BackendConnectionPool>> poolMap = new HashMap<String, Tuple<ObjectPool, BackendConnectionPool>>();
         final Map<String, Object> realPools = new HashMap<String, Object>();
+        Map<Class<?>, ServiceDefinedBean> servicesMap = new HashMap<Class<?>, ServiceDefinedBean>();
+
         try {
             loadConfiguration(poolMap, servicesMap, serviceConfig, realPools);
         } catch (Exception e) {
@@ -312,104 +335,60 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             ServiceDefinedBean source = entry.getValue();
             ServiceDefinedBean target = this.servicesMap.get(key);
             if (target != null) {
-                target.handler.setBioConnPool(source.handler.getBioConnPool());
-                target.handler.setNioConnPool(source.handler.getNioConnPool());
-                target.handler.setSerializeType((byte) source.handler.getSerializeType());
+                target.getHandler().setBioConnPool(source.getHandler().getBioConnPool());
+                target.getHandler().setNioConnPool(source.getHandler().getNioConnPool());
+                target.getHandler().setSerializeType((byte) source.getHandler().getSerializeType());
             } else {
                 this.servicesMap.put(key, source);
             }
         }
 
-        this.serviceConfig = serviceConfig;
-        final Map<String, Object> oldPools = this.realPools;
-        this.realPools = realPools;
+        this.serviceConfigMap = serviceConfig;
+        final Map<String, Object> oldPools = this.realPoolMap;
+        this.realPoolMap = realPools;
         reloadTimer.schedule(new ClosePoolTask(oldPools), 1000 * 30);
 
     }
 
-    class ClosePoolTask extends TimerTask {
-        Map<String, Object> pools;
 
-        public ClosePoolTask(Map<String, Object> pools) {
-            this.pools = pools;
-        }
 
-        @Override
-        public void run() {
-            for (Map.Entry<String, Object> pool : pools.entrySet()) {
-                try {
-                    if (pool.getValue() instanceof ObjectPool) {
-                        ((ObjectPool) pool.getValue()).close();
-                    } else if (pool.getValue() instanceof BackendConnectionPool) {
-                        ((BackendConnectionPool) pool.getValue()).close();
-                    }
-                } catch (Exception e) {
-                }
-            }
-        }
-    }
-
+    /**
+     * 加载配置并初始化连接、service实例
+     * @param poolMap
+     * @param servicesMap
+     * @param serviceConfigMap
+     * @param realPoolMap
+     * @throws Exception
+     */
     private void loadConfiguration(Map<String, Tuple<ObjectPool, BackendConnectionPool>> poolMap,
-                                   Map<Class<?>, ServiceDefinedBean> servicesMap, Map<Class<?>, ServiceConfig> serviceConfig, Map<String, Object> realPools)
+                                   Map<Class<?>, ServiceDefinedBean> servicesMap, Map<Class<?>, ServiceConfig> serviceConfigMap, Map<String, Object> realPoolMap)
             throws Exception {
-        VenusClient all = new VenusClient();
-        for (Resource configFile : configFiles) {
-           // configFile = (String) ConfigUtil.filter(configFile);
-            URL url = this.getClass().getResource("venusClientRule.xml");
-            if (url == null) {
-                throw new VenusConfigException("venusClientRule.xml not found!,pls rebuild venus!");
-            }
-            RuleSet ruleSet = new FromXmlRuleSet(url, new DigesterRuleParser());
-            Digester digester = new Digester();
-            digester.setValidating(false);
-            digester.addRuleSet(ruleSet);
+	    //加载客户端配置信息
+        VenusClientConfig clientConfig = loadClientConfig();
 
-            try {
-            	//resourceLoader.getResource(configFile.trim())
-	                InputStream is = configFile.getInputStream();
-	                try{
-	                VenusClient venus = (VenusClient) digester.parse(is);
-	                for (ServiceConfig config : venus.getServiceConfigs()) {
-	                    if (config.getType() == null) {
-	                        logger.error("Service type can not be null:" + configFile);
-	                        throw new ConfigurationException("Service type can not be null:" + configFile);
-	                    }
-	                }
-	                all.getRemoteMap().putAll(venus.getRemoteMap());
-	                all.getServiceConfigs().addAll(venus.getServiceConfigs());
-                }finally{
-                	if(is != null){
-                		is.close();
-                	}
-                }
-            } catch (Exception e) {
-                throw new ConfigurationException("can not parser xml:" + configFile, e);
-            }
-        }
-
-        // 初始化 remote，并且创建Pool
-        for (Map.Entry<String, Remote> entry : all.getRemoteMap().entrySet()) {
-            RemoteContainer container = createRemoteContainer(entry.getValue(), realPools);
+        // 初始化remote，并且创建Pool
+        for (Map.Entry<String, Remote> remoteEntry : clientConfig.getRemoteMap().entrySet()) {
+            RemoteContainer container = createRemoteContainer(remoteEntry.getValue(), realPoolMap);
             Tuple<ObjectPool, BackendConnectionPool> tuple = new Tuple<ObjectPool, BackendConnectionPool>();
             tuple.left = container.getBioPool();
             tuple.right = container.getNioPool();
-            poolMap.put(entry.getKey(), tuple);
+            poolMap.put(remoteEntry.getKey(), tuple);
         }
 
-        for (ServiceConfig config : all.getServiceConfigs()) {
-
-            Remote remote = all.getRemoteMap().get(config.getRemote());
+        //初始化service实例
+        for (ServiceConfig serviceConfig : clientConfig.getServiceConfigs()) {
+            Remote remote = clientConfig.getRemoteMap().get(serviceConfig.getRemote());
             Tuple<ObjectPool, BackendConnectionPool> tuple = null;
-            if (!StringUtil.isEmpty(config.getRemote())) {
-                tuple = poolMap.get(config.getRemote());
+            if (!StringUtil.isEmpty(serviceConfig.getRemote())) {
+                tuple = poolMap.get(serviceConfig.getRemote());
                 if (tuple == null) {
-                    throw new ConfigurationException("remote=" + config.getRemote() + " not found!!");
+                    throw new ConfigurationException("remote=" + serviceConfig.getRemote() + " not found!!");
                 }
             } else {
-                String ipAddress = config.getIpAddressList();
+                String ipAddress = serviceConfig.getIpAddressList();
                 tuple = poolMap.get(ipAddress);
                 if (ipAddress != null && tuple == null) {
-                    RemoteContainer container = createRemoteContainer(true, ipAddress, realPools);
+                    RemoteContainer container = createRemoteContainer(ipAddress, realPoolMap, true);
                     tuple = new Tuple<ObjectPool, BackendConnectionPool>();
                     tuple.left = container.getBioPool();
                     tuple.right = container.getNioPool();
@@ -429,9 +408,9 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
 
                 invocationHandler.setContainer(this.container);
 
-                Object object = Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{config.getType()}, invocationHandler);
+                Object object = Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{serviceConfig.getType()}, invocationHandler);
 
-                for (Method method : config.getType().getMethods()) {
+                for (Method method : serviceConfig.getType().getMethods()) {
                     Endpoint endpoint = method.getAnnotation(Endpoint.class);
                     if (endpoint != null) {
                         Class[] eclazz = method.getExceptionTypes();
@@ -443,32 +422,74 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
                     }
                 }
 
-                serviceConfig.put(config.getType(), config);
-                ServiceDefinedBean defined = new ServiceDefinedBean(config.getBeanName(),config.getType(),object, invocationHandler);
+                serviceConfigMap.put(serviceConfig.getType(), serviceConfig);
+                ServiceDefinedBean defined = new ServiceDefinedBean(serviceConfig.getBeanName(),serviceConfig.getType(),object, invocationHandler);
                 
-                if (config.getBeanName() != null) {
-                    serviceBeanMap.put(config.getBeanName(), defined);
+                if (serviceConfig.getBeanName() != null) {
+                    serviceBeanMap.put(serviceConfig.getBeanName(), defined);
                 }else{
-                	servicesMap.put(config.getType(), defined);
+                	servicesMap.put(serviceConfig.getType(), defined);
                 }
             } else {
-                if (config.getInstance() != null) {
-                    ServiceDefinedBean defined = new ServiceDefinedBean(config.getBeanName(),config.getType(),config.getInstance(), null);
+                if (serviceConfig.getInstance() != null) {
+                    ServiceDefinedBean defined = new ServiceDefinedBean(serviceConfig.getBeanName(),serviceConfig.getType(),serviceConfig.getInstance(), null);
                     
-                    if (config.getBeanName() != null) {
-                        serviceBeanMap.put(config.getBeanName(), defined);
+                    if (serviceConfig.getBeanName() != null) {
+                        serviceBeanMap.put(serviceConfig.getBeanName(), defined);
                     }else{
-                    	servicesMap.put(config.getType(), defined);
+                    	servicesMap.put(serviceConfig.getType(), defined);
                     }
                 } else {
-                    throw new ConfigurationException("Service instance or ipAddressList or remote can not be null:" + config.getType());
+                    throw new ConfigurationException("Service instance or ipAddressList or remote can not be null:" + serviceConfig.getType());
                 }
             }
 
         }
     }
 
-    private RemoteContainer createRemoteContainer(boolean share, String ipAddress, Map<String, Object> realPools) throws Exception {
+    /**
+     * 加载client配置信息
+     * @return
+     */
+    VenusClientConfig loadClientConfig(){
+        VenusClientConfig clientConfig = new VenusClientConfig();
+        for (Resource configFile : configFiles) {
+            // configFile = (String) ConfigUtil.filter(configFile);
+            URL url = this.getClass().getResource("venusClientRule.xml");
+            if (url == null) {
+                throw new VenusConfigException("venusClientRule.xml not found!,pls rebuild venus!");
+            }
+            RuleSet ruleSet = new FromXmlRuleSet(url, new DigesterRuleParser());
+            Digester digester = new Digester();
+            digester.setValidating(false);
+            digester.addRuleSet(ruleSet);
+
+            try {
+                //resourceLoader.getResource(configFile.trim())
+                InputStream is = configFile.getInputStream();
+                try{
+                    VenusClientConfig venus = (VenusClientConfig) digester.parse(is);
+                    for (ServiceConfig config : venus.getServiceConfigs()) {
+                        if (config.getType() == null) {
+                            logger.error("Service type can not be null:" + configFile);
+                            throw new ConfigurationException("Service type can not be null:" + configFile);
+                        }
+                    }
+                    clientConfig.getRemoteMap().putAll(venus.getRemoteMap());
+                    clientConfig.getServiceConfigs().addAll(venus.getServiceConfigs());
+                }finally{
+                    if(is != null){
+                        is.close();
+                    }
+                }
+            } catch (Exception e) {
+                throw new ConfigurationException("can not parser xml:" + configFile, e);
+            }
+        }
+        return clientConfig;
+    }
+
+    private RemoteContainer createRemoteContainer(String ipAddress, Map<String, Object> realPools, boolean share) throws Exception {
         RemoteContainer container = new RemoteContainer();
 
         if (!StringUtil.isEmpty(ipAddress)) {
@@ -652,7 +673,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
     }
 
     public ServiceConfig getServiceConfig(Class<?> type) {
-        return serviceConfig.get(type);
+        return serviceConfigMap.get(type);
     }
 
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
@@ -662,7 +683,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             ConfigurableListableBeanFactory cbf = beanFactory;
             for (Map.Entry<Class<?>, ServiceDefinedBean> entry : servicesMap.entrySet()) {
                 //cbf.registerResolvableDependency(entry.getKey(), entry.getValue().left);
-                final Object bean = entry.getValue().service;
+                final Object bean = entry.getValue().getService();
                 if(beanFactory instanceof BeanDefinitionRegistry){
                 	BeanDefinitionRegistry reg = (BeanDefinitionRegistry)beanFactory;
                 	GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
@@ -670,19 +691,19 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
                 	beanDefinition.setScope(BeanDefinition.SCOPE_SINGLETON);
                 	ConstructorArgumentValues args = new ConstructorArgumentValues();
                 	args.addIndexedArgumentValue(0,bean);
-                	args.addIndexedArgumentValue(1,entry.getValue().clazz);
+                	args.addIndexedArgumentValue(1,entry.getValue().getClazz());
                 	beanDefinition.setConstructorArgumentValues(args);
                 	
-                	String beanName = entry.getValue().clazz.getName()+"#0";
+                	String beanName = entry.getValue().getClazz().getName()+"#0";
             		beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
             		reg.registerBeanDefinition(beanName, beanDefinition);
                 }
             }
 
 			for (Map.Entry<String, ServiceDefinedBean> entry : serviceBeanMap.entrySet()) {
-				final Object bean = entry.getValue().service;
+				final Object bean = entry.getValue().getService();
 				if (beanFactory instanceof BeanDefinitionRegistry) {
-					String beanName = entry.getValue().beanName;
+					String beanName = entry.getValue().getBeanName();
 					
 					BeanDefinitionRegistry reg = (BeanDefinitionRegistry) beanFactory;
 					GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
@@ -691,7 +712,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
 					beanDefinition.setScope(BeanDefinition.SCOPE_SINGLETON);
 					ConstructorArgumentValues args = new ConstructorArgumentValues();
 					args.addIndexedArgumentValue(0, bean);
-					args.addIndexedArgumentValue(1, entry.getValue().clazz);
+					args.addIndexedArgumentValue(1, entry.getValue().getClazz());
 					beanDefinition.setConstructorArgumentValues(args);
 					
 					beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);

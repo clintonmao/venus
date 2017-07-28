@@ -5,9 +5,12 @@ import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.venus.client.xml.bean.Remote;
 
 public class RemoteContainer {
-    private ObjectPool bioPool;
-    private BackendConnectionPool nioPool;
+
     private Remote remote;
+
+    private ObjectPool bioPool;
+
+    private BackendConnectionPool nioPool;
 
     public ObjectPool getBioPool() {
         return bioPool;

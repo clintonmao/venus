@@ -18,7 +18,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class VenusClient {
+/**
+ * venus客户端配置
+ */
+public class VenusClientConfig {
     private List<ServiceConfig> serviceConfigs = new ArrayList<ServiceConfig>();
     private Map<String, Remote> remoteMap = new HashMap<String, Remote>();
 

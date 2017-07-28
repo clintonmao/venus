@@ -55,7 +55,7 @@ import com.meidusa.venus.client.xml.bean.FactoryConfig;
 import com.meidusa.venus.client.xml.bean.PoolConfig;
 import com.meidusa.venus.client.xml.bean.Remote;
 import com.meidusa.venus.client.xml.bean.ServiceConfig;
-import com.meidusa.venus.client.xml.bean.VenusClient;
+import com.meidusa.venus.client.xml.bean.VenusClientConfig;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.io.network.VenusBIOConnectionFactory;
 import com.meidusa.venus.io.packet.PacketConstant;
@@ -240,7 +240,7 @@ public class VenusPoolFactory implements BeanFactoryAware, InitializingBean {
     }
 
     private void loadConfiguration(List<ObjectPool> realPools) throws Exception {
-        VenusClient all = new VenusClient();
+        VenusClientConfig all = new VenusClientConfig();
         for (String configFile : configFiles) {
             configFile = (String) ConfigUtil.filter(configFile);
             RuleSet ruleSet = new FromXmlRuleSet(ServiceFactory.class.getResource("venusClientRule.xml"), new DigesterRuleParser());
@@ -250,7 +250,7 @@ public class VenusPoolFactory implements BeanFactoryAware, InitializingBean {
 
             try {
                 InputStream is = ResourceUtils.getURL(configFile.trim()).openStream();
-                VenusClient venus = (VenusClient) digester.parse(is);
+                VenusClientConfig venus = (VenusClientConfig) digester.parse(is);
                 for (ServiceConfig config : venus.getServiceConfigs()) {
                     if (config.getType() == null) {
                         throw new ConfigurationException("Service type can not be null:" + configFile);

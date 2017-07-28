@@ -9,7 +9,7 @@
 
 	</pattern>
 	<pattern value="venus-client">
-		<object-create-rule-with-init classname="com.meidusa.venus.client.xml.bean.VenusClient" attrname="class"/>
+		<object-create-rule-with-init classname="com.meidusa.venus.client.xml.bean.VenusClientConfig" attrname="class"/>
 		<set-properties-rule />
 		<bean-property-setter-byAttrname-rule pattern="property" attrname="name"/> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
 		
