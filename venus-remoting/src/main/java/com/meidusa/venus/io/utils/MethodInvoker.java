@@ -3,8 +3,8 @@ package com.meidusa.venus.io.utils;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 
-import com.meidusa.venus.convert.ConvertService;
-import com.meidusa.venus.convert.DefaultConvertService;
+import com.meidusa.venus.io.convert.ConvertService;
+import com.meidusa.venus.io.convert.DefaultConvertService;
 
 public class MethodInvoker {
     private static HashMap<Class<?>, HashMap<String, PropertyDescriptor>> classMap = new HashMap<Class<?>, HashMap<String, PropertyDescriptor>>();

@@ -1,6 +1,6 @@
 package com.meidusa.venus.io.serializer;
 
-import com.meidusa.venus.io.extension.ExtensionResolver;
+import com.meidusa.venus.io.utils.ExtensionResolver;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.serializer.bson.FastBsonSerializerWrapper;
 import com.meidusa.venus.io.serializer.java.JavaSerializer;

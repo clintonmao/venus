@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.meidusa.venus.convert;
+package com.meidusa.venus.io.convert;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;

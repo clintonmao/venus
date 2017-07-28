@@ -1,4 +1,4 @@
-package com.meidusa.venus.io.extension;
+package com.meidusa.venus.io.utils;
 
 import java.io.IOException;
 import java.util.Map.Entry;

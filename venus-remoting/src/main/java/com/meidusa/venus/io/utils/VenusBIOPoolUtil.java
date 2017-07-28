@@ -1,9 +1,8 @@
-package com.meidusa.venus.io.pool;
+package com.meidusa.venus.io.utils;
 
 import com.meidusa.toolkit.common.poolable.MultipleLoadBalanceObjectPool;
 import com.meidusa.toolkit.common.poolable.ObjectPool;
 import com.meidusa.toolkit.common.poolable.PoolableObjectPool;
-import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.venus.io.authenticate.Authenticator;
 import com.meidusa.venus.io.network.VenusBIOConnection;

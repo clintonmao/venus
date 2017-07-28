@@ -1,4 +1,4 @@
-package com.meidusa.venus.io.range;
+package com.meidusa.venus.io.serializer;
 
 import java.io.IOException;
 import java.lang.reflect.Type;

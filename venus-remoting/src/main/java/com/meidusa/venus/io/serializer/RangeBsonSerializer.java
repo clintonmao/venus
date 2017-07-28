@@ -1,4 +1,4 @@
-package com.meidusa.venus.io.range;
+package com.meidusa.venus.io.serializer;
 
 import com.meidusa.fastbson.parse.BSONScanner;
 import com.meidusa.fastbson.parse.BSONWriter;

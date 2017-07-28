@@ -1,4 +1,4 @@
-package com.meidusa.venus.io.decoder.util;
+package com.meidusa.venus.io.utils;
 
 public class HexDump {
     private static final int ROW_BYTES = 16;

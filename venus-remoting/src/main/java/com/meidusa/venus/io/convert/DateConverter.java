@@ -1,18 +1,18 @@
 /**
  * 
  */
-package com.meidusa.venus.convert;
+package com.meidusa.venus.io.convert;
 
 import java.lang.reflect.Type;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
 
 /**
  * @author Sun Ning
  * 
  */
-public class StringArrayConverter implements Converter {
+public class DateConverter implements Converter {
 
     /*
      * (non-Javadoc)
@@ -20,7 +20,16 @@ public class StringArrayConverter implements Converter {
      */
     @Override
     public Object convert(Object value, Type type) {
-        throw new UnsupportedOperationException();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        if (type instanceof Class && value.getClass().isAssignableFrom((Class) type)) {
+            return value;
+        } else {
+            try {
+                return format.parse(value.toString());
+            } catch (ParseException e) {
+                return null;
+            }
+        }
     }
 
     /*
@@ -30,10 +39,7 @@ public class StringArrayConverter implements Converter {
      */
     @Override
     public Object convert(Object value, Type type, String helper) {
-        if (value == null) {
-            return null;
-        }
-        return StringUtils.split(value.toString(), helper);
+        throw new UnsupportedOperationException();
     }
 
     /*

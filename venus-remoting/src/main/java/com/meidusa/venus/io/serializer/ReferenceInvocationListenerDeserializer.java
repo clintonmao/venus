@@ -1,4 +1,4 @@
-package com.meidusa.venus.notify.io.json;
+package com.meidusa.venus.io.serializer;
 
 import java.lang.reflect.Type;
 
