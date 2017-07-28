@@ -23,20 +23,28 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.meidusa.toolkit.common.bean.config.ConfigurationException;
+import com.meidusa.toolkit.common.poolable.MultipleLoadBalanceObjectPool;
+import com.meidusa.toolkit.common.poolable.ObjectPool;
+import com.meidusa.toolkit.common.poolable.PoolableObjectPool;
+import com.meidusa.toolkit.common.util.Tuple;
+import com.meidusa.toolkit.net.*;
+import com.meidusa.toolkit.util.StringUtil;
+import com.meidusa.venus.URL;
 import com.meidusa.venus.client.InvocationListenerContainer;
 import com.meidusa.venus.client.VenusInvocationHandler;
-import com.meidusa.venus.client.xml.bean.EndpointConfig;
-import com.meidusa.venus.client.xml.bean.ServiceConfig;
+import com.meidusa.venus.client.xml.bean.*;
+import com.meidusa.venus.client.xml.support.RemoteContainer;
+import com.meidusa.venus.client.xml.support.VenusNIOMessageHandler;
+import com.meidusa.venus.io.network.VenusBIOConnectionFactory;
+import com.meidusa.venus.io.network.VenusBackendConnectionFactory;
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.pool.ObjectPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.meidusa.fastjson.JSON;
 import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.toolkit.common.bean.util.InitialisationException;
-import com.meidusa.toolkit.net.BackendConnection;
-import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.ExceptionCode;
@@ -78,73 +86,56 @@ import com.meidusa.venus.util.VenusTracerUtil;
  * 
  */
 public class XmlInvocationHandler extends VenusInvocationHandler {
-	private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
+
     private static Logger logger = LoggerFactory.getLogger(XmlInvocationHandler.class);
+
     private static Logger performanceLogger = LoggerFactory.getLogger("venus.client.performance");
-    private InvocationListenerContainer container;
-    private ObjectPool bioConnPool;
-    private BackendConnectionPool nioConnPool;
-    private static AtomicLong sequenceId = new AtomicLong(1);
-    private XmlServiceFactory serviceFactory;
-    private VenusExceptionFactory venusExceptionFactory;
-    private boolean enableAsync = true;
+
+    private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
+
     private byte serializeType = PacketConstant.CONTENT_TYPE_JSON;
 
-    public boolean isEnableAsync() {
-        return enableAsync;
-    }
+    private static AtomicLong sequenceId = new AtomicLong(1);
 
-    public void setEnableAsync(boolean enableAsync) {
-        this.enableAsync = enableAsync;
-    }
+    private InvocationListenerContainer container;
 
-    public VenusExceptionFactory getVenusExceptionFactory() {
-        return venusExceptionFactory;
-    }
+    private XmlServiceFactory serviceFactory;
 
-    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
-        this.venusExceptionFactory = venusExceptionFactory;
-    }
+    private VenusExceptionFactory venusExceptionFactory;
 
-    public void setServiceFactory(XmlServiceFactory serviceFactory) {
-        this.serviceFactory = serviceFactory;
-    }
+    private boolean enableAsync = true;
 
-    public short getSerializeType() {
-        return serializeType;
-    }
+    private boolean needPing = false;
 
-    public void setSerializeType(byte serializeType) {
-        this.serializeType = serializeType;
-    }
+    private VenusNIOMessageHandler handler;
 
-    public InvocationListenerContainer getContainer() {
-        return container;
-    }
+    private ConnectionConnector connector;
 
-    public void setContainer(InvocationListenerContainer container) {
-        this.container = container;
-    }
+    /**
+     * 远程连接配置，包含ip相关信息
+     */
+    private RemoteConfig remoteConfig;
 
-    public ObjectPool getBioConnPool() {
-        return bioConnPool;
-    }
+    /**
+     * bio连接池映射表
+     */
+    private Map<String, ObjectPool> bioPoolMap = new HashMap<String, ObjectPool>(); // NOPMD
 
-    public void setBioConnPool(ObjectPool bioConnPool) {
-        this.bioConnPool = bioConnPool;
-    }
 
-    public BackendConnectionPool getNioConnPool() {
-        return nioConnPool;
-    }
+    /**
+     * nio连接映射表
+     */
+    private Map<String, BackendConnectionPool> nioPoolMap = new HashMap<String, BackendConnectionPool>(); // NOPMD
 
-    public void setNioConnPool(BackendConnectionPool nioConnPool) {
-        this.nioConnPool = nioConnPool;
-    }
+    /**
+     * 连接池映射表
+     */
+    private Map<String, Object> realPoolMap = new HashMap<String, Object>();
+
+    public void init() throws InitialisationException {}
 
     protected Object invokeRemoteService(Service service, Endpoint endpoint, Method method, EndpointParameter[] params, Object[] args) throws Exception {
         String apiName = VenusAnnotationUtils.getApiname(method, service, endpoint);
-
 
         AthenaTransactionId athenaTransactionId = null;
         if (service.athenaFlag()) {
@@ -201,22 +192,22 @@ public class XmlInvocationHandler extends VenusInvocationHandler {
 
         //调用
         if (async) {
-            return invokeRemoteServiceWithAsync(service,serviceRequestPacket,endpoint,traceID);
+            return invokeRemoteServiceWithAsync(traceID, service, endpoint, serviceRequestPacket);
         } else {
-            return invokeRemoteServiceWithSync(service,serviceRequestPacket,endpoint,traceID,method,serializer);
+            return invokeRemoteServiceWithSync(traceID, service, endpoint, method, serviceRequestPacket, serializer);
         }
     }
 
     /**
      * async异步调用
-     * @param service
-     * @param serviceRequestPacket
-     * @param endpoint
      * @param traceID
+     * @param service
+     * @param endpoint
+     * @param serviceRequestPacket
      * @return
      * @throws Exception
      */
-    Object invokeRemoteServiceWithAsync(Service service,SerializeServiceRequestPacket serviceRequestPacket,Endpoint endpoint,byte[] traceID) throws Exception{
+    Object invokeRemoteServiceWithAsync(byte[] traceID, Service service, Endpoint endpoint, SerializeServiceRequestPacket serviceRequestPacket) throws Exception{
         if (!this.isEnableAsync()) {
             throw new VenusConfigException("service async call disabled");
         }
@@ -224,9 +215,10 @@ public class XmlInvocationHandler extends VenusInvocationHandler {
         long start = TimeUtil.currentTimeMillis();
         long borrowed = start;
 
+        BackendConnectionPool nioConnPool = null;
         BackendConnection conn = null;
         try {
-
+            nioConnPool = getNioConnPool();
             if (nioConnPool instanceof RequestLoadbalanceObjectPool) {
                 conn = (BackendConnection) ((RequestLoadbalanceObjectPool) nioConnPool).borrowObject(serviceRequestPacket.parameterMap, endpoint);
             } else {
@@ -253,7 +245,7 @@ public class XmlInvocationHandler extends VenusInvocationHandler {
                 performanceLogger.debug(buffer.toString());
             }
 
-            if (conn != null) {
+            if (conn != null && nioConnPool != null) {
                 nioConnPool.returnObject(conn);
             }
         }
@@ -261,20 +253,18 @@ public class XmlInvocationHandler extends VenusInvocationHandler {
 
     /**
      * sync同步调用
-     * @param service
-     * @param serviceRequestPacket
-     * @param endpoint
      * @param traceID
+     * @param service
+     * @param endpoint
      * @param method
+     * @param serviceRequestPacket
      * @param serializer
      * @return
      * @throws Exception
      */
-    Object invokeRemoteServiceWithSync(Service service,SerializeServiceRequestPacket serviceRequestPacket,Endpoint endpoint,byte[] traceID,Method method,Serializer serializer) throws Exception{
+    Object invokeRemoteServiceWithSync(byte[] traceID, Service service, Endpoint endpoint, Method method, SerializeServiceRequestPacket serviceRequestPacket, Serializer serializer) throws Exception{
         long start = TimeUtil.currentTimeMillis();
         long borrowed = start;
-
-        AbstractBIOConnection conn = null;
         int soTimeout = 0;
         int oldTimeout = 0;
         boolean success = true;
@@ -283,7 +273,11 @@ public class XmlInvocationHandler extends VenusInvocationHandler {
         String remoteAddress = null;
         boolean invalided = false;
         boolean nullForSystemException = false;
+
+        ObjectPool bioConnPool = null;
+        AbstractBIOConnection conn = null;
         try {
+            bioConnPool = getBioConnPool();
             if (bioConnPool instanceof RequestLoadbalanceObjectPool) {
                 conn = (AbstractBIOConnection) ((RequestLoadbalanceObjectPool) bioConnPool).borrowObject(serviceRequestPacket.parameterMap, endpoint);
             } else {
@@ -493,7 +487,7 @@ public class XmlInvocationHandler extends VenusInvocationHandler {
                 }
             }
 
-            if (conn != null && !invalided) {
+            if (conn != null && bioConnPool != null && !invalided) {
                 if (!conn.isClosed() && soTimeout > 0) {
                     conn.setSoTimeout(oldTimeout);
                 }
@@ -501,6 +495,150 @@ public class XmlInvocationHandler extends VenusInvocationHandler {
             }
 
         }
+    }
+
+    /**
+     * 根据远程配置获取bio连接池
+     * @return
+     * @throws Exception
+     */
+    public ObjectPool getBioConnPool() throws Exception {
+        String ipAddressList = remoteConfig.getFactory().getIpAddressList();
+        if(bioPoolMap.get(ipAddressList) != null){
+            return bioPoolMap.get(ipAddressList);
+        }
+
+        RemoteContainer remoteContainer = createRemoteContainer(remoteConfig, realPoolMap);
+        bioPoolMap.put(remoteConfig.getFactory().getIpAddressList(),remoteContainer.getBioPool());
+        return remoteContainer.getBioPool();
+    }
+
+
+    /**
+     * 根据远程配置获取nio连接池
+     * @return
+     * @throws Exception
+     */
+    public BackendConnectionPool getNioConnPool() throws Exception {
+        String ipAddressList = remoteConfig.getFactory().getIpAddressList();
+        if(nioPoolMap.get(ipAddressList) != null){
+            return nioPoolMap.get(ipAddressList);
+        }
+
+        RemoteContainer remoteContainer = createRemoteContainer(remoteConfig, realPoolMap);
+        nioPoolMap.put(remoteConfig.getFactory().getIpAddressList(),remoteContainer.getNioPool());
+        return remoteContainer.getNioPool();
+    }
+
+    /**
+     * 创建连接池
+     * @param remoteConfig
+     * @param realPools
+     * @return
+     * @throws Exception
+     */
+    private RemoteContainer createRemoteContainer(RemoteConfig remoteConfig, Map<String, Object> realPools) throws Exception {
+        RemoteContainer container = new RemoteContainer();
+        FactoryConfig factoryConfig = remoteConfig.getFactory();
+        if (factoryConfig == null) {
+            throw new ConfigurationException(remoteConfig.getName() + " factory cannot be null");
+        }
+        PoolConfig poolConfig = remoteConfig.getPool();
+        String ipAddress = factoryConfig.getIpAddressList();
+        if (!StringUtil.isEmpty(ipAddress)) {
+            String ipList[] = StringUtil.split(ipAddress, ", ");
+            PoolableObjectPool bioPools[] = new PoolableObjectPool[ipList.length];
+            BackendConnectionPool nioPools[] = new BackendConnectionPool[ipList.length];
+
+            for (int i = 0; i < ipList.length; i++) {
+                String shareName = remoteConfig.isShare() ? "SHARED-" : "";
+                if (remoteConfig.isShare()) {
+                    nioPools[i] = (PollingBackendConnectionPool) realPools.get("N-" + shareName + ipList[i]);
+                    bioPools[i] = (PoolableObjectPool) realPools.get("B-" + shareName + ipList[i]);
+                    if (nioPools[i] != null) {
+                        continue;
+                    }
+                }
+
+                VenusBackendConnectionFactory nioFactory = new VenusBackendConnectionFactory();
+                VenusBIOConnectionFactory bioFactory = new VenusBIOConnectionFactory();
+                if (remoteConfig.getAuthenticator() != null) {
+                    bioFactory.setAuthenticator(remoteConfig.getAuthenticator());
+                }
+
+                nioPools[i] = new PollingBackendConnectionPool("N-" + shareName + ipList[i], nioFactory, 8);
+                bioPools[i] = new PoolableObjectPool();
+                if (poolConfig != null) {
+                    BeanUtils.copyProperties(nioPools[i], poolConfig);
+                    BeanUtils.copyProperties(bioPools[i], poolConfig);
+                } else {
+                    bioPools[i].setTestOnBorrow(true);
+                    bioPools[i].setTestWhileIdle(true);
+                }
+
+                if (remoteConfig.getAuthenticator() != null) {
+                    nioFactory.setAuthenticator(remoteConfig.getAuthenticator());
+                    bioFactory.setAuthenticator(remoteConfig.getAuthenticator());
+                }
+
+                bioFactory.setNeedPing(needPing);
+                if (factoryConfig != null) {
+
+                    BeanUtils.copyProperties(nioFactory, factoryConfig);
+                    BeanUtils.copyProperties(bioFactory, factoryConfig);
+                }
+                String temp[] = StringUtil.split(ipList[i], ":");
+                if (temp.length > 1) {
+                    nioFactory.setHost(temp[0]);
+                    nioFactory.setPort(Integer.valueOf(temp[1]));
+
+                    bioFactory.setHost(temp[0]);
+                    bioFactory.setPort(Integer.valueOf(temp[1]));
+                } else {
+                    nioFactory.setHost(temp[0]);
+                    nioFactory.setPort(16800);
+
+                    bioFactory.setHost(temp[0]);
+                    bioFactory.setPort(16800);
+                }
+
+                if (this.isEnableAsync()) {
+                    nioFactory.setConnector(this.connector);
+                    nioFactory.setMessageHandler(handler);
+                    // nioPools[i].setName("n-connPool-"+nioFactory.getIpAddress());
+                    nioPools[i].init();
+                    realPools.put(nioPools[i].getName(), nioPools[i]);
+                }
+                bioPools[i].setName("B-" + shareName + bioFactory.getHost() + ":" + bioFactory.getPort());
+                bioPools[i].setFactory(bioFactory);
+                bioPools[i].init();
+                realPools.put(bioPools[i].getName(), bioPools[i]);
+            }
+
+            if (ipList.length > 1) {
+                MultipleLoadBalanceObjectPool bioPool = new MultipleLoadBalanceObjectPool(remoteConfig.getLoadbalance(), bioPools);
+                MultipleLoadBalanceBackendConnectionPool nioPool = new MultipleLoadBalanceBackendConnectionPool(remoteConfig.getName(), remoteConfig.getLoadbalance(),
+                        nioPools);
+
+                bioPool.setName("B-V-" + remoteConfig.getName());
+
+                container.setBioPool(bioPool);
+                container.setNioPool(nioPool);
+                bioPool.init();
+                nioPool.init();
+
+                realPools.put(bioPool.getName(), bioPool);
+                realPools.put(nioPool.getName(), nioPool);
+            } else {
+                container.setBioPool(bioPools[0]);
+                container.setNioPool(nioPools[0]);
+            }
+            container.setRemoteConfig(remoteConfig);
+        } else {
+            throw new IllegalArgumentException("remtoe=" + remoteConfig.getName() + ", ipaddress cannot be null");
+        }
+
+        return container;
     }
 
     private void setTransactionId(SerializeServiceRequestPacket serviceRequestPacket, AthenaTransactionId athenaTransactionId) {
@@ -519,7 +657,64 @@ public class XmlInvocationHandler extends VenusInvocationHandler {
         }
     }
 
-    public void init() throws InitialisationException {
 
+    public boolean isEnableAsync() {
+        return enableAsync;
+    }
+
+    public void setEnableAsync(boolean enableAsync) {
+        this.enableAsync = enableAsync;
+    }
+
+    public VenusExceptionFactory getVenusExceptionFactory() {
+        return venusExceptionFactory;
+    }
+
+    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
+        this.venusExceptionFactory = venusExceptionFactory;
+    }
+
+    public void setServiceFactory(XmlServiceFactory serviceFactory) {
+        this.serviceFactory = serviceFactory;
+    }
+
+    public short getSerializeType() {
+        return serializeType;
+    }
+
+    public void setSerializeType(byte serializeType) {
+        this.serializeType = serializeType;
+    }
+
+    public InvocationListenerContainer getContainer() {
+        return container;
+    }
+
+    public void setContainer(InvocationListenerContainer container) {
+        this.container = container;
+    }
+
+    public RemoteConfig getRemoteConfig() {
+        return remoteConfig;
+    }
+
+    public void setRemoteConfig(RemoteConfig remoteConfig) {
+        this.remoteConfig = remoteConfig;
+    }
+
+    public VenusNIOMessageHandler getHandler() {
+        return handler;
+    }
+
+    public void setHandler(VenusNIOMessageHandler handler) {
+        this.handler = handler;
+    }
+
+    public ConnectionConnector getConnector() {
+        return connector;
+    }
+
+    public void setConnector(ConnectionConnector connector) {
+        this.connector = connector;
     }
 }

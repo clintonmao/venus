@@ -15,10 +15,15 @@
 package com.meidusa.venus.client.xml.bean;
 
 public class FactoryConfig {
+
     private String ipAddressList = "127.0.0.1:16800";
+
     private int sendBufferSize = 64;
+
     private int receiveBufferSize = 64;
+
     private int coTimeout = 5000;
+
     private int soTimeout = 30000;
 
     public String getIpAddressList() {

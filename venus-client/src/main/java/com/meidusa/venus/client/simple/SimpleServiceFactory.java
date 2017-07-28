@@ -34,7 +34,9 @@ import com.meidusa.venus.io.packet.DummyAuthenPacket;
  * 
  */
 public class SimpleServiceFactory implements ServiceFactory {
+
     private VenusExceptionFactory venusExceptionFactory;
+
     private Authenticator authenticator;
 
     /**
@@ -46,8 +48,11 @@ public class SimpleServiceFactory implements ServiceFactory {
      * 连接超时时间
      */
     private int coTimeout = 5 * 1000;
+
     private Map<Class<?>, Tuple<Object, SimpleInvocationHandler>> servicesMap = new HashMap<Class<?>, Tuple<Object, SimpleInvocationHandler>>();
+
     private String host;
+
     private int port;
 
     public SimpleServiceFactory(String host, int port) {

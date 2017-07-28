@@ -17,13 +17,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ServiceConfig {
-    private String remote;
-    private Class<?> type;
-    private Object instance;
+
     private String beanName;
+
+    private Class<?> type;
+
+    private Object instance;
+
+    /**
+     * 远程配置名称
+     */
+    private String remote;
+
+    /**
+     * ip地址列表
+     */
     private String ipAddressList;
+
     private Map<String, EndpointConfig> endPointMap = new HashMap<String, EndpointConfig>();
+
     private int timeWait;
+
     private boolean enabled = true;
     
     public int getTimeWait() {

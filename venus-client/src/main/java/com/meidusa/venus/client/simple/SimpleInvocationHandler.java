@@ -60,6 +60,7 @@ public class SimpleInvocationHandler extends VenusInvocationHandler {
 
     private VenusBIOConnectionFactory connFactory = null;
 
+    //TODO 将url、配置信息抽象为实体
     private String host;
 
     private int port;
@@ -202,12 +203,12 @@ public class SimpleInvocationHandler extends VenusInvocationHandler {
     VenusBIOConnection getConnection(String host, int port, int coTimeout, int soTimeout,int timeWait,Authenticator<HandshakePacket, AuthenPacket> authenticator) throws Exception {
         if(connFactory == null){
             connFactory = new VenusBIOConnectionFactory();
-            connFactory.setHost(host);
-            connFactory.setPort(port);
-            connFactory.setCoTimeout(coTimeout);
-            connFactory.setSoTimeout(soTimeout);
-		    connFactory.setAuthenticator(authenticator);
         }
+        connFactory.setHost(host);
+        connFactory.setPort(port);
+        connFactory.setCoTimeout(coTimeout);
+        connFactory.setSoTimeout(soTimeout);
+        connFactory.setAuthenticator(authenticator);
         VenusBIOConnection conn = connFactory.makeObject();
         if (timeWait > 0) {
             conn.setSoTimeout(timeWait);

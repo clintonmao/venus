@@ -15,13 +15,26 @@ package com.meidusa.venus.client.xml.bean;
 
 import com.meidusa.venus.io.authenticate.Authenticator;
 
+/**
+ * 远程配置
+ */
 public class RemoteConfig {
+
     private String name;
-    private int loadbalance = 1;
+
     private FactoryConfig factory;
-    private boolean share = true;
+
+    /**
+     * 连接池配置
+     */
     private PoolConfig pool;
+
+    private boolean share = true;
+
+    private int loadbalance = 1;
+
     private boolean enabled =true;
+
     private Authenticator authenticator;
 
     public String getName() {
@@ -79,5 +92,18 @@ public class RemoteConfig {
 	public void setShare(boolean share) {
 		this.share = share;
 	}
+
+    /**
+     * 根据ip地址段构造缺省的远程配置
+     * @param ipAddressList
+     * @return
+     */
+	public static RemoteConfig newInstace(String ipAddressList){
+        FactoryConfig factoryConfig = new FactoryConfig();
+        factoryConfig.setIpAddressList(ipAddressList);
+        RemoteConfig remoteConfig = new RemoteConfig();
+        remoteConfig.setFactory(factoryConfig);
+        return remoteConfig;
+    }
 
 }

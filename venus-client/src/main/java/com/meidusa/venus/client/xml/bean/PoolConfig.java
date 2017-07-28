@@ -14,6 +14,7 @@
 package com.meidusa.venus.client.xml.bean;
 
 public class PoolConfig {
+
     private int maxActive = 16;
     private int maxIdle = 16;
     private int minIdle = 3;
