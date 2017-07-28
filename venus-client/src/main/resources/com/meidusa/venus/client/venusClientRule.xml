@@ -34,8 +34,8 @@
 			</pattern>
 		</pattern>
 		
-		<pattern value="remotes/remote">
-			<object-create-rule-with-init classname="com.meidusa.venus.client.xml.bean.Remote"/>
+		<pattern value="remotes/remoteConfig">
+			<object-create-rule-with-init classname="com.meidusa.venus.client.xml.bean.RemoteConfig"/>
 			<set-properties-rule />
 			<bean-property-setter-byAttrname-rule pattern="property" attrname="name"/> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
 			<pattern value="factory">

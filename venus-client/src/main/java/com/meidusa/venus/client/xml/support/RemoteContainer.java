@@ -2,11 +2,11 @@ package com.meidusa.venus.client.xml.support;
 
 import com.meidusa.toolkit.common.poolable.ObjectPool;
 import com.meidusa.toolkit.net.BackendConnectionPool;
-import com.meidusa.venus.client.xml.bean.Remote;
+import com.meidusa.venus.client.xml.bean.RemoteConfig;
 
 public class RemoteContainer {
 
-    private Remote remote;
+    private RemoteConfig remoteConfig;
 
     private ObjectPool bioPool;
 
@@ -28,12 +28,12 @@ public class RemoteContainer {
         this.nioPool = nioPool;
     }
 
-    public Remote getRemote() {
-        return remote;
+    public RemoteConfig getRemoteConfig() {
+        return remoteConfig;
     }
 
-    public void setRemote(Remote remote) {
-        this.remote = remote;
+    public void setRemoteConfig(RemoteConfig remoteConfig) {
+        this.remoteConfig = remoteConfig;
     }
 
 }

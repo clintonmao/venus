@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.meidusa.venus.client.xml.bean.*;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
@@ -51,11 +52,7 @@ import com.meidusa.toolkit.common.poolable.PoolableObjectPool;
 import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.venus.client.ServiceFactory;
-import com.meidusa.venus.client.xml.bean.FactoryConfig;
-import com.meidusa.venus.client.xml.bean.PoolConfig;
-import com.meidusa.venus.client.xml.bean.Remote;
-import com.meidusa.venus.client.xml.bean.ServiceConfig;
-import com.meidusa.venus.client.xml.bean.VenusClientConfig;
+import com.meidusa.venus.client.xml.bean.RemoteConfig;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.io.network.VenusBIOConnectionFactory;
 import com.meidusa.venus.io.packet.PacketConstant;
@@ -256,7 +253,7 @@ public class VenusPoolFactory implements BeanFactoryAware, InitializingBean {
                         throw new ConfigurationException("Service type can not be null:" + configFile);
                     }
                 }
-                all.getRemoteMap().putAll(venus.getRemoteMap());
+                all.getRemoteConfigMap().putAll(venus.getRemoteConfigMap());
                 all.getServiceConfigs().addAll(venus.getServiceConfigs());
             } catch (Exception e) {
                 throw new ConfigurationException("can not parser xml:" + configFile, e);
@@ -264,25 +261,25 @@ public class VenusPoolFactory implements BeanFactoryAware, InitializingBean {
         }
 
         // 初始化 remote，并且创建Pool
-        for (Map.Entry<String, Remote> entry : all.getRemoteMap().entrySet()) {
+        for (Map.Entry<String, RemoteConfig> entry : all.getRemoteConfigMap().entrySet()) {
             pool = createObjectPool(entry.getValue(), realPools);
         }
     }
 
-    private ObjectPool createObjectPool(Remote remote, List<ObjectPool> realPools) throws Exception {
-        FactoryConfig factoryConfig = remote.getFactory();
+    private ObjectPool createObjectPool(RemoteConfig remoteConfig, List<ObjectPool> realPools) throws Exception {
+        FactoryConfig factoryConfig = remoteConfig.getFactory();
         if (factoryConfig == null) {
-            throw new ConfigurationException(remote.getName() + " factory cannot be null");
+            throw new ConfigurationException(remoteConfig.getName() + " factory cannot be null");
         }
-        PoolConfig poolConfig = remote.getPool();
+        PoolConfig poolConfig = remoteConfig.getPool();
         String ipAddress = factoryConfig.getIpAddressList();
         if (!StringUtil.isEmpty(ipAddress)) {
             String ipList[] = StringUtil.split(ipAddress, ", ");
             PoolableObjectPool bioPools[] = new PoolableObjectPool[ipList.length];
             for (int i = 0; i < ipList.length; i++) {
                 VenusBIOConnectionFactory bioFactory = new VenusBIOConnectionFactory();
-                if (remote.getAuthenticator() != null) {
-                    bioFactory.setAuthenticator(remote.getAuthenticator());
+                if (remoteConfig.getAuthenticator() != null) {
+                    bioFactory.setAuthenticator(remoteConfig.getAuthenticator());
                 }
 
                 bioPools[i] = new PoolableObjectPool();
@@ -308,14 +305,14 @@ public class VenusPoolFactory implements BeanFactoryAware, InitializingBean {
                 realPools.add(bioPools[i]);
             }
 
-            MultipleLoadBalanceObjectPool bioPool = new MultipleLoadBalanceObjectPool(remote.getLoadbalance(), bioPools);
-            bioPool.setName("b-multi-connPool-" + remote.getName());
+            MultipleLoadBalanceObjectPool bioPool = new MultipleLoadBalanceObjectPool(remoteConfig.getLoadbalance(), bioPools);
+            bioPool.setName("b-multi-connPool-" + remoteConfig.getName());
 
             bioPool.init();
             realPools.add(bioPool);
             return bioPool;
         } else {
-            throw new IllegalArgumentException("remtoe=" + remote.getName() + ", ipaddress cannot be null");
+            throw new IllegalArgumentException("remtoe=" + remoteConfig.getName() + ", ipaddress cannot be null");
         }
     }
 

@@ -3,7 +3,7 @@
 <venus-client xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:noNamespaceSchemaLocation="venus-client.xsd">
 	<remotes>
-		<remote name="defaultRemote15" loadbalance="1">
+		<remoteConfig name="defaultRemote15" loadbalance="1">
 			<!-- 与远程连接的socket相关的配置 -->
 			<factory>
 				<!-- 支持多节点负责均衡的高可用配置，默认采用轮询  -->
@@ -38,6 +38,6 @@
 				<property name="serializeType">0</property>
 			</authenticator>
 			
-		</remote>
+		</remoteConfig>
 	</remotes>
 </venus-client>

@@ -15,7 +15,7 @@ package com.meidusa.venus.client.xml.bean;
 
 import com.meidusa.venus.io.authenticate.Authenticator;
 
-public class Remote {
+public class RemoteConfig {
     private String name;
     private int loadbalance = 1;
     private FactoryConfig factory;

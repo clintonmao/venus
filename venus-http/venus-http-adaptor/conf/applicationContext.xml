@@ -23,7 +23,7 @@
     <bean id="venusPoolFactory" class="com.meidusa.venus.frontend.http.VenusPoolFactory" destroy-method="destroy">
         <property name="configFiles">
             <list>
-                <value>file:${project.home:.}/conf/venus-remote.xml</value>
+                <value>file:${project.home:.}/conf/venus-remoteConfig.xml</value>
             </list>
         </property>
     </bean>

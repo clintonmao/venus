@@ -23,22 +23,22 @@ import java.util.Map;
  */
 public class VenusClientConfig {
     private List<ServiceConfig> serviceConfigs = new ArrayList<ServiceConfig>();
-    private Map<String, Remote> remoteMap = new HashMap<String, Remote>();
+    private Map<String, RemoteConfig> remoteConfigMap = new HashMap<String, RemoteConfig>();
 
     public void addService(ServiceConfig config) {
         serviceConfigs.add(config);
     }
 
-    public void addRemote(Remote remote) {
-        remoteMap.put(remote.getName(), remote);
+    public void addRemote(RemoteConfig remoteConfig) {
+        remoteConfigMap.put(remoteConfig.getName(), remoteConfig);
     }
 
     public List<ServiceConfig> getServiceConfigs() {
         return serviceConfigs;
     }
 
-    public Map<String, Remote> getRemoteMap() {
-        return remoteMap;
+    public Map<String, RemoteConfig> getRemoteConfigMap() {
+        return remoteConfigMap;
     }
 
 }
