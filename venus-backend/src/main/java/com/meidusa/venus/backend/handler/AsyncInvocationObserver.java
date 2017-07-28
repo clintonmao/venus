@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.network.handler;
+package com.meidusa.venus.backend.handler;
 
 import com.meidusa.venus.backend.EndpointInvocation;
 import com.meidusa.venus.backend.InvocationObserver;

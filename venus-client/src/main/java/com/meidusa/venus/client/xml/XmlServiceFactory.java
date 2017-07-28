@@ -248,14 +248,13 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      */
     private synchronized void initConfiguration() throws Exception {
         Map<Class<?>, ServiceConfig> serviceConfigMap = new HashMap<Class<?>, ServiceConfig>();
-        Map<String, Tuple<ObjectPool, BackendConnectionPool>> poolMap = new HashMap<String, Tuple<ObjectPool, BackendConnectionPool>>();
-        final Map<String, Object> realPoolMap = new HashMap<String, Object>();
         Map<Class<?>, ServiceDefinedBean> servicesMap = new HashMap<Class<?>, ServiceDefinedBean>();
 
         try {
-            loadConfiguration(serviceConfigMap, poolMap, realPoolMap, servicesMap);
+            loadConfiguration(serviceConfigMap, servicesMap);
         } catch (Exception e) {
-            reloadTimer.schedule(new ClosePoolTask(realPoolMap), 1000 * 30);
+            //TODO 将连接池关闭定时逻辑移到XmlInvocationHandler中
+            //reloadTimer.schedule(new ClosePoolTask(realPoolMap), 1000 * 30);
             throw e;
         }
 
@@ -291,13 +290,11 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
     /**
      * 加载配置并初始化连接、service实例
      * @param serviceConfigMap
-     * @param poolMap
-     * @param realPoolMap
      * @param servicesMap
      * @throws Exception
      */
-    private void loadConfiguration(Map<Class<?>, ServiceConfig> serviceConfigMap, Map<String, Tuple<ObjectPool, BackendConnectionPool>> poolMap,
-                                   Map<String, Object> realPoolMap, Map<Class<?>, ServiceDefinedBean> servicesMap)
+    private void loadConfiguration(Map<Class<?>, ServiceConfig> serviceConfigMap,
+                                   Map<Class<?>, ServiceDefinedBean> servicesMap)
             throws Exception {
 	    //加载客户端配置信息
         VenusClientConfig clientConfig = loadClientConfig();

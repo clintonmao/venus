@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.network.handler;
+package com.meidusa.venus.backend.handler;
 
 import com.meidusa.fastjson.JSON;
 import com.meidusa.fastmark.feature.SerializerFeature;

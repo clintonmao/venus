@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.network.handler;
+package com.meidusa.venus.backend.handler;
 
 import com.meidusa.toolkit.net.Connection;
 import com.meidusa.toolkit.net.util.InetAddressUtil;

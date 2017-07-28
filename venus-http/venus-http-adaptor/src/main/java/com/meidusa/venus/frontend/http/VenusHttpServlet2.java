@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.meidusa.venus.backend.network.handler.LogHandler;
+import com.meidusa.venus.backend.handler.LogHandler;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -352,7 +352,7 @@ public class VenusHttpServlet2 extends HttpServlet {
         VenusBIOConnection conn = null;
         try {
             UtilTimerStack.push(ENDPOINT_INVOKED_TIME);
-            conn = (VenusBIOConnection) this.getConnectionPolling();
+            conn = this.getConnectionPolling();
             JsonVenusRequestPacket request = new JsonVenusRequestPacket();
             request.apiName = api;
             request.params = JSON.toJSONString(paramters);

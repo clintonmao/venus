@@ -36,7 +36,7 @@ import com.meidusa.venus.backend.interceptor.Interceptor;
 import com.meidusa.venus.backend.interceptor.InterceptorMapping;
 import com.meidusa.venus.backend.interceptor.InterceptorStack;
 import com.meidusa.venus.backend.interceptor.config.InterceptorConfig;
-import com.meidusa.venus.backend.network.handler.CodeMapScanner;
+import com.meidusa.venus.backend.handler.CodeMapScanner;
 import com.meidusa.venus.backend.services.AbstractServiceManager;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.services.Service;

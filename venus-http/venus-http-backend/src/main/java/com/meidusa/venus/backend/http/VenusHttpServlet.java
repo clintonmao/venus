@@ -6,7 +6,7 @@ import com.meidusa.venus.backend.DefaultEndpointInvocation;
 import com.meidusa.venus.backend.RequestInfo;
 import com.meidusa.venus.backend.Response;
 import com.meidusa.venus.backend.context.RequestContext;
-import com.meidusa.venus.backend.network.handler.LogHandler;
+import com.meidusa.venus.backend.handler.LogHandler;
 import com.meidusa.venus.backend.profiling.UtilTimerStack;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.services.Service;
@@ -302,7 +302,7 @@ public class VenusHttpServlet extends HttpServlet {
 
             if (e instanceof CodedException) {
                 response.setErrorCode(((CodedException) e).getErrorCode());
-                response.setErrorMessage(((CodedException) e).getMessage());
+                response.setErrorMessage(e.getMessage());
             } else {
                 int errorCode = 0;
                 if (venusExceptionFactory != null) {

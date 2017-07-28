@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.network.handler;
+package com.meidusa.venus.backend.handler;
 
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
@@ -191,7 +191,7 @@ public class ServiceRunnable extends MultiQueueRunnable {
                     }
                 } else {
                     try {
-                        Method method = e.getClass().getMethod("getErrorCode", new Class[]{});
+                        Method method = e.getClass().getMethod("getErrorCode");
                         int i = (Integer) method.invoke(e);
                         error.errorCode = i;
                         if (logger.isDebugEnabled()) {

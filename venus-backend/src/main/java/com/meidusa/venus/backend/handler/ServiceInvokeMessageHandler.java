@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.network.handler;
+package com.meidusa.venus.backend.handler;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -58,7 +58,6 @@ import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
-import com.meidusa.venus.service.monitor.MonitorRuntime;
 import com.meidusa.venus.util.ClasspathAnnotationScanner;
 import com.meidusa.venus.util.Range;
 import com.meidusa.venus.util.UUID;
@@ -267,7 +266,7 @@ public class ServiceInvokeMessageHandler implements MessageHandler<VenusFrontend
                     }
                     
                     if(request != null){
-                    	logPerformance(ep,request.traceId == null ? UUID.toString(PacketConstant.EMPTY_TRACE_ID) : UUID.toString(request.traceId),apiPacket.apiName,waitTime,0,conn.getHost(),finalSourceIp,request.clientId,request.clientRequestId,request.parameterMap,(Object)error);
+                    	logPerformance(ep,request.traceId == null ? UUID.toString(PacketConstant.EMPTY_TRACE_ID) : UUID.toString(request.traceId),apiPacket.apiName,waitTime,0,conn.getHost(),finalSourceIp,request.clientId,request.clientRequestId,request.parameterMap, error);
                     	
                     	if (e instanceof VenusExceptionLevel) {
                             if (((VenusExceptionLevel) e).getLevel() != null) {
@@ -357,7 +356,7 @@ public class ServiceInvokeMessageHandler implements MessageHandler<VenusFrontend
 	                    if(filter != null){
 	                    	filter.before(request);
 	                    }
-	                    logPerformance(endpoint,UUID.toString(request.traceId),apiName,waitTime,0,conn.getHost(),finalSourceIp,request.clientId,request.clientRequestId,request.parameterMap,(Object)errorPacket);
+	                    logPerformance(endpoint,UUID.toString(request.traceId),apiName,waitTime,0,conn.getHost(),finalSourceIp,request.clientId,request.clientRequestId,request.parameterMap, errorPacket);
 	                    if(filter != null){
 	                    	filter.after(errorPacket);
 	                    }
@@ -537,7 +536,7 @@ public class ServiceInvokeMessageHandler implements MessageHandler<VenusFrontend
             ErrorPacket error = new ErrorPacket();
             AbstractServicePacket.copyHead(request, error);
             error.errorCode = VenusExceptionCodeConstant.INVOCATION_ABORT_WAIT_TIMEOUT;
-            error.message = String.format(TIMEOUT,new Object[]{request.apiName,conn.getLocalHost(),waitTime});
+            error.message = String.format(TIMEOUT, request.apiName,conn.getLocalHost(),waitTime);
             return error;
         }
 

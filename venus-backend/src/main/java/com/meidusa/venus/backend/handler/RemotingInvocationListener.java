@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.network.handler;
+package com.meidusa.venus.backend.handler;
 
 import java.beans.PropertyDescriptor;
 import java.util.HashMap;
