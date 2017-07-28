@@ -108,7 +108,6 @@ public class DocletMojo extends AbstractMojo {
 			dependencyJars.add(new File(outputDirectory, finalName + ".jar"));
 		}
 		if(packaging.equals("war")){
-			//TODO 		
 		}
 		return dependencyJars;
 		

@@ -235,7 +235,6 @@ public class AsmVisitorValidatorFactory {
                     pd = new PropertyDescriptor(field.getName(), clazz);
                     fieldGetMethod = pd.getReadMethod();
                 } catch (IntrospectionException e) {
-                    // TODO Auto-generated catch block
                     // e.printStackTrace();
                 }
                 Annotation[] annotations = field.getAnnotations();
@@ -285,9 +284,9 @@ public class AsmVisitorValidatorFactory {
 
     private void writeInit(ClassWriter clsWriter, AsmValidatorContext context) {
 
-        MethodVisitor mw = clsWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", constructMethodDesc(Void.class, new Class<?>[0]), null, null);
+        MethodVisitor mw = clsWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", constructMethodDesc(Void.class), null, null);
         mw.visitVarInsn(Opcodes.ALOAD, 0);
-        mw.visitMethodInsn(Opcodes.INVOKESPECIAL, getType(AsmValidatorSupport.class), "<init>", constructMethodDesc(Void.class, new Class<?>[0]));
+        mw.visitMethodInsn(Opcodes.INVOKESPECIAL, getType(AsmValidatorSupport.class), "<init>", constructMethodDesc(Void.class));
 
         for (AsmValidatorClassInfo classInfo : context.getClassInfoList()) {
             mw.visitVarInsn(Opcodes.ALOAD, 0);

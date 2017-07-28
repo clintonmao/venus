@@ -146,8 +146,7 @@ public class SimpleServiceFactory implements ServiceFactory {
 
     @Override
     public void destroy() {
-        // TODO Auto-generated method stub
-
+        // TODO
     }
 
 	@Override

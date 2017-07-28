@@ -24,8 +24,7 @@ public void after() throws Exception {
 */ 
 @Test
 public void testRegiste() throws Exception { 
-//TODO: Test goes here... 
-} 
+}
 
 /** 
 * 
@@ -34,8 +33,7 @@ public void testRegiste() throws Exception {
 */ 
 @Test
 public void testUnregiste() throws Exception { 
-//TODO: Test goes here... 
-} 
+}
 
 /** 
 * 
@@ -44,8 +42,7 @@ public void testUnregiste() throws Exception {
 */ 
 @Test
 public void testSubscrible() throws Exception { 
-//TODO: Test goes here... 
-} 
+}
 
 /** 
 * 
@@ -54,8 +51,7 @@ public void testSubscrible() throws Exception {
 */ 
 @Test
 public void testUnsubscrible() throws Exception { 
-//TODO: Test goes here... 
-} 
+}
 
 /** 
 * 
@@ -64,8 +60,7 @@ public void testUnsubscrible() throws Exception {
 */ 
 @Test
 public void testHeartbeat() throws Exception { 
-//TODO: Test goes here... 
-} 
+}
 
 /** 
 * 
@@ -74,8 +69,7 @@ public void testHeartbeat() throws Exception {
 */ 
 @Test
 public void testClearInvalid() throws Exception { 
-//TODO: Test goes here... 
-} 
+}
 
 /** 
 * 
@@ -84,8 +78,7 @@ public void testClearInvalid() throws Exception {
 */ 
 @Test
 public void testLookup() throws Exception { 
-//TODO: Test goes here... 
-} 
+}
 
 /** 
 * 
@@ -94,8 +87,7 @@ public void testLookup() throws Exception {
 */ 
 @Test
 public void testLoad() throws Exception { 
-//TODO: Test goes here... 
-} 
+}
 
 /** 
 * 
@@ -104,8 +96,7 @@ public void testLoad() throws Exception {
 */ 
 @Test
 public void testDestroy() throws Exception { 
-//TODO: Test goes here... 
-} 
+}
 
 
 } 

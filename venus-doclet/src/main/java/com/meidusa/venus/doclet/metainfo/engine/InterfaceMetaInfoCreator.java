@@ -51,7 +51,6 @@ public class InterfaceMetaInfoCreator  implements InterfaceMetaInfoFactory{
 	}
 
 	public byte[] createProcedureMetaInfo(Class sourceClazz, String callee) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -133,7 +132,6 @@ public class InterfaceMetaInfoCreator  implements InterfaceMetaInfoFactory{
 			CtNewMethod.getter("getTest", field);
 			metaInfoClazz.addField(field);
 		} catch (CannotCompileException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -151,10 +149,8 @@ public class InterfaceMetaInfoCreator  implements InterfaceMetaInfoFactory{
 			m = HelloService.class.getDeclaredMethod("sayHello", parameterTypes);
 			i.createFunctionMetaInfo(HelloService.class, m);
 		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (NoSuchMethodException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}*/
 

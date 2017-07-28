@@ -22,13 +22,12 @@ public class MappedByteBufferUtil {
         try {
             if (GetCleanerMethod == null) {
 
-                Method getCleanerMethod = Class.forName("java.nio.DirectByteBuffer").getMethod("cleaner", new Class[0]);
+                Method getCleanerMethod = Class.forName("java.nio.DirectByteBuffer").getMethod("cleaner");
                 getCleanerMethod.setAccessible(true);
                 GetCleanerMethod = getCleanerMethod;
-                cleanMethod = Class.forName("sun.misc.Cleaner").getMethod("clean", new Class[0]);
+                cleanMethod = Class.forName("sun.misc.Cleaner").getMethod("clean");
             }
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -43,8 +42,8 @@ public class MappedByteBufferUtil {
                 public Object run() {
                     try {
                         // sun.misc.Cleaner
-                        Object cleaner = GetCleanerMethod.invoke(buffer, new Object[0]);
-                        cleanMethod.invoke(cleaner, new Object[0]);
+                        Object cleaner = GetCleanerMethod.invoke(buffer);
+                        cleanMethod.invoke(cleaner);
                     } catch (Exception e) {
                         logger.error("unmap  MappedByteBuffer error", e);
                     }
