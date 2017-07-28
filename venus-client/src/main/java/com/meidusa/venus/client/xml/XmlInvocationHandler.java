@@ -550,6 +550,7 @@ public class XmlInvocationHandler extends VenusInvocationHandler {
                 bioPools[i] = (PoolableObjectPool) realPools.get("B-" + shareName + ipList[i]);
             }
 
+            //TODO 处理bio/nio/client/server连接复用问题
             VenusBIOConnectionFactory bioFactory = new VenusBIOConnectionFactory();
             if (remoteConfig.getAuthenticator() != null) {
                 bioFactory.setAuthenticator(remoteConfig.getAuthenticator());
