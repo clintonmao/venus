@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.profiling;
+package com.meidusa.venus.backend.support;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,7 @@ public class UtilTimerStack {
         newTimer.setStartTime();
 
         // if there is a current timer - add the new timer as a child of it
-        ProfilingTimerBean currentTimer = (ProfilingTimerBean) current.get();
+        ProfilingTimerBean currentTimer = current.get();
         if (currentTimer != null) {
             currentTimer.addChild(newTimer);
         }
@@ -63,7 +63,7 @@ public class UtilTimerStack {
         if (!isActive())
             return;
 
-        ProfilingTimerBean currentTimer = (ProfilingTimerBean) current.get();
+        ProfilingTimerBean currentTimer = current.get();
 
         // if the timers are matched up with each other (ie push("a"); pop("a"));
         if (currentTimer != null && name != null && name.equals(currentTimer.getResource())) {

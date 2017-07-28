@@ -7,7 +7,7 @@ import java.util.List;
 
 import com.meidusa.venus.backend.context.RequestContext;
 import com.meidusa.venus.backend.interceptor.InterceptorMapping;
-import com.meidusa.venus.backend.profiling.UtilTimerStack;
+import com.meidusa.venus.backend.support.UtilTimerStack;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.exception.ServiceInvokeException;
 import com.meidusa.venus.notify.InvocationListener;
@@ -95,7 +95,7 @@ public class DefaultEndpointInvocation implements EndpointInvocation {
         }
 
         if (interceptors != null && interceptors.hasNext()) {
-            final InterceptorMapping interceptor = (InterceptorMapping) interceptors.next();
+            final InterceptorMapping interceptor = interceptors.next();
             String interceptorMsg = "interceptor: " + interceptor.getName();
             UtilTimerStack.push(interceptorMsg);
             try {
