@@ -1,8 +1,7 @@
-package com.meidusa.venus.client.invoker;
-
-import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
+package com.meidusa.venus;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * invocation
@@ -16,7 +15,7 @@ public class Invocation {
 
     private Object[] args;
 
-    private RemoteConfig remoteConfig;
+    private List<Address> addressList;
 
     public Method getMethod() {
         return method;
@@ -42,11 +41,11 @@ public class Invocation {
         this.serviceType = serviceType;
     }
 
-    public RemoteConfig getRemoteConfig() {
-        return remoteConfig;
+    public List<Address> getAddressList() {
+        return addressList;
     }
 
-    public void setRemoteConfig(RemoteConfig remoteConfig) {
-        this.remoteConfig = remoteConfig;
+    public void setAddressList(List<Address> addressList) {
+        this.addressList = addressList;
     }
 }

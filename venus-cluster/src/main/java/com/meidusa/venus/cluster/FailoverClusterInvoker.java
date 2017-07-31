@@ -1,9 +1,9 @@
 package com.meidusa.venus.cluster;
 
 import com.meidusa.venus.client.RpcException;
-import com.meidusa.venus.client.invoker.Invocation;
+import com.meidusa.venus.Invocation;
 import com.meidusa.venus.client.invoker.Invoker;
-import com.meidusa.venus.client.invoker.Result;
+import com.meidusa.venus.Result;
 
 /**
  * failover集群容错invoker

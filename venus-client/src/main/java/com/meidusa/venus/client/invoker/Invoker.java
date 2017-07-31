@@ -1,5 +1,7 @@
 package com.meidusa.venus.client.invoker;
 
+import com.meidusa.venus.Invocation;
+import com.meidusa.venus.Result;
 import com.meidusa.venus.client.RpcException;
 
 /**

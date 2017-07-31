@@ -1,4 +1,4 @@
-package com.meidusa.venus.client.invoker;
+package com.meidusa.venus;
 
 /**
  * result

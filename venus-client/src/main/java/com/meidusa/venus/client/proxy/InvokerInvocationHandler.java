@@ -2,9 +2,9 @@ package com.meidusa.venus.client.proxy;
 
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
-import com.meidusa.venus.client.invoker.Invocation;
+import com.meidusa.venus.Invocation;
 import com.meidusa.venus.client.invoker.Invoker;
-import com.meidusa.venus.client.invoker.Result;
+import com.meidusa.venus.Result;
 import com.meidusa.venus.client.invoker.venus.VenusInvoker;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import org.slf4j.Logger;
@@ -14,7 +14,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
 /**
- * 服务调用代理，调用相应的invoker
+ * 服务调用代理，执行寻址/路由/认证/流控/降级及远程调用等逻辑
  * @author Struct
  */
 
@@ -22,25 +22,43 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
     private static Logger logger = LoggerFactory.getLogger(InvokerInvocationHandler.class);
 
+    /**
+     * 服务接口类型
+     */
     private Class<?> serviceType;
 
     /**
-     * 远程连接配置，包含ip相关信息
+     * 静态连接配置
      */
     private RemoteConfig remoteConfig;
 
+    /**
+     * 注册中心地址
+     */
+    private String registerUrl;
+
+    /**
+     * 异常处理
+     */
     private VenusExceptionFactory venusExceptionFactory;
 
+    /**
+     * 认证配置
+     */
     private DummyAuthenticator authenticator;
 
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        //权限认证
-        //流控
-        //降级
-        //集群容错
         Invocation invocation = buildInvocation(proxy,method,args);
-        Result result = getInvoker().invoke(invocation);
+        //TODO 权限认证
+        //TODO 寻址
+        //TODO 路由
+        //TODO 负载均衡
+        //TODO 流控
+        //TODO 降级
+        //TODO 集群容错
+        Invoker invoker = getInvoker();
+        Result result = invoker.invoke(invocation);
         return result.getObject();
     }
 
@@ -56,10 +74,14 @@ public class InvokerInvocationHandler implements InvocationHandler {
         invocation.setServiceType(serviceType);
         invocation.setMethod(method);
         invocation.setArgs(args);
-        invocation.setRemoteConfig(remoteConfig);
+        //invocation.setRemoteConfig(remoteConfig);
         return invocation;
     }
 
+    /**
+     * 获取invoker
+     * @return
+     */
     Invoker getInvoker(){
         return new VenusInvoker();
     }
@@ -94,5 +116,13 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
     public void setAuthenticator(DummyAuthenticator authenticator) {
         this.authenticator = authenticator;
+    }
+
+    public String getRegisterUrl() {
+        return registerUrl;
+    }
+
+    public void setRegisterUrl(String registerUrl) {
+        this.registerUrl = registerUrl;
     }
 }
