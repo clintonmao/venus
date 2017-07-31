@@ -1,4 +1,4 @@
-package com.meidusa.venus.client.factory.xml.config;
+package com.meidusa.venus.client.config;
 
 public class EndpointConfig {
     private String name;
