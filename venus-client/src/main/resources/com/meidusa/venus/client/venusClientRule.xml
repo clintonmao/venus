@@ -9,12 +9,12 @@
 
 	</pattern>
 	<pattern value="venus-client">
-		<object-create-rule-with-init classname="com.meidusa.venus.client.config.VenusClientConfig" attrname="class"/>
+		<object-create-rule-with-init classname="com.meidusa.venus.client.factory.xml.config.VenusClientConfig" attrname="class"/>
 		<set-properties-rule />
 		<bean-property-setter-byAttrname-rule pattern="property" attrname="name"/> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
 		
 		<pattern value="services/service">
-			<object-create-rule-with-init classname="com.meidusa.venus.client.config.ServiceConfig"/>
+			<object-create-rule-with-init classname="com.meidusa.venus.client.factory.xml.config.ServiceConfig"/>
 			<set-properties-rule />
 			<bean-property-setter-byAttrname-rule pattern="property" attrname="name"/> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
 			<pattern value="instance">
@@ -27,7 +27,7 @@
 			
 			<pattern value="endpoint">
 				<object-create-rule-with-init
-					classname="com.meidusa.venus.client.config.EndpointConfig" />
+					classname="com.meidusa.venus.client.factory.xml.config.EndpointConfig" />
 				<set-properties-rule />
 				<bean-property-setter-byAttrname-rule pattern="property" attrname="name" />
 				<set-next-rule methodname="addEndPointConfig" />
@@ -35,17 +35,17 @@
 		</pattern>
 		
 		<pattern value="remotes/remoteConfig">
-			<object-create-rule-with-init classname="com.meidusa.venus.client.config.RemoteConfig"/>
+			<object-create-rule-with-init classname="com.meidusa.venus.client.factory.xml.config.RemoteConfig"/>
 			<set-properties-rule />
 			<bean-property-setter-byAttrname-rule pattern="property" attrname="name"/> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
 			<pattern value="factory">
-				<object-create-rule-with-init classname="com.meidusa.venus.client.config.FactoryConfig"/>
+				<object-create-rule-with-init classname="com.meidusa.venus.client.factory.xml.config.FactoryConfig"/>
 				<set-properties-rule />
 				<bean-property-setter-byAttrname-rule pattern="property" attrname="name"/> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
 				<set-next-rule methodname="setFactory"/>
 			</pattern>
 			<pattern value="pool">
-				<object-create-rule-with-init classname="com.meidusa.venus.client.config.PoolConfig"/>
+				<object-create-rule-with-init classname="com.meidusa.venus.client.factory.xml.config.PoolConfig"/>
 				<set-properties-rule />
 				<bean-property-setter-byAttrname-rule pattern="property" attrname="name"/> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
 				<set-next-rule methodname="setPool"/>

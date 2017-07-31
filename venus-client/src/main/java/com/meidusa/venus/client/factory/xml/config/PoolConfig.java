@@ -11,7 +11,7 @@
  * 	You should have received a copy of the GNU AFFERO GENERAL PUBLIC LICENSE along with this program; 
  * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package com.meidusa.venus.client.config;
+package com.meidusa.venus.client.factory.xml.config;
 
 public class PoolConfig {
 

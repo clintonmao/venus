@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import com.meidusa.venus.client.config.*;
+import com.meidusa.venus.client.factory.xml.config.*;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
