@@ -5,7 +5,7 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import java.io.Serializable;
 import java.util.Date;
 
-public class VenusServiceMappingDO implements Serializable{
+public class VenusServiceMappingDO implements Serializable {
 
 	private static final long serialVersionUID = -5989031405262772357L;
 
@@ -14,6 +14,10 @@ public class VenusServiceMappingDO implements Serializable{
 	private VenusServerDO server;
 
 	private VenusServiceDO service;
+
+	private Integer serverId;
+
+	private Integer serviceId;
 
 	private String version;
 
@@ -87,6 +91,22 @@ public class VenusServiceMappingDO implements Serializable{
 
 	public void setUpdateTime(Date updateTime) {
 		this.updateTime = updateTime;
+	}
+
+	public Integer getServerId() {
+		return serverId;
+	}
+
+	public void setServerId(Integer serverId) {
+		this.serverId = serverId;
+	}
+
+	public Integer getServiceId() {
+		return serviceId;
+	}
+
+	public void setServiceId(Integer serviceId) {
+		this.serviceId = serviceId;
 	}
 
 	@Override
