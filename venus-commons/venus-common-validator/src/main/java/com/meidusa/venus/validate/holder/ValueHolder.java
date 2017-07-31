@@ -14,19 +14,19 @@ public interface ValueHolder {
      * 
      * @return the root
      */
-    public abstract Object getRoot();
+    Object getRoot();
 
-    public abstract void setRoot(Object root);
+    void setRoot(Object root);
 
     /**
-     * Attempts to set a property on a bean in the stack with the given expression using the default search order.
+     * Attempts to set a property on a config in the stack with the given expression using the default search order.
      * 
      * @param expr the expression defining the path to the property to be set.
      * @param value the value to be set into the named property
      */
-    public abstract void setValue(String expr, Object value);
+    void setValue(String expr, Object value);
 
-    public abstract String findString(String expr);
+    String findString(String expr);
 
     /**
      * Find a value by evaluating the given expression against the stack in the default search order.
@@ -34,7 +34,7 @@ public interface ValueHolder {
      * @param expr the expression giving the path of properties to navigate to find the property value to return
      * @return the result of evaluating the expression
      */
-    public abstract Object findValue(String expr);
+    Object findValue(String expr);
 
     /**
      * Find a value by evaluating the given expression against the stack in the default search order.
@@ -43,6 +43,6 @@ public interface ValueHolder {
      * @param asType the type to convert the return value to
      * @return the result of evaluating the expression
      */
-    public abstract Object findValue(String expr, Class<?> asType);
+    Object findValue(String expr, Class<?> asType);
 
 }

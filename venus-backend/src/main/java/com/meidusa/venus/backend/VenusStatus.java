@@ -61,8 +61,9 @@ public class VenusStatus {
 
 	private VenusStatus(){}
 	
-	private byte status = PacketConstant.VENUS_STATUS_RUNNING;;
-	public byte getStatus() {
+	private byte status = PacketConstant.VENUS_STATUS_RUNNING;
+
+    public byte getStatus() {
 		return status;
 	}
 
@@ -99,7 +100,7 @@ public class VenusStatus {
 			
 			System.out.println(usage);
 			
-			/*if(StringUtils.equalsIgnoreCase(bean.getName(), PS_OLD_GEN)){
+			/*if(StringUtils.equalsIgnoreCase(config.getName(), PS_OLD_GEN)){
 			}*/
 		}
 		

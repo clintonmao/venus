@@ -69,7 +69,7 @@ public class DocumentUtil {
                 final String nodeName = child.getNodeName();
                 if (nodeName.equals("property")) {
                     String key = child.getAttribute("name");
-                    NodeList propertyNodes = child.getElementsByTagName("bean");
+                    NodeList propertyNodes = child.getElementsByTagName("config");
                     if (propertyNodes.getLength() == 0) {
                         String value = child.getTextContent();
                         map.put(key, StringUtil.isEmpty(value) ? null : value.trim());

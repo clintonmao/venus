@@ -90,7 +90,7 @@ public class UtilTimerStack {
     /**
      * Do a log (at INFO level) of the time taken for this particular profiling.
      * 
-     * @param currentTimer profiling timer bean
+     * @param currentTimer profiling timer config
      */
     private static void printTimes(ProfilingTimerBean currentTimer) {
         if (LOG.isInfoEnabled()) {

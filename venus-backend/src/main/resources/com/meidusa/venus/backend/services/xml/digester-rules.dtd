@@ -238,7 +238,7 @@
     methodname CDATA #REQUIRED
     paramtype  CDATA #IMPLIED>
 
-<!-- bean-property-setter-byAttrname-rule -->
+<configbean-property-setter-byAttrname-rule -->
 <!ELEMENT bean-property-setter-byAttrname-rule EMPTY>
 <!ATTLIST bean-property-setter-byAttrname-rule
     pattern			CDATA #IMPLIED

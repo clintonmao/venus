@@ -46,7 +46,7 @@ import com.meidusa.venus.util.VenusAnnotationUtils;
  * @author structchen
  * 
  */
-public class SimpleInvocationHandler extends VenusInvocationHandler {
+public class SimpleInvocationHandler extends AbstractInvocationHandler {
 
     private static Logger logger = LoggerFactory.getLogger(SimpleInvocationHandler.class);
 

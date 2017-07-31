@@ -14,9 +14,9 @@ public class DigesterRuleParser extends org.apache.commons.digester.xmlrules.Dig
 
     public void addRuleInstances(Digester digester) {
         final String ruleClassName = Rule.class.getName();
-        digester.addFactoryCreate("*/bean-property-setter-byAttrname-rule", new BeanPropertySetterRuleFactory());
-        digester.addRule("*/bean-property-setter-byAttrname-rule", new PatternRule("pattern"));
-        digester.addSetNext("*/bean-property-setter-byAttrname-rule", "add", ruleClassName);
+        digester.addFactoryCreate("*/config-property-setter-byAttrname-rule", new BeanPropertySetterRuleFactory());
+        digester.addRule("*/config-property-setter-byAttrname-rule", new PatternRule("pattern"));
+        digester.addSetNext("*/config-property-setter-byAttrname-rule", "add", ruleClassName);
 
         digester.addFactoryCreate("*/object-create-rule-with-init", new ObjectCreateRuleFactoryWithInit());
         digester.addRule("*/object-create-rule-with-init", new PatternRule("pattern"));

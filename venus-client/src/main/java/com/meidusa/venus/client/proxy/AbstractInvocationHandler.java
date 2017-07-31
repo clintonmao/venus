@@ -36,12 +36,12 @@ import com.meidusa.venus.util.VenusAnnotationUtils;
  * @author Struct
  * 
  */
-public abstract class VenusInvocationHandler implements InvocationHandler {
-    private static Logger logger = LoggerFactory.getLogger(VenusInvocationHandler.class);
+public abstract class AbstractInvocationHandler implements InvocationHandler {
+    private static Logger logger = LoggerFactory.getLogger(AbstractInvocationHandler.class);
     private static Logger exceptionLogger = LoggerFactory.getLogger("venus.client.exception");
     private Map<String, Object> singletonServiceMap = new HashMap<String, Object>();
 
-    public VenusInvocationHandler() {
+    public AbstractInvocationHandler() {
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {

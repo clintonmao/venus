@@ -45,10 +45,10 @@ public class ObjectMapLoader {
     // The required DTD URI for exported properties
     private static final String PROPS_DTD_URI = "http://amoeba.meidusa.com/objectMap.dtd";
 
-    private static final String PROPS_DTD = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + "<!-- DTD for properties -->" + "<!ELEMENT bean ( property* ) >"
-            + "<!ATTLIST bean class NMTOKEN #REQUIRED >" +
+    private static final String PROPS_DTD = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + "<!-- DTD for properties -->" + "<!ELEMENT config ( property* ) >"
+            + "<!ATTLIST config class NMTOKEN #REQUIRED >" +
 
-            "<!ELEMENT entry ( #PCDATA | bean )* >" + "<!ATTLIST entry key NMTOKEN #REQUIRED >" +
+            "<!ELEMENT entry ( #PCDATA | config )* >" + "<!ATTLIST entry key NMTOKEN #REQUIRED >" +
 
             "<!ELEMENT objectMap ( entry+ ) >" + "<!ATTLIST objectMap version NMTOKEN #REQUIRED >" +
 
@@ -58,7 +58,7 @@ public class ObjectMapLoader {
      * Version number for the format of exported properties files.
      */
 
-    public static void load(Map<String, Object> props, InputStream in) throws IOException, InvalidPropertiesFormatException {
+    public static void load(Map<String, Object> props, InputStream in) throws IOException {
         Document doc = null;
         try {
             doc = getLoadingDoc(in);

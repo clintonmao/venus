@@ -90,7 +90,7 @@ public class RemotingInvocationListener<T> implements InvocationListener<T> {
                 try {
                     additionalData.put(entry.getKey(), entry.getValue().getReadMethod().invoke(e));
                 } catch (Exception e1) {
-                    logger.error("read bean properpty error", e1);
+                    logger.error("read config properpty error", e1);
                 }
             }
             response.additionalData = serializer.encode(additionalData);

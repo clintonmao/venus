@@ -28,7 +28,7 @@ import com.meidusa.venus.annotations.*;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.client.InvocationListenerContainer;
 import com.meidusa.venus.client.factory.xml.XmlServiceFactory;
-import com.meidusa.venus.client.factory.xml.bean.*;
+import com.meidusa.venus.client.factory.xml.config.*;
 import com.meidusa.venus.client.factory.xml.support.VenusNIOMessageHandler;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.extension.athena.AthenaTransactionId;
@@ -68,7 +68,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Struct
  * 
  */
-public class XmlInvocationHandler extends VenusInvocationHandler {
+public class XmlInvocationHandler extends AbstractInvocationHandler {
 
     private static Logger logger = LoggerFactory.getLogger(XmlInvocationHandler.class);
 

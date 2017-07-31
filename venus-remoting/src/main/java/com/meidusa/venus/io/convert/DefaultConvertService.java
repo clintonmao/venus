@@ -48,7 +48,7 @@ public class DefaultConvertService implements ConvertService, InitializingBean {
     }
 
     /**
-     * complex type, for example: bean.prop=2
+     * complex type, for example: config.prop=2
      * 
      * @param key
      * @param strValue

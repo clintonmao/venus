@@ -92,8 +92,8 @@ public class CommonsBeanUtilConverter implements Converter {
 
         Object bean = context.get(beanName);
         try {
-            // BeanUtils.setProperty(bean, propertyName, this.convert(value,
-            // bean.getClass().getField(propertyName).getClass()));
+            // BeanUtils.setProperty(config, propertyName, this.convert(value,
+            // config.getClass().getField(propertyName).getClass()));
             BeanUtils.setProperty(bean, propertyName, value);
         } catch (IllegalAccessException e) {
             if (logger.isDebugEnabled()) {
