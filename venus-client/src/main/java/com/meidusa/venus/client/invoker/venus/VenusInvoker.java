@@ -9,6 +9,8 @@ import com.meidusa.toolkit.common.poolable.PoolableObjectPool;
 import com.meidusa.toolkit.net.*;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.toolkit.util.TimeUtil;
+import com.meidusa.venus.Invocation;
+import com.meidusa.venus.Result;
 import com.meidusa.venus.annotations.*;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.client.InvocationListenerContainer;
@@ -16,9 +18,7 @@ import com.meidusa.venus.client.RpcException;
 import com.meidusa.venus.client.factory.xml.XmlServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.*;
 import com.meidusa.venus.client.factory.xml.support.VenusNIOMessageHandler;
-import com.meidusa.venus.Invocation;
 import com.meidusa.venus.client.invoker.Invoker;
-import com.meidusa.venus.Result;
 import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.extension.athena.AthenaTransactionId;
@@ -32,7 +32,6 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceResponsePacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
-import com.meidusa.venus.metainfo.EndpointParameterUtil;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.poolable.RequestLoadbalanceObjectPool;
@@ -117,21 +116,20 @@ public class VenusInvoker implements Invoker{
         Service service = null;
         Endpoint endpoint = null;
         try {
-            endpoint = AnnotationUtil.getAnnotation(method.getAnnotations(), Endpoint.class);
+             endpoint = invocation.getEndpoint();
             if (endpoint != null) {
-                service = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
+                service = invocation.getService();
 
                 if (com.meidusa.toolkit.common.util.StringUtil.isEmpty(service.implement())) {
-                    EndpointParameter[] params = EndpointParameterUtil.getPrameters(method);
+                    EndpointParameter[] params = invocation.getParams();
 
-                    return new Result(doInvoke(service, endpoint, method, params, args));
+                    return new Result(doInvoke(invocation));
                 } else {
                     Object serviceImpl = null;
                     if (service.singleton()) {
                         serviceImpl = singletonServiceMap.get(service.implement());
                         if (serviceImpl == null) {
                             synchronized (singletonServiceMap) {
-
                                 serviceImpl = singletonServiceMap.get(service.implement());
                                 if (serviceImpl == null) {
                                     serviceImpl = Class.forName(service.implement(), true, Thread.currentThread().getContextClassLoader()).newInstance();
@@ -145,16 +143,9 @@ public class VenusInvoker implements Invoker{
 
                     return new Result(method.invoke(serviceImpl, args));
                 }
-            } else {
-                if (method.getDeclaringClass().equals(Object.class)) {
-                    return new Result(method.invoke(this, args));
-                }else{
-                    logger.error("remote invoke error: endpoint annotation not declare on method=" + method.getName());
-                    throw new IllegalAccessException("remote invoke error: endpoint annotation not declare on method=" + method.getName());
-                }
             }
+            return new Result(method.invoke(this, args));
         } catch (Throwable e) {
-
             if (!(e instanceof CodedException)) {
                 if (exceptionLogger.isInfoEnabled()) {
                     exceptionLogger.info("invoke service error,api=" + VenusAnnotationUtils.getApiname(method, service, endpoint), e);
@@ -171,49 +162,35 @@ public class VenusInvoker implements Invoker{
 
     /**
      * 远程调用
-     * @param service
-     * @param endpoint
-     * @param method
-     * @param params
-     * @param args
+     * @param invocation
      * @return
      * @throws Exception
      */
-    protected Object doInvoke(Service service, Endpoint endpoint, Method method, EndpointParameter[] params, Object[] args) throws Exception {
-        byte[] traceID = VenusTracerUtil.getTracerID();
-        if (traceID == null) {
-            traceID = VenusTracerUtil.randomTracerID();
-        }
-
-        boolean async = false;
-        if (endpoint.async()) {
-            async = true;
-        }
-
-        Serializer serializer = SerializerFactory.getSerializer(serializeType);
-
-        //构造请求消息体
-        SerializeServiceRequestPacket serviceRequestPacket = buildInvocation(service,endpoint,method,params,args,traceID,async,serializer);
+    protected Object doInvoke(Invocation invocation) throws Exception {
+        //构造请求消息
+        SerializeServiceRequestPacket serviceRequestPacket = buildRequest(invocation);
 
         //调用
-        if (async) {
-            return doInvokeWithAsync(traceID, service, endpoint, serviceRequestPacket);
+        if (invocation.isAsync()) {
+            return doInvokeWithAsync(invocation, serviceRequestPacket);
         } else {
-            return doInvokeWithSync(traceID, service, endpoint, method, serviceRequestPacket, serializer);
+            return doInvokeWithSync(invocation, serviceRequestPacket);
         }
     }
 
     /**
-     * 构造请求消息体
-     * @param service
-     * @param endpoint
-     * @param method
-     * @param params
-     * @param args
-     * @param async
+     * 构造请求消息
+     * @param invocation
      * @return
      */
-    SerializeServiceRequestPacket buildInvocation(Service service, Endpoint endpoint, Method method,EndpointParameter[] params, Object[] args,byte[] traceID,boolean async,Serializer serializer){
+    SerializeServiceRequestPacket buildRequest(Invocation invocation){
+        byte[] traceID = invocation.getTraceID();
+        Method method = invocation.getMethod();
+        Service service = invocation.getService();
+        Endpoint endpoint = invocation.getEndpoint();
+        EndpointParameter[] params = invocation.getParams();
+        Object[] args = invocation.getArgs();
+
         String apiName = VenusAnnotationUtils.getApiname(method, service, endpoint);
 
         AthenaTransactionId athenaTransactionId = null;
@@ -221,6 +198,7 @@ public class VenusInvoker implements Invoker{
             athenaTransactionId = AthenaTransactionDelegate.getDelegate().startClientTransaction(apiName);
         }
 
+        Serializer serializer = SerializerFactory.getSerializer(serializeType);
         SerializeServiceRequestPacket serviceRequestPacket = new SerializeServiceRequestPacket(serializer, null);
 
         serviceRequestPacket.clientId = PacketConstant.VENUS_CLIENT_ID;
@@ -233,7 +211,6 @@ public class VenusInvoker implements Invoker{
         if (params != null) {
             for (int i = 0; i < params.length; i++) {
                 if (args[i] instanceof InvocationListener) {
-                    async = true;
                     ReferenceInvocationListener listener = new ReferenceInvocationListener();
                     ServicePacketBuffer buffer = new ServicePacketBuffer(16);
                     buffer.writeLengthCodedString(args[i].getClass().getName(), "utf-8");
@@ -260,17 +237,19 @@ public class VenusInvoker implements Invoker{
 
     /**
      * async异步调用
-     * @param traceID
-     * @param service
-     * @param endpoint
+     * @param invocation
      * @param serviceRequestPacket
      * @return
      * @throws Exception
      */
-    Object doInvokeWithAsync(byte[] traceID, Service service, Endpoint endpoint, SerializeServiceRequestPacket serviceRequestPacket) throws Exception{
+    Object doInvokeWithAsync(Invocation invocation, SerializeServiceRequestPacket serviceRequestPacket) throws Exception{
         if (!this.isEnableAsync()) {
             throw new VenusConfigException("service async call disabled");
         }
+
+        byte[] traceID = invocation.getTraceID();
+        Service service = invocation.getService();
+        Endpoint endpoint = invocation.getEndpoint();
 
         long start = TimeUtil.currentTimeMillis();
         long borrowed = start;
@@ -314,16 +293,17 @@ public class VenusInvoker implements Invoker{
 
     /**
      * sync同步调用
-     * @param traceID
-     * @param service
-     * @param endpoint
-     * @param method
+     * @param invocation
      * @param serviceRequestPacket
-     * @param serializer
      * @return
      * @throws Exception
      */
-    Object doInvokeWithSync(byte[] traceID, Service service, Endpoint endpoint, Method method, SerializeServiceRequestPacket serviceRequestPacket, Serializer serializer) throws Exception{
+    Object doInvokeWithSync(Invocation invocation, SerializeServiceRequestPacket serviceRequestPacket) throws Exception{
+        byte[] traceID = invocation.getTraceID();
+        Method method = invocation.getMethod();
+        Service service = invocation.getService();
+        Endpoint endpoint = invocation.getEndpoint();
+
         long start = TimeUtil.currentTimeMillis();
         long borrowed = start;
         int soTimeout = 0;
@@ -334,6 +314,7 @@ public class VenusInvoker implements Invoker{
         String remoteAddress = null;
         boolean invalided = false;
         boolean nullForSystemException = false;
+        Serializer serializer = SerializerFactory.getSerializer(serializeType);
 
         ObjectPool bioConnPool = null;
         AbstractBIOConnection conn = null;
@@ -365,9 +346,7 @@ public class VenusInvoker implements Invoker{
                         }
                     }
                 }
-
             } else {
-
                 if (endpoint.timeWait() > 0) {
                     soTimeout = endpoint.timeWait();
                 }
@@ -376,7 +355,6 @@ public class VenusInvoker implements Invoker{
             byte[] bts;
 
             try {
-
                 if (soTimeout > 0) {
                     conn.setSoTimeout(soTimeout);
                 }
