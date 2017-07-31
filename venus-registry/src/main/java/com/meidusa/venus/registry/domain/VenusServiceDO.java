@@ -5,8 +5,8 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import java.io.Serializable;
 import java.util.Date;
 
-public class VenusServiceDO implements Serializable{
-	
+public class VenusServiceDO implements Serializable {
+
 	private static final long serialVersionUID = 741259068222583617L;
 
 	private Integer id;
@@ -14,6 +14,8 @@ public class VenusServiceDO implements Serializable{
 	private String name;
 
 	private String interfaceName;
+
+	private String version;
 
 	private String description;
 
@@ -67,6 +69,14 @@ public class VenusServiceDO implements Serializable{
 
 	public void setInterfaceName(String interfaceName) {
 		this.interfaceName = interfaceName;
+	}
+
+	public String getVersion() {
+		return version;
+	}
+
+	public void setVersion(String version) {
+		this.version = version;
 	}
 
 	@Override
