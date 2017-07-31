@@ -9,7 +9,7 @@ import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.client.factory.ServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
-import com.meidusa.venus.client.proxy.XmlInvocationHandler;
+import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.exception.XmlVenusExceptionFactory;
@@ -55,7 +55,7 @@ public class SimpleServiceFactory implements ServiceFactory {
 
     private Authenticator authenticator;
 
-    private Map<Class<?>, Tuple<Object, XmlInvocationHandler>> servicesMap = new HashMap<Class<?>, Tuple<Object, XmlInvocationHandler>>();
+    private Map<Class<?>, Tuple<Object, InvokerInvocationHandler>> servicesMap = new HashMap<Class<?>, Tuple<Object, InvokerInvocationHandler>>();
 
     public SimpleServiceFactory(String host, int port) {
         this.host = host;
@@ -96,7 +96,7 @@ public class SimpleServiceFactory implements ServiceFactory {
 
     @Override
     public <T> T getService(Class<T> t) {
-        Tuple<Object, XmlInvocationHandler> object = servicesMap.get(t);
+        Tuple<Object, InvokerInvocationHandler> object = servicesMap.get(t);
         if (object == null) {
             synchronized (servicesMap) {
                 object = servicesMap.get(t);
@@ -119,8 +119,8 @@ public class SimpleServiceFactory implements ServiceFactory {
      * @return
      */
     protected <T> T initService(Class<T> t, String host, int port) {
-        //XmlInvocationHandler invocationHandler = new XmlInvocationHandler(host, port, coTimeout, soTimeout);
-        XmlInvocationHandler invocationHandler = new XmlInvocationHandler();
+        //InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler(host, port, coTimeout, soTimeout);
+        InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
         invocationHandler.setRemoteConfig(getRemoteConfig());
 
         if(this.venusExceptionFactory == null){
@@ -151,7 +151,7 @@ public class SimpleServiceFactory implements ServiceFactory {
             }
         }
 
-        Tuple<Object, XmlInvocationHandler> serviceTuple = new Tuple<Object, XmlInvocationHandler>(object, invocationHandler);
+        Tuple<Object, InvokerInvocationHandler> serviceTuple = new Tuple<Object, InvokerInvocationHandler>(object, invocationHandler);
         servicesMap.put(t, serviceTuple);
         return object;
     }

@@ -11,5 +11,12 @@
 
     <artifactId>venus-cluster</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.meidusa.venus</groupId>
+            <artifactId>venus-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 
 </project>

@@ -1,23 +1,8 @@
-/*
- * Copyright 2008-2108 amoeba.meidusa.com 
- * 
- * 	This program is free software; you can redistribute it and/or modify it under the terms of 
- * the GNU AFFERO GENERAL PUBLIC LICENSE as published by the Free Software Foundation; either version 3 of the License, 
- * or (at your option) any later version. 
- * 
- * 	This program is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
- * See the GNU AFFERO GENERAL PUBLIC LICENSE for more details. 
- * 	You should have received a copy of the GNU AFFERO GENERAL PUBLIC LICENSE along with this program; 
- * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
-
-package com.meidusa.venus.client.proxy;
+package com.meidusa.venus.client.invoker.venus;
 
 import com.meidusa.fastjson.JSON;
 import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
-import com.meidusa.toolkit.common.bean.util.InitialisationException;
 import com.meidusa.toolkit.common.poolable.MultipleLoadBalanceObjectPool;
 import com.meidusa.toolkit.common.poolable.ObjectPool;
 import com.meidusa.toolkit.common.poolable.PoolableObjectPool;
@@ -27,9 +12,14 @@ import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.annotations.*;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.client.InvocationListenerContainer;
+import com.meidusa.venus.client.RpcException;
 import com.meidusa.venus.client.factory.xml.XmlServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.*;
 import com.meidusa.venus.client.factory.xml.support.VenusNIOMessageHandler;
+import com.meidusa.venus.client.invoker.Invocation;
+import com.meidusa.venus.client.invoker.Invoker;
+import com.meidusa.venus.client.invoker.Result;
+import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.extension.athena.AthenaTransactionId;
 import com.meidusa.venus.extension.athena.delegate.AthenaTransactionDelegate;
@@ -42,6 +32,7 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceResponsePacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
+import com.meidusa.venus.metainfo.EndpointParameterUtil;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.poolable.RequestLoadbalanceObjectPool;
@@ -64,17 +55,20 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 
- * @author Struct
- * 
+ * venus协议invoker
+ * Created by Zhangzhihua on 2017/7/31.
  */
-public class XmlInvocationHandler extends AbstractInvocationHandler {
+public class VenusInvoker implements Invoker{
 
-    private static Logger logger = LoggerFactory.getLogger(XmlInvocationHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(InvokerInvocationHandler.class);
 
     private static Logger performanceLogger = LoggerFactory.getLogger("venus.client.performance");
 
+    private static Logger exceptionLogger = LoggerFactory.getLogger("venus.client.exception");
+
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
+
+    private Map<String, Object> singletonServiceMap = new HashMap<String, Object>();
 
     private byte serializeType = PacketConstant.CONTENT_TYPE_JSON;
 
@@ -115,7 +109,65 @@ public class XmlInvocationHandler extends AbstractInvocationHandler {
      */
     private Map<String, Object> realPoolMap = new HashMap<String, Object>();
 
-    public void init() throws InitialisationException {}
+    @Override
+    public Result invoke(Invocation invocation) throws RpcException {
+        Method method = invocation.getMethod();
+        Object[] args = invocation.getArgs();
+
+        Service service = null;
+        Endpoint endpoint = null;
+        try {
+            endpoint = AnnotationUtil.getAnnotation(method.getAnnotations(), Endpoint.class);
+            if (endpoint != null) {
+                service = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
+
+                if (com.meidusa.toolkit.common.util.StringUtil.isEmpty(service.implement())) {
+                    EndpointParameter[] params = EndpointParameterUtil.getPrameters(method);
+
+                    return new Result(doInvoke(service, endpoint, method, params, args));
+                } else {
+                    Object serviceImpl = null;
+                    if (service.singleton()) {
+                        serviceImpl = singletonServiceMap.get(service.implement());
+                        if (serviceImpl == null) {
+                            synchronized (singletonServiceMap) {
+
+                                serviceImpl = singletonServiceMap.get(service.implement());
+                                if (serviceImpl == null) {
+                                    serviceImpl = Class.forName(service.implement(), true, Thread.currentThread().getContextClassLoader()).newInstance();
+                                    singletonServiceMap.put(service.implement(), serviceImpl);
+                                }
+                            }
+                        }
+                    } else {
+                        serviceImpl = Class.forName(service.implement(), true, Thread.currentThread().getContextClassLoader()).newInstance();
+                    }
+
+                    return new Result(method.invoke(serviceImpl, args));
+                }
+            } else {
+                if (method.getDeclaringClass().equals(Object.class)) {
+                    return new Result(method.invoke(this, args));
+                }else{
+                    logger.error("remote invoke error: endpoint annotation not declare on method=" + method.getName());
+                    throw new IllegalAccessException("remote invoke error: endpoint annotation not declare on method=" + method.getName());
+                }
+            }
+        } catch (Throwable e) {
+
+            if (!(e instanceof CodedException)) {
+                if (exceptionLogger.isInfoEnabled()) {
+                    exceptionLogger.info("invoke service error,api=" + VenusAnnotationUtils.getApiname(method, service, endpoint), e);
+                }
+            } else {
+                if (exceptionLogger.isDebugEnabled()) {
+                    exceptionLogger.debug("invoke service error,api=" + VenusAnnotationUtils.getApiname(method, service, endpoint), e);
+                }
+            }
+
+            throw new RpcException(e);
+        }
+    }
 
     /**
      * 远程调用
@@ -127,7 +179,7 @@ public class XmlInvocationHandler extends AbstractInvocationHandler {
      * @return
      * @throws Exception
      */
-    protected Object invokeRemoteService(Service service, Endpoint endpoint, Method method, EndpointParameter[] params, Object[] args) throws Exception {
+    protected Object doInvoke(Service service, Endpoint endpoint, Method method, EndpointParameter[] params, Object[] args) throws Exception {
         byte[] traceID = VenusTracerUtil.getTracerID();
         if (traceID == null) {
             traceID = VenusTracerUtil.randomTracerID();

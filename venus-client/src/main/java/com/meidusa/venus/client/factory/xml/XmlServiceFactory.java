@@ -27,7 +27,7 @@ import com.meidusa.venus.client.factory.xml.support.ClientBeanContext;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanUtilsBean;
 import com.meidusa.venus.client.factory.xml.support.ServiceDefinedBean;
 import com.meidusa.venus.client.factory.xml.support.VenusNIOMessageHandler;
-import com.meidusa.venus.client.proxy.XmlInvocationHandler;
+import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.factory.xml.config.ServiceConfig;
 import com.meidusa.venus.client.factory.xml.config.VenusClientConfig;
@@ -331,19 +331,22 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             */
 
             //创建InvocationHandler
-            XmlInvocationHandler invocationHandler = new XmlInvocationHandler();
+            InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
             //连接管理功能放到InvocationHandler，由外围serviceFacotry传递url、remoteConfig或者不传地址信息（若不传，则即为动态寻址）
             //invocationHandler.setBioConnPool(tuple.left);
             //invocationHandler.setNioConnPool(tuple.right);
             invocationHandler.setRemoteConfig(remoteConfig);
+            invocationHandler.setVenusExceptionFactory(this.getVenusExceptionFactory());
+            //TODO 确认相关属性功能
+            /*
             invocationHandler.setHandler(this.handler);
             invocationHandler.setConnector(this.connector);
             invocationHandler.setServiceFactory(this);
-            invocationHandler.setVenusExceptionFactory(this.getVenusExceptionFactory());
             invocationHandler.setContainer(this.container);
             if (remoteConfig != null && remoteConfig.getAuthenticator() != null) {
                 invocationHandler.setSerializeType(remoteConfig.getAuthenticator().getSerializeType());
             }
+            */
 
             //创建服务代理
             Object object = Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{serviceConfig.getType()}, invocationHandler);
