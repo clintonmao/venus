@@ -12,7 +12,7 @@
  * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package com.meidusa.venus.client;
+package com.meidusa.venus.client.proxy;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ObjectFactory;
 
 import com.meidusa.toolkit.common.util.StringUtil;
 import com.meidusa.venus.annotations.Endpoint;

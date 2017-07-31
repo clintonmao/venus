@@ -1,4 +1,4 @@
-package com.meidusa.venus.client.xml.bean;
+package com.meidusa.venus.client.factory.xml.bean;
 
 public class EndpointConfig {
     private String name;

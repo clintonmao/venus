@@ -12,25 +12,25 @@
  * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package com.meidusa.venus.client.xml;
+package com.meidusa.venus.client.factory.xml;
 
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.toolkit.common.bean.util.InitialisationException;
-import com.meidusa.toolkit.common.poolable.ObjectPool;
-import com.meidusa.toolkit.common.util.Tuple;
-import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.toolkit.net.ConnectionConnector;
 import com.meidusa.toolkit.net.ConnectionManager;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.client.InvocationListenerContainer;
-import com.meidusa.venus.client.ServiceFactory;
-import com.meidusa.venus.client.ServiceFactoryBean;
-import com.meidusa.venus.client.xml.bean.RemoteConfig;
-import com.meidusa.venus.client.xml.bean.ServiceConfig;
-import com.meidusa.venus.client.xml.bean.VenusClientConfig;
-import com.meidusa.venus.client.xml.support.*;
+import com.meidusa.venus.client.factory.ServiceFactory;
+import com.meidusa.venus.client.factory.xml.support.ClientBeanContext;
+import com.meidusa.venus.client.factory.xml.support.ClientBeanUtilsBean;
+import com.meidusa.venus.client.factory.xml.support.ServiceDefinedBean;
+import com.meidusa.venus.client.factory.xml.support.VenusNIOMessageHandler;
+import com.meidusa.venus.client.proxy.XmlInvocationHandler;
+import com.meidusa.venus.client.factory.xml.bean.RemoteConfig;
+import com.meidusa.venus.client.factory.xml.bean.ServiceConfig;
+import com.meidusa.venus.client.factory.xml.bean.VenusClientConfig;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.extension.athena.AthenaExtensionResolver;

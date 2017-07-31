@@ -1,8 +1,8 @@
-package com.meidusa.venus.client.xml.support;
+package com.meidusa.venus.client.factory.xml.support;
 
 import com.meidusa.toolkit.common.poolable.ObjectPool;
 import com.meidusa.toolkit.net.BackendConnectionPool;
-import com.meidusa.venus.client.xml.bean.RemoteConfig;
+import com.meidusa.venus.client.factory.xml.bean.RemoteConfig;
 
 public class RemoteContainer {
 

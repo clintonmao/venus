@@ -1,4 +1,4 @@
-package com.meidusa.venus.client.xml.support;
+package com.meidusa.venus.client.factory.xml.support;
 
 import com.meidusa.toolkit.common.bean.BeanContext;
 import org.springframework.beans.factory.BeanFactory;

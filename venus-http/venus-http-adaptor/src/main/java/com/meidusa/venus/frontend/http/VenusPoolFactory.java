@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import com.meidusa.venus.client.xml.bean.*;
+import com.meidusa.venus.client.factory.xml.bean.*;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
@@ -51,8 +51,7 @@ import com.meidusa.toolkit.common.poolable.ObjectPool;
 import com.meidusa.toolkit.common.poolable.PoolableObjectPool;
 import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.toolkit.util.StringUtil;
-import com.meidusa.venus.client.ServiceFactory;
-import com.meidusa.venus.client.xml.bean.RemoteConfig;
+import com.meidusa.venus.client.factory.ServiceFactory;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.io.network.VenusBIOConnectionFactory;
 import com.meidusa.venus.io.packet.PacketConstant;

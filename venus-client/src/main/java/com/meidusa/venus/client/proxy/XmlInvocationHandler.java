@@ -12,7 +12,7 @@
  * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package com.meidusa.venus.client.xml;
+package com.meidusa.venus.client.proxy;
 
 import com.meidusa.fastjson.JSON;
 import com.meidusa.fastmark.feature.SerializerFeature;
@@ -27,9 +27,9 @@ import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.annotations.*;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.client.InvocationListenerContainer;
-import com.meidusa.venus.client.VenusInvocationHandler;
-import com.meidusa.venus.client.xml.bean.*;
-import com.meidusa.venus.client.xml.support.VenusNIOMessageHandler;
+import com.meidusa.venus.client.factory.xml.XmlServiceFactory;
+import com.meidusa.venus.client.factory.xml.bean.*;
+import com.meidusa.venus.client.factory.xml.support.VenusNIOMessageHandler;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.extension.athena.AthenaTransactionId;
 import com.meidusa.venus.extension.athena.delegate.AthenaTransactionDelegate;

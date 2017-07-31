@@ -1,4 +1,4 @@
-package com.meidusa.venus.client.simple;
+package com.meidusa.venus.client.proxy;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.InvocationListenerContainer;
-import com.meidusa.venus.client.VenusInvocationHandler;
 import com.meidusa.venus.exception.DefaultVenusException;
 import com.meidusa.venus.exception.InvalidParameterException;
 import com.meidusa.venus.exception.VenusExceptionFactory;

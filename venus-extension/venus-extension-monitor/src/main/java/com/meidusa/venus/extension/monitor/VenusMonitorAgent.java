@@ -5,7 +5,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.toolkit.net.util.LoopingThread;
 import com.meidusa.toolkit.util.TimeUtil;
-import com.meidusa.venus.client.simple.SimpleServiceFactory;
+import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 
 public class VenusMonitorAgent extends LoopingThread{
 	private String host;

@@ -12,7 +12,7 @@
  * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package com.meidusa.venus.client;
+package com.meidusa.venus.client.factory;
 
 /**
  * 
@@ -23,11 +23,11 @@ package com.meidusa.venus.client;
  */
 public interface ServiceFactory {
 
-    public <T> T getService(Class<T> t);
+    <T> T getService(Class<T> t);
     
-    public <T> T getService(String name,Class<T> t);
+    <T> T getService(String name, Class<T> t);
 
     // public <T> T getService(Class<T> t,String address);
 
-    public void destroy();
+    void destroy();
 }

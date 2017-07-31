@@ -1,4 +1,4 @@
-package com.meidusa.venus.client.simple;
+package com.meidusa.venus.client.factory.simple;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -7,7 +7,8 @@ import java.util.Map;
 
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.venus.annotations.Endpoint;
-import com.meidusa.venus.client.ServiceFactory;
+import com.meidusa.venus.client.factory.ServiceFactory;
+import com.meidusa.venus.client.proxy.SimpleInvocationHandler;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.exception.XmlVenusExceptionFactory;

@@ -1,6 +1,6 @@
 package com.meidusa.venus.client;
 
-import com.meidusa.venus.client.xml.XmlServiceFactory;
+import com.meidusa.venus.client.factory.xml.XmlServiceFactory;
 
 /**
  * 为了兼容原来配置，继承XmlServiceFactory
