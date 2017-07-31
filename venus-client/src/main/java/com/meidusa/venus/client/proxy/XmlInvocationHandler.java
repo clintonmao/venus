@@ -80,11 +80,16 @@ public class XmlInvocationHandler extends AbstractInvocationHandler {
 
     private static AtomicLong sequenceId = new AtomicLong(1);
 
+    /**
+     * 远程连接配置，包含ip相关信息
+     */
+    private RemoteConfig remoteConfig;
+
+    private VenusExceptionFactory venusExceptionFactory;
+
     private InvocationListenerContainer container;
 
     private XmlServiceFactory serviceFactory;
-
-    private VenusExceptionFactory venusExceptionFactory;
 
     private boolean enableAsync = true;
 
@@ -93,11 +98,6 @@ public class XmlInvocationHandler extends AbstractInvocationHandler {
     private VenusNIOMessageHandler handler;
 
     private ConnectionConnector connector;
-
-    /**
-     * 远程连接配置，包含ip相关信息
-     */
-    private RemoteConfig remoteConfig;
 
     /**
      * bio连接池映射表
