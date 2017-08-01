@@ -1,7 +1,7 @@
-package com.meidusa.venus.loadbanlance.round;
+package com.meidusa.venus.rpc.loadbanlance.round;
 
 import com.meidusa.venus.Address;
-import com.meidusa.venus.loadbanlance.Loadbanlance;
+import com.meidusa.venus.rpc.loadbanlance.Loadbanlance;
 
 import java.util.List;
 

@@ -2,10 +2,10 @@ package com.meidusa.venus.client.invoker.injvm;
 
 import com.meidusa.venus.Invocation;
 import com.meidusa.venus.Result;
+import com.meidusa.venus.rpc.RpcException;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
-import com.meidusa.venus.client.RpcException;
-import com.meidusa.venus.client.invoker.Invoker;
+import com.meidusa.venus.rpc.Invoker;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -19,6 +19,10 @@ import java.util.Map;
 public class InjvmInvoker implements Invoker {
 
     private Map<String, Object> singletonServiceMap = new HashMap<String, Object>();
+
+    @Override
+    public void init() throws RpcException {
+    }
 
     @Override
     public Result invoke(Invocation invocation) throws RpcException {
@@ -54,5 +58,9 @@ public class InjvmInvoker implements Invoker {
         } catch (InvocationTargetException e) {
             throw new RpcException(e);
         }
+    }
+
+    @Override
+    public void destroy() throws RpcException {
     }
 }

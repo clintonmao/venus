@@ -1,7 +1,7 @@
-package com.meidusa.venus.client.interceptor;
+package com.meidusa.venus.rpc;
+
 
 import com.meidusa.venus.Invocation;
-import com.meidusa.venus.client.RpcException;
 
 /**
  * interceptor

@@ -1,13 +1,11 @@
-package com.meidusa.venus.cluster;
+package com.meidusa.venus.client.cluster;
 
-import com.meidusa.venus.Address;
-import com.meidusa.venus.client.RpcException;
-import com.meidusa.venus.Invocation;
-import com.meidusa.venus.client.invoker.Invoker;
-import com.meidusa.venus.Result;
+import com.meidusa.venus.*;
 import com.meidusa.venus.client.invoker.venus.VenusInvoker;
-import com.meidusa.venus.loadbanlance.Loadbanlance;
-import com.meidusa.venus.loadbanlance.random.RandomLoadbanlance;
+import com.meidusa.venus.rpc.loadbanlance.Loadbanlance;
+import com.meidusa.venus.rpc.loadbanlance.random.RandomLoadbanlance;
+import com.meidusa.venus.rpc.Invoker;
+import com.meidusa.venus.rpc.RpcException;
 
 import java.util.List;
 
@@ -63,5 +61,12 @@ public class FailoverClusterInvoker implements Invoker {
     }
 
 
+    @Override
+    public void init() throws RpcException {
+    }
 
+    @Override
+    public void destroy() throws RpcException {
+
+    }
 }

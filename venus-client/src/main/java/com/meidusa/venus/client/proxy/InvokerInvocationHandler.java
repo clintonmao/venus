@@ -1,29 +1,26 @@
 package com.meidusa.venus.client.proxy;
 
-import com.meidusa.venus.Address;
-import com.meidusa.venus.URL;
+import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
-import com.meidusa.venus.client.RpcException;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
-import com.meidusa.venus.Invocation;
-import com.meidusa.venus.client.interceptor.Interceptor;
 import com.meidusa.venus.client.interceptor.valid.ValidInterceptor;
-import com.meidusa.venus.client.invoker.Invoker;
-import com.meidusa.venus.Result;
-import com.meidusa.venus.cluster.FailoverClusterInvoker;
+import com.meidusa.venus.client.cluster.FailoverClusterInvoker;
 import com.meidusa.venus.exception.VenusExceptionFactory;
-import com.meidusa.venus.limit.ActivesLimitInterceptor;
-import com.meidusa.venus.limit.TpsLimitInterceptor;
+import com.meidusa.venus.rpc.limit.ActivesLimitInterceptor;
+import com.meidusa.venus.rpc.limit.TpsLimitInterceptor;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.metainfo.EndpointParameterUtil;
-import com.meidusa.venus.mock.ReturnMockInvoker;
+import com.meidusa.venus.rpc.mock.ReturnMockInvoker;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
-import com.meidusa.venus.router.Router;
-import com.meidusa.venus.router.condition.ConditionRouter;
+import com.meidusa.venus.rpc.router.Router;
+import com.meidusa.venus.rpc.router.condition.ConditionRouter;
+import com.meidusa.venus.rpc.Interceptor;
+import com.meidusa.venus.rpc.Invoker;
+import com.meidusa.venus.rpc.RpcException;
 import com.meidusa.venus.service.registry.ServiceDefinition;
 import com.meidusa.venus.util.VenusTracerUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -82,9 +79,8 @@ public class InvokerInvocationHandler implements InvocationHandler {
         //构造请求对象
         Invocation invocation = buildInvocation(proxy,method,args);
 
-        //横截面处理
-        Interceptor[] interceptors = getInterceptors();
-        for(Interceptor interceptor:interceptors){
+        //前置处理
+        for(Interceptor interceptor:getInterceptors()){
             interceptor.intercept(invocation);
         }
 
@@ -95,15 +91,14 @@ public class InvokerInvocationHandler implements InvocationHandler {
         addressList = router.filter(addressList,invocation);
 
         //服务调用，直接放通调用或者集群容错调用
-        boolean isMock = isNeedMock(invocation);
-        if(isMock){
-            Invoker mockInvoker = getMockInvoker(invocation);
+        if(isNeedMock(invocation)){
             //mock调用
+            Invoker mockInvoker = getMockInvoker(invocation);
             Result result = mockInvoker.invoke(invocation);
             return result.getObject();
         }else{
-            Invoker clusterInvoker = getClusterInvoker(addressList,invocation);
             //集群调用
+            Invoker clusterInvoker = getClusterInvoker(addressList,invocation);
             Result result = clusterInvoker.invoke(invocation);
             return result.getObject();
         }
@@ -122,23 +117,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
                 //TPS控制
                 new TpsLimitInterceptor()
         };
-    }
-
-    /**
-     * 校验
-     * @param invocation
-     */
-    void valid(Invocation invocation) throws IllegalAccessException {
-        //endpoint定义校验
-        if(invocation.getEndpoint() == null){
-            Method method = invocation.getMethod();
-            if (!method.getDeclaringClass().equals(Object.class)) {
-                logger.error("remote invoke error: endpoint annotation not declare on method=" + method.getName());
-                throw new IllegalAccessException("remote invoke error: endpoint annotation not declare on method=" + method.getName());
-            }
-        }
-        //TODO 校验地址及注册中心不能都为空
-
     }
 
     /**

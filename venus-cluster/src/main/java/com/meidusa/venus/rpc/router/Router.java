@@ -1,4 +1,4 @@
-package com.meidusa.venus.router;
+package com.meidusa.venus.rpc.router;
 
 import com.meidusa.venus.Address;
 import com.meidusa.venus.Invocation;

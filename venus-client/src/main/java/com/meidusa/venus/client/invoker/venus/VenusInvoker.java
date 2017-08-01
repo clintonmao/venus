@@ -11,14 +11,14 @@ import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.Invocation;
 import com.meidusa.venus.Result;
+import com.meidusa.venus.rpc.RpcException;
 import com.meidusa.venus.annotations.*;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.client.InvocationListenerContainer;
-import com.meidusa.venus.client.RpcException;
 import com.meidusa.venus.client.factory.xml.XmlServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.*;
-import com.meidusa.venus.client.factory.xml.support.VenusNIOMessageHandler;
-import com.meidusa.venus.client.invoker.Invoker;
+import com.meidusa.venus.client.invoker.venus.support.VenusNIOMessageHandler;
+import com.meidusa.venus.rpc.Invoker;
 import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
 import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.exception.*;
@@ -35,7 +35,6 @@ import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
-import com.meidusa.venus.poolable.RequestLoadbalanceObjectPool;
 import com.meidusa.venus.util.UUID;
 import com.meidusa.venus.util.Utils;
 import com.meidusa.venus.util.VenusAnnotationUtils;
@@ -49,6 +48,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -79,17 +79,21 @@ public class VenusInvoker implements Invoker{
 
     private VenusExceptionFactory venusExceptionFactory;
 
-    private InvocationListenerContainer container;
-
     private XmlServiceFactory serviceFactory;
 
     private boolean enableAsync = true;
 
     private boolean needPing = false;
 
-    private VenusNIOMessageHandler handler;
+    private int asyncExecutorSize = 10;
 
     private ConnectionConnector connector;
+
+    private ConnectionManager connManager;
+
+    private InvocationListenerContainer container = new InvocationListenerContainer();
+
+    private VenusNIOMessageHandler handler = new VenusNIOMessageHandler();
 
     /**
      * bio连接池映射表
@@ -108,6 +112,37 @@ public class VenusInvoker implements Invoker{
     private Map<String, Object> realPoolMap = new HashMap<String, Object>();
 
     private InjvmInvoker injvmInvoker = new InjvmInvoker();
+
+    @Override
+    public void init() throws RpcException {
+        if (enableAsync) {
+            if (connector == null) {
+                try {
+                    this.connector = new ConnectionConnector("connection Connector");
+                } catch (IOException e) {
+                    throw new RpcException(e);
+                }
+                connector.setDaemon(true);
+
+            }
+
+            if (connManager == null) {
+                try {
+                    connManager = new ConnectionManager("Connection Manager", this.getAsyncExecutorSize());
+                } catch (IOException e) {
+                    throw new RpcException(e);
+                }
+                connManager.setDaemon(true);
+                connManager.start();
+            }
+
+            connector.setProcessors(new ConnectionManager[]{connManager});
+            connector.start();
+        }
+
+        handler.setVenusExceptionFactory(venusExceptionFactory);
+        handler.setContainer(this.container);
+    }
 
     @Override
     public Result invoke(Invocation invocation) throws RpcException {
@@ -239,12 +274,8 @@ public class VenusInvoker implements Invoker{
         BackendConnection conn = null;
         try {
             nioConnPool = getNioConnPool();
-            //TODO 处理loadbanlance问题
-            if (nioConnPool instanceof RequestLoadbalanceObjectPool) {
-                conn = (BackendConnection) ((RequestLoadbalanceObjectPool) nioConnPool).borrowObject(serviceRequestPacket.parameterMap, endpoint);
-            } else {
-                conn = nioConnPool.borrowObject();
-            }
+            conn = nioConnPool.borrowObject();
+
             borrowed = TimeUtil.currentTimeMillis();
             ByteBuffer buffer = serviceRequestPacket.toByteBuffer();
             if(service.athenaFlag()) {
@@ -285,93 +316,42 @@ public class VenusInvoker implements Invoker{
         Service service = invocation.getService();
         Endpoint endpoint = invocation.getEndpoint();
 
-        long start = TimeUtil.currentTimeMillis();
-        long borrowed = start;
-        int soTimeout = 0;
-        int oldTimeout = 0;
         boolean success = true;
         int errorCode = 0;
+        boolean nullForSystemException = false;
+
+        long start = TimeUtil.currentTimeMillis();
+        long borrowed = start;
         AbstractServicePacket packet = null;
         String remoteAddress = null;
         boolean invalided = false;
-        boolean nullForSystemException = false;
         Serializer serializer = SerializerFactory.getSerializer(serializeType);
-
         ObjectPool bioConnPool = null;
         AbstractBIOConnection conn = null;
+
+        byte[] bts;
         try {
+            //获取连接
             bioConnPool = getBioConnPool();
-            if (bioConnPool instanceof RequestLoadbalanceObjectPool) {
-                conn = (AbstractBIOConnection) ((RequestLoadbalanceObjectPool) bioConnPool).borrowObject(serviceRequestPacket.parameterMap, endpoint);
-            } else {
-                conn = (AbstractBIOConnection) bioConnPool.borrowObject();
-            }
+            conn = (AbstractBIOConnection) bioConnPool.borrowObject();
             remoteAddress =  conn.getRemoteAddress();
             borrowed = TimeUtil.currentTimeMillis();
-            ServiceConfig config = this.serviceFactory.getServiceConfig(method.getDeclaringClass());
+            ServiceConfig serviceConfig = this.serviceFactory.getServiceConfig(method.getDeclaringClass());
+            initConn(conn,serviceConfig,endpoint);
 
-            oldTimeout = conn.getSoTimeout();
-            if (config != null) {
-                EndpointConfig endpointConfig = config.getEndpointConfig(endpoint.name());
-                if (endpointConfig != null) {
-                    int eTimeOut = endpointConfig.getTimeWait();
-                    if (eTimeOut > 0) {
-                        soTimeout = eTimeOut;
-                    }
-                } else {
-                    if (config.getTimeWait() > 0) {
-                        soTimeout = config.getTimeWait();
-                    } else {
-                        if (endpoint.timeWait() > 0) {
-                            soTimeout = endpoint.timeWait();
-                        }
-                    }
-                }
-            } else {
-                if (endpoint.timeWait() > 0) {
-                    soTimeout = endpoint.timeWait();
-                }
+            //发送请求并等待响应
+            byte[] buff = serviceRequestPacket.toByteArray();
+            if(service.athenaFlag() && buff != null) {
+                AthenaTransactionDelegate.getDelegate().setClientOutputSize(buff.length);
+            }
+            conn.write(buff);
+            VenusTracerUtil.logRequest(traceID, serviceRequestPacket.apiName, JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
+            bts = conn.read();
+            if(service.athenaFlag() && bts != null) {
+                AthenaTransactionDelegate.getDelegate().setClientInputSize(bts.length);
             }
 
-            byte[] bts;
-
-            try {
-                if (soTimeout > 0) {
-                    conn.setSoTimeout(soTimeout);
-                }
-
-                byte[] buff = serviceRequestPacket.toByteArray();
-                if(service.athenaFlag() && buff != null) {
-                    AthenaTransactionDelegate.getDelegate().setClientOutputSize(buff.length);
-                }
-                conn.write(buff);
-                VenusTracerUtil.logRequest(traceID, serviceRequestPacket.apiName, JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
-                bts = conn.read();
-                if(service.athenaFlag() && bts != null) {
-                    AthenaTransactionDelegate.getDelegate().setClientInputSize(bts.length);
-                }
-            }catch(IOException e){
-                try {
-                    conn.close();
-                } catch (Exception e1) {
-                    // ignore
-                }
-
-                bioConnPool.invalidateObject(conn);
-                invalided = true;
-                Class<?>[] eClass = method.getExceptionTypes();
-
-                if(eClass != null && eClass.length > 0){
-                    for(Class<?> clazz : eClass){
-                        if(e.getClass().isAssignableFrom(clazz)){
-                            throw e;
-                        }
-                    }
-                }
-
-                throw new RemoteSocketIOException("api="+serviceRequestPacket.apiName+ ", remoteIp=" + conn.getRemoteAddress()+",("+e.getMessage() + ")",e);
-            }
-
+            //处理响应消息
             int type = AbstractServicePacket.getType(bts);
             switch (type) {
                 case PacketConstant.PACKET_TYPE_ERROR:
@@ -381,16 +361,15 @@ public class VenusInvoker implements Invoker{
                     Exception e = venusExceptionFactory.getException(error.errorCode, error.message);
                     if (e == null) {
                         throw new DefaultVenusException(error.errorCode, error.message);
-                    } else {
-                        if (error.additionalData != null) {
-                            Map<String, Type> tmap = Utils.getBeanFieldType(e.getClass(), Exception.class);
-                            if (tmap != null && tmap.size() > 0) {
-                                Object obj = serializer.decode(error.additionalData, tmap);
-                                BeanUtils.copyProperties(e, obj);
-                            }
-                        }
-                        throw e;
                     }
+                    if (error.additionalData != null) {
+                        Map<String, Type> tmap = Utils.getBeanFieldType(e.getClass(), Exception.class);
+                        if (tmap != null && tmap.size() > 0) {
+                            Object obj = serializer.decode(error.additionalData, tmap);
+                            BeanUtils.copyProperties(e, obj);
+                        }
+                    }
+                    throw e;
                 case PacketConstant.PACKET_TYPE_OK:
                     OKPacket ok = new OKPacket();
                     ok.init(bts);
@@ -407,31 +386,48 @@ public class VenusInvoker implements Invoker{
                     return null;
                 }
             }
+        }catch(IOException e){
+            try {
+                conn.close();
+            } catch (Exception e1) {
+                // ignore
+            }
+
+            bioConnPool.invalidateObject(conn);
+            invalided = true;
+            Class<?>[] eClass = method.getExceptionTypes();
+
+            if(eClass != null && eClass.length > 0){
+                for(Class<?> clazz : eClass){
+                    if(e.getClass().isAssignableFrom(clazz)){
+                        throw e;
+                    }
+                }
+            }
+            throw new RemoteSocketIOException("api="+serviceRequestPacket.apiName+ ", remoteIp=" + conn.getRemoteAddress()+",("+e.getMessage() + ")",e);
         } catch (Exception e) {
             success = false;
-
             if (e instanceof CodedException || (errorCode = venusExceptionFactory.getErrorCode(e.getClass())) != 0 || e instanceof RuntimeException) {
                 if(e instanceof CodedException){
                     errorCode = ((CodedException) e).getErrorCode();
                 }
                 throw e;
-            } else {
-                RemoteException code = e.getClass().getAnnotation(RemoteException.class);
-                if(code != null){
-                    errorCode = code.errorCode();
+            }
+            RemoteException code = e.getClass().getAnnotation(RemoteException.class);
+            if(code != null){
+                errorCode = code.errorCode();
+                throw e;
+            }else{
+                ExceptionCode eCode =   e.getClass().getAnnotation(ExceptionCode.class);
+                if(eCode != null){
+                    errorCode = eCode.errorCode();
                     throw e;
                 }else{
-                    ExceptionCode eCode =   e.getClass().getAnnotation(ExceptionCode.class);
-                    if(eCode != null){
-                        errorCode = eCode.errorCode();
-                        throw e;
-                    }else{
-                        errorCode = -1;
-                        if (conn == null) {
-                            throw new DefaultVenusException(e.getMessage(), e);
-                        } else {
-                            throw new DefaultVenusException(e.getMessage() + ". remoteAddress=" + conn.getRemoteAddress(), e);
-                        }
+                    errorCode = -1;
+                    if (conn == null) {
+                        throw new DefaultVenusException(e.getMessage(), e);
+                    } else {
+                        throw new DefaultVenusException(e.getMessage() + ". remoteAddress=" + conn.getRemoteAddress(), e);
                     }
                 }
             }
@@ -461,7 +457,6 @@ public class VenusInvoker implements Invoker{
 
             PerformanceLevel pLevel = AnnotationUtil.getAnnotation(method.getAnnotations(), PerformanceLevel.class);
             if (pLevel != null) {
-
                 if (pLevel.printParams()) {
                     buffer.append(", params=");
                     buffer.append(JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
@@ -508,12 +503,52 @@ public class VenusInvoker implements Invoker{
             }
 
             if (conn != null && bioConnPool != null && !invalided) {
+                //TODO 确认此段代码逻辑
+                /*
                 if (!conn.isClosed() && soTimeout > 0) {
                     conn.setSoTimeout(oldTimeout);
                 }
+                */
                 bioConnPool.returnObject(conn);
             }
+        }//end finally
+    }
 
+    /**
+     * 设置连接超时时间
+     * @param conn
+     * @param serviceConfig
+     * @param endpoint
+     * @throws SocketException
+     */
+    void initConn(AbstractBIOConnection conn,ServiceConfig serviceConfig,Endpoint endpoint) throws SocketException {
+        int soTimeout = 0;
+        int oldTimeout = 0;
+
+        oldTimeout = conn.getSoTimeout();
+        if (serviceConfig != null) {
+            EndpointConfig endpointConfig = serviceConfig.getEndpointConfig(endpoint.name());
+            if (endpointConfig != null) {
+                int eTimeOut = endpointConfig.getTimeWait();
+                if (eTimeOut > 0) {
+                    soTimeout = eTimeOut;
+                }
+            } else {
+                if (serviceConfig.getTimeWait() > 0) {
+                    soTimeout = serviceConfig.getTimeWait();
+                } else {
+                    if (endpoint.timeWait() > 0) {
+                        soTimeout = endpoint.timeWait();
+                    }
+                }
+            }
+        } else {
+            if (endpoint.timeWait() > 0) {
+                soTimeout = endpoint.timeWait();
+            }
+        }
+        if (soTimeout > 0) {
+            conn.setSoTimeout(soTimeout);
         }
     }
 
@@ -617,6 +652,7 @@ public class VenusInvoker implements Invoker{
      * @throws Exception
      */
     public BackendConnectionPool getNioConnPool() throws Exception {
+        //TODO 使用List<Address>，不限于静态，要支持动态
         String ipAddressList = remoteConfig.getFactory().getIpAddressList();
         if(nioPoolMap.get(ipAddressList) != null){
             return nioPoolMap.get(ipAddressList);
@@ -781,5 +817,27 @@ public class VenusInvoker implements Invoker{
 
     public void setConnector(ConnectionConnector connector) {
         this.connector = connector;
+    }
+
+    @Override
+    public void destroy() throws RpcException{
+        if (connector != null) {
+            if (connector.isAlive()) {
+                connector.shutdown();
+            }
+        }
+        if (connManager != null) {
+            if (connManager.isAlive()) {
+                connManager.shutdown();
+            }
+        }
+    }
+
+    public int getAsyncExecutorSize() {
+        return asyncExecutorSize;
+    }
+
+    public void setAsyncExecutorSize(int asyncExecutorSize) {
+        this.asyncExecutorSize = asyncExecutorSize;
     }
 }

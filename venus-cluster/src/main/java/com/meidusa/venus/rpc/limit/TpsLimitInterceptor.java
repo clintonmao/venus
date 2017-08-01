@@ -1,8 +1,8 @@
-package com.meidusa.venus.limit;
+package com.meidusa.venus.rpc.limit;
 
+import com.meidusa.venus.rpc.Interceptor;
 import com.meidusa.venus.Invocation;
-import com.meidusa.venus.client.RpcException;
-import com.meidusa.venus.client.interceptor.Interceptor;
+import com.meidusa.venus.rpc.RpcException;
 
 /**
  * tps流控处理

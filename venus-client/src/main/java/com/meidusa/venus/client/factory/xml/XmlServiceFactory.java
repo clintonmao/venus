@@ -26,7 +26,7 @@ import com.meidusa.venus.client.factory.ServiceFactory;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanContext;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanUtilsBean;
 import com.meidusa.venus.client.factory.xml.support.ServiceDefinedBean;
-import com.meidusa.venus.client.factory.xml.support.VenusNIOMessageHandler;
+import com.meidusa.venus.client.invoker.venus.support.VenusNIOMessageHandler;
 import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.factory.xml.config.ServiceConfig;
@@ -99,35 +99,23 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      */
     private Map<String, ServiceDefinedBean> serviceBeanMap = new HashMap<String, ServiceDefinedBean>();
 
-    private boolean enableAsync = true;
-
     private boolean shutdown = false;
 
     private boolean needPing = false;
 
-    private InvocationListenerContainer container = new InvocationListenerContainer();
-
-    private ConnectionManager connManager;
-
-    private ConnectionConnector connector;
-
-    private VenusNIOMessageHandler handler = new VenusNIOMessageHandler();
+    private boolean inited = false;
 
     private VenusExceptionFactory venusExceptionFactory;
 
-    private int asyncExecutorSize = 10;
-
-    private Timer reloadTimer = new Timer();
-
-    private boolean enableReload = false;
-
-    private boolean inited = false;
-
-    private ResourceLoader resourceLoader = new DefaultResourceLoader();
+    private ApplicationContext applicationContext;
 
     private BeanContext beanContext;
 
-	private ApplicationContext applicationContext;
+    //private boolean enableReload = false;
+    //private int asyncExecutorSize = 10;
+    //private boolean enableAsync = true;
+    //private ResourceLoader resourceLoader = new DefaultResourceLoader();
+    //private Timer reloadTimer = new Timer();
 
     @SuppressWarnings("unchecked")
     public <T> T getService(Class<T> t) {
@@ -163,45 +151,22 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
     	if(inited){
     		return;
     	}
-    	
     	inited = true;
         logger.trace("current Venus Client id=" + PacketConstant.VENUS_CLIENT_ID);
+
         if (venusExceptionFactory == null) {
             XmlVenusExceptionFactory xmlVenusExceptionFactory = new XmlVenusExceptionFactory();
-
             //3.0.8版本将采用自动扫描的方式获得 exception 相关的配置
             //xmlVenusExceptionFactory.setConfigFiles(new String[] { "classpath:com/meidusa/venus/exception/VenusSystemException.xml" });
             xmlVenusExceptionFactory.init();
             this.venusExceptionFactory = xmlVenusExceptionFactory;
         }
 
-        handler.setVenusExceptionFactory(venusExceptionFactory);
-        if (enableAsync) {
-            if (connector == null) {
-                this.connector = new ConnectionConnector("connection Connector");
-                connector.setDaemon(true);
-
-            }
-
-            if (connManager == null) {
-                try {
-                    connManager = new ConnectionManager("Connection Manager", this.getAsyncExecutorSize());
-                } catch (IOException e) {
-                    throw new InitialisationException(e);
-                }
-                connManager.setDaemon(true);
-                connManager.start();
-            }
-
-            connector.setProcessors(new ConnectionManager[]{connManager});
-            connector.start();
-        }
-
         beanContext = new ClientBeanContext(applicationContext!= null ?applicationContext.getAutowireCapableBeanFactory(): null);
         BeanContextBean.getInstance().setBeanContext(beanContext);
         VenusBeanUtilsBean.setInstance(new ClientBeanUtilsBean(new ConvertUtilsBean(), new PropertyUtilsBean(), beanContext));
         AthenaExtensionResolver.getInstance().resolver();
-        handler.setContainer(this.container);
+
         initConfiguration();
 
         /*__RELOAD:
@@ -265,7 +230,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             ServiceDefinedBean source = entry.getValue();
             ServiceDefinedBean target = this.servicesMap.get(key);
             if (target != null) {
-                //TODO 处理此段逻辑
+                //TODO 确认此段逻辑
                 /*
                 target.getHandler().setBioConnPool(source.getHandler().getBioConnPool());
                 target.getHandler().setNioConnPool(source.getHandler().getNioConnPool());
@@ -278,7 +243,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
 
         this.serviceConfigMap = serviceConfigMap;
 
-        //TODO 连接池关闭处理
+        //TODO 确认此段逻辑
         //final Map<String, Object> oldPools = this.realPoolMap;
         //this.realPoolMap = realPoolMap;
 
@@ -331,14 +296,14 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             */
 
             //创建InvocationHandler
-            InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
             //连接管理功能放到InvocationHandler，由外围serviceFacotry传递url、remoteConfig或者不传地址信息（若不传，则即为动态寻址）
-            //invocationHandler.setBioConnPool(tuple.left);
-            //invocationHandler.setNioConnPool(tuple.right);
+            InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
             invocationHandler.setRemoteConfig(remoteConfig);
             invocationHandler.setVenusExceptionFactory(this.getVenusExceptionFactory());
             //TODO 确认相关属性功能
             /*
+            invocationHandler.setNioConnPool(tuple.right);
+            invocationHandler.setBioConnPool(tuple.left);
             invocationHandler.setHandler(this.handler);
             invocationHandler.setConnector(this.connector);
             invocationHandler.setServiceFactory(this);
@@ -417,86 +382,6 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         return clientConfig;
     }
 
-    /*
-    private RemoteContainer createRemoteContainer(String ipAddress, Map<String, Object> realPools, boolean share) throws Exception {
-        RemoteContainer container = new RemoteContainer();
-
-        if (!StringUtil.isEmpty(ipAddress)) {
-            String ipList[] = StringUtil.split(ipAddress, ", ");
-            PoolableObjectPool bioPools[] = new PoolableObjectPool[ipList.length];
-            BackendConnectionPool nioPools[] = new BackendConnectionPool[ipList.length];
-            for (int i = 0; i < ipList.length; i++) {
-                String shareName = share ? "SHARED-" : "";
-                if (share) {
-                    nioPools[i] = (PollingBackendConnectionPool) realPools.get("N-" + shareName + ipList[i]);
-                    bioPools[i] = (PoolableObjectPool) realPools.get("B-" + shareName + ipList[i]);
-                    if (nioPools[i] != null) {
-                        continue;
-                    }
-                }
-
-                VenusBackendConnectionFactory nioFactory = new VenusBackendConnectionFactory();
-                nioPools[i] = new PollingBackendConnectionPool("N-" + shareName + ipList[i], nioFactory, 8);
-                bioPools[i] = new PoolableObjectPool();
-
-                // bio
-                VenusBIOConnectionFactory bioFactory = new VenusBIOConnectionFactory();
-
-                bioFactory.setNeedPing(needPing);
-
-                String temp[] = StringUtil.split(ipList[i], ":");
-                if (temp.length > 1) {
-                    nioFactory.setHost(temp[0]);
-                    nioFactory.setPort(Integer.valueOf(temp[1]));
-
-                    bioFactory.setHost(temp[0]);
-                    bioFactory.setPort(Integer.valueOf(temp[1]));
-                } else {
-                    nioFactory.setHost(temp[0]);
-                    nioFactory.setPort(16800);
-
-                    bioFactory.setHost(temp[0]);
-                    bioFactory.setPort(16800);
-                }
-
-                if (this.isEnableAsync()) {
-                    nioFactory.setConnector(connector);
-                    nioFactory.setMessageHandler(handler);
-                    nioPools[i].init();
-                    realPools.put(nioPools[i].getName(), nioPools[i]);
-                }
-                bioPools[i].setName("B-" + shareName + nioFactory.getHost() + ":" + nioFactory.getPort());
-                bioPools[i].setFactory(bioFactory);
-                bioPools[i].setTestOnBorrow(true);
-                bioPools[i].setTestWhileIdle(true);
-                bioPools[i].init();
-
-                realPools.put(bioPools[i].getName(), bioPools[i]);
-            }
-
-            if (ipList.length > 1) {
-                MultipleLoadBalanceObjectPool bioPool = new MultipleLoadBalanceObjectPool(MultipleLoadBalanceObjectPool.LOADBALANCING_ROUNDROBIN, bioPools);
-                MultipleLoadBalanceBackendConnectionPool nioPool = new MultipleLoadBalanceBackendConnectionPool("N-V-" + ipAddress,
-                        MultipleLoadBalanceObjectPool.LOADBALANCING_ROUNDROBIN, nioPools);
-                bioPool.setName("B-V-" + ipAddress);
-                nioPool.init();
-                bioPool.init();
-
-                realPools.put(bioPool.getName(), bioPool);
-                realPools.put(nioPool.getName(), nioPool);
-                container.setBioPool(bioPool);
-                container.setNioPool(nioPool);
-            } else {
-                container.setBioPool(bioPools[0]);
-                container.setNioPool(nioPools[0]);
-            }
-        } else {
-            throw new IllegalArgumentException(" ipaddress cannot be null");
-        }
-
-        return container;
-    }
-    */
 
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		// register to resolvable dependency container
@@ -550,16 +435,6 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             return;
         }
         shutdown = true;
-        if (connector != null) {
-            if (connector.isAlive()) {
-                connector.shutdown();
-            }
-        }
-        if (connManager != null) {
-            if (connManager.isAlive()) {
-                connManager.shutdown();
-            }
-        }
     }
 
 	@Override
@@ -572,44 +447,12 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         return serviceConfigMap.get(type);
     }
 
-    public boolean isEnableReload() {
-        return enableReload;
-    }
-
-    public void setEnableReload(boolean enableReload) {
-        this.enableReload = enableReload;
-    }
-
     public boolean isNeedPing() {
         return needPing;
     }
 
     public void setNeedPing(boolean needPing) {
         this.needPing = needPing;
-    }
-
-    public boolean isEnableAsync() {
-        return enableAsync;
-    }
-
-    public void setEnableAsync(boolean enableAsync) {
-        this.enableAsync = enableAsync;
-    }
-
-    public int getAsyncExecutorSize() {
-        return asyncExecutorSize;
-    }
-
-    public ConnectionConnector getConnector() {
-        return connector;
-    }
-
-    public void setConnector(ConnectionConnector connector) {
-        this.connector = connector;
-    }
-
-    public void setAsyncExecutorSize(int asyncExecutorSize) {
-        this.asyncExecutorSize = asyncExecutorSize;
     }
 
     public VenusExceptionFactory getVenusExceptionFactory() {

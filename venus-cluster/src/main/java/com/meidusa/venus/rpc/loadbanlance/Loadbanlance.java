@@ -1,4 +1,4 @@
-package com.meidusa.venus.loadbanlance;
+package com.meidusa.venus.rpc.loadbanlance;
 
 import com.meidusa.venus.Address;
 

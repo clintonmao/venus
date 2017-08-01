@@ -1,8 +1,8 @@
-package com.meidusa.venus.client.invoker;
+package com.meidusa.venus.rpc;
+
 
 import com.meidusa.venus.Invocation;
 import com.meidusa.venus.Result;
-import com.meidusa.venus.client.RpcException;
 
 /**
  * invoker接口
@@ -11,10 +11,20 @@ import com.meidusa.venus.client.RpcException;
 public interface Invoker {
 
     /**
-     * invoke统一接口
+     * 初始化
+     */
+    void init() throws RpcException;
+
+    /**
+     * 服务调用
      * @param invocation
      * @return
      * @throws RpcException
      */
     Result invoke(Invocation invocation) throws RpcException;
+
+    /**
+     * 销毁
+     */
+    void destroy() throws RpcException;
 }

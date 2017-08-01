@@ -1,9 +1,9 @@
-package com.meidusa.venus.mock;
+package com.meidusa.venus.rpc.mock;
 
 import com.meidusa.venus.Invocation;
+import com.meidusa.venus.rpc.Invoker;
 import com.meidusa.venus.Result;
-import com.meidusa.venus.client.RpcException;
-import com.meidusa.venus.client.invoker.Invoker;
+import com.meidusa.venus.rpc.RpcException;
 
 /**
  * 异常放通处理
@@ -15,5 +15,13 @@ public class ThrowMockInvoker implements Invoker {
     public Result invoke(Invocation invocation) throws RpcException {
         //TODO
         return null;
+    }
+
+    @Override
+    public void init() throws RpcException {
+    }
+
+    @Override
+    public void destroy() throws RpcException {
     }
 }
