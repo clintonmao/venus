@@ -25,6 +25,10 @@ import com.meidusa.venus.service.registry.ServiceDefinition;
 @Component
 public class MysqlRegister implements Register {
 
+	public static final String CONSUMER = "consumer";
+
+	public static final String PROVIDER = "provider";
+
 	/** 已注册的URL */
 	private List<URL> registeUrls = new ArrayList<URL>();
 
@@ -45,61 +49,62 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public void registe(URL url) throws VenusRegisteException {
-		registeUrls.add(url);
-		VenusApplicationDO application = venusApplicationDAO.getApplication(url.getApplication());
-		int appId = 0;
-		if (null == application) {
+		try {
+			VenusApplicationDO application = venusApplicationDAO.getApplication(url.getApplication());
+			int appId = 0;
 			VenusApplicationDO venusApplicationDO = new VenusApplicationDO();
 			venusApplicationDO.setAppCode(url.getApplication());
-			venusApplicationDO.setCreateName("register");
-			venusApplicationDO.setUpdateName("register");
-			appId = venusApplicationDAO.addApplication(venusApplicationDO);
-		} else {
-			appId = application.getId();
-		}
-		VenusServerDO server = venusServerDAO.getServer(url.getHost(), url.getPort());
-		int serverId = 0;
-		if (null == server) {
-			VenusServerDO venusServerDO = new VenusServerDO();
-			venusServerDO.setHostname(url.getHost());
-			venusServerDO.setPort(url.getPort());
-			serverId = venusServerDAO.addServer(venusServerDO);
-		} else {
-			serverId = server.getId();
-		}
-		VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getInterfaceName());
-		int serviceId = 0;
-		if (null == service) {
-			VenusServiceDO venusServiceDO = new VenusServiceDO();
-			venusServiceDO.setInterfaceName(url.getInterfaceName());
-			venusServiceDO.setName(url.getServiceName());
-			venusServiceDO.setAppId(appId);
-			venusServiceDO.setVersion(url.getVersion());
-			serviceId = venusServiceDAO.addService(venusServiceDO);
-		} else {
-			serviceId = service.getId();
-			if (!url.getVersion().equals(service.getVersion())) {
+			venusApplicationDO.setUpdateName(PROVIDER);
+			if (null == application) {
+				venusApplicationDO.setCreateName(PROVIDER);
+				appId = venusApplicationDAO.addApplication(venusApplicationDO);
+			} else {
+				appId = application.getId();
+				venusApplicationDAO.updateApplication(venusApplicationDO);
+			}
+			VenusServerDO server = venusServerDAO.getServer(url.getHost(), url.getPort());
+			int serverId = 0;
+			if (null == server) {
+				VenusServerDO venusServerDO = new VenusServerDO();
+				venusServerDO.setHostname(url.getHost());
+				venusServerDO.setPort(url.getPort());
+				serverId = venusServerDAO.addServer(venusServerDO);
+			} else {
+				serverId = server.getId();
+			}
+			VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
+					url.getInterfaceName());
+			int serviceId = 0;
+			if (null == service) {
 				VenusServiceDO venusServiceDO = new VenusServiceDO();
 				venusServiceDO.setInterfaceName(url.getInterfaceName());
 				venusServiceDO.setName(url.getServiceName());
 				venusServiceDO.setAppId(appId);
 				venusServiceDO.setVersion(url.getVersion());
-				venusServiceDAO.updateService(venusServiceDO);
+				serviceId = venusServiceDAO.addService(venusServiceDO);
+			} else {
+				serviceId = service.getId();
 			}
-		}
 
-		VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(serverId, serviceId);
-		if (null == serviceMapping) {
-			VenusServiceMappingDO venusServiceMappingDO = new VenusServiceMappingDO();
-			venusServiceMappingDO.setServerId(serverId);
-			venusServiceMappingDO.setServiceId(serviceId);
-			venusServiceMappingDO.setSync(true);
-			venusServiceMappingDO.setActive(true);
-			venusServiceMappingDO.setVersion(url.getVersion());
-			venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
-		} else {
-			String oldVersion = serviceMapping.getVersion();//有区间的version需特殊处理
+			VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(serverId, serviceId,
+					PROVIDER);
+			if (null == serviceMapping) {
+				VenusServiceMappingDO venusServiceMappingDO = new VenusServiceMappingDO();
+				venusServiceMappingDO.setServerId(serverId);
+				venusServiceMappingDO.setServiceId(serviceId);
+				venusServiceMappingDO.setSync(true);
+				venusServiceMappingDO.setActive(true);
+				venusServiceMappingDO.setRegisteType(1);
+				venusServiceMappingDO.setRole(PROVIDER);
+				venusServiceMappingDO.setVersion(url.getVersion());
+				venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
+			} else {
+				String oldVersion = serviceMapping.getVersion();// 有区间的version需特殊处理
+			}
+		} catch (Exception e) {
+			throw new VenusRegisteException("服务注册异常" + url.getServiceName(), e);
 		}
+		registeUrls.add(url);
 
 	}
 
@@ -110,6 +115,62 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public void subscrible(URL url) throws VenusRegisteException {
+		try {
+			VenusApplicationDO application = venusApplicationDAO.getApplication(url.getApplication());
+			int appId = 0;
+			VenusApplicationDO venusApplicationDO = new VenusApplicationDO();
+			venusApplicationDO.setAppCode(url.getApplication());
+			venusApplicationDO.setUpdateName(CONSUMER);
+			if (null == application) {
+				venusApplicationDO.setCreateName(CONSUMER);
+				appId = venusApplicationDAO.addApplication(venusApplicationDO);
+			} else {
+				appId = application.getId();
+				venusApplicationDAO.updateApplication(venusApplicationDO);
+			}
+			VenusServerDO server = venusServerDAO.getServer(url.getHost(), 0);
+			int serverId = 0;
+			if (null == server) {
+				VenusServerDO venusServerDO = new VenusServerDO();
+				venusServerDO.setHostname(url.getHost());
+				venusServerDO.setPort(0);
+				serverId = venusServerDAO.addServer(venusServerDO);
+			} else {
+				serverId = server.getId();
+			}
+			VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
+					url.getInterfaceName());
+			int serviceId = 0;
+			if (null == service) {
+				VenusServiceDO venusServiceDO = new VenusServiceDO();
+				venusServiceDO.setInterfaceName(url.getInterfaceName());
+				venusServiceDO.setName(url.getServiceName());
+				venusServiceDO.setAppId(appId);
+				venusServiceDO.setVersion(url.getVersion());
+				serviceId = venusServiceDAO.addService(venusServiceDO);
+			} else {
+				serviceId = service.getId();
+			}
+
+			VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(serverId, serviceId,
+					CONSUMER);
+			if (null == serviceMapping) {
+				VenusServiceMappingDO venusServiceMappingDO = new VenusServiceMappingDO();
+				venusServiceMappingDO.setServerId(serverId);
+				venusServiceMappingDO.setServiceId(serviceId);
+				venusServiceMappingDO.setSync(true);
+				venusServiceMappingDO.setActive(true);
+				venusServiceMappingDO.setRegisteType(1);
+				venusServiceMappingDO.setRole(CONSUMER);
+				venusServiceMappingDO.setVersion(url.getVersion());
+				venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
+			} else {
+				String oldVersion = serviceMapping.getVersion();// 有区间的version需特殊处理
+			}
+		} catch (Exception e) {
+			throw new VenusRegisteException("服务订阅异常" + url.getServiceName(), e);
+		}
+		subscribleUrls.add(url);
 
 	}
 

@@ -47,11 +47,11 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	}
 
 	@Override
-	public VenusServiceMappingDO getServiceMapping(Integer serverId, Integer serviceId) throws DAOException {
-		String sql = "select id, server_id, service_id, version, active, sync, create_time, update_time from t_venus_service_mapping where server_id = ? and service_id = ?";
+	public VenusServiceMappingDO getServiceMapping(Integer serverId, Integer serviceId, String role) throws DAOException {
+		String sql = "select id, server_id, service_id, version, active, sync, create_time, update_time from t_venus_service_mapping where server_id = ? and service_id = ? and role=?";
 
 		try {
-			return this.jdbcTemplate.query(sql, new Object[] { serverId, serviceId },
+			return this.jdbcTemplate.query(sql, new Object[] { serverId, serviceId,role },
 					new ResultSetExtractor<VenusServiceMappingDO>() {
 						@Override
 						public VenusServiceMappingDO extractData(ResultSet rs)
