@@ -49,7 +49,7 @@
 		</dependency>
         <dependency>
             <groupId>com.meidusa.venus</groupId>
-            <artifactId>venus-cluster</artifactId>
+            <artifactId>venus-rpc</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
