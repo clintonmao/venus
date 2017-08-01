@@ -1,8 +1,8 @@
 package com.meidusa.venus.rpc.mock;
 
-import com.meidusa.venus.Invocation;
+import com.meidusa.venus.rpc.Invocation;
 import com.meidusa.venus.rpc.Invoker;
-import com.meidusa.venus.Result;
+import com.meidusa.venus.rpc.Result;
 import com.meidusa.venus.rpc.RpcException;
 
 /**

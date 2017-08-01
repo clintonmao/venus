@@ -1,8 +1,6 @@
 package com.meidusa.venus.rpc;
 
 
-import com.meidusa.venus.Invocation;
-
 /**
  * interceptor
  * Created by Zhangzhihua on 2017/8/1.

@@ -1,7 +1,9 @@
-package com.meidusa.venus.rpc.cluster;
+package com.meidusa.venus.client.cluster;
 
 import com.meidusa.venus.*;
 import com.meidusa.venus.client.invoker.venus.VenusInvoker;
+import com.meidusa.venus.rpc.Invocation;
+import com.meidusa.venus.rpc.Result;
 import com.meidusa.venus.rpc.loadbanlance.Loadbanlance;
 import com.meidusa.venus.rpc.loadbanlance.random.RandomLoadbanlance;
 import com.meidusa.venus.rpc.Invoker;

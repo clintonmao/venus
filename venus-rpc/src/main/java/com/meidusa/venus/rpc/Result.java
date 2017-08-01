@@ -1,4 +1,4 @@
-package com.meidusa.venus;
+package com.meidusa.venus.rpc;
 
 /**
  * result

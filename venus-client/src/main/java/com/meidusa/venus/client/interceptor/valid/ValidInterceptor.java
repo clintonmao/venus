@@ -1,7 +1,7 @@
 package com.meidusa.venus.client.interceptor.valid;
 
 import com.meidusa.venus.rpc.Interceptor;
-import com.meidusa.venus.Invocation;
+import com.meidusa.venus.rpc.Invocation;
 import com.meidusa.venus.rpc.RpcException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

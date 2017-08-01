@@ -1,5 +1,6 @@
-package com.meidusa.venus;
+package com.meidusa.venus.rpc;
 
+import com.meidusa.venus.Address;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.metainfo.EndpointParameter;

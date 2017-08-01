@@ -1,7 +1,7 @@
 package com.meidusa.venus.rpc.limit;
 
 import com.meidusa.venus.rpc.Interceptor;
-import com.meidusa.venus.Invocation;
+import com.meidusa.venus.rpc.Invocation;
 import com.meidusa.venus.rpc.RpcException;
 
 /**

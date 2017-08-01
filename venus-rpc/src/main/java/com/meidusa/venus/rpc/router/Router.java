@@ -1,7 +1,7 @@
 package com.meidusa.venus.rpc.router;
 
 import com.meidusa.venus.Address;
-import com.meidusa.venus.Invocation;
+import com.meidusa.venus.rpc.Invocation;
 
 import java.util.List;
 

@@ -1,9 +1,6 @@
 package com.meidusa.venus.rpc;
 
 
-import com.meidusa.venus.Invocation;
-import com.meidusa.venus.Result;
-
 /**
  * invoker接口
  * Created by Zhangzhihua on 2017/7/31.
