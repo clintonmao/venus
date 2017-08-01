@@ -5,13 +5,13 @@ import com.meidusa.venus.registry.domain.VenusServiceDO;
 
 public interface VenusServiceDAO {
 
-	boolean addService(VenusServiceDO venusServiceDO) throws DAOException;
+	int addService(VenusServiceDO venusServiceDO) throws DAOException;
 
 	boolean updateService(VenusServiceDO venusServiceDO) throws DAOException;
 
 	/**
 	 * 
-	 * @param serviceName 必须不能为空
+	 * @param serviceName 不能为空
 	 * @param interfaceName 可为空
 	 * @return
 	 * @throws DAOException

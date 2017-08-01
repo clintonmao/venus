@@ -1,5 +1,7 @@
 package com.meidusa.venus.registry.dao.impl;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -7,7 +9,10 @@ import javax.annotation.Resource;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 
 import com.meidusa.venus.registry.DAOException;
@@ -21,15 +26,31 @@ public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 	private JdbcTemplate jdbcTemplate;
 
 	@Override
-	public boolean addApplication(VenusApplicationDO venusApplicationDO) throws DAOException {
-		String sql = "insert into t_venus_application (app_code,create_name,update_name,create_time, update_time) values (?, ?, ?, now(), now())";
-		int update = 0;
-		try {
-			update = this.jdbcTemplate.update(sql, venusApplicationDO.getAppCode(),venusApplicationDO.getCreateName(),venusApplicationDO.getUpdateName());
-		} catch (Exception e) {
-			throw new DAOException("保存venusApplication异常", e);
-		}
-		return update > 0 ? true : false;
+	public int addApplication(VenusApplicationDO venusApplicationDO) throws DAOException {
+		/*
+		 * String sql =
+		 * "insert into t_venus_application (app_code,create_name,update_name,create_time, update_time) values (?, ?, ?, now(), now())"
+		 * ; int update = 0; try { update = this.jdbcTemplate.update(sql,
+		 * venusApplicationDO.getAppCode(),venusApplicationDO.getCreateName(),
+		 * venusApplicationDO.getUpdateName()); } catch (Exception e) { throw
+		 * new DAOException("添加venusApplication异常", e); } return update > 0 ?
+		 * true : false;
+		 */
+
+		final String sql = "insert into t_venus_application (app_code,create_name,update_name,create_time, update_time) values ('"
+				+ venusApplicationDO.getAppCode() + "', '" + venusApplicationDO.getCreateName() + "', '"
+				+ venusApplicationDO.getUpdateName() + "', now(), now())";
+		KeyHolder keyHolder = new GeneratedKeyHolder();
+		int autoIncId = 0;
+		jdbcTemplate.update(new PreparedStatementCreator() {
+			public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
+				PreparedStatement ps = con.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+				return ps;
+			}
+		}, keyHolder);
+		autoIncId = keyHolder.getKey().intValue();
+		return autoIncId;
+
 	}
 
 	@Override
@@ -37,8 +58,7 @@ public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 		String sql = "update t_venus_application set app_code=?, update_time=now() where id=?";
 		int update = 0;
 		try {
-			update = this.jdbcTemplate.update(sql, venusApplicationDO.getAppCode(),
-					venusApplicationDO.getId());
+			update = this.jdbcTemplate.update(sql, venusApplicationDO.getAppCode(), venusApplicationDO.getId());
 		} catch (Exception e) {
 			throw new DAOException("更新venusApplication异常", e);
 		}
@@ -60,7 +80,7 @@ public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 
 			});
 		} catch (Exception e) {
-			throw new DAOException("获取venusApplication异常", e);
+			throw new DAOException("根据 appCode 获取venusApplication异常", e);
 		}
 	}
 

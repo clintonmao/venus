@@ -14,6 +14,8 @@ public class VenusServiceDO implements Serializable {
 	private String name;
 
 	private String interfaceName;
+	
+	private Integer appId;
 
 	private String version;
 
@@ -77,6 +79,14 @@ public class VenusServiceDO implements Serializable {
 
 	public void setVersion(String version) {
 		this.version = version;
+	}
+
+	public int getAppId() {
+		return appId;
+	}
+
+	public void setAppId(Integer appId) {
+		this.appId = appId;
 	}
 
 	@Override

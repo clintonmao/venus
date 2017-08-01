@@ -22,14 +22,14 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 
 	@Override
 	public boolean addServiceMapping(VenusServiceMappingDO venusServiceMappingDO) throws DAOException {
-		String sql = "insert into t_venus_service_mapping (server_id,service_id,version, active, sync,create_time, update_time) values (?, ?,?, ?,?, now(), now())";
+		String sql = "insert into t_venus_service_mapping (server_id,service_id,version, active, sync,create_time, update_time) values (?, ?, ?, ?, ?, now(), now())";
 		int update = 0;
 		try {
 			update = this.jdbcTemplate.update(sql, venusServiceMappingDO.getServerId(),
 					venusServiceMappingDO.getServiceId(), venusServiceMappingDO.getVersion(),
 					venusServiceMappingDO.isActive(), venusServiceMappingDO.isSync());
 		} catch (Exception e) {
-			throw new DAOException("保存venusService异常", e);
+			throw new DAOException("保存服务映射关系异常", e);
 		}
 		return update > 0 ? true : false;
 	}
@@ -63,7 +63,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 						}
 					});
 		} catch (Exception e) {
-			throw new DAOException("获取服务映射关系异常", e);
+			throw new DAOException("根据serverId=>" + serverId + ",serviceId=>" + serviceId + "获取服务映射关系异常", e);
 		}
 	}
 
@@ -82,7 +82,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 				}
 			});
 		} catch (Exception e) {
-			throw new DAOException("获取服务映射关系异常", e);
+			throw new DAOException("根据ID＝>" + id + "获取服务映射关系异常", e);
 		}
 	}
 }

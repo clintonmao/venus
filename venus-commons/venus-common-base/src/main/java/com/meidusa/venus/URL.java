@@ -12,11 +12,11 @@ import org.apache.commons.lang.StringUtils;
  * 服务订阅地址,subscrible://com.chexiang.order.OrderService/orderService?version=1.0.0&host=192.168.1.2
  * Created by Zhangzhihua on 2017/7/27.
  */
-public class URL implements Serializable{
+public class URL implements Serializable {
 
 	private static final long serialVersionUID = -4259657535674215341L;
 
-	/** 协议，如  venus || subscrible */
+	/** 协议，如 venus || subscrible */
 	private String protocol;
 
 	/** 路径，如 com.chexiang.order.OrderService/orderService */
@@ -36,6 +36,12 @@ public class URL implements Serializable{
 
 	/** 端口，如 16800 */
 	private int port;
+
+	/** 应用名 */
+	private String application;
+
+	/** 负载策略 */
+	private String loadbanlance;
 
 	/** 服务地址属性映射表，即?后属性<K,V> */
 	private Map<String, Object> properties = new HashMap<String, Object>();
@@ -91,15 +97,23 @@ public class URL implements Serializable{
 				for (int i = 0; i < splits.length; i++) {
 					String str = splits[i];
 					String[] split = str.split("=");
-					map.put(split[0], split[1]);
-					if (split[0].equals("port")) {
-						u.setPort(Integer.valueOf(split[1]));
-					}
-					if (split[0].equals("host")) {
-						u.setHost(split[1]);
-					}
-					if (split[0].equals("version")) {
-						u.setVersion(split[1]);
+					if (split.length > 1) {
+						map.put(split[0], split[1]);
+						if (split[0].equals("port")) {
+							u.setPort(Integer.valueOf(split[1]));
+						}
+						if (split[0].equals("host")) {
+							u.setHost(split[1]);
+						}
+						if (split[0].equals("version")) {
+							u.setVersion(split[1]);
+						}
+						if (split[0].equals("loadbanlance")) {
+							u.setLoadbanlance(split[1]);
+						}
+						if (split[0].equals("application")) {
+							u.setApplication(split[1]);
+						}
 					}
 				}
 				u.setProperties(map);
@@ -126,8 +140,10 @@ public class URL implements Serializable{
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((application == null) ? 0 : application.hashCode());
 		result = prime * result + ((host == null) ? 0 : host.hashCode());
 		result = prime * result + ((interfaceName == null) ? 0 : interfaceName.hashCode());
+		result = prime * result + ((loadbanlance == null) ? 0 : loadbanlance.hashCode());
 		result = prime * result + ((path == null) ? 0 : path.hashCode());
 		result = prime * result + port;
 		result = prime * result + ((properties == null) ? 0 : properties.hashCode());
@@ -146,6 +162,11 @@ public class URL implements Serializable{
 		if (getClass() != obj.getClass())
 			return false;
 		URL other = (URL) obj;
+		if (application == null) {
+			if (other.application != null)
+				return false;
+		} else if (!application.equals(other.application))
+			return false;
 		if (host == null) {
 			if (other.host != null)
 				return false;
@@ -155,6 +176,11 @@ public class URL implements Serializable{
 			if (other.interfaceName != null)
 				return false;
 		} else if (!interfaceName.equals(other.interfaceName))
+			return false;
+		if (loadbanlance == null) {
+			if (other.loadbanlance != null)
+				return false;
+		} else if (!loadbanlance.equals(other.loadbanlance))
 			return false;
 		if (path == null) {
 			if (other.path != null)
@@ -226,17 +252,33 @@ public class URL implements Serializable{
 		this.port = port;
 	}
 
+	public String getApplication() {
+		return application;
+	}
+
+	public void setApplication(String application) {
+		this.application = application;
+	}
+
+	public String getLoadbanlance() {
+		return loadbanlance;
+	}
+
+	public void setLoadbanlance(String loadbanlance) {
+		this.loadbanlance = loadbanlance;
+	}
+
 	@Override
 	public String toString() {
 		return "URL [protocol=" + protocol + ", path=" + path + ", interfaceName=" + interfaceName + ", serviceName="
-				+ serviceName + ", version=" + version + ", host=" + host + ", port=" + port + ", properties="
-				+ properties + "]";
+				+ serviceName + ", version=" + version + ", host=" + host + ", port=" + port + ", application="
+				+ application + ", loadbanlance=" + loadbanlance + ", properties=" + properties + "]";
 	}
 
-/*	public static void main(String args[]) {
-		String url = "subscrible://orderService?version=1.0.0&host=192.168.1.1&port=9000";
+	public static void main(String args[]) {
+		String url = "subscrible://orderService?version=1.0.0&host=192.168.1.1&port=9000&application=order-service&loadbanlance=random";
 		URL u = URL.parse(url);
 		System.out.println(u);
-	}*/
+	}
 
 }

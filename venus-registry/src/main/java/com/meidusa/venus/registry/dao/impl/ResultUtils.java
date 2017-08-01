@@ -27,6 +27,7 @@ public class ResultUtils {
 		venusService.setInterfaceName(rs.getString("interface_name"));
 		venusService.setVersion(rs.getString("version"));
 		venusService.setDescription(rs.getString("description"));
+		venusService.setAppId(rs.getInt("app_id"));
 		venusService.setCreateTime(rs.getTimestamp("create_time"));
 		venusService.setUpdateTime(rs.getTimestamp("update_time"));
 		return venusService;

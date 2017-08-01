@@ -5,11 +5,11 @@ import com.meidusa.venus.registry.domain.VenusServerDO;
 
 public interface VenusServerDAO {
 
-	boolean addServer(VenusServerDO venusServerDO) throws DAOException;
+	int addServer(VenusServerDO venusServerDO) throws DAOException;
 
 	boolean updateServer(VenusServerDO venusServerDO) throws DAOException;
 
-	VenusServerDO getServer(String host, String port) throws DAOException;
+	VenusServerDO getServer(String host, Integer port) throws DAOException;
 
 	VenusServerDO getServer(Integer id) throws DAOException;
 

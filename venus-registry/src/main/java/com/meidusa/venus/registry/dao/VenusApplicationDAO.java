@@ -5,7 +5,7 @@ import com.meidusa.venus.registry.domain.VenusApplicationDO;
 
 public interface VenusApplicationDAO {
 
-	boolean addApplication(VenusApplicationDO venusApplicationDO) throws DAOException;
+	int addApplication(VenusApplicationDO venusApplicationDO) throws DAOException;
 
 	boolean updateApplication(VenusApplicationDO venusApplicationDO) throws DAOException;
 
