@@ -19,6 +19,7 @@ import com.meidusa.venus.client.factory.xml.XmlServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.*;
 import com.meidusa.venus.client.factory.xml.support.VenusNIOMessageHandler;
 import com.meidusa.venus.client.invoker.Invoker;
+import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
 import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.extension.athena.AthenaTransactionId;
@@ -67,8 +68,6 @@ public class VenusInvoker implements Invoker{
 
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
 
-    private Map<String, Object> singletonServiceMap = new HashMap<String, Object>();
-
     private byte serializeType = PacketConstant.CONTENT_TYPE_JSON;
 
     private static AtomicLong sequenceId = new AtomicLong(1);
@@ -108,42 +107,24 @@ public class VenusInvoker implements Invoker{
      */
     private Map<String, Object> realPoolMap = new HashMap<String, Object>();
 
+    private InjvmInvoker injvmInvoker = new InjvmInvoker();
+
     @Override
     public Result invoke(Invocation invocation) throws RpcException {
         Method method = invocation.getMethod();
         Object[] args = invocation.getArgs();
-
-        Service service = null;
-        Endpoint endpoint = null;
+        Service service = invocation.getService();
+        Endpoint endpoint = invocation.getEndpoint();
         try {
-             endpoint = invocation.getEndpoint();
-            if (endpoint != null) {
-                service = invocation.getService();
-
-                if (com.meidusa.toolkit.common.util.StringUtil.isEmpty(service.implement())) {
-                    EndpointParameter[] params = invocation.getParams();
-
+            if (endpoint != null && service != null) {
+                if (StringUtils.isEmpty(service.implement())) {
                     return new Result(doInvoke(invocation));
                 } else {
-                    Object serviceImpl = null;
-                    if (service.singleton()) {
-                        serviceImpl = singletonServiceMap.get(service.implement());
-                        if (serviceImpl == null) {
-                            synchronized (singletonServiceMap) {
-                                serviceImpl = singletonServiceMap.get(service.implement());
-                                if (serviceImpl == null) {
-                                    serviceImpl = Class.forName(service.implement(), true, Thread.currentThread().getContextClassLoader()).newInstance();
-                                    singletonServiceMap.put(service.implement(), serviceImpl);
-                                }
-                            }
-                        }
-                    } else {
-                        serviceImpl = Class.forName(service.implement(), true, Thread.currentThread().getContextClassLoader()).newInstance();
-                    }
-
-                    return new Result(method.invoke(serviceImpl, args));
+                    //jvm内部调用
+                    return injvmInvoker.invoke(invocation);
                 }
             }
+            //TODO 确认endpoint为空情况
             return new Result(method.invoke(this, args));
         } catch (Throwable e) {
             if (!(e instanceof CodedException)) {
