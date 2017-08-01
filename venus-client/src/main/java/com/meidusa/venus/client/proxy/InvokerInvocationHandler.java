@@ -9,12 +9,17 @@ import com.meidusa.venus.client.RpcException;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.Invocation;
+import com.meidusa.venus.client.interceptor.Interceptor;
+import com.meidusa.venus.client.interceptor.valid.ValidInterceptor;
 import com.meidusa.venus.client.invoker.Invoker;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.cluster.FailoverClusterInvoker;
 import com.meidusa.venus.exception.VenusExceptionFactory;
+import com.meidusa.venus.limit.ActivesLimitInterceptor;
+import com.meidusa.venus.limit.TpsLimitInterceptor;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.metainfo.EndpointParameterUtil;
+import com.meidusa.venus.mock.ReturnMockInvoker;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
 import com.meidusa.venus.router.Router;
@@ -74,21 +79,49 @@ public class InvokerInvocationHandler implements InvocationHandler {
     private Router router = new ConditionRouter();
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        //构造请求对象
         Invocation invocation = buildInvocation(proxy,method,args);
-        //TODO 将部分功能由aop实现
-        //校验
-        valid(invocation);
-        //TODO 流控
-        //TODO 降级
+
+        //横截面处理
+        Interceptor[] interceptors = getInterceptors();
+        for(Interceptor interceptor:interceptors){
+            interceptor.intercept(invocation);
+        }
+
         //寻址，TODO 地址变化对连接池的影响
         List<Address> addressList = lookup(invocation);
+
         //路由规则过滤
         addressList = router.filter(addressList,invocation);
-        //获取cluster invoker
-        Invoker invoker = getClusterInvoker(invocation);
-        //集群调用
-        Result result = invoker.invoke(invocation);
-        return result.getObject();
+
+        //服务调用，直接放通调用或者集群容错调用
+        boolean isMock = isNeedMock(invocation);
+        if(isMock){
+            Invoker mockInvoker = getMockInvoker(invocation);
+            //mock调用
+            Result result = mockInvoker.invoke(invocation);
+            return result.getObject();
+        }else{
+            Invoker clusterInvoker = getClusterInvoker(addressList,invocation);
+            //集群调用
+            Result result = clusterInvoker.invoke(invocation);
+            return result.getObject();
+        }
+    }
+
+    /**
+     * 获取interceptors TODO 初始化处理
+     * @return
+     */
+    Interceptor[] getInterceptors(){
+        return new Interceptor[]{
+                //校验
+                new ValidInterceptor(),
+                //并发数流控
+                new ActivesLimitInterceptor(),
+                //TPS控制
+                new TpsLimitInterceptor()
+        };
     }
 
     /**
@@ -170,9 +203,29 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * 获取cluster invoker
      * @return
      */
-    Invoker getClusterInvoker(Invocation invocation){
+    Invoker getClusterInvoker(List<Address> addressList,Invocation invocation){
         //TODO 处理集群容错wrapper
         return new FailoverClusterInvoker();
+    }
+
+    /**
+     * 判断是否需要放通处理
+     * @param invocation
+     * @return
+     */
+    boolean isNeedMock(Invocation invocation){
+        //TODO
+        return false;
+    }
+
+    /**
+     * 获取mock invoker
+     * @param invocation
+     * @return
+     */
+    Invoker getMockInvoker(Invocation invocation){
+        //TODO 处理mock wrapper
+        return new ReturnMockInvoker();
     }
 
     public Class<?> getServiceType() {
