@@ -11,7 +11,7 @@ import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.Invocation;
 import com.meidusa.venus.client.invoker.Invoker;
 import com.meidusa.venus.Result;
-import com.meidusa.venus.client.invoker.venus.VenusInvoker;
+import com.meidusa.venus.cluster.FailoverClusterInvoker;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.metainfo.EndpointParameterUtil;
@@ -27,11 +27,10 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * 服务调用代理，执行寻址/路由/认证/流控/降级/调用等逻辑
+ * 服务调用代理，执行校验/认证/流控/降级/寻址/路由/调用/容错等逻辑
  * @author Struct
  */
 
@@ -75,19 +74,19 @@ public class InvokerInvocationHandler implements InvocationHandler {
     private Router router = new ConditionRouter();
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        //TODO 将部分功能由aop实现
         Invocation invocation = buildInvocation(proxy,method,args);
-        //TODO 校验
+        //TODO 将部分功能由aop实现
+        //校验
         valid(invocation);
-        //TODO 寻址，地址变化对连接池的影响
-        List<Address> addressList = lookup(invocation);
-        //TODO 路由
-        addressList = router.filter(addressList,invocation);
-        //TODO 负载均衡
         //TODO 流控
         //TODO 降级
-        //TODO 集群容错
-        Invoker invoker = getInvoker();
+        //寻址，TODO 地址变化对连接池的影响
+        List<Address> addressList = lookup(invocation);
+        //路由规则过滤
+        addressList = router.filter(addressList,invocation);
+        //获取cluster invoker
+        Invoker invoker = getClusterInvoker(invocation);
+        //集群调用
         Result result = invoker.invoke(invocation);
         return result.getObject();
     }
@@ -168,12 +167,12 @@ public class InvokerInvocationHandler implements InvocationHandler {
     }
 
     /**
-     * 获取invoker
+     * 获取cluster invoker
      * @return
      */
-    Invoker getInvoker(){
+    Invoker getClusterInvoker(Invocation invocation){
         //TODO 处理集群容错wrapper
-        return new VenusInvoker();
+        return new FailoverClusterInvoker();
     }
 
     public Class<?> getServiceType() {
