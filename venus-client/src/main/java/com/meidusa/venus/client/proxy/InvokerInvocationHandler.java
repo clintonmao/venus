@@ -7,7 +7,7 @@ import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.interceptor.valid.ValidInterceptor;
-import com.meidusa.venus.client.cluster.FailoverClusterInvoker;
+import com.meidusa.venus.rpc.cluster.FailoverClusterInvoker;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.rpc.limit.ActivesLimitInterceptor;
 import com.meidusa.venus.rpc.limit.TpsLimitInterceptor;

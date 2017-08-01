@@ -1,4 +1,4 @@
-package com.meidusa.venus.client.cluster;
+package com.meidusa.venus.rpc.cluster;
 
 import com.meidusa.venus.*;
 import com.meidusa.venus.client.invoker.venus.VenusInvoker;
