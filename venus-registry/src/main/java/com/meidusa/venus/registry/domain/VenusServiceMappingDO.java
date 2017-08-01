@@ -21,6 +21,7 @@ public class VenusServiceMappingDO implements Serializable {
 
 	private String version;
 
+	/** 是否激活 1为激活服务 */
 	private boolean active;
 
 	private boolean sync;
@@ -28,6 +29,12 @@ public class VenusServiceMappingDO implements Serializable {
 	private Date createTime;
 
 	private Date updateTime;
+
+	/** 角色：provider||consumer */
+	private String role;
+
+	/** 注册类型：0 手动：1 自动 */
+	private int registeType;
 
 	public Integer getId() {
 		return id;
@@ -107,6 +114,22 @@ public class VenusServiceMappingDO implements Serializable {
 
 	public void setServiceId(Integer serviceId) {
 		this.serviceId = serviceId;
+	}
+
+	public String getRole() {
+		return role;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
+	}
+
+	public int getRegisteType() {
+		return registeType;
+	}
+
+	public void setRegisteType(int registeType) {
+		this.registeType = registeType;
 	}
 
 	@Override

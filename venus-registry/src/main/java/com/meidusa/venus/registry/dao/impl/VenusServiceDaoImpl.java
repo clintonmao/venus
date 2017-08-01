@@ -88,11 +88,11 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 	}
 
 	@Override
-	public VenusServiceDO getService(String serviceName, String interfaceName) throws DAOException {
+	public VenusServiceDO getService(String serviceName, String version, String interfaceName) throws DAOException {
 		String sql = "select id, name,interface_name,version, description, app_id, create_time, update_time from t_venus_service where ";
-		Object[] params = new Object[] { serviceName };
+		Object[] params = new Object[] { serviceName,version };
 		if (StringUtils.isNotBlank(serviceName)) {
-			sql = sql + " name=? ";
+			sql = sql + " name=? and version=?";
 		}
 		if (StringUtils.isNotBlank(interfaceName)) {
 			sql = sql + " and interface_name=?";

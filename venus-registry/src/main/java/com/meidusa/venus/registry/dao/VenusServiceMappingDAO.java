@@ -9,7 +9,7 @@ public interface VenusServiceMappingDAO {
 
 	boolean updateServiceMapping(VenusServiceMappingDO venusServiceMappingDO) throws DAOException;
 
-	VenusServiceMappingDO getServiceMapping(Integer serverId,Integer serviceId) throws DAOException;
+	VenusServiceMappingDO getServiceMapping(Integer serverId,Integer serviceId, String role) throws DAOException;
 	
 	VenusServiceMappingDO getServiceMapping(Integer id) throws DAOException;
 
