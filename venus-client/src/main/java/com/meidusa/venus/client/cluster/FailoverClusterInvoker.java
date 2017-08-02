@@ -28,6 +28,10 @@ public class FailoverClusterInvoker implements Invoker {
     private int retry = 3;
 
     @Override
+    public void init() throws RpcException {
+    }
+
+    @Override
     public Result invoke(Invocation invocation) throws RpcException {
         for(int i=0;i<retry;i++){
             try {
@@ -60,11 +64,6 @@ public class FailoverClusterInvoker implements Invoker {
      */
     Loadbanlance getLoadbanlance(){
         return new RandomLoadbanlance();
-    }
-
-
-    @Override
-    public void init() throws RpcException {
     }
 
     @Override

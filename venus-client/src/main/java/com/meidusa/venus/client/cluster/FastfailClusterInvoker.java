@@ -20,12 +20,12 @@ public class FastfailClusterInvoker implements Invoker {
     private List<Address> addressList;
 
     @Override
-    public Result invoke(Invocation invocation) throws RpcException {
-        return null;
+    public void init() throws RpcException {
     }
 
     @Override
-    public void init() throws RpcException {
+    public Result invoke(Invocation invocation) throws RpcException {
+        return null;
     }
 
     @Override

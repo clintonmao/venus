@@ -295,7 +295,7 @@ public class MultiBlockingQueueExecutor extends AbstractExecutorService implemen
     private final ReentrantLock mainLock = new ReentrantLock();
 
     /**
-     * Wait condition to support awaitTermination
+     * Wait condition to hander awaitTermination
      */
     private final Condition termination = mainLock.newCondition();
 
@@ -793,7 +793,7 @@ public class MultiBlockingQueueExecutor extends AbstractExecutorService implemen
         }
     }
 
-    /* Termination support. */
+    /* Termination hander. */
 
     /**
      * Transitions to TERMINATED state if either (SHUTDOWN and pool and queue empty) or (STOP and pool empty), otherwise

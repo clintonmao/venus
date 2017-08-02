@@ -37,7 +37,7 @@ public class Converters {
         } else {
             return getDefaultConverter();
             // throw new UnsupportedOperationException(
-            // "Does not support conversion between "
+            // "Does not hander conversion between "
             // + type.getSimpleName());
         }
     }

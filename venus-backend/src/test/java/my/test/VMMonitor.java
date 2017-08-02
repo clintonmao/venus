@@ -64,7 +64,7 @@ public class VMMonitor {
 		try {
 			vm = VirtualMachine.attach(args[0]);
 		} catch (AttachNotSupportedException e) {
-			System.err.println("Target application doesn't support attach API.");
+			System.err.println("Target application doesn't hander attach API.");
 			return;
 		} catch (IOException e) {
 			System.err.println("Error during attaching to target application.");

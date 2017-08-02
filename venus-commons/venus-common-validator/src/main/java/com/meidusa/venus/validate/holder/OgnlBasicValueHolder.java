@@ -9,7 +9,7 @@ import com.meidusa.venus.util.OgnlUtil;
 import com.meidusa.venus.validate.exception.ValidationRuntimeException;
 
 /**
- * A ValueHolder implemention which support
+ * A ValueHolder implemention which hander
  * 
  * @author lichencheng.daisy
  * @since 1.0.0-SNAPSHOT

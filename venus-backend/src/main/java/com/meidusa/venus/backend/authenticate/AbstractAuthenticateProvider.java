@@ -113,7 +113,7 @@ public abstract class AbstractAuthenticateProvider<T extends VenusFrontendConnec
                     }
                     return;
                 } else if (authenPacket instanceof DummyAuthenPacket) {
-                    onAuthingError(conn, " Dummy authentication not support!!", VenusExceptionCodeConstant.AUTHEN_EXCEPTION);
+                    onAuthingError(conn, " Dummy authentication not hander!!", VenusExceptionCodeConstant.AUTHEN_EXCEPTION);
 
                     if (logger.isInfoEnabled()) {
                         logger.info("Accepting authenticate request: conn=" + conn.getId() + ", using DummyAuthenPacket, result=false");

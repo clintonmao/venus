@@ -12,7 +12,7 @@
  * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package com.meidusa.venus.client;
+package com.meidusa.venus.client.invoker.venus.hander;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -21,7 +21,11 @@ import java.util.Map;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.venus.notify.InvocationListener;
 
+/**
+ * 服务调用监听容器
+ */
 public class InvocationListenerContainer {
+
     private Map<String, Map<Integer, Tuple<InvocationListener, Type>>> listenerMap = new HashMap<String, Map<Integer, Tuple<InvocationListener, Type>>>();
 
     @SuppressWarnings("unchecked")

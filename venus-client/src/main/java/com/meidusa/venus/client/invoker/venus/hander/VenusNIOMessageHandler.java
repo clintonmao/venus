@@ -11,11 +11,10 @@
  * 	You should have received a copy of the GNU AFFERO GENERAL PUBLIC LICENSE along with this program; 
  * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package com.meidusa.venus.client.invoker.venus.support;
+package com.meidusa.venus.client.invoker.venus.hander;
 
 import java.lang.reflect.Type;
 
-import com.meidusa.venus.client.InvocationListenerContainer;
 import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +37,9 @@ import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.util.Utils;
 import com.meidusa.venus.util.VenusTracerUtil;
 
+/**
+ * 服务调用NIO消息响应处理
+ */
 public class VenusNIOMessageHandler implements MessageHandler<VenusBackendConnection, byte[]> {
 
     private static Logger logger = LoggerFactory.getLogger(VenusNIOMessageHandler.class);

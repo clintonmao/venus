@@ -17,16 +17,12 @@ package com.meidusa.venus.client.factory.xml;
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
-import com.meidusa.toolkit.common.bean.util.InitialisationException;
-import com.meidusa.toolkit.net.ConnectionConnector;
-import com.meidusa.toolkit.net.ConnectionManager;
 import com.meidusa.venus.annotations.Endpoint;
-import com.meidusa.venus.client.InvocationListenerContainer;
 import com.meidusa.venus.client.factory.ServiceFactory;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanContext;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanUtilsBean;
 import com.meidusa.venus.client.factory.xml.support.ServiceDefinedBean;
-import com.meidusa.venus.client.invoker.venus.support.VenusNIOMessageHandler;
+import com.meidusa.venus.client.factory.xml.support.ServiceFactoryBean;
 import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.factory.xml.config.ServiceConfig;
@@ -58,19 +54,15 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Timer;
 
 /**
  * 基于xml配置服务工厂

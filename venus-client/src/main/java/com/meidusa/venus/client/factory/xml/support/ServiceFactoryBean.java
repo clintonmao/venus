@@ -1,4 +1,4 @@
-package com.meidusa.venus.client.factory.xml;
+package com.meidusa.venus.client.factory.xml.support;
 
 
 import org.springframework.beans.BeansException;

@@ -9,15 +9,16 @@ import com.meidusa.toolkit.common.poolable.PoolableObjectPool;
 import com.meidusa.toolkit.net.*;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.toolkit.util.TimeUtil;
+import com.meidusa.venus.client.invoker.AbstractInvoker;
 import com.meidusa.venus.rpc.Invocation;
 import com.meidusa.venus.rpc.Result;
 import com.meidusa.venus.rpc.RpcException;
 import com.meidusa.venus.annotations.*;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
-import com.meidusa.venus.client.InvocationListenerContainer;
+import com.meidusa.venus.client.invoker.venus.hander.InvocationListenerContainer;
 import com.meidusa.venus.client.factory.xml.XmlServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.*;
-import com.meidusa.venus.client.invoker.venus.support.VenusNIOMessageHandler;
+import com.meidusa.venus.client.invoker.venus.hander.VenusNIOMessageHandler;
 import com.meidusa.venus.rpc.Invoker;
 import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
 import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
@@ -55,16 +56,14 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * venus协议invoker
+ * venus协议服务调用实现
  * Created by Zhangzhihua on 2017/7/31.
  */
-public class VenusInvoker implements Invoker{
+public class VenusInvoker extends AbstractInvoker implements Invoker{
 
     private static Logger logger = LoggerFactory.getLogger(InvokerInvocationHandler.class);
 
     private static Logger performanceLogger = LoggerFactory.getLogger("venus.client.performance");
-
-    private static Logger exceptionLogger = LoggerFactory.getLogger("venus.client.exception");
 
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
 
@@ -91,8 +90,14 @@ public class VenusInvoker implements Invoker{
 
     private ConnectionManager connManager;
 
+    /**
+     * 调用监听容器
+     */
     private InvocationListenerContainer container = new InvocationListenerContainer();
 
+    /**
+     * NIO消息响应处理
+     */
     private VenusNIOMessageHandler handler = new VenusNIOMessageHandler();
 
     /**
@@ -145,7 +150,7 @@ public class VenusInvoker implements Invoker{
     }
 
     @Override
-    public Result invoke(Invocation invocation) throws RpcException {
+    public Result doInvoke(Invocation invocation) throws RpcException {
         Method method = invocation.getMethod();
         Object[] args = invocation.getArgs();
         Service service = invocation.getService();
@@ -153,7 +158,7 @@ public class VenusInvoker implements Invoker{
         try {
             if (endpoint != null && service != null) {
                 if (StringUtils.isEmpty(service.implement())) {
-                    return new Result(doInvoke(invocation));
+                    return new Result(doInvokeRemote(invocation));
                 } else {
                     //jvm内部调用
                     return injvmInvoker.invoke(invocation);
@@ -161,17 +166,7 @@ public class VenusInvoker implements Invoker{
             }
             //TODO 确认endpoint为空情况
             return new Result(method.invoke(this, args));
-        } catch (Throwable e) {
-            if (!(e instanceof CodedException)) {
-                if (exceptionLogger.isInfoEnabled()) {
-                    exceptionLogger.info("invoke service error,api=" + VenusAnnotationUtils.getApiname(method, service, endpoint), e);
-                }
-            } else {
-                if (exceptionLogger.isDebugEnabled()) {
-                    exceptionLogger.debug("invoke service error,api=" + VenusAnnotationUtils.getApiname(method, service, endpoint), e);
-                }
-            }
-
+        } catch (Exception e) {
             throw new RpcException(e);
         }
     }
@@ -182,15 +177,15 @@ public class VenusInvoker implements Invoker{
      * @return
      * @throws Exception
      */
-    protected Object doInvoke(Invocation invocation) throws Exception {
+    protected Object doInvokeRemote(Invocation invocation) throws Exception {
         //构造请求消息
         SerializeServiceRequestPacket serviceRequestPacket = buildRequest(invocation);
 
         //调用
         if (invocation.isAsync()) {
-            return doInvokeWithAsync(invocation, serviceRequestPacket);
+            return doInvokeRemoteWithAsync(invocation, serviceRequestPacket);
         } else {
-            return doInvokeWithSync(invocation, serviceRequestPacket);
+            return doInvokeRemoteWithSync(invocation, serviceRequestPacket);
         }
     }
 
@@ -258,7 +253,7 @@ public class VenusInvoker implements Invoker{
      * @return
      * @throws Exception
      */
-    Object doInvokeWithAsync(Invocation invocation, SerializeServiceRequestPacket serviceRequestPacket) throws Exception{
+    Object doInvokeRemoteWithAsync(Invocation invocation, SerializeServiceRequestPacket serviceRequestPacket) throws Exception{
         if (!this.isEnableAsync()) {
             throw new VenusConfigException("service async call disabled");
         }
@@ -273,6 +268,7 @@ public class VenusInvoker implements Invoker{
         BackendConnectionPool nioConnPool = null;
         BackendConnection conn = null;
         try {
+            //获取连接 TODO 地址变化情况
             nioConnPool = getNioConnPool();
             conn = nioConnPool.borrowObject();
 
@@ -281,6 +277,7 @@ public class VenusInvoker implements Invoker{
             if(service.athenaFlag()) {
                 AthenaTransactionDelegate.getDelegate().setClientOutputSize(buffer.limit());
             }
+            //发送请求消息，响应由handler类处理
             conn.write(buffer);
             VenusTracerUtil.logRequest(traceID, serviceRequestPacket.apiName, JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
             return null;
@@ -310,7 +307,7 @@ public class VenusInvoker implements Invoker{
      * @return
      * @throws Exception
      */
-    Object doInvokeWithSync(Invocation invocation, SerializeServiceRequestPacket serviceRequestPacket) throws Exception{
+    Object doInvokeRemoteWithSync(Invocation invocation, SerializeServiceRequestPacket serviceRequestPacket) throws Exception{
         byte[] traceID = invocation.getTraceID();
         Method method = invocation.getMethod();
         Service service = invocation.getService();
@@ -406,6 +403,7 @@ public class VenusInvoker implements Invoker{
             }
             throw new RemoteSocketIOException("api="+serviceRequestPacket.apiName+ ", remoteIp=" + conn.getRemoteAddress()+",("+e.getMessage() + ")",e);
         } catch (Exception e) {
+            //TODO 提炼异常处理
             success = false;
             if (e instanceof CodedException || (errorCode = venusExceptionFactory.getErrorCode(e.getClass())) != 0 || e instanceof RuntimeException) {
                 if(e instanceof CodedException){
