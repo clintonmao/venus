@@ -43,6 +43,9 @@ public class URL implements Serializable {
 	/** 负载策略 */
 	private String loadbanlance;
 
+	/** 订阅检测 */
+	private boolean consumerCheck;
+
 	/** 服务地址属性映射表，即?后属性<K,V> */
 	private Map<String, Object> properties = new HashMap<String, Object>();
 
@@ -141,6 +144,7 @@ public class URL implements Serializable {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((application == null) ? 0 : application.hashCode());
+		result = prime * result + (consumerCheck ? 1231 : 1237);
 		result = prime * result + ((host == null) ? 0 : host.hashCode());
 		result = prime * result + ((interfaceName == null) ? 0 : interfaceName.hashCode());
 		result = prime * result + ((loadbanlance == null) ? 0 : loadbanlance.hashCode());
@@ -166,6 +170,8 @@ public class URL implements Serializable {
 			if (other.application != null)
 				return false;
 		} else if (!application.equals(other.application))
+			return false;
+		if (consumerCheck != other.consumerCheck)
 			return false;
 		if (host == null) {
 			if (other.host != null)
@@ -268,11 +274,20 @@ public class URL implements Serializable {
 		this.loadbanlance = loadbanlance;
 	}
 
+	public boolean isConsumerCheck() {
+		return consumerCheck;
+	}
+
+	public void setConsumerCheck(boolean consumerCheck) {
+		this.consumerCheck = consumerCheck;
+	}
+
 	@Override
 	public String toString() {
 		return "URL [protocol=" + protocol + ", path=" + path + ", interfaceName=" + interfaceName + ", serviceName="
 				+ serviceName + ", version=" + version + ", host=" + host + ", port=" + port + ", application="
-				+ application + ", loadbanlance=" + loadbanlance + ", properties=" + properties + "]";
+				+ application + ", loadbanlance=" + loadbanlance + ", consumerCheck=" + consumerCheck + ", properties="
+				+ properties + "]";
 	}
 
 	public static void main(String args[]) {

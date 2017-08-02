@@ -5,6 +5,7 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 
 import com.meidusa.toolkit.common.util.ObjectUtil;
+import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
 
 /**
  * 服务定义
@@ -14,94 +15,104 @@ import com.meidusa.toolkit.common.util.ObjectUtil;
  */
 public class ServiceDefinition {
 
-    /**
-     * 服务名称
-     */
-    private String name;
+	/**
+	 * 服务名称
+	 */
+	private String name;
 
-    /**
-     * 服务版本范围
-     */
-    private String versionRange;
+	/**
+	 * 服务版本范围
+	 */
+	private String versionRange;
 
-    /**
-     *  是否激活状态
-     */
-    private boolean active;
+	/**
+	 * 是否激活状态
+	 */
+	private boolean active;
 
-    /**
-     * 服务IP地址列表,默认格式: host:port
-     */
-    private Set<String> ipAddress;
-    
-    
-    private String description;
+	/**
+	 * 服务IP地址列表,默认格式: host:port
+	 */
+	private Set<String> ipAddress;
 
-    public String getName() {
-        return name;
-    }
+	private String description;
 
-    public Set<String> getIpAddress() {
-        return ipAddress;
-    }
+	/** 服务配置信息 */
+	private VenusServiceConfigDO serviceConfig;
 
-    public void setIpAddress(Set<String> ipAddress) {
-        this.ipAddress = ipAddress;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public Set<String> getIpAddress() {
+		return ipAddress;
+	}
 
-    public String getVersionRange() {
-        return versionRange;
-    }
+	public void setIpAddress(Set<String> ipAddress) {
+		this.ipAddress = ipAddress;
+	}
 
-    public void setVersionRange(String versionRange) {
-        this.versionRange = versionRange;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public boolean isActive() {
-        return active;
-    }
+	public String getVersionRange() {
+		return versionRange;
+	}
 
-    public void setActive(boolean active) {
-        this.active = active;
-    }
+	public void setVersionRange(String versionRange) {
+		this.versionRange = versionRange;
+	}
 
-    public String getDescription() {
-        return description;
-    }
+	public boolean isActive() {
+		return active;
+	}
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+	public void setActive(boolean active) {
+		this.active = active;
+	}
 
-    public int hashCode() {
-        int result = 114 + name.hashCode() + (versionRange == null ? 0 : versionRange.hashCode()) + (active ? 1 : 2);
-        if (getIpAddress() == null) {
-            return result;
-        } else {
-            for (String ip : getIpAddress()) {
-                result += ip.hashCode();
-            }
-            return result;
-        }
-    }
+	public String getDescription() {
+		return description;
+	}
 
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj instanceof ServiceDefinition) {
-            ServiceDefinition target = (ServiceDefinition) obj;
-            boolean result = StringUtils.equals(name, target.getName());
-            result = result && StringUtils.equals(versionRange, target.getVersionRange());
-            result = result && this.getIpAddress() != null && target.getIpAddress().equals(this.getIpAddress());
-            result = result && ObjectUtil.equals(active, target.isActive());
-            return result;
-        }
+	public void setDescription(String description) {
+		this.description = description;
+	}
 
-        return false;
-    }
+	public VenusServiceConfigDO getServiceConfig() {
+		return serviceConfig;
+	}
+
+	public void setServiceConfig(VenusServiceConfigDO serviceConfig) {
+		this.serviceConfig = serviceConfig;
+	}
+
+	public int hashCode() {
+		int result = 114 + name.hashCode() + (versionRange == null ? 0 : versionRange.hashCode()) + (active ? 1 : 2);
+		if (getIpAddress() == null) {
+			return result;
+		} else {
+			for (String ip : getIpAddress()) {
+				result += ip.hashCode();
+			}
+			return result;
+		}
+	}
+
+	public boolean equals(Object obj) {
+		if (obj == this) {
+			return true;
+		}
+		if (obj instanceof ServiceDefinition) {
+			ServiceDefinition target = (ServiceDefinition) obj;
+			boolean result = StringUtils.equals(name, target.getName());
+			result = result && StringUtils.equals(versionRange, target.getVersionRange());
+			result = result && this.getIpAddress() != null && target.getIpAddress().equals(this.getIpAddress());
+			result = result && ObjectUtil.equals(active, target.isActive());
+			return result;
+		}
+
+		return false;
+	}
 }

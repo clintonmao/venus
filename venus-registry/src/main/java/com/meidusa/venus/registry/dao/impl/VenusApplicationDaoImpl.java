@@ -37,8 +37,11 @@ public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 		 * true : false;
 		 */
 
-		final String sql = "insert into t_venus_application (app_code,create_name,update_name,create_time, update_time) values ('"
-				+ venusApplicationDO.getAppCode() + "', '" + venusApplicationDO.getCreateName() + "', '"
+		final String sql = "insert into t_venus_application (app_code,provider,consumer,create_name,update_name,create_time, update_time) values ('"
+				+ venusApplicationDO.getAppCode() + "','"
+				+ venusApplicationDO.isProvider() + "','"
+				+ venusApplicationDO.isConsumer() + "', '" 
+				+ venusApplicationDO.getCreateName() + "', '"
 				+ venusApplicationDO.getUpdateName() + "', now(), now())";
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		int autoIncId = 0;

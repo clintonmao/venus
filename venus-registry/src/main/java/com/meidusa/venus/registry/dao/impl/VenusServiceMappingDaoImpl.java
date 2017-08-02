@@ -2,6 +2,8 @@ package com.meidusa.venus.registry.dao.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.Resource;
 
@@ -47,11 +49,12 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	}
 
 	@Override
-	public VenusServiceMappingDO getServiceMapping(Integer serverId, Integer serviceId, String role) throws DAOException {
+	public VenusServiceMappingDO getServiceMapping(Integer serverId, Integer serviceId, String role)
+			throws DAOException {
 		String sql = "select id, server_id, service_id, version, active, sync, create_time, update_time from t_venus_service_mapping where server_id = ? and service_id = ? and role=?";
 
 		try {
-			return this.jdbcTemplate.query(sql, new Object[] { serverId, serviceId,role },
+			return this.jdbcTemplate.query(sql, new Object[] { serverId, serviceId, role },
 					new ResultSetExtractor<VenusServiceMappingDO>() {
 						@Override
 						public VenusServiceMappingDO extractData(ResultSet rs)
@@ -64,6 +67,28 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 					});
 		} catch (Exception e) {
 			throw new DAOException("根据serverId=>" + serverId + ",serviceId=>" + serviceId + "获取服务映射关系异常", e);
+		}
+	}
+
+	@Override
+	public List<VenusServiceMappingDO> getServiceMapping(Integer serviceId, String role) throws DAOException {
+		String sql = "select id, server_id, service_id, version, active, sync, create_time, update_time from t_venus_service_mapping where service_id = ? and role=?";
+
+		try {
+			return this.jdbcTemplate.query(sql, new Object[] { serviceId, role },
+					new ResultSetExtractor<List<VenusServiceMappingDO>>() {
+						@Override
+						public List<VenusServiceMappingDO> extractData(ResultSet rs)
+								throws SQLException, DataAccessException {
+							List<VenusServiceMappingDO> returnList = new ArrayList<VenusServiceMappingDO>();
+							while (rs.next()) {
+								returnList.add(ResultUtils.resultToVenusServiceMappingDO(rs));
+							}
+							return returnList;
+						}
+					});
+		} catch (Exception e) {
+			throw new DAOException("根据serviceId=>" + serviceId + "获取服务映射关系异常", e);
 		}
 	}
 
@@ -83,6 +108,29 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 			});
 		} catch (Exception e) {
 			throw new DAOException("根据ID＝>" + id + "获取服务映射关系异常", e);
+		}
+	}
+
+	@Override
+	public List<VenusServiceMappingDO> getServiceMappings(Integer serverId) throws DAOException {
+		String sql = "select id, server_id, service_id, version, active, sync, create_time, update_time from t_venus_service_mapping where server_id = ?";
+
+		try {
+			return this.jdbcTemplate.query(sql, new Object[] { serverId },
+					new ResultSetExtractor<List<VenusServiceMappingDO>>() {
+						@Override
+						public List<VenusServiceMappingDO> extractData(ResultSet rs)
+								throws SQLException, DataAccessException {
+							List<VenusServiceMappingDO> returnList = new ArrayList<VenusServiceMappingDO>();
+							while (rs.next()) {
+								VenusServiceMappingDO mapping = ResultUtils.resultToVenusServiceMappingDO(rs);
+								returnList.add(mapping);
+							}
+							return returnList;
+						}
+					});
+		} catch (Exception e) {
+			throw new DAOException("根据serverID＝>" + serverId + "获取服务映射关系异常", e);
 		}
 	}
 }

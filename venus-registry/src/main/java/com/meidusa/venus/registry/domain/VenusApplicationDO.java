@@ -7,6 +7,7 @@ import java.util.Date;
 
 /**
  * 应用
+ * 
  * @author longhaisheng
  *
  */
@@ -18,6 +19,12 @@ public class VenusApplicationDO implements Serializable {
 
 	/** 应用名 */
 	private String appCode;
+
+	/** 提供方 */
+	private boolean provider;
+
+	/** 订阅方 */
+	private boolean consumer;
 
 	private String createName;
 
@@ -73,6 +80,22 @@ public class VenusApplicationDO implements Serializable {
 
 	public void setUpdateTime(Date updateTime) {
 		this.updateTime = updateTime;
+	}
+
+	public boolean isProvider() {
+		return provider;
+	}
+
+	public void setProvider(boolean provider) {
+		this.provider = provider;
+	}
+
+	public boolean isConsumer() {
+		return consumer;
+	}
+
+	public void setConsumer(boolean consumer) {
+		this.consumer = consumer;
 	}
 
 	@Override

@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.Resource;
 
@@ -82,6 +84,31 @@ public class VenusServerDaoImpl implements VenusServerDAO {
 		}
 	}
 
+	public List<VenusServerDO> getServers(List<Integer> ids) throws DAOException {
+		StringBuilder sb = new StringBuilder();
+		for (Integer id : ids) {
+			sb.append(id);
+			sb.append(",");
+		}
+		String str = sb.substring(0, sb.length() - 1);
+		String sql = "select id, hostname,port,create_time, update_time from t_venus_server where id in(" + str + ")";
+		try {
+			return this.jdbcTemplate.query(sql, new ResultSetExtractor<List<VenusServerDO>>() {
+				@Override
+				public List<VenusServerDO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<VenusServerDO> returnList = new ArrayList<VenusServerDO>();
+					if (rs.next()) {
+						returnList.add(ResultUtils.resultToVenusServerDO(rs));
+					}
+					return null;
+				}
+
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据IDS" + str + "获取venusServer异常", e);
+		}
+	}
+
 	@Override
 	public VenusServerDO getServer(String host, Integer port) throws DAOException {
 		String sql = "select id, hostname,port,create_time, update_time from t_venus_server where hostname = ? and port = ? ";
@@ -98,6 +125,26 @@ public class VenusServerDaoImpl implements VenusServerDAO {
 			});
 		} catch (Exception e) {
 			throw new DAOException("根据host 和 port 获取venusServer异常", e);
+		}
+	}
+
+	public List<VenusServerDO> getServer(String host) throws DAOException {
+		String sql = "select id, hostname,port,create_time, update_time from t_venus_server where hostname = ?  ";
+		Object[] params = new Object[] { host };
+		try {
+			return this.jdbcTemplate.query(sql, params, new ResultSetExtractor<List<VenusServerDO>>() {
+				@Override
+				public List<VenusServerDO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<VenusServerDO> returnList = new ArrayList<VenusServerDO>();
+					while (rs.next()) {
+						VenusServerDO resultToVenusServerDO = ResultUtils.resultToVenusServerDO(rs);
+						returnList.add(resultToVenusServerDO);
+					}
+					return returnList;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据host获取venusServer异常", e);
 		}
 	}
 

@@ -1,5 +1,7 @@
 package com.meidusa.venus.registry.dao;
 
+import java.util.List;
+
 import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.domain.VenusServerDO;
 
@@ -10,7 +12,11 @@ public interface VenusServerDAO {
 	boolean updateServer(VenusServerDO venusServerDO) throws DAOException;
 
 	VenusServerDO getServer(String host, Integer port) throws DAOException;
+	
+	List<VenusServerDO> getServer(String host) throws DAOException;
 
 	VenusServerDO getServer(Integer id) throws DAOException;
+	
+	List<VenusServerDO> getServers(List<Integer> ids) throws DAOException;
 
 }
