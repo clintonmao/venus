@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.meidusa.toolkit.common.bean.util.InitialisationException;
-import com.meidusa.venus.backend.invoker.venus.support.EndpointInvocation;
+import com.meidusa.venus.backend.invoker.venus.EndpointInvocation;
 import com.meidusa.venus.backend.interceptor.config.CacheableInterceptorConfig;
 import com.meidusa.venus.backend.interceptor.config.InterceptorConfig;
 import com.meidusa.venus.cache.CacheClient;

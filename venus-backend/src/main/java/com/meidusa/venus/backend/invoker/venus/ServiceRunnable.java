@@ -1,8 +1,9 @@
-package com.meidusa.venus.backend.invoker.venus.support;
+package com.meidusa.venus.backend.invoker.venus;
 
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.TimeUtil;
+import com.meidusa.venus.backend.invoker.venus.support.*;
 import com.meidusa.venus.backend.support.Response;
 import com.meidusa.venus.backend.support.VenusStatus;
 import com.meidusa.venus.backend.support.RequestContext;
@@ -41,22 +42,37 @@ import java.util.Map;
 public class ServiceRunnable extends MultiQueueRunnable {
 
     private static Logger logger = LoggerFactory.getLogger(ServiceRunnable.class);
+
     private static Logger INVOKER_LOGGER = LoggerFactory.getLogger("venus.service.invoker");
+
     private static String ENDPOINT_INVOKED_TIME = "invoked Total Time: ";
 
     private Endpoint endpoint;
+
     private VenusFrontendConnection conn;
+
     private RequestContext context;
+
     private EndpointInvocation.ResultType resultType;
+
     private ServiceFilter filter;
+
     private byte[] traceID;
+
     private SerializeServiceRequestPacket request;
+
     private short serializeType;
+
     private VenusRouterPacket routerPacket;
+
     private RemotingInvocationListener<Serializable> invocationListener;
+
     private VenusExceptionFactory venusExceptionFactory;
+
     private Tuple<Long, byte[]> data;
+
     private String apiName;
+
     private String sourceIp;
 
     public ServiceRunnable(VenusFrontendConnection conn, Endpoint endpoint,
@@ -169,8 +185,6 @@ public class ServiceRunnable extends MultiQueueRunnable {
             if(athenaFlag) {
                 AthenaReporterDelegate.getDelegate().metric(apiName + ".complete");
             }
-
-
         } catch (Exception e) {
             if (athenaFlag) {
                 AthenaReporterDelegate.getDelegate().metric(apiName + ".error");

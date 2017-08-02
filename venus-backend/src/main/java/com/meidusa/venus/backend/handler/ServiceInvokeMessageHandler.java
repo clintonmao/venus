@@ -35,7 +35,7 @@ import com.meidusa.venus.io.packet.VenusStatusRequestPacket;
 import com.meidusa.venus.io.packet.VenusStatusResponsePacket;
 
 /**
- * venus通讯协议事件处理
+ * venus消息接收事件处理
  * @author structchen
  *
  */
@@ -125,8 +125,7 @@ public class ServiceInvokeMessageHandler implements MessageHandler<VenusFrontend
             case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:
                 //TODO 调用相应协议invoker
                 ProviderInvocation invocation = new ProviderInvocation();
-                Result result = venusProviderInvoker.invoke(invocation);
-                //TODO 返回消息
+                venusProviderInvoker.invoke(invocation);
                 break;
             default:
                 StringBuilder buffer = new StringBuilder("receive unknown packet type=" + type + "  from ");

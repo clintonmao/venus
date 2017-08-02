@@ -8,12 +8,9 @@ import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.Connection;
 import com.meidusa.venus.annotations.ExceptionCode;
 import com.meidusa.venus.annotations.RemoteException;
-import com.meidusa.venus.backend.invoker.venus.support.EndpointInvocation;
 import com.meidusa.venus.backend.support.RequestInfo;
 import com.meidusa.venus.backend.support.Response;
-import com.meidusa.venus.backend.invoker.venus.support.RemotingInvocationListener;
 import com.meidusa.venus.backend.invoker.venus.support.RequestHandler;
-import com.meidusa.venus.backend.invoker.venus.support.ServiceRunnable;
 import com.meidusa.venus.backend.invoker.venus.support.ProviderInvocation;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.services.Service;
@@ -29,7 +26,6 @@ import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
-import com.meidusa.venus.rpc.Result;
 import com.meidusa.venus.rpc.RpcException;
 import com.meidusa.venus.util.ClasspathAnnotationScanner;
 import com.meidusa.venus.util.Range;
@@ -94,7 +90,7 @@ public class VenusProviderInvoker {
      * doInvoke
      * @return
      */
-    public Result invoke(ProviderInvocation invocation) throws RpcException{
+    public void invoke(ProviderInvocation invocation) throws RpcException{
         //获取调用信息
         Tuple<Long, byte[]> data = invocation.getData();
         byte[] message = invocation.getMessage();
@@ -105,6 +101,7 @@ public class VenusProviderInvoker {
         VenusRouterPacket routerPacket = invocation.getRouterPacket();
         byte serializeType = invocation.getSerializeType();
 
+        //解析报文并查找服务端点，TODO 校验有效性 校验服务是否存在
         SerializeServiceRequestPacket request = null;
         Endpoint ep = null;
         ServiceAPIPacket apiPacket = new ServiceAPIPacket();
@@ -162,8 +159,7 @@ public class VenusProviderInvoker {
                 logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + finalSourceIp + ", apiName="+ apiPacket.apiName + "]", e);
             }
 
-            //TODO 修改返回数据方式
-            //return;
+            return;
         }
 
         final String apiName = request.apiName;
@@ -197,6 +193,8 @@ public class VenusProviderInvoker {
                 request.parameterMap.put(entry.getKey(), invocationListener);
             }
         }
+
+        //TODO 校验
 
         // service version error
         ErrorPacket errorPacket = null;
@@ -241,7 +239,7 @@ public class VenusProviderInvoker {
                     filter.after(errorPacket);
                 }
                 //TODO 修改返回方式
-                //return;
+                return;
             }
         }
 
@@ -250,6 +248,7 @@ public class VenusProviderInvoker {
         RequestInfo requestInfo = requestHandler.getRequestInfo(packetSerializeType, conn, routerPacket);
         RequestContext context = requestHandler.createContext(requestInfo, endpoint, request);
 
+        //TODO 服务调用
         ServiceRunnable runnable = new ServiceRunnable(conn, endpoint,
                 context, resultType,
                 filter, routerPacket,
@@ -264,7 +263,6 @@ public class VenusProviderInvoker {
         }
 
         //end
-        return null;
     }
 
     public void postMessageBack(Connection conn, VenusRouterPacket routerPacket, AbstractServicePacket source, AbstractServicePacket result) {

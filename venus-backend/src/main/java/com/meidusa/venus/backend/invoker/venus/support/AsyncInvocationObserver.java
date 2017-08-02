@@ -1,5 +1,6 @@
 package com.meidusa.venus.backend.invoker.venus.support;
 
+import com.meidusa.venus.backend.invoker.venus.EndpointInvocation;
 import com.meidusa.venus.backend.support.RequestContext;
 
 public class AsyncInvocationObserver implements InvocationObserver {
