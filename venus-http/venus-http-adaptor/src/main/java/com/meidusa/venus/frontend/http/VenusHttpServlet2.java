@@ -36,7 +36,7 @@ import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.backend.RequestInfo;
 import com.meidusa.venus.backend.Response;
 import com.meidusa.venus.backend.support.UtilTimerStack;
-import com.meidusa.venus.backend.view.MediaTypes;
+import com.meidusa.venus.backend.serializer.MediaTypes;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.exception.VenusExceptionLevel;

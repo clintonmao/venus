@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.meidusa.venus.backend.view;
+package com.meidusa.venus.backend.serializer;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -49,7 +49,7 @@ public class CastorXMLSerializer extends AbstractXMLSerializer {
 
     /*
      * (non-Javadoc)
-     * @see com.meidusa.relation.servicegate.view.AbstractXMLSerializer#serialize(java .lang.Object)
+     * @see com.meidusa.relation.servicegate.serializer.AbstractXMLSerializer#serialize(java .lang.Object)
      */
     @Override
     public String serialize(Object o) throws Exception {

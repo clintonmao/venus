@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.meidusa.venus.backend.view;
+package com.meidusa.venus.backend.serializer;
 
 import java.util.HashMap;
 import java.util.Map;

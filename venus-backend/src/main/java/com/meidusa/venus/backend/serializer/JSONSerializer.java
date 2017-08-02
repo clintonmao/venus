@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.meidusa.venus.backend.view;
+package com.meidusa.venus.backend.serializer;
 
 import org.codehaus.jackson.map.ObjectMapper;
 
