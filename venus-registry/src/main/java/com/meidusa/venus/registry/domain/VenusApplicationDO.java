@@ -21,10 +21,10 @@ public class VenusApplicationDO implements Serializable {
 	private String appCode;
 
 	/** 提供方 */
-	private boolean provider;
+	private Boolean provider;
 
 	/** 订阅方 */
-	private boolean consumer;
+	private Boolean consumer;
 
 	private String createName;
 
@@ -82,19 +82,19 @@ public class VenusApplicationDO implements Serializable {
 		this.updateTime = updateTime;
 	}
 
-	public boolean isProvider() {
+	public Boolean isProvider() {
 		return provider;
 	}
 
-	public void setProvider(boolean provider) {
+	public void setProvider(Boolean provider) {
 		this.provider = provider;
 	}
 
-	public boolean isConsumer() {
+	public Boolean isConsumer() {
 		return consumer;
 	}
 
-	public void setConsumer(boolean consumer) {
+	public void setConsumer(Boolean consumer) {
 		this.consumer = consumer;
 	}
 

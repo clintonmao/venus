@@ -38,9 +38,9 @@ public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 		 */
 
 		final String sql = "insert into t_venus_application (app_code,provider,consumer,create_name,update_name,create_time, update_time) values ('"
-				+ venusApplicationDO.getAppCode() + "','"
-				+ venusApplicationDO.isProvider() + "','"
-				+ venusApplicationDO.isConsumer() + "', '" 
+				+ venusApplicationDO.getAppCode() + "',"
+				+ venusApplicationDO.isProvider() + ","
+				+ venusApplicationDO.isConsumer() + ", '" 
 				+ venusApplicationDO.getCreateName() + "', '"
 				+ venusApplicationDO.getUpdateName() + "', now(), now())";
 		KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -70,7 +70,7 @@ public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 
 	@Override
 	public VenusApplicationDO getApplication(String appCode) throws DAOException {
-		String sql = "select id, app_code,create_name,update_name,create_time, update_time from t_venus_application where appCode = ?";
+		String sql = "select id, app_code,provider,consumer,create_name,update_name,create_time, update_time from t_venus_application where appCode = ?";
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] { appCode }, new ResultSetExtractor<VenusApplicationDO>() {
 				@Override
@@ -89,7 +89,7 @@ public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 
 	@Override
 	public VenusApplicationDO getApplication(Integer id) throws DAOException {
-		String sql = "select id, app_code,create_name,update_name,create_time, update_time from t_venus_application where id = ?";
+		String sql = "select id,app_code,provider,consumer,create_name,update_name,create_time, update_time from t_venus_application where id = ?";
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] { id }, new ResultSetExtractor<VenusApplicationDO>() {
 				@Override

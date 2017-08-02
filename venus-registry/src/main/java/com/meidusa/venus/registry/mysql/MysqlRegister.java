@@ -5,17 +5,20 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.dao.VenusApplicationDAO;
 import com.meidusa.venus.registry.dao.VenusServerDAO;
+import com.meidusa.venus.registry.dao.VenusServiceConfigDAO;
 import com.meidusa.venus.registry.dao.VenusServiceDAO;
 import com.meidusa.venus.registry.dao.VenusServiceMappingDAO;
 import com.meidusa.venus.registry.domain.VenusApplicationDO;
@@ -51,6 +54,9 @@ public class MysqlRegister implements Register {
 
 	@Autowired
 	private VenusServiceDAO venusServiceDAO;
+
+	@Autowired
+	private VenusServiceConfigDAO venusServiceConfigDAO;
 
 	@Autowired
 	private VenusApplicationDAO venusApplicationDAO;
@@ -193,62 +199,74 @@ public class MysqlRegister implements Register {
 		for (Iterator<ServiceDefinition> iterator = serviceDefinitions.iterator(); iterator.hasNext();) {
 			ServiceDefinition define = (ServiceDefinition) iterator.next();
 			if (define.getName().equals(serviceName)) {
-				if (version.equals(define.getVersionRange())) {// TODO
+				if (version.equals(define.getVersionRange())) {// TODO version
 					return define;
 				}
 			}
-
 		}
-
 		return null;
 	}
 
 	@Override
 	public void load() throws VenusRegisteException {
-		// TODO 开启定时器，定时根据 subscribleUrls 去db拉取信息，生成本地 ServiceDefinition 列表
-		List<ServiceDefinition> serviceDefinitions = new ArrayList<ServiceDefinition>();
-		for (URL url : subscribleUrls) {
-			String interfaceName = url.getInterfaceName();
-			String serviceName = url.getServiceName();
-			String version = url.getVersion();
-			VenusServiceDO service = venusServiceDAO.getService(serviceName, version, interfaceName);
-			Integer serviceId = service.getId();
-			List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMapping(serviceId, PROVIDER);
-			List<Integer> serverIds = new ArrayList<Integer>();
-			if (CollectionUtils.isNotEmpty(serviceMappings)) {
-				for (VenusServiceMappingDO venusServiceMappingDO : serviceMappings) {
-					if (venusServiceMappingDO.isActive()) {// 只取active的
-						Integer serverId = venusServiceMappingDO.getServerId();
-						serverIds.add(serverId);
-					}
-				}
-			}
-
-			Set<String> hostPortSet = new HashSet<String>();
-			if (CollectionUtils.isNotEmpty(serverIds)) {
-				List<VenusServerDO> servers = venusServerDAO.getServers(serverIds);
-				for (Iterator<VenusServerDO> iterator = servers.iterator(); iterator.hasNext();) {
-					VenusServerDO venusServerDO = (VenusServerDO) iterator.next();
-					String hostPort = venusServerDO.getHostname() + ":" + venusServerDO.getPort();
-					hostPortSet.add(hostPort);
-				}
-			}
-			if (CollectionUtils.isNotEmpty(hostPortSet)) {
-				ServiceDefinition def = new ServiceDefinition();
-				def.setName(serviceName);
-				def.setIpAddress(hostPortSet);
-				def.setActive(true);
-				def.setDescription(service.getDescription());
-				VenusServiceConfigDO serviceConfig = null;
-				def.setServiceConfig(serviceConfig);
-				serviceDefinitions.add(def);
-			}
-		}
-
+		//TODO 开启定时器，定时根据 subscribleUrls 去db拉取信息，生成本地 ServiceDefinition 列表
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefineRunnable(), 10, 60 * 2, TimeUnit.SECONDS);
 	}
 
 	@Override
 	public void destroy() throws VenusRegisteException {
 
+	}
+
+	private class ServiceDefineRunnable implements Runnable {
+
+		public ServiceDefineRunnable() {
+			// 可在构造函数中传入spring bean参数
+		}
+
+		public void run() {// 内部类的方式使用spring bean
+			for (URL url : subscribleUrls) {
+				String interfaceName = url.getInterfaceName();
+				String serviceName = url.getServiceName();
+				String version = url.getVersion();
+				VenusServiceDO service = venusServiceDAO.getService(serviceName, version, interfaceName);
+				Integer serviceId = service.getId();
+				List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMapping(serviceId,
+						PROVIDER);
+				List<Integer> serverIds = new ArrayList<Integer>();
+				if (CollectionUtils.isNotEmpty(serviceMappings)) {
+					for (VenusServiceMappingDO venusServiceMappingDO : serviceMappings) {
+						if (venusServiceMappingDO.isActive()) {// 只取active的
+							Integer serverId = venusServiceMappingDO.getServerId();
+							serverIds.add(serverId);
+						}
+					}
+				}
+
+				Set<String> hostPortSet = new HashSet<String>();
+				if (CollectionUtils.isNotEmpty(serverIds)) {
+					List<VenusServerDO> servers = venusServerDAO.getServers(serverIds);
+					for (Iterator<VenusServerDO> iterator = servers.iterator(); iterator.hasNext();) {
+						VenusServerDO venusServerDO = (VenusServerDO) iterator.next();
+						String hostPort = venusServerDO.getHostname() + ":" + venusServerDO.getPort();
+						hostPortSet.add(hostPort);
+					}
+				}
+				if (CollectionUtils.isNotEmpty(hostPortSet)) {
+					ServiceDefinition def = new ServiceDefinition();
+					def.setName(serviceName);
+					def.setIpAddress(hostPortSet);
+					def.setActive(true);
+					def.setDescription(service.getDescription());
+					def.setVersionRange(version);
+					VenusServiceConfigDO serviceConfig = venusServiceConfigDAO.getServiceConfig(serviceId);
+					def.setServiceConfig(serviceConfig);
+					if (serviceDefinitions.size() < 1000) {
+						serviceDefinitions.add(def);
+					}
+				}
+			}
+
+		}
 	}
 }
