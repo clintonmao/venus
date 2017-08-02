@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend;
+package com.meidusa.venus.backend.support;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -14,7 +14,7 @@ public class VenusProperties extends Properties {
     }
 
     private VenusProperties() {
-    };
+    }
 
     public static String getVersion() {
         return venus.getProperty("version");

@@ -5,7 +5,6 @@ package com.meidusa.venus.backend.support;
 
 import java.util.Map;
 
-import com.meidusa.venus.backend.RequestInfo;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.util.ThreadLocalConstant;
 import com.meidusa.venus.util.ThreadLocalMap;

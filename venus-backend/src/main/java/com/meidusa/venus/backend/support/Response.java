@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.meidusa.venus.backend;
+package com.meidusa.venus.backend.support;
 
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;

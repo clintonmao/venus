@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend;
+package com.meidusa.venus.backend.invoker.venus.support;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -18,6 +18,7 @@ import com.meidusa.venus.notify.InvocationListener;
  * 
  */
 public class DefaultEndpointInvocation implements EndpointInvocation {
+
     private static String ENDPOINT_INVOKED = "invoke endpoint: ";
     
     /**

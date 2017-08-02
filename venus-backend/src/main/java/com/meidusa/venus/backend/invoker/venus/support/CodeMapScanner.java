@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.handler;
+package com.meidusa.venus.backend.invoker.venus.support;
 
 import com.meidusa.venus.annotations.ExceptionCode;
 import com.meidusa.venus.annotations.RemoteException;

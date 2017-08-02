@@ -22,8 +22,13 @@ import com.meidusa.venus.exception.ConvertException;
 import com.meidusa.venus.exception.ServiceDefinitionException;
 import com.meidusa.venus.exception.VenusConfigException;
 
+/**
+ * 基于简单API方式服务管理类
+ */
 public class SimpleServiceManager extends AbstractServiceManager implements InitializingBean {
+
     private static Logger logger = LoggerFactory.getLogger(SimpleServiceManager.class);
+
     private List<Object> serviceInstances;
 
     public void afterPropertiesSet() throws Exception {

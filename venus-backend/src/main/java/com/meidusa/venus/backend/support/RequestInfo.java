@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.meidusa.venus.backend;
+package com.meidusa.venus.backend.support;
 
 public class RequestInfo {
 
@@ -30,7 +30,7 @@ public class RequestInfo {
 	 */
     private String accept;
 
-    public static enum Protocol {
+    public enum Protocol {
         HTTP, SOCKET
     }
 

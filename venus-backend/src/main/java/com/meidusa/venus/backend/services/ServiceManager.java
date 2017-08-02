@@ -15,7 +15,13 @@ import com.meidusa.venus.exception.ServiceNotFoundException;
  */
 public interface ServiceManager extends EndpointLocator {
 
-    public Service getService(String serviceName) throws ServiceNotFoundException;
+    /**
+     * 根据服务名称获取服务实例
+     * @param serviceName
+     * @return
+     * @throws ServiceNotFoundException
+     */
+    Service getService(String serviceName) throws ServiceNotFoundException;
 
-    public Collection<Service> getServices();
+    Collection<Service> getServices();
 }

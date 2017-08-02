@@ -38,7 +38,7 @@ import com.meidusa.venus.backend.interceptor.Interceptor;
 import com.meidusa.venus.backend.interceptor.InterceptorMapping;
 import com.meidusa.venus.backend.interceptor.InterceptorStack;
 import com.meidusa.venus.backend.interceptor.config.InterceptorConfig;
-import com.meidusa.venus.backend.handler.CodeMapScanner;
+import com.meidusa.venus.backend.invoker.venus.support.CodeMapScanner;
 import com.meidusa.venus.backend.services.AbstractServiceManager;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.services.Service;
@@ -61,10 +61,17 @@ import com.meidusa.venus.service.registry.ServiceDefinition;
 import com.meidusa.venus.service.registry.ServiceRegistry;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
 
+/**
+ * 基于XML配置服务管理类
+ */
 public class XmlFileServiceManager extends AbstractServiceManager implements InitializingBean, BeanFactoryAware {
+
     private static Logger logger = LoggerFactory.getLogger(XmlFileServiceManager.class);
+
     private Resource[] configFiles;
+
     private BeanFactory beanFactory;
+
     private BeanContext beanContext;
 
     public Resource[] getConfigFiles() {
