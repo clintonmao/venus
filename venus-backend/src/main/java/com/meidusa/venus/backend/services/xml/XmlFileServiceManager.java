@@ -191,6 +191,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @return
      */
     protected Service initService(ServiceConfig serviceConfig, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks) {
+        //初始化service
         SingletonService service = new SingletonService();
         service.setType(serviceConfig.getType());
         service.setInstance(serviceConfig.getInstance());
@@ -207,17 +208,37 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         }
 
         service.setAthenaFlag(serviceAnnotation.athenaFlag());
-        
         if (!serviceAnnotation.name().isEmpty()) {
             service.setName(serviceAnnotation.name());
         } else {
             service.setName(type.getCanonicalName());
         }
-
         service.setDescription(serviceAnnotation.description());
 
-        // cache all methods
+        //初始化endpoints
         Method[] methods = service.getType().getMethods();
+        Multimap<String, Endpoint> endpoints = initEndpoinits(service,methods,serviceConfig,interceptors,interceptorStatcks);
+        service.setEndpoints(endpoints);
+
+        this.services.put(service.getName(), service);
+
+        // register to resolvable dependency container
+        if (beanFactory instanceof ConfigurableListableBeanFactory) {
+            ConfigurableListableBeanFactory cbf = (ConfigurableListableBeanFactory) beanFactory;
+            cbf.registerResolvableDependency(service.getType(), service.getInstance());
+        }
+        return service;
+    }
+
+    /**
+     * 初始化endpoints
+     * @param service
+     * @param methods
+     * @param serviceConfig
+     * @param interceptors
+     * @param interceptorStatcks
+     */
+    Multimap<String, Endpoint> initEndpoinits(Service service,Method[] methods,ServiceConfig serviceConfig,Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks){
         Multimap<String, Endpoint> endpoints = HashMultimap.create();
         for (Method method : methods) {
             if (method.isAnnotationPresent(com.meidusa.venus.annotations.Endpoint.class)) {
@@ -278,16 +299,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                 endpoints.put(ep.getName(), ep);
             }
         }
-        service.setEndpoints(endpoints);
-
-        this.services.put(service.getName(), service);
-
-        // register to resolvable dependency container
-        if (beanFactory instanceof ConfigurableListableBeanFactory) {
-            ConfigurableListableBeanFactory cbf = (ConfigurableListableBeanFactory) beanFactory;
-            cbf.registerResolvableDependency(service.getType(), service.getInstance());
-        }
-        return service;
+        return endpoints;
     }
 
     protected void loadInterceptors(Map<String, InterceptorStackConfig> interceptorStatcks, Map<String, InterceptorMapping> interceptors, String id,
