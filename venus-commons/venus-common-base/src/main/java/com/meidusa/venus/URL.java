@@ -45,7 +45,7 @@ public class URL implements Serializable {
 
 	/** 订阅检测 */
 	private boolean consumerCheck;
-
+	
 	/** 服务地址属性映射表，即?后属性<K,V> */
 	private Map<String, Object> properties = new HashMap<String, Object>();
 

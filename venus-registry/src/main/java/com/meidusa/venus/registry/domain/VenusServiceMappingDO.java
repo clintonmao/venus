@@ -9,12 +9,17 @@ public class VenusServiceMappingDO implements Serializable {
 
 	private static final long serialVersionUID = -5989031405262772357L;
 
+	public static final int AUTO_REGISTE = 1;
+
+	public static final int OPERATOR_REGISTE = 0;
+
 	private Integer id;
 
 	private VenusServerDO server;
 
 	private VenusServiceDO service;
 
+	/**根着角色走，如果角色是订阅方，就是订阅方的serverID,如果是注册方，就是注册方的serverID */
 	private Integer serverId;
 
 	private Integer serviceId;
@@ -29,6 +34,15 @@ public class VenusServiceMappingDO implements Serializable {
 	private Date createTime;
 
 	private Date updateTime;
+
+	/** 注册时间 */
+	private Date registeTime;
+
+	/** 心跳更新时间 */
+	private Date heartbeatTime;
+
+	/** 是否删除 */
+	private Boolean isDelete;
 
 	/** 角色：provider||consumer */
 	private String role;
@@ -130,6 +144,30 @@ public class VenusServiceMappingDO implements Serializable {
 
 	public void setRegisteType(int registeType) {
 		this.registeType = registeType;
+	}
+
+	public Date getRegisteTime() {
+		return registeTime;
+	}
+
+	public void setRegisteTime(Date registeTime) {
+		this.registeTime = registeTime;
+	}
+
+	public Date getHeartbeatTime() {
+		return heartbeatTime;
+	}
+
+	public void setHeartbeatTime(Date heartbeatTime) {
+		this.heartbeatTime = heartbeatTime;
+	}
+
+	public Boolean getIsDelete() {
+		return isDelete;
+	}
+
+	public void setIsDelete(Boolean isDelete) {
+		this.isDelete = isDelete;
 	}
 
 	@Override
