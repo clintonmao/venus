@@ -1,6 +1,6 @@
 package com.meidusa.venus.backend.interceptor;
 
-import com.meidusa.venus.backend.invoker.venus.EndpointInvocation;
+import com.meidusa.venus.backend.invoker.EndpointInvocation;
 
 /**
  * TODO

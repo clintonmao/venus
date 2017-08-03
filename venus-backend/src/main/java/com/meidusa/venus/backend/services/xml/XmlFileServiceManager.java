@@ -1,29 +1,5 @@
 package com.meidusa.venus.backend.services.xml;
 
-import java.io.InputStream;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.meidusa.venus.backend.services.xml.support.BackendBeanContext;
-import com.meidusa.venus.backend.services.xml.support.BackendBeanUtilsBean;
-import org.apache.commons.beanutils.ConvertUtilsBean;
-import org.apache.commons.beanutils.PropertyUtilsBean;
-import org.apache.commons.digester.Digester;
-import org.apache.commons.digester.RuleSet;
-import org.apache.commons.digester.xmlrules.FromXmlRuleSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.core.io.Resource;
-
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.meidusa.toolkit.common.bean.BeanContext;
@@ -38,18 +14,14 @@ import com.meidusa.venus.backend.interceptor.Interceptor;
 import com.meidusa.venus.backend.interceptor.InterceptorMapping;
 import com.meidusa.venus.backend.interceptor.InterceptorStack;
 import com.meidusa.venus.backend.interceptor.config.InterceptorConfig;
-import com.meidusa.venus.backend.invoker.venus.support.CodeMapScanner;
+import com.meidusa.venus.backend.invoker.support.CodeMapScanner;
 import com.meidusa.venus.backend.services.AbstractServiceManager;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.services.Service;
 import com.meidusa.venus.backend.services.SingletonService;
-import com.meidusa.venus.backend.services.xml.bean.EndpointConfig;
-import com.meidusa.venus.backend.services.xml.bean.InterceptorRef;
-import com.meidusa.venus.backend.services.xml.bean.InterceptorStackConfig;
-import com.meidusa.venus.backend.services.xml.bean.InterceptorStackRef;
-import com.meidusa.venus.backend.services.xml.bean.PerformanceLogger;
-import com.meidusa.venus.backend.services.xml.bean.ServiceConfig;
-import com.meidusa.venus.backend.services.xml.bean.Venus;
+import com.meidusa.venus.backend.services.xml.bean.*;
+import com.meidusa.venus.backend.services.xml.support.BackendBeanContext;
+import com.meidusa.venus.backend.services.xml.support.BackendBeanUtilsBean;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.extension.athena.AthenaExtensionResolver;
@@ -60,6 +32,23 @@ import com.meidusa.venus.service.monitor.ServiceBean;
 import com.meidusa.venus.service.registry.ServiceDefinition;
 import com.meidusa.venus.service.registry.ServiceRegistry;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
+import org.apache.commons.beanutils.ConvertUtilsBean;
+import org.apache.commons.beanutils.PropertyUtilsBean;
+import org.apache.commons.digester.Digester;
+import org.apache.commons.digester.RuleSet;
+import org.apache.commons.digester.xmlrules.FromXmlRuleSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.core.io.Resource;
+
+import java.io.InputStream;
+import java.lang.reflect.Method;
+import java.util.*;
 
 /**
  * 基于XML配置服务管理类
@@ -269,7 +258,8 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
                     loadInterceptors(interceptorStatcks, interceptors, id, list, interceptorConfigs, service.getType(), ep.getName());
                     stack.setInterceptors(list);
-                    ep.setInterceptorStack(stack);
+                    //TODO 确认代码用途及替换方案
+                    //ep.setInterceptorStack(stack);
                 }
 
                 PerformanceLogger pLogger = null;
@@ -288,7 +278,9 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                         pLogger.setPrintResult(pLevel.printResult());
                     }
                 }
-                ep.setPerformanceLogger(pLogger);
+
+                //TODO 确认代码用途及替换方案
+                //ep.setPerformanceLogger(pLogger);
 
                 ep.setService(service);
                 if (logger.isInfoEnabled()) {

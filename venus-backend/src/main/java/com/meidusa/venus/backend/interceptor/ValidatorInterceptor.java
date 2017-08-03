@@ -1,6 +1,6 @@
 package com.meidusa.venus.backend.interceptor;
 
-import com.meidusa.venus.backend.invoker.venus.EndpointInvocation;
+import com.meidusa.venus.backend.invoker.EndpointInvocation;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.exception.InvalidParameterException;
 import com.meidusa.venus.validate.ValidatorManager;
