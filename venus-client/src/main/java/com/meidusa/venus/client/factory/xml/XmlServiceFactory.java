@@ -254,7 +254,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
                                    Map<Class<?>, ServiceDefinedBean> servicesMap)
             throws Exception {
 	    //加载客户端配置信息
-        VenusClientConfig clientConfig = loadClientConfig();
+        VenusClientConfig clientConfig = parseClientConfig();
 
         //初始化service实例
         for (ServiceConfig serviceConfig : clientConfig.getServiceConfigs()) {
@@ -333,10 +333,10 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
     }
 
     /**
-     * 加载client配置信息
+     * 解析客户端配置信息
      * @return
      */
-    VenusClientConfig loadClientConfig(){
+    VenusClientConfig parseClientConfig(){
         VenusClientConfig clientConfig = new VenusClientConfig();
         for (Resource configFile : configFiles) {
             // configFile = (String) ConfigUtil.filter(configFile);

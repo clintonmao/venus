@@ -82,6 +82,7 @@ public class VenusInvokerTask extends MultiQueueRunnable {
 
     private String sourceIp;
 
+    //TODO 包装参数相关信息，裁剪参数
     public VenusInvokerTask(VenusFrontendConnection conn, Endpoint endpoint,
                             RequestContext context, EndpointInvocation.ResultType resultType, ServiceFilter filter,
                             VenusRouterPacket routerPacket, SerializeServiceRequestPacket request,
@@ -140,7 +141,7 @@ public class VenusInvokerTask extends MultiQueueRunnable {
             // invoke service endpoint
             result = doInvoke(context, endpoint);
 
-            //TODO 拆分各种请求处理方式
+            //TODO 拆分同步、异步请求为独立的方法
             if (result.getErrorCode() == 0) {
                 if (resultType == EndpointInvocation.ResultType.RESPONSE) {
                     Serializer serializer = SerializerFactory.getSerializer(serializeType);

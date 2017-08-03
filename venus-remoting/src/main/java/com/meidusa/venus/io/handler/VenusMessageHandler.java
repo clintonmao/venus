@@ -54,7 +54,7 @@ public class VenusMessageHandler implements MessageHandler<VenusFrontendConnecti
     /**
      * 请求类型消息处理
      */
-    private MessageHandler messageHandler;
+    private MessageHandler requestMessageHandler;
 
     @Override
     public void init() throws InitialisationException {
@@ -114,7 +114,7 @@ public class VenusMessageHandler implements MessageHandler<VenusFrontendConnecti
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:
                 //远程调用消息处理
-                messageHandler.handle(conn, data);
+                requestMessageHandler.handle(conn, data);
                 break;
             default:
                 StringBuilder buffer = new StringBuilder("receive unknown packet type=" + type + "  from ");
@@ -208,11 +208,11 @@ public class VenusMessageHandler implements MessageHandler<VenusFrontendConnecti
         this.serviceManager = serviceManager;
     }
 
-    public MessageHandler getMessageHandler() {
-        return messageHandler;
+    public MessageHandler getRequestMessageHandler() {
+        return requestMessageHandler;
     }
 
-    public void setMessageHandler(MessageHandler messageHandler) {
-        this.messageHandler = messageHandler;
+    public void setRequestMessageHandler(MessageHandler requestMessageHandler) {
+        this.requestMessageHandler = requestMessageHandler;
     }
 }
