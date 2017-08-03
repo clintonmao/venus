@@ -141,20 +141,24 @@ public class MysqlRegister implements Register, DisposableBean {
 
 	@Override
 	public void unregiste(URL url) throws VenusRegisteException {
-		VenusServerDO server = venusServerDAO.getServer(url.getHost(), url.getPort());
-		if (null != server) {
-			int serverId = server.getId();
-			VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
-					url.getInterfaceName());
-			if (null != service) {
-				int serviceId = service.getId();
-				VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(serverId, serviceId,
-						PROVIDER);
-				if (null != serviceMapping) {
-					venusServiceMappingDAO.deleteServiceMapping(serverId, serviceId, url.getVersion(), PROVIDER);// 逻辑删除自动注册的,手动注册的不更新
-					registeUrls.remove(url);
+		try {
+			VenusServerDO server = venusServerDAO.getServer(url.getHost(), url.getPort());
+			if (null != server) {
+				int serverId = server.getId();
+				VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
+						url.getInterfaceName());
+				if (null != service) {
+					int serviceId = service.getId();
+					VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(serverId, serviceId,
+							PROVIDER);
+					if (null != serviceMapping) {
+						venusServiceMappingDAO.deleteServiceMapping(serverId, serviceId, url.getVersion(), PROVIDER);// 逻辑删除自动注册的,手动注册的不更新
+						registeUrls.remove(url);
+					}
 				}
 			}
+		} catch (Exception e) {
+			throw new VenusRegisteException("取消注册异常" + url.getServiceName(), e);
 		}
 	}
 
@@ -214,26 +218,32 @@ public class MysqlRegister implements Register, DisposableBean {
 
 	@Override
 	public void unsubscrible(URL url) throws VenusRegisteException {
-		VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
-				url.getInterfaceName());
-		String localIp = NetworkInterfaceManager.INSTANCE.getLocalHostAddress();
-		VenusServerDO server = venusServerDAO.getServer(localIp, 0);
-		VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(server.getId(), service.getId(),
-				CONSUMER);
-		if (null != serviceMapping) {
-			venusServiceMappingDAO.deleteServiceMapping(server.getId(), service.getId(), url.getVersion(), CONSUMER);// 逻辑删除自动注册的,手动注册的不更新
-			subscribleUrls.remove(url);
+		try {
+			VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
+					url.getInterfaceName());
+			String localIp = NetworkInterfaceManager.INSTANCE.getLocalHostAddress();
+			VenusServerDO server = venusServerDAO.getServer(localIp, 0);
+			VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(server.getId(),
+					service.getId(), CONSUMER);
+			if (null != serviceMapping) {
+				venusServiceMappingDAO.deleteServiceMapping(server.getId(), service.getId(), url.getVersion(),
+						CONSUMER);// 逻辑删除自动注册的,手动注册的不更新
+				subscribleUrls.remove(url);
+			}
+		} catch (Exception e) {
+			throw new VenusRegisteException("取消订阅异常" + url.getServiceName(), e);
 		}
 	}
 
 	@Override
 	public void heartbeat() throws VenusRegisteException {
-
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new HeartBeatRunnable(), 10, 10, TimeUnit.SECONDS);
 	}
 
 	@Override
 	public void clearInvalid() throws VenusRegisteException {
-
+		registeFailUrls.clear();
+		subscribleFailUrls.clear();
 	}
 
 	@Override
@@ -256,7 +266,6 @@ public class MysqlRegister implements Register, DisposableBean {
 
 	@Override
 	public void load() throws VenusRegisteException {
-		// TODO 开启定时器，定时根据 subscribleUrls 去db拉取信息，生成本地 ServiceDefinition 列表
 		GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefineRunnable(), 10, 60 * 2, TimeUnit.SECONDS);
 	}
 
@@ -272,10 +281,10 @@ public class MysqlRegister implements Register, DisposableBean {
 	private class ServiceDefineRunnable implements Runnable {
 
 		public ServiceDefineRunnable() {
-			// 可在构造函数中传入spring bean参数
+
 		}
 
-		public void run() {// 内部类的方式使用spring bean
+		public void run() {
 			for (URL url : subscribleUrls) {
 				String interfaceName = url.getInterfaceName();
 				String serviceName = url.getServiceName();
@@ -319,5 +328,52 @@ public class MysqlRegister implements Register, DisposableBean {
 			}
 
 		}
+	}
+
+	private class HeartBeatRunnable implements Runnable {
+
+		@Override
+		public void run() {
+			if (CollectionUtils.isNotEmpty(registeUrls)) {
+				for (Iterator<URL> iterator = registeUrls.iterator(); iterator.hasNext();) {
+					URL url = iterator.next();
+					String interfaceName = url.getInterfaceName();
+					String serviceName = url.getServiceName();
+					String version = url.getVersion();
+					try {
+						VenusServiceDO service = venusServiceDAO.getService(serviceName, version, interfaceName);
+						int serviceID = service.getId();
+						String host = url.getHost();
+						int port = url.getPort();
+						VenusServerDO server = venusServerDAO.getServer(host, port);
+						int serverID = server.getId();
+						venusServiceMappingDAO.updateServiceMappingHeartBeatTime(serverID, serviceID, version,
+								PROVIDER);
+					} catch (Exception e) {
+						throw new VenusRegisteException("registe更新heartBeatTime异常,服务名：" + url.getServiceName(), e);
+					}
+				}
+			}
+			if (CollectionUtils.isNotEmpty(subscribleUrls)) {
+				for (Iterator<URL> iterator = subscribleUrls.iterator(); iterator.hasNext();) {
+					URL url = iterator.next();
+					String interfaceName = url.getInterfaceName();
+					String serviceName = url.getServiceName();
+					String version = url.getVersion();
+					try {
+						VenusServiceDO service = venusServiceDAO.getService(serviceName, version, interfaceName);
+						int serviceID = service.getId();
+						String host = url.getHost();
+						VenusServerDO server = venusServerDAO.getServer(host, 0);
+						int serverID = server.getId();
+						venusServiceMappingDAO.updateServiceMappingHeartBeatTime(serverID, serviceID, version,
+								CONSUMER);
+					} catch (Exception e) {
+						throw new VenusRegisteException("subscrible更新heartBeatTime异常,服务名：" + url.getServiceName(), e);
+					}
+				}
+			}
+		}
+
 	}
 }

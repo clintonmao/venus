@@ -20,6 +20,7 @@ import com.meidusa.venus.registry.domain.VenusServiceMappingDO;
 public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 
 	private static final String SELECT_FIELDS_TABLE = "select id, server_id, service_id, version, active, sync,role,registe_type,is_delete,create_time, update_time,registe_time,heartbeat_time from t_venus_service_mapping ";
+	
 	@Resource
 	private JdbcTemplate jdbcTemplate;
 
@@ -44,6 +45,18 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 					venusServiceMappingDO.getServiceId());
 		} catch (Exception e) {
 			throw new DAOException("更新映射关系异常", e);
+		}
+		return false;
+	}
+	
+	@Override
+	public boolean updateServiceMappingHeartBeatTime(int serverId,int serviceId,String version, String role) throws DAOException {
+		String sql = "update t_venus_service_mapping set heartbeat_time = now() where server_id = ? and service_id = ? and role=?";
+		try {
+			this.jdbcTemplate.update(sql, serverId, serviceId,
+					role);
+		} catch (Exception e) {
+			throw new DAOException("更新映射关系heartbeat_time时间异常", e);
 		}
 		return false;
 	}
