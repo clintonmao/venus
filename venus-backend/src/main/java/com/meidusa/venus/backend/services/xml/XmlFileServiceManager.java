@@ -6,7 +6,6 @@ import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.toolkit.common.util.StringUtil;
-import com.meidusa.venus.VenusMetaInfo;
 import com.meidusa.venus.annotations.PerformanceLevel;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.backend.interceptor.Configurable;
@@ -22,14 +21,13 @@ import com.meidusa.venus.backend.services.SingletonService;
 import com.meidusa.venus.backend.services.xml.bean.*;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanContext;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanUtilsBean;
+import com.meidusa.venus.backend.services.xml.support.VenusMonitorService;
+import com.meidusa.venus.backend.services.xml.support.VenusServiceRegistry;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.extension.athena.AthenaExtensionResolver;
 import com.meidusa.venus.service.monitor.MonitorRuntime;
 import com.meidusa.venus.service.monitor.MonitorService;
-import com.meidusa.venus.service.monitor.ServerStatus;
-import com.meidusa.venus.service.monitor.ServiceBean;
-import com.meidusa.venus.service.registry.ServiceDefinition;
 import com.meidusa.venus.service.registry.ServiceRegistry;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
@@ -83,18 +81,45 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         AthenaExtensionResolver.getInstance().resolver();
         CodeMapScanner.getCodeMap();
 
+        //解析配置文件
+        VenusServerConfig venusServerConfig = parseConfig();
+
+        List<ServiceConfig> serviceConfigList = venusServerConfig.getServiceConfigs();
+        addMonitorServiceConfig(serviceConfigList);
+        addRegistryServiceConfig(serviceConfigList);
+
+        Map<String, InterceptorMapping> interceptors = venusServerConfig.getInterceptors();
+        Map<String, InterceptorStackConfig> interceptorStacks = venusServerConfig.getInterceptorStatcks();
+
+        //初始化服务
+        initServices(serviceConfigList, interceptors, interceptorStacks);
+    }
+
+    /**
+     * 导出服务
+     */
+    void export(){
+        //本地代理导出映射
+    }
+
+    /**
+     * 服务注册
+     */
+    void registe(){
+        //TODO 调用远程注册服务
+    }
+
+    /**
+     * 解析配置文件
+     * @return
+     */
+    private VenusServerConfig parseConfig() {
+        VenusServerConfig allVenusServerConfig = new VenusServerConfig();
+
         List<ServiceConfig> serviceConfigList = new ArrayList<ServiceConfig>();
         Map<String, InterceptorMapping> interceptors = new HashMap<String, InterceptorMapping>();
         Map<String, InterceptorStackConfig> interceptorStacks = new HashMap<String, InterceptorStackConfig>();
-        loadVenusService(serviceConfigList, interceptors, interceptorStacks);
-        loadMonitorService(interceptors, interceptorStacks);
-        loadRegistryService(interceptors, interceptorStacks);
-        initMonitor(serviceConfigList, interceptors, interceptorStacks);
-    }
 
-
-
-    private void loadVenusService(List<ServiceConfig> serviceConfigList, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStacks) {
         for (Resource config : configFiles) {
             RuleSet ruleSet = new FromXmlRuleSet(this.getClass().getResource("venusServerRule.xml"), new DigesterRuleParser());
             Digester digester = new Digester();
@@ -102,96 +127,53 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
             try {
                 InputStream is = config.getInputStream();
-                Venus venus = (Venus) digester.parse(is);
-                serviceConfigList.addAll(venus.getServiceConfigs());
-                interceptors.putAll(venus.getInterceptors());
-                interceptorStacks.putAll(venus.getInterceptorStatcks());
+                VenusServerConfig venusServerConfig = (VenusServerConfig) digester.parse(is);
+                serviceConfigList.addAll(venusServerConfig.getServiceConfigs());
+                interceptors.putAll(venusServerConfig.getInterceptors());
+                interceptorStacks.putAll(venusServerConfig.getInterceptorStatcks());
             } catch (Exception e) {
                 throw new ConfigurationException("can not parser xml:" + config.getFilename(), e);
             }
         }
+
+        allVenusServerConfig.setServiceConfigs(serviceConfigList);
+        allVenusServerConfig.setInterceptors(interceptors);
+        allVenusServerConfig.setInterceptorStatcks(interceptorStacks);
+        return allVenusServerConfig;
     }
 
-    protected void loadMonitorService(Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks) {
+    /**
+     * 添加服务监听实例配置
+     * @param serviceConfigList
+     */
+    void addMonitorServiceConfig(List<ServiceConfig> serviceConfigList){
         ServiceConfig monitorServiceConfig = new ServiceConfig();
         monitorServiceConfig.setActive(true);
         monitorServiceConfig.setType(MonitorService.class);
-        monitorServiceConfig.setInstance(new MonitorService() {
-
-            @Override
-            public List<ServiceBean> getSerivces() {
-                List<ServiceBean> list = new ArrayList<ServiceBean>();
-                list.addAll(MonitorRuntime.getInstance().getServiceMap().values());
-                return list;
-            }
-
-            @Override
-            public ServerStatus getServerStatus() {
-                ServerStatus status = new ServerStatus();
-                status.setUptime(MonitorRuntime.getInstance().getUptime());
-                
-                return status;
-            }
-
-            @Override
-            public String getVersion() {
-                return VenusMetaInfo.VENUS_VERSION;
-            }
-
-        });
-
-        loadService(monitorServiceConfig, interceptors, interceptorStatcks);
+        monitorServiceConfig.setInstance(new VenusMonitorService());
+        serviceConfigList.add(monitorServiceConfig);
     }
 
-    protected void loadRegistryService(Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks) {
+    /**
+     * 添加服务注册实例配置
+     * @param serviceConfigList
+     */
+    void addRegistryServiceConfig(List<ServiceConfig> serviceConfigList) {
         ServiceConfig serviceConfig = new ServiceConfig();
         serviceConfig.setActive(true);
         serviceConfig.setType(ServiceRegistry.class);
-        serviceConfig.setInstance(new ServiceRegistry() {
-
-            @Override
-            public List<ServiceDefinition> getServiceDefinitions() {
-                List<ServiceDefinition> sdList = new ArrayList<ServiceDefinition>();
-                Collection<Service> list = XmlFileServiceManager.this.getServices();
-                for (Service service : list) {
-                    ServiceDefinition definition = new ServiceDefinition();
-                    definition.setActive(service.isActive());
-                    definition.setName(service.getName());
-                    definition.setDescription(service.getDescription());
-                    if (service.getVersionRange() != null) {
-                        definition.setVersionRange(service.getVersionRange().toString());
-                    }
-                    sdList.add(definition);
-                }
-                return sdList;
-            }
-
-            @Override
-            public ServiceDefinition getServiceDefinition(String name, int version) {
-
-                Service service = XmlFileServiceManager.this.services.get(name);
-                if (service.getVersionRange().contains(version)) {
-                    ServiceDefinition definition = new ServiceDefinition();
-                    definition.setActive(service.isActive());
-                    definition.setName(service.getName());
-                    definition.setDescription(service.getDescription());
-                    if (service.getVersionRange() != null) {
-                        definition.setVersionRange(service.getVersionRange().toString());
-                    }
-                    return definition;
-                }
-
-                return null;
-            }
-
-        });
-
-        loadService(serviceConfig, interceptors, interceptorStatcks);
+        serviceConfig.setInstance(new VenusServiceRegistry(getServiceMappings()));
     }
 
-    private void initMonitor(List<ServiceConfig> serviceConfigList, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStacks) {
+    /**
+     * 初始化所有服务
+     * @param serviceConfigList
+     * @param interceptors
+     * @param interceptorStacks
+     */
+    private void initServices(List<ServiceConfig> serviceConfigList, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStacks) {
         for (ServiceConfig config : serviceConfigList) {
-            Service service = loadService(config, interceptors, interceptorStacks);
+            Service service = initService(config, interceptors, interceptorStacks);
             Map<String, Collection<Endpoint>> ends = service.getEndpoints().asMap();
             for (Map.Entry<String, Collection<Endpoint>> entry : ends.entrySet()) {
                 if (entry.getValue() != null && !entry.getValue().isEmpty()) {
@@ -201,14 +183,22 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         }
     }
 
-    protected Service loadService(ServiceConfig config, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks) {
+    /**
+     * 初始化服务
+     * @param serviceConfig
+     * @param interceptors
+     * @param interceptorStatcks
+     * @return
+     */
+    protected Service initService(ServiceConfig serviceConfig, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks) {
+        //初始化service
         SingletonService service = new SingletonService();
-        service.setType(config.getType());
-        service.setInstance(config.getInstance());
-        Class<?> type = config.getType();
-        type.cast(config.getInstance());
-        service.setActive(config.isActive());
-        service.setVersionRange(config.getVersionRange());
+        service.setType(serviceConfig.getType());
+        service.setInstance(serviceConfig.getInstance());
+        Class<?> type = serviceConfig.getType();
+        type.cast(serviceConfig.getInstance());
+        service.setActive(serviceConfig.isActive());
+        service.setVersionRange(serviceConfig.getVersionRange());
 
         com.meidusa.venus.annotations.Service serviceAnnotation = type.getAnnotation(com.meidusa.venus.annotations.Service.class);
         
@@ -218,25 +208,45 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         }
 
         service.setAthenaFlag(serviceAnnotation.athenaFlag());
-        
         if (!serviceAnnotation.name().isEmpty()) {
             service.setName(serviceAnnotation.name());
         } else {
             service.setName(type.getCanonicalName());
         }
-
         service.setDescription(serviceAnnotation.description());
 
-        // cache all methods
+        //初始化endpoints
         Method[] methods = service.getType().getMethods();
+        Multimap<String, Endpoint> endpoints = initEndpoinits(service,methods,serviceConfig,interceptors,interceptorStatcks);
+        service.setEndpoints(endpoints);
+
+        this.services.put(service.getName(), service);
+
+        // register to resolvable dependency container
+        if (beanFactory instanceof ConfigurableListableBeanFactory) {
+            ConfigurableListableBeanFactory cbf = (ConfigurableListableBeanFactory) beanFactory;
+            cbf.registerResolvableDependency(service.getType(), service.getInstance());
+        }
+        return service;
+    }
+
+    /**
+     * 初始化endpoints
+     * @param service
+     * @param methods
+     * @param serviceConfig
+     * @param interceptors
+     * @param interceptorStatcks
+     */
+    Multimap<String, Endpoint> initEndpoinits(Service service,Method[] methods,ServiceConfig serviceConfig,Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks){
         Multimap<String, Endpoint> endpoints = HashMultimap.create();
         for (Method method : methods) {
             if (method.isAnnotationPresent(com.meidusa.venus.annotations.Endpoint.class)) {
                 Endpoint ep = loadEndpoint(method);
 
-                EndpointConfig endpointConfig = config.getEndpointConfig(ep.getName());
+                EndpointConfig endpointConfig = serviceConfig.getEndpointConfig(ep.getName());
 
-                String id = (endpointConfig == null ? config.getInterceptorStack() : endpointConfig.getInterceptorStack());
+                String id = (endpointConfig == null ? serviceConfig.getInterceptorStack() : endpointConfig.getInterceptorStack());
                 Map<String, InterceptorConfig> interceptorConfigs = null;
                 if (endpointConfig != null) {
                     ep.setActive(endpointConfig.isActive());
@@ -289,17 +299,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                 endpoints.put(ep.getName(), ep);
             }
         }
-        service.setEndpoints(endpoints);
-
-        this.services.put(service.getName(), service);
-
-        // register to resolvable dependency container
-
-        if (beanFactory instanceof ConfigurableListableBeanFactory) {
-            ConfigurableListableBeanFactory cbf = (ConfigurableListableBeanFactory) beanFactory;
-            cbf.registerResolvableDependency(service.getType(), service.getInstance());
-        }
-        return service;
+        return endpoints;
     }
 
     protected void loadInterceptors(Map<String, InterceptorStackConfig> interceptorStatcks, Map<String, InterceptorMapping> interceptors, String id,

@@ -14,7 +14,7 @@
 
 	<pattern value="venus-server">
 		<object-create-rule-with-init
-			classname="com.meidusa.venus.backend.services.xml.bean.Venus"
+			classname="com.meidusa.venus.backend.services.xml.bean.VenusServerConfig"
 			attrname="class" />
 		<set-properties-rule />
 		<bean-property-setter-byAttrname-rule

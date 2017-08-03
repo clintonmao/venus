@@ -115,7 +115,7 @@ public class VenusRequestMessageHandler implements MessageHandler<VenusFrontendC
     }
 
     /**
-     * 构造请求对象
+     * 构造请求对象 TODO 统一接口invocation定义
      * @return
      */
     ProviderInvocation buildInvocation(VenusFrontendConnection conn, Tuple<Long, byte[]> data){

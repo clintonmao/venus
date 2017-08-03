@@ -16,7 +16,7 @@ import com.meidusa.venus.notify.InvocationListener;
 /**
  * 
  * @author Struct
- * 
+ * TODO 统一invoker接口定义
  */
 public class VenusEndpointInvocation implements EndpointInvocation {
 

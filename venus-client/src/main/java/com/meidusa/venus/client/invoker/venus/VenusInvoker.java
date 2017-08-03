@@ -334,7 +334,7 @@ public class VenusInvoker extends AbstractInvoker implements Invoker{
             remoteAddress =  conn.getRemoteAddress();
             borrowed = TimeUtil.currentTimeMillis();
             ServiceConfig serviceConfig = this.serviceFactory.getServiceConfig(method.getDeclaringClass());
-            initConn(conn,serviceConfig,endpoint);
+            setConnectionConfig(conn,serviceConfig,endpoint);
 
             //发送请求并等待响应
             byte[] buff = serviceRequestPacket.toByteArray();
@@ -519,7 +519,7 @@ public class VenusInvoker extends AbstractInvoker implements Invoker{
      * @param endpoint
      * @throws SocketException
      */
-    void initConn(AbstractBIOConnection conn,ServiceConfig serviceConfig,Endpoint endpoint) throws SocketException {
+    void setConnectionConfig(AbstractBIOConnection conn, ServiceConfig serviceConfig, Endpoint endpoint) throws SocketException {
         int soTimeout = 0;
         int oldTimeout = 0;
 

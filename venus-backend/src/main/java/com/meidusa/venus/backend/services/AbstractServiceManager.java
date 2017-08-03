@@ -30,7 +30,9 @@ import com.meidusa.venus.util.Utils;
  * 
  */
 public abstract class AbstractServiceManager implements ServiceManager {
+
     private boolean supportOverload = false;
+
     protected final Map<String, Service> services = new HashMap<String, Service>();
 
     /**
@@ -235,4 +237,9 @@ public abstract class AbstractServiceManager implements ServiceManager {
 
         return p;
     }
+
+    public Map<String, Service> getServiceMappings(){
+        return services;
+    }
+
 }

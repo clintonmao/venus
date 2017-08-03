@@ -103,7 +103,7 @@ public class VenusPoolFactory implements BeanFactoryAware, InitializingBean {
 
     @SuppressWarnings("unchecked")
     public void afterPropertiesSet() throws Exception {
-        logger.trace("current Venus Client id=" + PacketConstant.VENUS_CLIENT_ID);
+        logger.trace("current VenusServerConfig Client id=" + PacketConstant.VENUS_CLIENT_ID);
 
         beanContext = new BeanContext() {
             public Object getBean(String beanName) {
