@@ -66,7 +66,6 @@ public class VenusMessageHandler implements MessageHandler<VenusFrontendConnecti
     @Override
     public void handle(final VenusFrontendConnection conn,final Tuple<Long, byte[]> data) {
         final long waitTime = TimeUtil.currentTimeMillis() - data.left;
-
         byte[] message = data.right;
 
         int type = AbstractServicePacket.getType(message);
@@ -82,9 +81,9 @@ public class VenusMessageHandler implements MessageHandler<VenusFrontendConnecti
             serializeType = routerPacket.serializeType;
             sourceIp = InetAddressUtil.intToAddress(routerPacket.srcIP);
         }
-
         final byte packetSerializeType = serializeType;
         final String finalSourceIp = sourceIp;
+
         switch (type) {
             case PacketConstant.PACKET_TYPE_PING:
                 PingPacket ping = new PingPacket();
@@ -114,7 +113,7 @@ public class VenusMessageHandler implements MessageHandler<VenusFrontendConnecti
 
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:
-                //远程调用请求消息处理
+                //远程调用消息处理
                 messageHandler.handle(conn, data);
                 break;
             default:

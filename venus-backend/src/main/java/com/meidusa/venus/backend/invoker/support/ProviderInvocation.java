@@ -2,13 +2,16 @@ package com.meidusa.venus.backend.invoker.support;
 
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.util.TimeUtil;
+import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
+import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
+import com.meidusa.venus.rpc.Invocation;
 
 /**
  * Created by Zhangzhihua on 2017/8/2.
  */
-public class ProviderInvocation {
+public class ProviderInvocation extends Invocation{
 
     VenusFrontendConnection conn;
 
@@ -25,6 +28,10 @@ public class ProviderInvocation {
     long waitTime;
 
     VenusRouterPacket routerPacket;
+
+    SerializeServiceRequestPacket serviceRequestPacket;
+
+    Endpoint ep;
 
     public VenusFrontendConnection getConn() {
         return conn;
@@ -88,5 +95,21 @@ public class ProviderInvocation {
 
     public void setSerializeType(byte serializeType) {
         this.serializeType = serializeType;
+    }
+
+    public SerializeServiceRequestPacket getServiceRequestPacket() {
+        return serviceRequestPacket;
+    }
+
+    public void setServiceRequestPacket(SerializeServiceRequestPacket serviceRequestPacket) {
+        this.serviceRequestPacket = serviceRequestPacket;
+    }
+
+    public Endpoint getEp() {
+        return ep;
+    }
+
+    public void setEp(Endpoint ep) {
+        this.ep = ep;
     }
 }
