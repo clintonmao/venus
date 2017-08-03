@@ -8,7 +8,7 @@ public class VenusProperties extends Properties {
     static VenusProperties venus = new VenusProperties();
     static {
         try {
-            venus.load(VenusProperties.class.getResourceAsStream("Venus.properties"));
+            venus.load(VenusProperties.class.getResourceAsStream("VenusServerConfig.properties"));
         } catch (IOException e) {
         }
     }

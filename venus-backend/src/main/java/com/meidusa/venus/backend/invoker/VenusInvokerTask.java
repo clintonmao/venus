@@ -140,6 +140,7 @@ public class VenusInvokerTask extends MultiQueueRunnable {
             // invoke service endpoint
             result = doInvoke(context, endpoint);
 
+            //TODO 拆分各种请求处理方式
             if (result.getErrorCode() == 0) {
                 if (resultType == EndpointInvocation.ResultType.RESPONSE) {
                     Serializer serializer = SerializerFactory.getSerializer(serializeType);

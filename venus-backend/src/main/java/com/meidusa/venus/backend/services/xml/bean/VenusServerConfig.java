@@ -7,7 +7,11 @@ import java.util.Map;
 
 import com.meidusa.venus.backend.interceptor.InterceptorMapping;
 
-public class Venus {
+/**
+ * venus服务端配置
+ */
+public class VenusServerConfig {
+
     private List<ServiceConfig> serviceConfigs = new ArrayList<ServiceConfig>();
 
     private Map<String, InterceptorMapping> interceptors = new HashMap<String, InterceptorMapping>();
@@ -40,5 +44,17 @@ public class Venus {
 
     public Map<String, InterceptorStackConfig> getInterceptorStatcks() {
         return interceptorStatcks;
+    }
+
+    public void setServiceConfigs(List<ServiceConfig> serviceConfigs) {
+        this.serviceConfigs = serviceConfigs;
+    }
+
+    public void setInterceptors(Map<String, InterceptorMapping> interceptors) {
+        this.interceptors = interceptors;
+    }
+
+    public void setInterceptorStatcks(Map<String, InterceptorStackConfig> interceptorStatcks) {
+        this.interceptorStatcks = interceptorStatcks;
     }
 }
