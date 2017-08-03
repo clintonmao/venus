@@ -19,18 +19,18 @@ import com.meidusa.venus.registry.domain.VenusServiceMappingDO;
 @Component
 public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 
-	private static final String SELECT_FIELDS_TABLE = "select id, server_id, service_id, version, active, sync,role,registe_type,is_delete,create_time, update_time,registe_time,heartbeat_time from t_venus_service_mapping ";
+	private static final String SELECT_FIELDS_TABLE = "select id, server_id, service_id, version, active, sync,role,is_delete,create_time, update_time,registe_time,heartbeat_time from t_venus_service_mapping ";
 	
 	@Resource
 	private JdbcTemplate jdbcTemplate;
 
 	@Override
 	public boolean addServiceMapping(VenusServiceMappingDO mapping) throws DAOException {
-		String sql = "insert into t_venus_service_mapping (server_id,service_id,version, active, sync,role,registe_type,is_delete,create_time, update_time,registe_time) values (?, ?, ?, ?, ?, ?, ?, 0,now(), now(),now())";
+		String sql = "insert into t_venus_service_mapping (server_id,service_id,version, active, sync,role,is_delete,create_time, update_time,registe_time) values (?, ?, ?, ?, ?, ?, 0,now(), now(),now())";
 		int update = 0;
 		try {
 			update = this.jdbcTemplate.update(sql, mapping.getServerId(), mapping.getServiceId(), mapping.getVersion(),
-					mapping.isActive(), mapping.isSync(), mapping.getRole(), mapping.getRegisteType());
+					mapping.isActive(), mapping.isSync(), mapping.getRole());
 		} catch (Exception e) {
 			throw new DAOException("保存服务映射关系异常", e);
 		}
@@ -64,7 +64,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	@Override
 	public boolean deleteServiceMapping(int serverId, int serviceId, String version, String role)
 			throws DAOException {
-		String sql = "update t_venus_service_mapping set is_delete = 1 where server_id = ? and service_id = ? and version=? and registe_type=1";
+		String sql = "update t_venus_service_mapping set is_delete = 1 where server_id = ? and service_id = ? and version=? ";
 		try {
 			this.jdbcTemplate.update(sql, serverId, serviceId, version);
 		} catch (Exception e) {

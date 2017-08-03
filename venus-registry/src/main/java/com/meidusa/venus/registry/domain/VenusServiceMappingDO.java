@@ -9,10 +9,6 @@ public class VenusServiceMappingDO implements Serializable {
 
 	private static final long serialVersionUID = -5989031405262772357L;
 
-	public static final int AUTO_REGISTE = 1;
-
-	public static final int OPERATOR_REGISTE = 0;
-
 	private Integer id;
 
 	private VenusServerDO server;
@@ -46,9 +42,6 @@ public class VenusServiceMappingDO implements Serializable {
 
 	/** 角色：provider||consumer */
 	private String role;
-
-	/** 注册类型：0 手动：1 自动 */
-	private int registeType;
 
 	public Integer getId() {
 		return id;
@@ -136,14 +129,6 @@ public class VenusServiceMappingDO implements Serializable {
 
 	public void setRole(String role) {
 		this.role = role;
-	}
-
-	public int getRegisteType() {
-		return registeType;
-	}
-
-	public void setRegisteType(int registeType) {
-		this.registeType = registeType;
 	}
 
 	public Date getRegisteTime() {
