@@ -58,10 +58,10 @@ public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 
 	@Override
 	public boolean updateApplication(VenusApplicationDO venusApplicationDO) throws DAOException {
-		String sql = "update t_venus_application set app_code=?, update_time=now() where id=?";
+		String sql = "update t_venus_application set provider=?,consumer=? update_time=now() where id=?";
 		int update = 0;
 		try {
-			update = this.jdbcTemplate.update(sql, venusApplicationDO.getAppCode(), venusApplicationDO.getId());
+			update = this.jdbcTemplate.update(sql, venusApplicationDO.isProvider(),venusApplicationDO.isConsumer(), venusApplicationDO.getId());
 		} catch (Exception e) {
 			throw new DAOException("更新venusApplication异常", e);
 		}

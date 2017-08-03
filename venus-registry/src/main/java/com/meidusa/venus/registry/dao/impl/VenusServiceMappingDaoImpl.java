@@ -19,17 +19,17 @@ import com.meidusa.venus.registry.domain.VenusServiceMappingDO;
 @Component
 public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 
+	private static final String SELECT_FIELDS_TABLE = "select id, server_id, service_id, version, active, sync,role,registe_type,is_delete,create_time, update_time,registe_time,heartbeat_time from t_venus_service_mapping ";
 	@Resource
 	private JdbcTemplate jdbcTemplate;
 
 	@Override
-	public boolean addServiceMapping(VenusServiceMappingDO venusServiceMappingDO) throws DAOException {
-		String sql = "insert into t_venus_service_mapping (server_id,service_id,version, active, sync,create_time, update_time) values (?, ?, ?, ?, ?, now(), now())";
+	public boolean addServiceMapping(VenusServiceMappingDO mapping) throws DAOException {
+		String sql = "insert into t_venus_service_mapping (server_id,service_id,version, active, sync,role,registe_type,is_delete,create_time, update_time,registe_time) values (?, ?, ?, ?, ?, ?, ?, 0,now(), now(),now())";
 		int update = 0;
 		try {
-			update = this.jdbcTemplate.update(sql, venusServiceMappingDO.getServerId(),
-					venusServiceMappingDO.getServiceId(), venusServiceMappingDO.getVersion(),
-					venusServiceMappingDO.isActive(), venusServiceMappingDO.isSync());
+			update = this.jdbcTemplate.update(sql, mapping.getServerId(), mapping.getServiceId(), mapping.getVersion(),
+					mapping.isActive(), mapping.isSync(), mapping.getRole(), mapping.getRegisteType());
 		} catch (Exception e) {
 			throw new DAOException("保存服务映射关系异常", e);
 		}
@@ -38,10 +38,22 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 
 	@Override
 	public boolean updateServiceMapping(VenusServiceMappingDO venusServiceMappingDO) throws DAOException {
-		String sql = "update t_venus_service_mapping set version = ?, active = ? where server_id = ? and service_id = ?";
+		String sql = "update t_venus_service_mapping set active = ? where server_id = ? and service_id = ?";
 		try {
-			this.jdbcTemplate.update(sql, venusServiceMappingDO.getVersion(), venusServiceMappingDO.isActive(),
-					venusServiceMappingDO.getServerId(), venusServiceMappingDO.getServiceId());
+			this.jdbcTemplate.update(sql, venusServiceMappingDO.isActive(), venusServiceMappingDO.getServerId(),
+					venusServiceMappingDO.getServiceId());
+		} catch (Exception e) {
+			throw new DAOException("更新映射关系异常", e);
+		}
+		return false;
+	}
+
+	@Override
+	public boolean deleteServiceMapping(int serverId, int serviceId, String version, String role)
+			throws DAOException {
+		String sql = "update t_venus_service_mapping set is_delete = 1 where server_id = ? and service_id = ? and version=? and registe_type=1";
+		try {
+			this.jdbcTemplate.update(sql, serverId, serviceId, version);
 		} catch (Exception e) {
 			throw new DAOException("更新映射关系异常", e);
 		}
@@ -51,7 +63,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	@Override
 	public VenusServiceMappingDO getServiceMapping(Integer serverId, Integer serviceId, String role)
 			throws DAOException {
-		String sql = "select id, server_id, service_id, version, active, sync, create_time, update_time from t_venus_service_mapping where server_id = ? and service_id = ? and role=?";
+		String sql = SELECT_FIELDS_TABLE + " where server_id = ? and service_id = ? and role=?";
 
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] { serverId, serviceId, role },
@@ -72,7 +84,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 
 	@Override
 	public List<VenusServiceMappingDO> getServiceMapping(Integer serviceId, String role) throws DAOException {
-		String sql = "select id, server_id, service_id, version, active, sync, create_time, update_time from t_venus_service_mapping where service_id = ? and role=?";
+		String sql = SELECT_FIELDS_TABLE + " where service_id = ? and role=?";
 
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] { serviceId, role },
@@ -94,7 +106,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 
 	@Override
 	public VenusServiceMappingDO getServiceMapping(Integer id) throws DAOException {
-		String sql = "select id, server_id, service_id, version, active, sync, create_time, update_time from t_venus_service_mapping where id = ?";
+		String sql = SELECT_FIELDS_TABLE + " where id = ?";
 
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] { id }, new ResultSetExtractor<VenusServiceMappingDO>() {
@@ -113,7 +125,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 
 	@Override
 	public List<VenusServiceMappingDO> getServiceMappings(Integer serverId) throws DAOException {
-		String sql = "select id, server_id, service_id, version, active, sync, create_time, update_time from t_venus_service_mapping where server_id = ?";
+		String sql = SELECT_FIELDS_TABLE + " where server_id = ?";
 
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] { serverId },
