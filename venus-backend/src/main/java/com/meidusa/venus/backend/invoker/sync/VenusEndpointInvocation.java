@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.invoker;
+package com.meidusa.venus.backend.invoker.sync;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ import com.meidusa.venus.notify.InvocationListener;
  * @author Struct
  * 
  */
-public class DefaultEndpointInvocation implements EndpointInvocation {
+public class VenusEndpointInvocation implements EndpointInvocation {
 
     private static String ENDPOINT_INVOKED = "invoke endpoint: ";
     
@@ -57,7 +57,7 @@ public class DefaultEndpointInvocation implements EndpointInvocation {
      */
     private List<InvocationObserver> observerList = new ArrayList<InvocationObserver>();
 
-    public DefaultEndpointInvocation(RequestContext context, Endpoint endpoint) {
+    public VenusEndpointInvocation(RequestContext context, Endpoint endpoint) {
         this.endpoint = endpoint;
         //TODO 确认代码用途，及替换方案
         /*
@@ -104,7 +104,7 @@ public class DefaultEndpointInvocation implements EndpointInvocation {
             String interceptorMsg = "interceptor: " + interceptor.getName();
             UtilTimerStack.push(interceptorMsg);
             try {
-                result = interceptor.getInterceptor().intercept(DefaultEndpointInvocation.this);
+                result = interceptor.getInterceptor().intercept(VenusEndpointInvocation.this);
             } finally {
                 UtilTimerStack.pop(interceptorMsg);
             }
@@ -127,7 +127,7 @@ public class DefaultEndpointInvocation implements EndpointInvocation {
                     for (InvocationObserver observer : observerList) {
                         observer.beforeInvoke(this, getContext());
                     }
-                    result = invokeEndpoint(this.getEndpoint(), parameters);
+                    result = doInvoke(this.getEndpoint(), parameters);
                     for (InvocationObserver observer : observerList) {
                         observer.afterInvoke(this, getContext());
                     }
@@ -153,7 +153,7 @@ public class DefaultEndpointInvocation implements EndpointInvocation {
         return result;
     }
 
-    protected Object invokeEndpoint(Endpoint endPoint, Object[] parameters) throws InvocationTargetException, IllegalArgumentException, IllegalAccessException {
+    protected Object doInvoke(Endpoint endPoint, Object[] parameters) throws InvocationTargetException, IllegalArgumentException, IllegalAccessException {
         Object instance = endPoint.getService().getInstance();
         Object result = getEndpoint().getMethod().invoke(instance, parameters);
         return result;

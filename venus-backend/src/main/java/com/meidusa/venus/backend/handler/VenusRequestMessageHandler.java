@@ -39,7 +39,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 /**
- * venus远程调用请求消息接收事件处理
+ * venus远程调用请求消息类型事件处理
  * @author structchen
  *
  */
@@ -75,7 +75,7 @@ public class VenusRequestMessageHandler implements MessageHandler<VenusFrontendC
 
     private ServiceFilter filter;
 
-    private VenusInvokerProcessor venusInvokerFacade;
+    private VenusInvokerProcessor venusInvokerProcessor;
 
     static Map<Class<?>,Integer> codeMap = new HashMap<Class<?>,Integer>();
 
@@ -111,7 +111,7 @@ public class VenusRequestMessageHandler implements MessageHandler<VenusFrontendC
             return;
         }
         //调用请求处理
-        venusInvokerFacade.invoke(conn,invocation);
+        venusInvokerProcessor.invoke(conn,invocation);
     }
 
     /**

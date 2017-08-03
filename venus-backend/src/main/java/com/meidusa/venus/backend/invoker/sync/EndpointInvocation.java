@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.invoker;
+package com.meidusa.venus.backend.invoker.sync;
 
 import com.meidusa.venus.backend.support.RequestContext;
 import com.meidusa.venus.backend.services.Endpoint;

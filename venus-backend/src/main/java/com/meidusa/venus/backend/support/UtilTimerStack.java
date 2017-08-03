@@ -184,7 +184,7 @@ public class UtilTimerStack {
     }
 
     /**
-     * A callback interface where code subjected to profile is to be executed. This eliminates the need of coding boiler
+     * A async interface where code subjected to profile is to be executed. This eliminates the need of coding boiler
      * code that does pushing (UtilTimerBean.push(...)) and poping (UtilTimerBean.pop(...)) in a try ... finally ...
      * block.
      * 

@@ -3,10 +3,13 @@ package com.meidusa.venus.backend.invoker;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.TimeUtil;
+import com.meidusa.venus.backend.invoker.async.RemotingInvocationListener;
 import com.meidusa.venus.backend.invoker.support.CodeMapScanner;
 import com.meidusa.venus.backend.invoker.support.LogHandler;
 import com.meidusa.venus.backend.invoker.support.PerformanceHandler;
 import com.meidusa.venus.backend.invoker.support.ResponseHandler;
+import com.meidusa.venus.backend.invoker.sync.VenusEndpointInvocation;
+import com.meidusa.venus.backend.invoker.sync.EndpointInvocation;
 import com.meidusa.venus.backend.support.Response;
 import com.meidusa.venus.io.support.VenusStatus;
 import com.meidusa.venus.backend.support.RequestContext;
@@ -135,7 +138,7 @@ public class VenusInvokerTask extends MultiQueueRunnable {
                 filter.before(request);
             }
             // invoke service endpoint
-            result = handleRequest(context, endpoint);
+            result = doInvoke(context, endpoint);
 
             if (result.getErrorCode() == 0) {
                 if (resultType == EndpointInvocation.ResultType.RESPONSE) {
@@ -272,9 +275,15 @@ public class VenusInvokerTask extends MultiQueueRunnable {
     }
 
 
-    private Response handleRequest(RequestContext context, Endpoint endpoint) {
+    /**
+     * 执行调用
+     * @param context
+     * @param endpoint
+     * @return
+     */
+    private Response doInvoke(RequestContext context, Endpoint endpoint) {
         Response response = new Response();
-        DefaultEndpointInvocation invocation = new DefaultEndpointInvocation(context, endpoint);
+        VenusEndpointInvocation invocation = new VenusEndpointInvocation(context, endpoint);
         //invocation.addObserver(ObserverScanner.getInvocationObservers());
         try {
             UtilTimerStack.push(ENDPOINT_INVOKED_TIME);

@@ -2,7 +2,7 @@ package com.meidusa.venus.backend.http;
 
 import com.meidusa.fastjson.JSONException;
 import com.meidusa.toolkit.util.TimeUtil;
-import com.meidusa.venus.backend.invoker.DefaultEndpointInvocation;
+import com.meidusa.venus.backend.invoker.sync.VenusEndpointInvocation;
 import com.meidusa.venus.backend.support.RequestInfo;
 import com.meidusa.venus.backend.support.Response;
 import com.meidusa.venus.backend.support.RequestContext;
@@ -290,7 +290,7 @@ public class VenusHttpServlet extends HttpServlet {
         context.setRequestInfo(info);
         Response response = new Response();
 
-        DefaultEndpointInvocation invocation = new DefaultEndpointInvocation(context, endpoint);
+        VenusEndpointInvocation invocation = new VenusEndpointInvocation(context, endpoint);
 
         try {
             UtilTimerStack.push(ENDPOINT_INVOKED_TIME);

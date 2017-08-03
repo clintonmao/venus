@@ -23,8 +23,8 @@ public class VenusTracerUtil {
     private static final String RECEIVE_TRACE_MSG_WITH_PARAMS = "receive id={},service={},params={}";
     private static final String RECEIVE_TRACE_MSG_WITHOUT_PARAMS = "receive id={},service={}";
 
-    private static final String CALLBACK_TRACE_MSG_WITH_PARAMS = "callback id={},service={},params={}";
-    private static final String CALLBACK_TRACE_MSG_WITHOUT_PARAMS = "callback id={},service={}";
+    private static final String CALLBACK_TRACE_MSG_WITH_PARAMS = "async id={},service={},params={}";
+    private static final String CALLBACK_TRACE_MSG_WITHOUT_PARAMS = "async id={},service={}";
 
     private static Logger REUEST_LOGGER = LoggerFactory.getLogger("venus.tracer");
 
@@ -71,7 +71,7 @@ public class VenusTracerUtil {
      */
     public static void logRequest(byte[] traceId, String apiName, String params) {
         if (REUEST_LOGGER.isDebugEnabled()) {
-            REUEST_LOGGER.debug(REQUEST_TRACE_MSG_WITH_PARAMS, new Object[] { new UUID(traceId).toString(), apiName, params });
+            REUEST_LOGGER.debug(REQUEST_TRACE_MSG_WITH_PARAMS, new UUID(traceId).toString(), apiName, params);
         } else if (REUEST_LOGGER.isInfoEnabled()) {
             REUEST_LOGGER.info(REQUEST_TRACE_MSG_WITHOUT_PARAMS, new UUID(traceId).toString(), apiName);
         }
@@ -85,7 +85,7 @@ public class VenusTracerUtil {
      */
     public static void logRequest(String traceId, String apiName, String params) {
         if (REUEST_LOGGER.isDebugEnabled()) {
-            REUEST_LOGGER.debug(REQUEST_TRACE_MSG_WITH_PARAMS, new Object[] { traceId, apiName, params });
+            REUEST_LOGGER.debug(REQUEST_TRACE_MSG_WITH_PARAMS, traceId, apiName, params);
         } else if (REUEST_LOGGER.isInfoEnabled()) {
             REUEST_LOGGER.info(REQUEST_TRACE_MSG_WITHOUT_PARAMS, traceId, apiName);
         }
@@ -99,9 +99,9 @@ public class VenusTracerUtil {
      */
     public static void logResult(long time,String traceId, String apiName, String params,String jsonObject) {
         if (REUEST_LOGGER.isDebugEnabled()) {
-            REUEST_LOGGER.debug(LOG_TRACE_MSG_WITH_PARAMS_DEBUG, new Object[] {time, traceId, apiName, params,jsonObject });
+            REUEST_LOGGER.debug(LOG_TRACE_MSG_WITH_PARAMS_DEBUG, time, traceId, apiName, params,jsonObject);
         } else if (REUEST_LOGGER.isInfoEnabled()) {
-            REUEST_LOGGER.info(LOG_TRACE_MSG_WITH_PARAMS_INFO, new Object[] {time, traceId, apiName});
+            REUEST_LOGGER.info(LOG_TRACE_MSG_WITH_PARAMS_INFO, time, traceId, apiName);
         }
     }
     
@@ -125,7 +125,7 @@ public class VenusTracerUtil {
      */
     public static void logReceive(byte[] traceId, String apiName, String params) {
         if (REUEST_LOGGER.isDebugEnabled()) {
-            REUEST_LOGGER.debug(RECEIVE_TRACE_MSG_WITH_PARAMS, new Object[] { new UUID(traceId).toString(), apiName, params });
+            REUEST_LOGGER.debug(RECEIVE_TRACE_MSG_WITH_PARAMS, new UUID(traceId).toString(), apiName, params);
         } else if (REUEST_LOGGER.isInfoEnabled()) {
             REUEST_LOGGER.info(RECEIVE_TRACE_MSG_WITHOUT_PARAMS, new UUID(traceId).toString(), apiName);
         }
@@ -150,7 +150,7 @@ public class VenusTracerUtil {
      */
     public static void logCallback(byte[] traceId, String apiName, String params) {
         if (REUEST_LOGGER.isDebugEnabled()) {
-            REUEST_LOGGER.debug(CALLBACK_TRACE_MSG_WITH_PARAMS, new Object[] { new UUID(traceId).toString(), apiName, params });
+            REUEST_LOGGER.debug(CALLBACK_TRACE_MSG_WITH_PARAMS, new UUID(traceId).toString(), apiName, params);
         } else if (REUEST_LOGGER.isInfoEnabled()) {
             REUEST_LOGGER.info(CALLBACK_TRACE_MSG_WITHOUT_PARAMS, new UUID(traceId).toString(), apiName);
         }
@@ -158,9 +158,9 @@ public class VenusTracerUtil {
     
     public static void logRouter(byte[] traceId, String apiName,String sourceIp,String remoteIp){
     	if (REUEST_LOGGER.isDebugEnabled()) {
-            REUEST_LOGGER.debug(ROUTER_TRACE, new Object[] { new UUID(traceId).toString(), apiName, sourceIp, remoteIp});
+            REUEST_LOGGER.debug(ROUTER_TRACE, new UUID(traceId).toString(), apiName, sourceIp, remoteIp);
     	}else if(REUEST_LOGGER.isInfoEnabled()){
-    		REUEST_LOGGER.info(ROUTER_TRACE, new Object[] { new UUID(traceId).toString(), apiName, sourceIp, remoteIp});
+    		REUEST_LOGGER.info(ROUTER_TRACE, new UUID(traceId).toString(), apiName, sourceIp, remoteIp);
     	}
     }
 

@@ -175,7 +175,7 @@ import com.meidusa.toolkit.common.runtime.Shutdowner;
  * overridden to perform any special processing that needs to be done once the Executor has fully terminated.
  * 
  * <p>
- * If hook or callback methods throw exceptions, internal worker threads may in turn fail and abruptly terminate.</dd>
+ * If hook or async methods throw exceptions, internal worker threads may in turn fail and abruptly terminate.</dd>
  * 
  * <dt>Queue maintenance</dt>
  * 
