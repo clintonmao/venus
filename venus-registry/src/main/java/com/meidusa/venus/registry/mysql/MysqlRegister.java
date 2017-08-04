@@ -84,7 +84,8 @@ public class MysqlRegister implements Register, DisposableBean {
 					appId = venusApplicationDAO.addApplication(venusApplicationDO);
 				} else {
 					appId = application.getId();
-					if (null != application.isProvider() && !application.isProvider()) {// 非提供方，更新
+					if (null == application.isProvider()
+							|| (null != application.isProvider() && !application.isProvider())) {// 非提供方，更新
 						application.setProvider(true);
 						venusApplicationDAO.updateApplication(application);
 					}
@@ -145,12 +146,13 @@ public class MysqlRegister implements Register, DisposableBean {
 	@Override
 	public void unregiste(URL url) throws VenusRegisteException {
 		try {
-			VenusServerDO server = venusServerDAO.getServer(url.getHost(), url.getPort());
-			if (null != server) {
-				int serverId = server.getId();
-				VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
-						url.getInterfaceName());
-				if (null != service && service.getRegisteType() == RegisteConstant.AUTO_REGISTE) {// 自动注册的逻辑删除,手动注册的不更新
+			VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
+					url.getInterfaceName());
+			if (null != service && null != service.getRegisteType()
+					&& service.getRegisteType() == RegisteConstant.AUTO_REGISTE) {// 自动注册的逻辑删除,手动注册的不更新
+				VenusServerDO server = venusServerDAO.getServer(url.getHost(), url.getPort());
+				if (null != server) {
+					int serverId = server.getId();
 					int serviceId = service.getId();
 					VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(serverId, serviceId,
 							RegisteConstant.PROVIDER);
@@ -186,8 +188,11 @@ public class MysqlRegister implements Register, DisposableBean {
 					venusApplicationDO.setCreateName(RegisteConstant.CONSUMER);
 					venusApplicationDAO.addApplication(venusApplicationDO);
 				} else {
-					application.setConsumer(true);// 更新应用为订阅方
-					venusApplicationDAO.updateApplication(application);
+					if (null == application.isConsumer()
+							|| (null != application.isConsumer() && !application.isConsumer())) {
+						application.setConsumer(true);// 更新应用为订阅方
+						venusApplicationDAO.updateApplication(application);
+					}
 				}
 			}
 			VenusServerDO server = venusServerDAO.getServer(url.getHost(), 0);// 订阅server的端口为0
@@ -292,7 +297,6 @@ public class MysqlRegister implements Register, DisposableBean {
 	}
 
 	private class ServiceDefineRunnable implements Runnable {
-
 		public void run() {
 			if (CollectionUtils.isNotEmpty(subscribleUrls)) {
 				for (URL url : subscribleUrls) {
@@ -341,12 +345,10 @@ public class MysqlRegister implements Register, DisposableBean {
 					}
 				}
 			}
-
 		}
 	}
 
 	private class HeartBeatRunnable implements Runnable {
-
 		@Override
 		public void run() {
 			if (CollectionUtils.isNotEmpty(registeUrls)) {
@@ -389,6 +391,5 @@ public class MysqlRegister implements Register, DisposableBean {
 				}
 			}
 		}
-
 	}
 }
