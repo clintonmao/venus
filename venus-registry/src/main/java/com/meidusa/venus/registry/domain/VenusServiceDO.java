@@ -8,10 +8,6 @@ import java.util.Date;
 public class VenusServiceDO implements Serializable {
 
 	private static final long serialVersionUID = 741259068222583617L;
-	
-	public static final int AUTO_REGISTE = 1;
-
-	public static final int OPERATOR_REGISTE = 0;
 
 	private Integer id;
 
@@ -29,7 +25,8 @@ public class VenusServiceDO implements Serializable {
 
 	private Date updateTime;
 
-	private int registeType;
+	/** 注册类型：0 手动：1 自动 */
+	private Integer registeType;
 
 	public Integer getId() {
 		return id;
@@ -95,11 +92,11 @@ public class VenusServiceDO implements Serializable {
 		this.appId = appId;
 	}
 
-	public int getRegisteType() {
+	public Integer getRegisteType() {
 		return registeType;
 	}
 
-	public void setRegisteType(int registeType) {
+	public void setRegisteType(Integer registeType) {
 		this.registeType = registeType;
 	}
 

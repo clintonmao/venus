@@ -23,6 +23,7 @@ import com.meidusa.venus.registry.dao.VenusServiceConfigDAO;
 import com.meidusa.venus.registry.dao.VenusServiceDAO;
 import com.meidusa.venus.registry.dao.VenusServiceMappingDAO;
 import com.meidusa.venus.registry.dao.impl.NetworkInterfaceManager;
+import com.meidusa.venus.registry.domain.RegisteConstant;
 import com.meidusa.venus.registry.domain.VenusApplicationDO;
 import com.meidusa.venus.registry.domain.VenusServerDO;
 import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
@@ -36,10 +37,6 @@ import com.meidusa.venus.service.registry.ServiceDefinition;
 @Component
 public class MysqlRegister implements Register, DisposableBean {
 
-	public static final String CONSUMER = "consumer";
-
-	public static final String PROVIDER = "provider";
-
 	/** 已注册成功的URL */
 	private Set<URL> registeUrls = new HashSet<URL>();
 
@@ -52,7 +49,8 @@ public class MysqlRegister implements Register, DisposableBean {
 	/** 订阅失败的URLS */
 	private Set<URL> subscribleFailUrls = new HashSet<URL>();
 
-	private Set<ServiceDefinition> serviceDefinitions = new HashSet<ServiceDefinition>();
+	/** 已订阅成功的 服务定义对象 */
+	private Set<ServiceDefinition> subscribleServiceDefinitions = new HashSet<ServiceDefinition>();
 
 	@Autowired
 	private VenusServiceDAO venusServiceDAO;
@@ -79,8 +77,8 @@ public class MysqlRegister implements Register, DisposableBean {
 				if (null == application) {// 不存在添加
 					VenusApplicationDO venusApplicationDO = new VenusApplicationDO();
 					venusApplicationDO.setAppCode(appCode);
-					venusApplicationDO.setCreateName(PROVIDER);
-					venusApplicationDO.setUpdateName(PROVIDER);
+					venusApplicationDO.setCreateName(RegisteConstant.PROVIDER);
+					venusApplicationDO.setUpdateName(RegisteConstant.PROVIDER);
 					venusApplicationDO.setProvider(true);
 					venusApplicationDO.setConsumer(false);
 					appId = venusApplicationDAO.addApplication(venusApplicationDO);
@@ -111,25 +109,30 @@ public class MysqlRegister implements Register, DisposableBean {
 				venusServiceDO.setName(url.getServiceName());
 				venusServiceDO.setAppId(appId);
 				venusServiceDO.setVersion(url.getVersion());
-				venusServiceDO.setRegisteType(VenusServiceDO.AUTO_REGISTE);
+				venusServiceDO.setRegisteType(RegisteConstant.AUTO_REGISTE);
 				serviceId = venusServiceDAO.addService(venusServiceDO);
 			} else {
 				serviceId = service.getId();
 			}
 
 			VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(serverId, serviceId,
-					PROVIDER);
+					RegisteConstant.PROVIDER);
 			if (null == serviceMapping) {
 				VenusServiceMappingDO venusServiceMappingDO = new VenusServiceMappingDO();
 				venusServiceMappingDO.setServerId(serverId);
 				venusServiceMappingDO.setServiceId(serviceId);
 				venusServiceMappingDO.setSync(true);
 				venusServiceMappingDO.setActive(true);
-				venusServiceMappingDO.setRole(PROVIDER);
+				venusServiceMappingDO.setRole(RegisteConstant.PROVIDER);
 				venusServiceMappingDO.setVersion(url.getVersion());
+				venusServiceMappingDO.setIsDelete(false);
 				venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
 			} else {
+				if (!serviceMapping.isActive()) {
+					venusServiceMappingDAO.updateServiceMapping(serviceMapping.getId(), true);
+				}
 				String oldVersion = serviceMapping.getVersion();// 有区间的version需特殊处理
+
 			}
 		} catch (Exception e) {
 			registeFailUrls.add(url);
@@ -147,12 +150,13 @@ public class MysqlRegister implements Register, DisposableBean {
 				int serverId = server.getId();
 				VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
 						url.getInterfaceName());
-				if (null != service) {
+				if (null != service && service.getRegisteType() == RegisteConstant.AUTO_REGISTE) {// 自动注册的逻辑删除,手动注册的不更新
 					int serviceId = service.getId();
 					VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(serverId, serviceId,
-							PROVIDER);
+							RegisteConstant.PROVIDER);
 					if (null != serviceMapping) {
-						venusServiceMappingDAO.deleteServiceMapping(serverId, serviceId, url.getVersion(), PROVIDER);// 逻辑删除自动注册的,手动注册的不更新
+						venusServiceMappingDAO.deleteServiceMapping(serverId, serviceId, url.getVersion(),
+								RegisteConstant.PROVIDER);
 						registeUrls.remove(url);
 					}
 				}
@@ -178,8 +182,8 @@ public class MysqlRegister implements Register, DisposableBean {
 					venusApplicationDO.setAppCode(appCode);
 					venusApplicationDO.setProvider(false);
 					venusApplicationDO.setConsumer(true);
-					venusApplicationDO.setUpdateName(CONSUMER);
-					venusApplicationDO.setCreateName(CONSUMER);
+					venusApplicationDO.setUpdateName(RegisteConstant.CONSUMER);
+					venusApplicationDO.setCreateName(RegisteConstant.CONSUMER);
 					venusApplicationDAO.addApplication(venusApplicationDO);
 				} else {
 					application.setConsumer(true);// 更新应用为订阅方
@@ -196,16 +200,21 @@ public class MysqlRegister implements Register, DisposableBean {
 			int serverId = server.getId();
 			int serviceId = service.getId();
 			VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(serverId, serviceId,
-					CONSUMER);
+					RegisteConstant.CONSUMER);
 			if (null == serviceMapping) {
 				VenusServiceMappingDO venusServiceMappingDO = new VenusServiceMappingDO();
 				venusServiceMappingDO.setServerId(serverId);
 				venusServiceMappingDO.setServiceId(serviceId);
 				venusServiceMappingDO.setSync(true);
 				venusServiceMappingDO.setActive(true);
-				venusServiceMappingDO.setRole(CONSUMER);
+				venusServiceMappingDO.setRole(RegisteConstant.CONSUMER);
 				venusServiceMappingDO.setVersion(url.getVersion());
+				venusServiceMappingDO.setIsDelete(false);
 				venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
+			} else {
+				if (!serviceMapping.isActive()) {
+					venusServiceMappingDAO.updateServiceMapping(serviceMapping.getId(), true);
+				}
 			}
 		} catch (Exception e) {
 			subscribleFailUrls.add(url);
@@ -220,14 +229,19 @@ public class MysqlRegister implements Register, DisposableBean {
 		try {
 			VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
 					url.getInterfaceName());
-			String localIp = NetworkInterfaceManager.INSTANCE.getLocalHostAddress();
-			VenusServerDO server = venusServerDAO.getServer(localIp, 0);
-			VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(server.getId(),
-					service.getId(), CONSUMER);
-			if (null != serviceMapping) {
-				venusServiceMappingDAO.deleteServiceMapping(server.getId(), service.getId(), url.getVersion(),
-						CONSUMER);// 逻辑删除自动注册的,手动注册的不更新
-				subscribleUrls.remove(url);
+			if (null != service && null != service.getRegisteType()
+					&& service.getRegisteType() == RegisteConstant.AUTO_REGISTE) {// 自动注册的逻辑删除,手动注册的不更新
+				String localIp = NetworkInterfaceManager.INSTANCE.getLocalHostAddress();
+				VenusServerDO server = venusServerDAO.getServer(localIp, 0);
+				if (null != server) {
+					VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(server.getId(),
+							service.getId(), RegisteConstant.CONSUMER);
+					if (null != serviceMapping) {
+						venusServiceMappingDAO.deleteServiceMapping(server.getId(), service.getId(), url.getVersion(),
+								RegisteConstant.CONSUMER);
+						subscribleUrls.remove(url);
+					}
+				}
 			}
 		} catch (Exception e) {
 			throw new VenusRegisteException("取消订阅异常" + url.getServiceName(), e);
@@ -252,7 +266,7 @@ public class MysqlRegister implements Register, DisposableBean {
 		String serviceName = url.getServiceName();
 		String interfaceName = url.getInterfaceName();
 		String version = url.getVersion();
-		for (Iterator<ServiceDefinition> iterator = serviceDefinitions.iterator(); iterator.hasNext();) {
+		for (Iterator<ServiceDefinition> iterator = subscribleServiceDefinitions.iterator(); iterator.hasNext();) {
 			ServiceDefinition define = iterator.next();
 			if (null != define && define.getName().equals(serviceName)) {
 				if (version.equals(define.getVersionRange())) {// TODO version
@@ -265,7 +279,7 @@ public class MysqlRegister implements Register, DisposableBean {
 
 	@Override
 	public void load() throws VenusRegisteException {
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefineRunnable(), 10, 60 * 2, TimeUnit.SECONDS);
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefineRunnable(), 10, 60, TimeUnit.SECONDS);
 	}
 
 	@Override
@@ -274,7 +288,7 @@ public class MysqlRegister implements Register, DisposableBean {
 		subscribleUrls.clear();
 		registeFailUrls.clear();
 		subscribleFailUrls.clear();
-		serviceDefinitions.clear();
+		subscribleServiceDefinitions.clear();
 	}
 
 	private class ServiceDefineRunnable implements Runnable {
@@ -289,7 +303,7 @@ public class MysqlRegister implements Register, DisposableBean {
 						VenusServiceDO service = venusServiceDAO.getService(serviceName, version, interfaceName);
 						Integer serviceId = service.getId();
 						List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO
-								.getServiceMapping(serviceId, PROVIDER);
+								.getServiceMapping(serviceId, RegisteConstant.PROVIDER);
 						List<Integer> serverIds = new ArrayList<Integer>();
 						if (CollectionUtils.isNotEmpty(serviceMappings)) {
 							for (VenusServiceMappingDO venusServiceMappingDO : serviceMappings) {
@@ -318,8 +332,8 @@ public class MysqlRegister implements Register, DisposableBean {
 							def.setVersionRange(version);
 							VenusServiceConfigDO serviceConfig = venusServiceConfigDAO.getServiceConfig(serviceId);
 							def.setServiceConfig(serviceConfig);
-							if (serviceDefinitions.size() < 1000) {
-								serviceDefinitions.add(def);
+							if (subscribleServiceDefinitions.size() < 1000) {
+								subscribleServiceDefinitions.add(def);
 							}
 						}
 					} catch (Exception e) {
@@ -349,7 +363,7 @@ public class MysqlRegister implements Register, DisposableBean {
 						VenusServerDO server = venusServerDAO.getServer(host, port);
 						int serverID = server.getId();
 						venusServiceMappingDAO.updateServiceMappingHeartBeatTime(serverID, serviceID, version,
-								PROVIDER);
+								RegisteConstant.PROVIDER);
 					} catch (Exception e) {
 						throw new VenusRegisteException("registe更新heartBeatTime异常,服务名：" + url.getServiceName(), e);
 					}
@@ -368,7 +382,7 @@ public class MysqlRegister implements Register, DisposableBean {
 						VenusServerDO server = venusServerDAO.getServer(host, 0);
 						int serverID = server.getId();
 						venusServiceMappingDAO.updateServiceMappingHeartBeatTime(serverID, serviceID, version,
-								CONSUMER);
+								RegisteConstant.CONSUMER);
 					} catch (Exception e) {
 						throw new VenusRegisteException("subscrible更新heartBeatTime异常,服务名：" + url.getServiceName(), e);
 					}

@@ -26,11 +26,11 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 
 	@Override
 	public boolean addServiceMapping(VenusServiceMappingDO mapping) throws DAOException {
-		String sql = "insert into t_venus_service_mapping (server_id,service_id,version, active, sync,role,is_delete,create_time, update_time,registe_time) values (?, ?, ?, ?, ?, ?, 0,now(), now(),now())";
+		String sql = "insert into t_venus_service_mapping (server_id,service_id,version, active, sync,role,is_delete,create_time, update_time,registe_time) values (?, ?, ?, ?, ?, ?, ?,now(), now(),now())";
 		int update = 0;
 		try {
 			update = this.jdbcTemplate.update(sql, mapping.getServerId(), mapping.getServiceId(), mapping.getVersion(),
-					mapping.isActive(), mapping.isSync(), mapping.getRole());
+					mapping.isActive(), mapping.isSync(), mapping.getRole(),mapping.getIsDelete());
 		} catch (Exception e) {
 			throw new DAOException("保存服务映射关系异常", e);
 		}
@@ -38,11 +38,10 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	}
 
 	@Override
-	public boolean updateServiceMapping(VenusServiceMappingDO venusServiceMappingDO) throws DAOException {
-		String sql = "update t_venus_service_mapping set active = ? where server_id = ? and service_id = ?";
+	public boolean updateServiceMapping(int id,boolean active) throws DAOException {
+		String sql = "update t_venus_service_mapping set active = ? where id = ?";
 		try {
-			this.jdbcTemplate.update(sql, venusServiceMappingDO.isActive(), venusServiceMappingDO.getServerId(),
-					venusServiceMappingDO.getServiceId());
+			this.jdbcTemplate.update(sql, id, active);
 		} catch (Exception e) {
 			throw new DAOException("更新映射关系异常", e);
 		}
@@ -64,9 +63,9 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	@Override
 	public boolean deleteServiceMapping(int serverId, int serviceId, String version, String role)
 			throws DAOException {
-		String sql = "update t_venus_service_mapping set is_delete = 1 where server_id = ? and service_id = ? and version=? ";
+		String sql = "update t_venus_service_mapping set is_delete = 1 where server_id = ? and service_id = ? and version=? and role=?";
 		try {
-			this.jdbcTemplate.update(sql, serverId, serviceId, version);
+			this.jdbcTemplate.update(sql, serverId, serviceId, version,role);
 		} catch (Exception e) {
 			throw new DAOException("更新映射关系异常", e);
 		}

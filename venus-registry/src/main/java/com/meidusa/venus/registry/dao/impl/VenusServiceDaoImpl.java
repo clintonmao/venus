@@ -31,17 +31,6 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 
 	@Override
 	public int addService(VenusServiceDO venusServiceDO) throws DAOException {
-		/*
-		 * String sql =
-		 * "insert into t_venus_service (name,interface_name,version, description,app_id, create_time, update_time) values (?, ?, ?, ?, ?, now(), now())"
-		 * ; int update = 0; try { update = this.jdbcTemplate.update(sql,
-		 * venusServiceDO.getName(), venusServiceDO.getInterfaceName(),
-		 * venusServiceDO.getVersion(), venusServiceDO.getDescription(),
-		 * venusServiceDO.getAppId()); } catch (Exception e) { throw new
-		 * DAOException("保存venusService异常", e); } return update > 0 ? true :
-		 * false;
-		 */
-
 		final String sql = "insert into t_venus_service (name,interface_name,version, description,app_id,registe_type, create_time, update_time) values ('"
 				+ venusServiceDO.getName() + "', '" + venusServiceDO.getInterfaceName() + "', '"
 				+ venusServiceDO.getVersion() + "', '" + venusServiceDO.getDescription() + "', "
