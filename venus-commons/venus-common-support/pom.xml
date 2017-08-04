@@ -14,9 +14,12 @@
     <dependencies>
         <dependency>
             <groupId>com.meidusa.venus.commons</groupId>
+            <artifactId>venus-common-base</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.meidusa.venus.commons</groupId>
             <artifactId>venus-common-exception</artifactId>
         </dependency>
     </dependencies>
-
 
 </project>

@@ -22,6 +22,10 @@
 			<artifactId>toolkit-common-bean</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.meidusa.venus</groupId>
+			<artifactId>venus-annotations</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.meidusa.venus.commons</groupId>
 			<artifactId>venus-common-base</artifactId>
 		</dependency>

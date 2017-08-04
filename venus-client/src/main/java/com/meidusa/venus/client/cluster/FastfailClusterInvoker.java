@@ -1,6 +1,6 @@
 package com.meidusa.venus.client.cluster;
 
-import com.meidusa.venus.*;
+import com.meidusa.venus.Address;
 import com.meidusa.venus.rpc.Invocation;
 import com.meidusa.venus.rpc.Invoker;
 import com.meidusa.venus.rpc.Result;

@@ -31,11 +31,6 @@
 			<groupId>com.meidusa.venus.commons</groupId>
 			<artifactId>venus-common-base</artifactId>
 		</dependency>
-
-<!-- 		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-		</dependency> -->
 	</dependencies>
 
 </project>

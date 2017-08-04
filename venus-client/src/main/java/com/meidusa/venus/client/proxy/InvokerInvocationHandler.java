@@ -1,9 +1,10 @@
 package com.meidusa.venus.client.proxy;
 
-import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
+import com.meidusa.venus.Address;
+import com.meidusa.venus.URL;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.interceptor.valid.ValidInterceptor;
