@@ -18,6 +18,7 @@
 		<module>venus-common-validator</module>
 		<module>venus-common-exception</module>
         <module>venus-common-api</module>
+        <module>venus-common-support</module>
     </modules>
 	<dependencies>
 		<dependency>

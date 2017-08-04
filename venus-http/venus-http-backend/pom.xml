@@ -59,5 +59,15 @@
             <artifactId>jetty-jsp</artifactId>
             <version>${jetty.version}</version>
         </dependency>
+      <dependency>
+          <groupId>com.meidusa.venus.commons</groupId>
+          <artifactId>venus-common-api</artifactId>
+          <version>${project.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>com.meidusa.venus.commons</groupId>
+          <artifactId>venus-common-support</artifactId>
+          <version>${project.version}</version>
+      </dependency>
   </dependencies>
 </project>
