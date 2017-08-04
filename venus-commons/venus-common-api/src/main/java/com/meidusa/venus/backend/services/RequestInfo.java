@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.meidusa.venus.backend.support;
+package com.meidusa.venus.backend.services;
 
 public class RequestInfo {
 

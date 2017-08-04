@@ -6,8 +6,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.meidusa.venus.backend.invoker.support.InvocationObserver;
-import com.meidusa.venus.backend.support.RequestContext;
-import com.meidusa.venus.backend.interceptor.InterceptorMapping;
+import com.meidusa.venus.backend.services.EndpointInvocation;
+import com.meidusa.venus.backend.services.RequestContext;
+import com.meidusa.venus.backend.services.InterceptorMapping;
 import com.meidusa.venus.backend.support.UtilTimerStack;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.exception.ServiceInvokeException;
@@ -59,12 +60,9 @@ public class VenusEndpointInvocation implements EndpointInvocation {
 
     public VenusEndpointInvocation(RequestContext context, Endpoint endpoint) {
         this.endpoint = endpoint;
-        //TODO 确认代码用途，及替换方案
-        /*
         if (endpoint.getInterceptorStack() != null) {
             interceptors = endpoint.getInterceptorStack().getInterceptors().iterator();
         }
-        */
         this.context = context;
     }
 
@@ -110,29 +108,25 @@ public class VenusEndpointInvocation implements EndpointInvocation {
             }
         } else {
             try {
+                UtilTimerStack.push(ENDPOINT_INVOKED);
+                Object[] parameters = getContext().getEndPointer().getParameterValues(getContext().getParameters());
 
-                try {
-                    UtilTimerStack.push(ENDPOINT_INVOKED);
-                    Object[] parameters = getContext().getEndPointer().getParameterValues(getContext().getParameters());
+                if (this.getEndpoint().isAsync()) {
+                    this.type = ResultType.NONE;
+                }
 
-                    if (this.getEndpoint().isAsync()) {
-                        this.type = ResultType.NONE;
+                for (Object object : parameters) {
+                    if (object instanceof InvocationListener) {
+                        this.type = ResultType.NOTIFY;
                     }
-
-                    for (Object object : parameters) {
-                        if (object instanceof InvocationListener) {
-                            this.type = ResultType.NOTIFY;
-                        }
-                    }
-                    for (InvocationObserver observer : observerList) {
-                        observer.beforeInvoke(this, getContext());
-                    }
-                    result = doInvoke(this.getEndpoint(), parameters);
-                    for (InvocationObserver observer : observerList) {
-                        observer.afterInvoke(this, getContext());
-                    }
-                } finally {
-                    UtilTimerStack.pop(ENDPOINT_INVOKED);
+                }
+                for (InvocationObserver observer : observerList) {
+                    observer.beforeInvoke(this, getContext());
+                }
+                Object instance = this.getEndpoint().getService().getInstance();
+                result = getEndpoint().getMethod().invoke(instance, parameters);
+                for (InvocationObserver observer : observerList) {
+                    observer.afterInvoke(this, getContext());
                 }
             } catch (IllegalArgumentException e) {
                 throw new ServiceInvokeException(e);
@@ -144,18 +138,14 @@ public class VenusEndpointInvocation implements EndpointInvocation {
                 }
             } catch (IllegalAccessException e) {
                 throw new ServiceInvokeException(e);
+            }finally {
+                UtilTimerStack.pop(ENDPOINT_INVOKED);
             }
         }
 
         if (!executed) {
             executed = true;
         }
-        return result;
-    }
-
-    protected Object doInvoke(Endpoint endPoint, Object[] parameters) throws InvocationTargetException, IllegalArgumentException, IllegalAccessException {
-        Object instance = endPoint.getService().getInstance();
-        Object result = getEndpoint().getMethod().invoke(instance, parameters);
         return result;
     }
 

@@ -9,10 +9,10 @@ import com.meidusa.venus.backend.invoker.support.LogHandler;
 import com.meidusa.venus.backend.invoker.support.PerformanceHandler;
 import com.meidusa.venus.backend.invoker.support.ResponseHandler;
 import com.meidusa.venus.backend.invoker.sync.VenusEndpointInvocation;
-import com.meidusa.venus.backend.invoker.sync.EndpointInvocation;
+import com.meidusa.venus.backend.services.EndpointInvocation;
 import com.meidusa.venus.backend.support.Response;
 import com.meidusa.venus.io.support.VenusStatus;
-import com.meidusa.venus.backend.support.RequestContext;
+import com.meidusa.venus.backend.services.RequestContext;
 import com.meidusa.venus.backend.support.UtilTimerStack;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.services.Service;
@@ -336,7 +336,6 @@ public class VenusInvokerTask extends MultiQueueRunnable {
             UtilTimerStack.push(ENDPOINT_INVOKED_TIME);
             response.setResult(invocation.invoke());
         } catch (Throwable e) {
-            //System.out.println("upload problem" + e);
             AthenaReporterDelegate.getDelegate().problem(e.getMessage(), e);
             //VenusMonitorDelegate.getInstance().reportError(e.getMessage(), e);
             if (e instanceof ServiceInvokeException) {

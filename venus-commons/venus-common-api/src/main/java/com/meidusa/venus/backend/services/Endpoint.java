@@ -33,8 +33,7 @@ public class Endpoint {
     // cache
     private volatile transient Map<String, Type> parameterTypeDict;
 
-    //TODO 确认字段功能
-    //private InterceptorStack interceptorStack;
+    private InterceptorStack interceptorStack;
 
     //TODO 确认字段功能
     //private PerformanceLogger performanceLogger;
@@ -233,5 +232,11 @@ public class Endpoint {
         this.hasCtxParam = hasCtxParam;
     }
 
+    public InterceptorStack getInterceptorStack() {
+        return interceptorStack;
+    }
 
+    public void setInterceptorStack(InterceptorStack interceptorStack) {
+        this.interceptorStack = interceptorStack;
+    }
 }

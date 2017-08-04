@@ -1,7 +1,7 @@
 package com.meidusa.venus.backend.invoker.support;
 
-import com.meidusa.venus.backend.invoker.sync.EndpointInvocation;
-import com.meidusa.venus.backend.support.RequestContext;
+import com.meidusa.venus.backend.services.EndpointInvocation;
+import com.meidusa.venus.backend.services.RequestContext;
 
 public interface InvocationObserver {
 

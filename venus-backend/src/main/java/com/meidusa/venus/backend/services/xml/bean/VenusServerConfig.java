@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.meidusa.venus.backend.interceptor.InterceptorMapping;
+import com.meidusa.venus.backend.services.InterceptorMapping;
 
 /**
  * venus服务端配置

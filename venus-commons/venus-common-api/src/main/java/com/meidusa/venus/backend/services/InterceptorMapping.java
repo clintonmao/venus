@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.interceptor;
+package com.meidusa.venus.backend.services;
 
 import java.io.Serializable;
 
@@ -42,10 +42,7 @@ public class InterceptorMapping implements Serializable {
 
         final InterceptorMapping that = (InterceptorMapping) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null)
-            return false;
-
-        return true;
+        return name != null ? name.equals(that.name) : that.name == null;
     }
 
     @Override
