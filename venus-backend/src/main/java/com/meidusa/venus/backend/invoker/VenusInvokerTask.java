@@ -3,7 +3,7 @@ package com.meidusa.venus.backend.invoker;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.TimeUtil;
-import com.meidusa.venus.backend.invoker.async.RemotingInvocationListener;
+import com.meidusa.venus.backend.invoker.callback.RemotingInvocationListener;
 import com.meidusa.venus.backend.invoker.support.CodeMapScanner;
 import com.meidusa.venus.backend.invoker.support.LogHandler;
 import com.meidusa.venus.backend.invoker.support.PerformanceHandler;
@@ -296,6 +296,15 @@ public class VenusInvokerTask extends MultiQueueRunnable {
         }
     }
 
+    /**
+     * 处理listener调用
+     * @param context
+     * @param endpoint
+     * @param responseHandler
+     * @param resultPacket
+     * @param athenaFlag
+     * @throws Exception
+     */
     void handleInvokeByNotify(RequestContext context,Endpoint endpoint,ResponseHandler responseHandler,AbstractServicePacket resultPacket,boolean athenaFlag) throws Exception{
         Response result = doInvoke(context, endpoint);
         if (result.getErrorCode() == 0) {
@@ -312,12 +321,6 @@ public class VenusInvokerTask extends MultiQueueRunnable {
             }
         }
     }
-
-    @Override
-    public String getName() {
-        return apiName;
-    }
-
 
     /**
      * 执行调用
@@ -384,6 +387,11 @@ public class VenusInvokerTask extends MultiQueueRunnable {
         }
 
         return response;
+    }
+
+    @Override
+    public String getName() {
+        return apiName;
     }
 
 

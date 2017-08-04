@@ -23,8 +23,8 @@ public class VenusTracerUtil {
     private static final String RECEIVE_TRACE_MSG_WITH_PARAMS = "receive id={},service={},params={}";
     private static final String RECEIVE_TRACE_MSG_WITHOUT_PARAMS = "receive id={},service={}";
 
-    private static final String CALLBACK_TRACE_MSG_WITH_PARAMS = "async id={},service={},params={}";
-    private static final String CALLBACK_TRACE_MSG_WITHOUT_PARAMS = "async id={},service={}";
+    private static final String CALLBACK_TRACE_MSG_WITH_PARAMS = "callback id={},service={},params={}";
+    private static final String CALLBACK_TRACE_MSG_WITHOUT_PARAMS = "callback id={},service={}";
 
     private static Logger REUEST_LOGGER = LoggerFactory.getLogger("venus.tracer");
 

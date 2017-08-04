@@ -255,7 +255,7 @@ public class VenusInvoker extends AbstractInvoker implements Invoker{
      */
     Object doInvokeRemoteWithAsync(Invocation invocation, SerializeServiceRequestPacket serviceRequestPacket) throws Exception{
         if (!this.isEnableAsync()) {
-            throw new VenusConfigException("service async call disabled");
+            throw new VenusConfigException("service callback call disabled");
         }
 
         byte[] traceID = invocation.getTraceID();
@@ -289,7 +289,7 @@ public class VenusInvoker extends AbstractInvoker implements Invoker{
                 long end = TimeUtil.currentTimeMillis();
                 long time = end - borrowed;
                 StringBuffer buffer = new StringBuffer();
-                buffer.append("[").append(borrowed - start).append(",").append(time).append("]ms (client-async) traceID=").append(UUID.toString(traceID)).append(", api=").append(serviceRequestPacket.apiName);
+                buffer.append("[").append(borrowed - start).append(",").append(time).append("]ms (client-callback) traceID=").append(UUID.toString(traceID)).append(", api=").append(serviceRequestPacket.apiName);
 
                 performanceLogger.debug(buffer.toString());
             }
