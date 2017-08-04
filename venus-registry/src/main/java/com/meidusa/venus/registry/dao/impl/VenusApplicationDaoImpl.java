@@ -27,16 +27,6 @@ public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 
 	@Override
 	public int addApplication(VenusApplicationDO venusApplicationDO) throws DAOException {
-		/*
-		 * String sql =
-		 * "insert into t_venus_application (app_code,create_name,update_name,create_time, update_time) values (?, ?, ?, now(), now())"
-		 * ; int update = 0; try { update = this.jdbcTemplate.update(sql,
-		 * venusApplicationDO.getAppCode(),venusApplicationDO.getCreateName(),
-		 * venusApplicationDO.getUpdateName()); } catch (Exception e) { throw
-		 * new DAOException("添加venusApplication异常", e); } return update > 0 ?
-		 * true : false;
-		 */
-
 		final String sql = "insert into t_venus_application (app_code,provider,consumer,create_name,update_name,create_time, update_time) values ('"
 				+ venusApplicationDO.getAppCode() + "',"
 				+ venusApplicationDO.isProvider() + ","

@@ -29,15 +29,6 @@ public class VenusServerDaoImpl implements VenusServerDAO {
 
 	@Override
 	public int addServer(VenusServerDO venusServerDO) throws DAOException {
-		/*
-		 * String sql =
-		 * "insert into t_venus_server (hostname,port,create_time, update_time) values (?, ?, now(), now())"
-		 * ; int update = 0; try { update = this.jdbcTemplate.update(sql,
-		 * venusServerDO.getHostname(), venusServerDO.getPort()); } catch
-		 * (Exception e) { throw new DAOException("保存venusServer异常", e); }
-		 * return update > 0 ? true : false;
-		 */
-
 		final String sql = "insert into t_venus_server (hostname,port,create_time, update_time) values ('"
 				+ venusServerDO.getHostname() + "', " + venusServerDO.getPort() + ", now(), now())";
 		KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -97,7 +88,7 @@ public class VenusServerDaoImpl implements VenusServerDAO {
 				@Override
 				public List<VenusServerDO> extractData(ResultSet rs) throws SQLException, DataAccessException {
 					List<VenusServerDO> returnList = new ArrayList<VenusServerDO>();
-					if (rs.next()) {
+					while (rs.next()) {
 						returnList.add(ResultUtils.resultToVenusServerDO(rs));
 					}
 					return null;

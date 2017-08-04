@@ -5,7 +5,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -124,7 +123,7 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 				@Override
 				public List<VenusServiceDO> extractData(ResultSet rs) throws SQLException, DataAccessException {
 					List<VenusServiceDO> returnList = new ArrayList<VenusServiceDO>();
-					if (rs.next()) {
+					while (rs.next()) {
 						VenusServiceDO resultToVenusServiceDO = ResultUtils.resultToVenusServiceDO(rs);
 						returnList.add(resultToVenusServiceDO);
 					}
