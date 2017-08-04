@@ -11,7 +11,7 @@ import com.meidusa.venus.backend.invoker.sync.EndpointInvocation;
 import com.meidusa.venus.backend.support.RequestInfo;
 import com.meidusa.venus.backend.support.Response;
 import com.meidusa.venus.backend.invoker.support.RequestHandler;
-import com.meidusa.venus.backend.invoker.support.ProviderInvocation;
+import com.meidusa.venus.backend.invoker.support.RpcInvocation;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.services.Service;
 import com.meidusa.venus.backend.services.ServiceManager;
@@ -40,9 +40,9 @@ import java.util.concurrent.Executor;
  * venus协议提供方服务调用
  * Created by Zhangzhihua on 2017/8/2.
  */
-public class VenusInvokerProcessor {
+public class VenusInvokerHandler {
 
-    private static Logger logger = LoggerFactory.getLogger(VenusInvokerProcessor.class);
+    private static Logger logger = LoggerFactory.getLogger(VenusInvokerHandler.class);
 
     private static Logger performanceLogger = LoggerFactory.getLogger("venus.backend.performance");
 
@@ -87,7 +87,7 @@ public class VenusInvokerProcessor {
      * doInvoke
      * @return
      */
-    public void invoke(VenusFrontendConnection conn,ProviderInvocation invocation) throws RpcException{
+    public void invoke(VenusFrontendConnection conn,RpcInvocation invocation) throws RpcException{
         //获取调用信息
         Tuple<Long, byte[]> data = invocation.getData();
         byte[] message = invocation.getMessage();
@@ -150,7 +150,7 @@ public class VenusInvokerProcessor {
      * @param invocationListener
      * @return
      */
-    boolean validRequest(VenusFrontendConnection conn,ProviderInvocation invocation,EndpointInvocation.ResultType resultType,RemotingInvocationListener<Serializable> invocationListener){
+    boolean validRequest(VenusFrontendConnection conn, RpcInvocation invocation, EndpointInvocation.ResultType resultType, RemotingInvocationListener<Serializable> invocationListener){
         Tuple<Long, byte[]> data = invocation.getData();
         byte[] message = invocation.getMessage();
         byte packetSerializeType = invocation.getPacketSerializeType();

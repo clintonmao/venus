@@ -9,9 +9,10 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.rpc.Invocation;
 
 /**
+ * rpc调用对象，TODO 统一invocation
  * Created by Zhangzhihua on 2017/8/2.
  */
-public class ProviderInvocation extends Invocation{
+public class RpcInvocation extends Invocation{
 
     VenusFrontendConnection conn;
 

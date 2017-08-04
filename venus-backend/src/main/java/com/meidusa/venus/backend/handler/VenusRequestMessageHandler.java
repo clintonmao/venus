@@ -13,8 +13,8 @@ import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.annotations.ExceptionCode;
 import com.meidusa.venus.annotations.RemoteException;
-import com.meidusa.venus.backend.invoker.VenusInvokerProcessor;
-import com.meidusa.venus.backend.invoker.support.ProviderInvocation;
+import com.meidusa.venus.backend.invoker.VenusInvokerHandler;
+import com.meidusa.venus.backend.invoker.support.RpcInvocation;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.services.ServiceManager;
 import com.meidusa.venus.backend.services.xml.bean.PerformanceLogger;
@@ -75,7 +75,7 @@ public class VenusRequestMessageHandler implements MessageHandler<VenusFrontendC
 
     private ServiceFilter filter;
 
-    private VenusInvokerProcessor venusInvokerProcessor;
+    private VenusInvokerHandler venusInvokerHandler;
 
     static Map<Class<?>,Integer> codeMap = new HashMap<Class<?>,Integer>();
 
@@ -106,19 +106,19 @@ public class VenusRequestMessageHandler implements MessageHandler<VenusFrontendC
     @Override
     public void handle(final VenusFrontendConnection conn,final Tuple<Long, byte[]> data) {
         //解析并构造调用对象
-        ProviderInvocation invocation = buildInvocation(conn, data);
+        RpcInvocation invocation = buildInvocation(conn, data);
         if(invocation == null){
             return;
         }
         //调用请求处理
-        venusInvokerProcessor.invoke(conn,invocation);
+        venusInvokerHandler.invoke(conn,invocation);
     }
 
     /**
      * 构造请求对象 TODO 统一接口invocation定义
      * @return
      */
-    ProviderInvocation buildInvocation(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
+    RpcInvocation buildInvocation(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
         SerializeServiceRequestPacket requestPacket = parseRequest(conn, data);
         if(requestPacket == null){
             return null;

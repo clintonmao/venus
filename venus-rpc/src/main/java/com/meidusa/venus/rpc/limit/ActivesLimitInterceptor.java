@@ -14,5 +14,7 @@ public class ActivesLimitInterceptor implements Interceptor {
     public void intercept(Invocation invocation) throws RpcException {
         //TODO 判断开启情况
         //TODO
+
+        //FIXME
     }
 }

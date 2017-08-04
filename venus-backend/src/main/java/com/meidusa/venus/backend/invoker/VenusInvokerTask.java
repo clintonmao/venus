@@ -139,56 +139,12 @@ public class VenusInvokerTask extends MultiQueueRunnable {
                 filter.before(request);
             }
             // invoke service endpoint
-            result = doInvoke(context, endpoint);
-
-            //TODO 拆分同步、异步请求为独立的方法
-            if (result.getErrorCode() == 0) {
-                if (resultType == EndpointInvocation.ResultType.RESPONSE) {
-                    Serializer serializer = SerializerFactory.getSerializer(serializeType);
-                    ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, endpoint.getMethod()
-                            .getGenericReturnType());
-                    AbstractServicePacket.copyHead(request, response);
-                    response.result = result.getResult();
-                    resultPacket = response;
-                    responseHandler.postMessageBack(conn, routerPacket, request, response, athenaFlag);
-                } else if (resultType == EndpointInvocation.ResultType.OK) {
-                    OKPacket ok = new OKPacket();
-                    AbstractServicePacket.copyHead(request, ok);
-                    resultPacket = ok;
-                    responseHandler.postMessageBack(conn, routerPacket, request, ok, athenaFlag);
-                } else if (resultType == EndpointInvocation.ResultType.NOTIFY) {
-                    if (invocationListener != null && !invocationListener.isResponsed()) {
-                        invocationListener.onException(new ServiceNotCallbackException("Server side not call back error"));
-                    }
-                }
-            } else {
-                if (resultType == EndpointInvocation.ResultType.RESPONSE || resultType == EndpointInvocation.ResultType.OK) {
-                    ErrorPacket error = new ErrorPacket();
-                    AbstractServicePacket.copyHead(request, error);
-                    error.errorCode = result.getErrorCode();
-                    error.message = result.getErrorMessage();
-                    Throwable throwable = result.getException();
-                    if (throwable != null) {
-                        Serializer serializer = SerializerFactory.getSerializer(serializeType);
-                        Map<String, PropertyDescriptor> mpd = Utils.getBeanPropertyDescriptor(throwable.getClass());
-                        Map<String, Object> additionalData = new HashMap<String, Object>();
-
-                        for (Map.Entry<String, PropertyDescriptor> entry : mpd.entrySet()) {
-                            additionalData.put(entry.getKey(), entry.getValue().getReadMethod().invoke(throwable));
-                        }
-                        error.additionalData = serializer.encode(additionalData);
-                    }
-                    resultPacket = error;
-                    responseHandler.postMessageBack(conn, routerPacket, request, error, athenaFlag);
-                } else if (resultType == EndpointInvocation.ResultType.NOTIFY) {
-                    if (invocationListener != null && !invocationListener.isResponsed()) {
-                        if (result.getException() == null) {
-                            invocationListener.onException(new DefaultVenusException(result.getErrorCode(), result.getErrorMessage()));
-                        } else {
-                            invocationListener.onException(result.getException());
-                        }
-                    }
-                }
+            if (resultType == EndpointInvocation.ResultType.RESPONSE) {
+                handleInvokeByResponse(context,endpoint,responseHandler,resultPacket,athenaFlag);
+            } else if (resultType == EndpointInvocation.ResultType.OK) {
+                handleInvokeByOK(context,endpoint,responseHandler,resultPacket,athenaFlag);
+            } else if (resultType == EndpointInvocation.ResultType.NOTIFY) {
+                handleInvokeByNotify(context,endpoint,responseHandler,resultPacket,athenaFlag);
             }
 
             if(athenaFlag) {
@@ -269,6 +225,92 @@ public class VenusInvokerTask extends MultiQueueRunnable {
             ThreadLocalMap.remove(VenusTracerUtil.REQUEST_TRACE_ID);
         }
 
+    }
+
+    /**
+     * 处理response同步类型调用
+     * @param context
+     * @param endpoint
+     */
+    void handleInvokeByResponse(RequestContext context,Endpoint endpoint,ResponseHandler responseHandler,AbstractServicePacket resultPacket,boolean athenaFlag) throws Exception{
+        Response result = doInvoke(context, endpoint);
+        if (result.getErrorCode() == 0) {
+            Serializer serializer = SerializerFactory.getSerializer(serializeType);
+            ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, endpoint.getMethod()
+                    .getGenericReturnType());
+            AbstractServicePacket.copyHead(request, response);
+            response.result = result.getResult();
+            resultPacket = response;
+            responseHandler.postMessageBack(conn, routerPacket, request, response, athenaFlag);
+        }else{
+            ErrorPacket error = new ErrorPacket();
+            AbstractServicePacket.copyHead(request, error);
+            error.errorCode = result.getErrorCode();
+            error.message = result.getErrorMessage();
+            Throwable throwable = result.getException();
+            if (throwable != null) {
+                Serializer serializer = SerializerFactory.getSerializer(serializeType);
+                Map<String, PropertyDescriptor> mpd = Utils.getBeanPropertyDescriptor(throwable.getClass());
+                Map<String, Object> additionalData = new HashMap<String, Object>();
+
+                for (Map.Entry<String, PropertyDescriptor> entry : mpd.entrySet()) {
+                    additionalData.put(entry.getKey(), entry.getValue().getReadMethod().invoke(throwable));
+                }
+                error.additionalData = serializer.encode(additionalData);
+            }
+            resultPacket = error;
+            responseHandler.postMessageBack(conn, routerPacket, request, error, athenaFlag);
+        }
+    }
+
+    /**
+     * 处理OK类型调用
+     * @param context
+     * @param endpoint
+     */
+    void handleInvokeByOK(RequestContext context,Endpoint endpoint,ResponseHandler responseHandler,AbstractServicePacket resultPacket,boolean athenaFlag) throws Exception{
+        Response result = doInvoke(context, endpoint);
+        if (result.getErrorCode() == 0) {
+            OKPacket ok = new OKPacket();
+            AbstractServicePacket.copyHead(request, ok);
+            resultPacket = ok;
+            responseHandler.postMessageBack(conn, routerPacket, request, ok, athenaFlag);
+        }else{
+            ErrorPacket error = new ErrorPacket();
+            AbstractServicePacket.copyHead(request, error);
+            error.errorCode = result.getErrorCode();
+            error.message = result.getErrorMessage();
+            Throwable throwable = result.getException();
+            if (throwable != null) {
+                Serializer serializer = SerializerFactory.getSerializer(serializeType);
+                Map<String, PropertyDescriptor> mpd = Utils.getBeanPropertyDescriptor(throwable.getClass());
+                Map<String, Object> additionalData = new HashMap<String, Object>();
+
+                for (Map.Entry<String, PropertyDescriptor> entry : mpd.entrySet()) {
+                    additionalData.put(entry.getKey(), entry.getValue().getReadMethod().invoke(throwable));
+                }
+                error.additionalData = serializer.encode(additionalData);
+            }
+            resultPacket = error;
+            responseHandler.postMessageBack(conn, routerPacket, request, error, athenaFlag);
+        }
+    }
+
+    void handleInvokeByNotify(RequestContext context,Endpoint endpoint,ResponseHandler responseHandler,AbstractServicePacket resultPacket,boolean athenaFlag) throws Exception{
+        Response result = doInvoke(context, endpoint);
+        if (result.getErrorCode() == 0) {
+            if (invocationListener != null && !invocationListener.isResponsed()) {
+                invocationListener.onException(new ServiceNotCallbackException("Server side not call back error"));
+            }
+        }else{
+            if (invocationListener != null && !invocationListener.isResponsed()) {
+                if (result.getException() == null) {
+                    invocationListener.onException(new DefaultVenusException(result.getErrorCode(), result.getErrorMessage()));
+                } else {
+                    invocationListener.onException(result.getException());
+                }
+            }
+        }
     }
 
     @Override
