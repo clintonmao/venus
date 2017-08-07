@@ -320,7 +320,7 @@ public class MysqlRegister implements Register, DisposableBean {
 						}
 						Integer serviceId = service.getId();
 						List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO
-								.getServiceMapping(serviceId, RegisteConstant.PROVIDER);
+								.getServiceMapping(serviceId, RegisteConstant.PROVIDER, false);
 						if (CollectionUtils.isNotEmpty(serviceMappings)) {
 							for (VenusServiceMappingDO venusServiceMappingDO : serviceMappings) {
 								if (venusServiceMappingDO.isActive()) {// 只取active的
