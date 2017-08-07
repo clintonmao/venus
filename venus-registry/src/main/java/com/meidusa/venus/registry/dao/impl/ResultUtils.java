@@ -2,6 +2,10 @@ package com.meidusa.venus.registry.dao.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.commons.collections.CollectionUtils;
 
 import com.meidusa.venus.registry.domain.VenusApplicationDO;
 import com.meidusa.venus.registry.domain.VenusServerDO;
@@ -16,6 +20,7 @@ public class ResultUtils {
 		venusService.setId(rs.getInt("id"));
 		venusService.setHostname(rs.getString("hostname"));
 		venusService.setPort(rs.getInt("port"));
+		
 		venusService.setCreateTime(rs.getTimestamp("create_time"));
 		venusService.setUpdateTime(rs.getTimestamp("update_time"));
 		return venusService;
@@ -26,9 +31,11 @@ public class ResultUtils {
 		serviceConfig.setId(rs.getInt("id"));
 		serviceConfig.setType(rs.getString("type"));
 		serviceConfig.setConfig(rs.getString("config"));
+		
 		serviceConfig.setServiceId(rs.getInt("service_id"));
 		serviceConfig.setCreateName(rs.getString("create_name"));
 		serviceConfig.setUpdateName(rs.getString("update_name"));
+		
 		serviceConfig.setCreateTime(rs.getTimestamp("create_time"));
 		serviceConfig.setUpdateTime(rs.getTimestamp("update_time"));
 		return serviceConfig;
@@ -39,9 +46,12 @@ public class ResultUtils {
 		venusService.setId(rs.getInt("id"));
 		venusService.setName(rs.getString("name"));
 		venusService.setInterfaceName(rs.getString("interface_name"));
+		
 		venusService.setVersion(rs.getString("version"));
 		venusService.setDescription(rs.getString("description"));
 		venusService.setAppId(rs.getInt("app_id"));
+		
+		
 		venusService.setCreateTime(rs.getTimestamp("create_time"));
 		venusService.setUpdateTime(rs.getTimestamp("update_time"));
 		return venusService;
@@ -69,6 +79,7 @@ public class ResultUtils {
 		venusServiceMapping.setId(rs.getInt("id"));
 		venusServiceMapping.setAppCode(rs.getString("app_code"));
 		venusServiceMapping.setProvider(rs.getBoolean("provider"));
+		
 		venusServiceMapping.setConsumer(rs.getBoolean("consumer"));
 		venusServiceMapping.setCreateName(rs.getString("create_name"));
 		venusServiceMapping.setUpdateName(rs.getString("update_name"));
@@ -76,6 +87,16 @@ public class ResultUtils {
 		venusServiceMapping.setCreateTime(rs.getTimestamp("create_time"));
 		venusServiceMapping.setUpdateTime(rs.getTimestamp("update_time"));
 		return venusServiceMapping;
+	}
+
+	public final static void setServiceConfigs(List<VenusServiceConfigDO> serviceConfigs) {
+		if (CollectionUtils.isNotEmpty(serviceConfigs)) {
+			for (Iterator<VenusServiceConfigDO> iterator = serviceConfigs.iterator(); iterator.hasNext();) {
+				VenusServiceConfigDO config = iterator.next();
+
+			}
+
+		}
 	}
 
 }

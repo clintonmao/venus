@@ -25,6 +25,7 @@ import com.meidusa.venus.registry.dao.VenusServiceConfigDAO;
 import com.meidusa.venus.registry.dao.VenusServiceDAO;
 import com.meidusa.venus.registry.dao.VenusServiceMappingDAO;
 import com.meidusa.venus.registry.dao.impl.NetworkInterfaceManager;
+import com.meidusa.venus.registry.dao.impl.ResultUtils;
 import com.meidusa.venus.registry.domain.RegisteConstant;
 import com.meidusa.venus.registry.domain.VenusApplicationDO;
 import com.meidusa.venus.registry.domain.VenusServerDO;
@@ -348,8 +349,10 @@ public class MysqlRegister implements Register, DisposableBean {
 							def.setActive(true);
 							def.setDescription(service.getDescription());
 							def.setVersionRange(version);
-							List<VenusServiceConfigDO> serviceConfig = venusServiceConfigDAO.getServiceConfigs(serviceId);
-							def.setServiceConfigs(serviceConfig);
+							List<VenusServiceConfigDO> serviceConfigs = venusServiceConfigDAO
+									.getServiceConfigs(serviceId);
+							ResultUtils.setServiceConfigs(serviceConfigs);
+							def.setServiceConfigs(serviceConfigs);
 							if (subscribleServiceDefinitions.size() < 1000) {
 								subscribleServiceDefinitions.add(def);
 							}
