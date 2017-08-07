@@ -209,8 +209,9 @@ public class MysqlRegister implements Register, DisposableBean {
 				venusServerDO.setHostname(url.getHost());
 				venusServerDO.setPort(0);
 				serverId = venusServerDAO.addServer(venusServerDO);
+			} else {
+				serverId = server.getId();
 			}
-			serverId = server.getId();
 			int serviceId = service.getId();
 			VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(serverId, serviceId,
 					RegisteConstant.CONSUMER);
@@ -276,6 +277,8 @@ public class MysqlRegister implements Register, DisposableBean {
 
 	@Override
 	public ServiceDefinition lookup(URL url) throws VenusRegisteException {
+		// ServiceDefineRunnable run = new ServiceDefineRunnable();
+		// run.run();//测试接口时用
 		// 接口名 服务名 版本号 加载服务的server信息及serviceConfig信息
 		// 根据本地 ServiceDefinition 列表去查找
 		String serviceName = url.getServiceName();
@@ -314,11 +317,14 @@ public class MysqlRegister implements Register, DisposableBean {
 					String serviceName = url.getServiceName();
 					String version = url.getVersion();
 					try {
+						List<Integer> serverIds = new ArrayList<Integer>();
 						VenusServiceDO service = venusServiceDAO.getService(serviceName, version, interfaceName);
+						if (null == service) {
+							continue;
+						}
 						Integer serviceId = service.getId();
 						List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO
 								.getServiceMapping(serviceId, RegisteConstant.PROVIDER);
-						List<Integer> serverIds = new ArrayList<Integer>();
 						if (CollectionUtils.isNotEmpty(serviceMappings)) {
 							for (VenusServiceMappingDO venusServiceMappingDO : serviceMappings) {
 								if (venusServiceMappingDO.isActive()) {// 只取active的
@@ -331,10 +337,12 @@ public class MysqlRegister implements Register, DisposableBean {
 						Set<String> hostPortSet = new HashSet<String>();
 						if (CollectionUtils.isNotEmpty(serverIds)) {
 							List<VenusServerDO> servers = venusServerDAO.getServers(serverIds);
-							for (Iterator<VenusServerDO> iterator = servers.iterator(); iterator.hasNext();) {
-								VenusServerDO venusServerDO = iterator.next();
-								String hostPort = venusServerDO.getHostname() + ":" + venusServerDO.getPort();
-								hostPortSet.add(hostPort);
+							if (CollectionUtils.isNotEmpty(servers)) {
+								for (Iterator<VenusServerDO> iterator = servers.iterator(); iterator.hasNext();) {
+									VenusServerDO venusServerDO = iterator.next();
+									String hostPort = venusServerDO.getHostname() + ":" + venusServerDO.getPort();
+									hostPortSet.add(hostPort);
+								}
 							}
 						}
 						if (CollectionUtils.isNotEmpty(hostPortSet)) {
