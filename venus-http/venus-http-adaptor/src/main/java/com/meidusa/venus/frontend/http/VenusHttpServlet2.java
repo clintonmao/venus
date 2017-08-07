@@ -299,7 +299,7 @@ public class VenusHttpServlet2 extends HttpServlet {
         		UUID uuid = new UUID(VenusTracerUtil.randomUUID());
         		traceId = uuid.toString();
         	}
-            // invoke service endpoint
+            // doHandle service endpoint
             result = handleRequest(apiName, version, traceId, parameterMap);
 
            /* if (logger.isDebugEnabled()) {
@@ -319,7 +319,7 @@ public class VenusHttpServlet2 extends HttpServlet {
             result.setErrorCode(errorCode);
             result.setErrorMessage(e.getMessage());
 
-            logger.error("error when invoke", e);
+            logger.error("error when doHandle", e);
             return;
         } finally {
             long endTime = TimeUtil.currentTimeMillis();

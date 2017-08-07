@@ -197,12 +197,12 @@ public class VenusHttpServlet extends HttpServlet {
         boolean isError = false;
         try {
 
-            // invoke service
+            // doHandle service
             if ((result = checkActive(endpoint)) != null || (result = checkVersion(endpoint, version)) != null) {
                 return;
             }
 
-            // invoke service endpoint
+            // doHandle service endpoint
             result = handleRequest(getRequestInfo(req), endpoint, parameterMap);
 
             if (logger.isDebugEnabled()) {
@@ -223,7 +223,7 @@ public class VenusHttpServlet extends HttpServlet {
             if(errorCode >= 18000000 &&  errorCode < 19000000){
             	isError = true;
             }
-            logger.error("error when invoke", e);
+            logger.error("error when doHandle", e);
             return;
         } finally {
             long endTime = TimeUtil.currentTimeMillis();

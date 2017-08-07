@@ -21,7 +21,7 @@ import com.meidusa.venus.notify.InvocationListener;
  */
 public class VenusEndpointInvocation implements EndpointInvocation {
 
-    private static String ENDPOINT_INVOKED = "invoke endpoint: ";
+    private static String ENDPOINT_INVOKED = "doHandle endpoint: ";
     
     /**
      * 拦截器列表
