@@ -39,7 +39,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 
 	@Override
 	public boolean updateServiceMapping(int id,boolean active) throws DAOException {
-		String sql = "update t_venus_service_mapping set active = ? where id = ?";
+		String sql = "update t_venus_service_mapping set active = ?,update_time=now() where id = ?";
 		try {
 			this.jdbcTemplate.update(sql, id, active);
 		} catch (Exception e) {

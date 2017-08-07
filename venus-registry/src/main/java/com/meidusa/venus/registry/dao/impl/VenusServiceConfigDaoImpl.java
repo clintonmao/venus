@@ -22,7 +22,7 @@ public class VenusServiceConfigDaoImpl implements VenusServiceConfigDAO {
 
 	@Override
 	public VenusServiceConfigDO getServiceConfig(Integer serviceId) throws DAOException {
-		String sql = "select id, type,config,service_id,create_name,update_name,create_time, update_time from t_venus_server where service_id = ?";
+		String sql = "select id, type,config,service_id,create_name,update_name,create_time, update_time from t_venus_service_config where service_id = ?";
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] { serviceId },
 					new ResultSetExtractor<VenusServiceConfigDO>() {
@@ -36,7 +36,7 @@ public class VenusServiceConfigDaoImpl implements VenusServiceConfigDAO {
 
 					});
 		} catch (Exception e) {
-			throw new DAOException("根据serviceId" + serviceId + "获取ServiceConfig异常", e);
+			throw new DAOException("根据serviceId=>" + serviceId + "获取ServiceConfig异常", e);
 		}
 	}
 

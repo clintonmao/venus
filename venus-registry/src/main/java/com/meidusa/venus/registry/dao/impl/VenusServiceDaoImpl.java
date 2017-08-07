@@ -88,7 +88,7 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		}
 		if (StringUtils.isNotBlank(interfaceName)) {
 			sql = sql + " and interface_name=?";
-			params = new Object[] { serviceName, interfaceName };
+			params = new Object[] { serviceName, version, interfaceName };
 		}
 		try {
 			return this.jdbcTemplate.query(sql, params, new ResultSetExtractor<VenusServiceDO>() {

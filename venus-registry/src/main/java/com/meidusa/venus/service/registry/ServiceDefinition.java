@@ -115,4 +115,12 @@ public class ServiceDefinition {
 
 		return false;
 	}
+
+	@Override
+	public String toString() {
+		return "ServiceDefinition [name=" + name + ", versionRange=" + versionRange + ", active=" + active
+				+ ", ipAddress=" + ipAddress + ", description=" + description + ", serviceConfig=" + serviceConfig
+				+ "]";
+	}
+	
 }

@@ -91,7 +91,7 @@ public class VenusServerDaoImpl implements VenusServerDAO {
 					while (rs.next()) {
 						returnList.add(ResultUtils.resultToVenusServerDO(rs));
 					}
-					return null;
+					return returnList;
 				}
 
 			});
