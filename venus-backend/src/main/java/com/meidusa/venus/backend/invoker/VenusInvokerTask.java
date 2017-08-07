@@ -11,6 +11,7 @@ import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.annotations.ExceptionCode;
 import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
+import com.meidusa.venus.backend.interceptors.valid.ValidInterceptor;
 import com.meidusa.venus.backend.invoker.callback.RemotingInvocationListener;
 import com.meidusa.venus.backend.invoker.support.*;
 import com.meidusa.venus.backend.invoker.sync.VenusEndpointInvocation;
@@ -37,7 +38,11 @@ import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.io.support.VenusStatus;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
+import com.meidusa.venus.rpc.Interceptor;
+import com.meidusa.venus.rpc.Result;
 import com.meidusa.venus.rpc.RpcException;
+import com.meidusa.venus.rpc.limit.ActivesLimitInterceptor;
+import com.meidusa.venus.rpc.limit.TpsLimitInterceptor;
 import com.meidusa.venus.service.monitor.MonitorRuntime;
 import com.meidusa.venus.util.*;
 import org.slf4j.Logger;
@@ -134,13 +139,22 @@ public class VenusInvokerTask implements Runnable{
     }
 
     public void handle(VenusFrontendConnection conn, Tuple<Long, byte[]> data) {
-        Response result = null;
         try {
             //解析请求对象
             RpcInvocation invocation = buildInvocation(conn, data);
-            //TODO 各种横切面操作 doInterceptors，如校验、认证、流控、降级
+
+            //横切面操作，校验、认证、流控、降级
+            for(Interceptor interceptor:getInterceptors()){
+                Result result = interceptor.intercept(invocation);
+                if(result != null){
+                    //TODO handleResponse();
+                    return;
+                }
+            }
+
             //处理调用请求
-            result = handleRequest(conn,invocation);
+            Response result = handleRequest(conn,invocation);
+
             //响应结果
             handleResponse(context, endpoint,null, null, false,result);
         } catch (Throwable e) {
@@ -148,6 +162,17 @@ public class VenusInvokerTask implements Runnable{
             logger.error("");
             //TODO handleResponse(result);
         }
+    }
+
+    /**
+     * 获取拦截器列表
+     * @return
+     */
+    Interceptor[] getInterceptors(){
+        return new Interceptor[]{
+                //校验
+                new ValidInterceptor()
+        };
     }
 
     /**

@@ -2,6 +2,7 @@ package com.meidusa.venus.client.interceptor.valid;
 
 import com.meidusa.venus.rpc.Interceptor;
 import com.meidusa.venus.rpc.Invocation;
+import com.meidusa.venus.rpc.Result;
 import com.meidusa.venus.rpc.RpcException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +18,7 @@ public class ValidInterceptor implements Interceptor {
     private static Logger logger = LoggerFactory.getLogger(ValidInterceptor.class);
 
     @Override
-    public void intercept(Invocation invocation) throws RpcException {
+    public Result intercept(Invocation invocation) throws RpcException {
         //endpoint定义校验
         if(invocation.getEndpoint() == null){
             Method method = invocation.getMethod();
@@ -28,5 +29,6 @@ public class ValidInterceptor implements Interceptor {
         }
 
         //TODO 其它校验
+        return null;
     }
 }

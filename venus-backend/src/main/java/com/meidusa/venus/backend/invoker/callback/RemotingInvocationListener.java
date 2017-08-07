@@ -24,11 +24,17 @@ import com.meidusa.venus.util.Utils;
 import com.meidusa.venus.util.VenusTracerUtil;
 
 public class RemotingInvocationListener<T> implements InvocationListener<T> {
+
     private static Logger logger = LoggerFactory.getLogger(RemotingInvocationListener.class);
+
     private VenusFrontendConnection conn;
+
     private ReferenceInvocationListener<T> source;
+
     private boolean isResponsed = false;
+
     private SerializeServiceRequestPacket request;
+
     private VenusRouterPacket routerPacket;
 
     public boolean isResponsed() {

@@ -80,7 +80,11 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
         //前置处理
         for(Interceptor interceptor:getInterceptors()){
-            interceptor.intercept(invocation);
+            Result result = interceptor.intercept(invocation);
+            if(result != null){
+                //TODO 异常处理
+                return result.getObject();
+            }
         }
 
         //寻址，TODO 地址变化对连接池的影响
