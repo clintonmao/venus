@@ -14,8 +14,6 @@ import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.service.registry.ServiceDefinition;
 
-import junit.framework.Assert;
-
 @ContextConfiguration(locations = { "classpath:registry-dao.xml" })
 @RunWith(SpringJUnit4ClassRunner.class)
 public class SpringTestCase extends AbstractJUnit4SpringContextTests {
@@ -33,7 +31,7 @@ public class SpringTestCase extends AbstractJUnit4SpringContextTests {
 		System.out.println("destory");
 	}
 
-	// @Test
+	@Test
 	public void testRegiste() {
 		URL u = new URL();
 		u.setServiceName("orderService");
@@ -72,7 +70,7 @@ public class SpringTestCase extends AbstractJUnit4SpringContextTests {
 
 	}
 
-	@Test
+	// @Test
 	public void testLookUp() {
 		URL u = new URL();
 		u.setServiceName("orderService");

@@ -133,9 +133,7 @@ public class MysqlRegister implements Register, DisposableBean {
 				venusServiceMappingDO.setIsDelete(false);
 				venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
 			} else {
-				if (!serviceMapping.isActive()) {
-					venusServiceMappingDAO.updateServiceMapping(serviceMapping.getId(), true);
-				}
+				venusServiceMappingDAO.updateServiceMapping(serviceMapping.getId(), true, false);
 				String oldVersion = serviceMapping.getVersion();// 有区间的version需特殊处理
 
 			}
@@ -226,9 +224,7 @@ public class MysqlRegister implements Register, DisposableBean {
 				venusServiceMappingDO.setIsDelete(false);
 				venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
 			} else {
-				if (!serviceMapping.isActive()) {
-					venusServiceMappingDAO.updateServiceMapping(serviceMapping.getId(), true);
-				}
+				venusServiceMappingDAO.updateServiceMapping(serviceMapping.getId(), true, false);
 			}
 		} catch (Exception e) {
 			subscribleFailUrls.add(url);
@@ -324,7 +320,7 @@ public class MysqlRegister implements Register, DisposableBean {
 						}
 						Integer serviceId = service.getId();
 						List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO
-								.getServiceMapping(serviceId, RegisteConstant.PROVIDER);
+								.getServiceMapping(serviceId, RegisteConstant.PROVIDER, false);
 						if (CollectionUtils.isNotEmpty(serviceMappings)) {
 							for (VenusServiceMappingDO venusServiceMappingDO : serviceMappings) {
 								if (venusServiceMappingDO.isActive()) {// 只取active的
@@ -352,8 +348,8 @@ public class MysqlRegister implements Register, DisposableBean {
 							def.setActive(true);
 							def.setDescription(service.getDescription());
 							def.setVersionRange(version);
-							VenusServiceConfigDO serviceConfig = venusServiceConfigDAO.getServiceConfig(serviceId);
-							def.setServiceConfig(serviceConfig);
+							List<VenusServiceConfigDO> serviceConfig = venusServiceConfigDAO.getServiceConfigs(serviceId);
+							def.setServiceConfigs(serviceConfig);
 							if (subscribleServiceDefinitions.size() < 1000) {
 								subscribleServiceDefinitions.add(def);
 							}

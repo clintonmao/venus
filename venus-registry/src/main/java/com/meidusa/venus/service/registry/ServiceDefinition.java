@@ -1,5 +1,7 @@
 package com.meidusa.venus.service.registry;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -38,7 +40,7 @@ public class ServiceDefinition {
 	private String description;
 
 	/** 服务配置信息 */
-	private VenusServiceConfigDO serviceConfig;
+	private List<VenusServiceConfigDO> serviceConfigs = new ArrayList<VenusServiceConfigDO>();
 
 	public String getName() {
 		return name;
@@ -80,12 +82,12 @@ public class ServiceDefinition {
 		this.description = description;
 	}
 
-	public VenusServiceConfigDO getServiceConfig() {
-		return serviceConfig;
+	public List<VenusServiceConfigDO> getServiceConfigs() {
+		return serviceConfigs;
 	}
 
-	public void setServiceConfig(VenusServiceConfigDO serviceConfig) {
-		this.serviceConfig = serviceConfig;
+	public void setServiceConfigs(List<VenusServiceConfigDO> serviceConfigs) {
+		this.serviceConfigs = serviceConfigs;
 	}
 
 	public int hashCode() {
@@ -119,8 +121,8 @@ public class ServiceDefinition {
 	@Override
 	public String toString() {
 		return "ServiceDefinition [name=" + name + ", versionRange=" + versionRange + ", active=" + active
-				+ ", ipAddress=" + ipAddress + ", description=" + description + ", serviceConfig=" + serviceConfig
+				+ ", ipAddress=" + ipAddress + ", description=" + description + ", serviceConfigs=" + serviceConfigs
 				+ "]";
 	}
-	
+
 }
