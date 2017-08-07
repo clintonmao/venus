@@ -31,7 +31,7 @@ public class SpringTestCase extends AbstractJUnit4SpringContextTests {
 		System.out.println("destory");
 	}
 
-	// @Test
+	@Test
 	public void testRegiste() {
 		URL u = new URL();
 		u.setServiceName("orderService");
@@ -70,7 +70,7 @@ public class SpringTestCase extends AbstractJUnit4SpringContextTests {
 
 	}
 
-	@Test
+	// @Test
 	public void testLookUp() {
 		URL u = new URL();
 		u.setServiceName("orderService");

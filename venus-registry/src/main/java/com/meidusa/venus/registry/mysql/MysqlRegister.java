@@ -348,8 +348,8 @@ public class MysqlRegister implements Register, DisposableBean {
 							def.setActive(true);
 							def.setDescription(service.getDescription());
 							def.setVersionRange(version);
-							VenusServiceConfigDO serviceConfig = venusServiceConfigDAO.getServiceConfig(serviceId);
-							def.setServiceConfig(serviceConfig);
+							List<VenusServiceConfigDO> serviceConfig = venusServiceConfigDAO.getServiceConfigs(serviceId);
+							def.setServiceConfigs(serviceConfig);
 							if (subscribleServiceDefinitions.size() < 1000) {
 								subscribleServiceDefinitions.add(def);
 							}
