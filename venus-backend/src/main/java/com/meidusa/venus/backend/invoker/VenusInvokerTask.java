@@ -282,8 +282,6 @@ public class VenusInvokerTask implements Runnable{
         //有效性校验
         validRequest(conn,invocation,resultType,invocationListener);
 
-        //TODO 处理各种横切面操作，如认证、监控、流控、降级等
-
         //构造请求上下文信息
         RequestHandler requestHandler = new RequestHandler();
         RequestInfo requestInfo = requestHandler.getRequestInfo(packetSerializeType, conn, routerPacket);
