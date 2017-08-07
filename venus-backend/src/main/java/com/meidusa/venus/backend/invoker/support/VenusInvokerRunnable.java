@@ -108,7 +108,7 @@ public class VenusInvokerRunnable extends MultiQueueRunnable {
     public void doRun() {
         boolean athenaFlag = endpoint.getService().getAthenaFlag();
         if (athenaFlag) {
-            AthenaReporterDelegate.getDelegate().metric(apiName + ".doHandle");
+            AthenaReporterDelegate.getDelegate().metric(apiName + ".handleRequest");
             AthenaTransactionId transactionId = new AthenaTransactionId();
             transactionId.setRootId(context.getRootId());
             transactionId.setParentId(context.getParentId());
@@ -134,7 +134,7 @@ public class VenusInvokerRunnable extends MultiQueueRunnable {
             if (filter != null) {
                 filter.before(request);
             }
-            // doHandle service endpoint
+            // handleRequest service endpoint
             if (resultType == EndpointInvocation.ResultType.RESPONSE) {
                 handleInvokeByResponse(context,endpoint,responseHandler,resultPacket,athenaFlag);
             } else if (resultType == EndpointInvocation.ResultType.OK) {
@@ -160,7 +160,7 @@ public class VenusInvokerRunnable extends MultiQueueRunnable {
                     CodedException codeEx = (CodedException) e;
                     error.errorCode = codeEx.getErrorCode();
                     if (logger.isDebugEnabled()) {
-                        logger.debug("error when doHandle", e);
+                        logger.debug("error when handleRequest", e);
                     }
                 } else {
                     try {
@@ -168,12 +168,12 @@ public class VenusInvokerRunnable extends MultiQueueRunnable {
                         int i = (Integer) method.invoke(e);
                         error.errorCode = i;
                         if (logger.isDebugEnabled()) {
-                            logger.debug("error when doHandle", e);
+                            logger.debug("error when handleRequest", e);
                         }
                     } catch (Exception e1) {
                         error.errorCode = VenusExceptionCodeConstant.UNKNOW_EXCEPTION;
                         if (logger.isWarnEnabled()) {
-                            logger.warn("error when doHandle", e);
+                            logger.warn("error when handleRequest", e);
                         }
                     }
                 }
@@ -191,7 +191,7 @@ public class VenusInvokerRunnable extends MultiQueueRunnable {
             resultPacket = error;
             responseHandler.postMessageBack(conn, routerPacket, request, error, athenaFlag);
             VenusStatus.getInstance().setStatus(PacketConstant.VENUS_STATUS_OUT_OF_MEMORY);
-            logger.error("error when doHandle", e);
+            logger.error("error when handleRequest", e);
             throw e;
         } catch (Error e) {
             ErrorPacket error = new ErrorPacket();
@@ -200,7 +200,7 @@ public class VenusInvokerRunnable extends MultiQueueRunnable {
             error.message = e.getMessage();
             resultPacket = error;
             responseHandler.postMessageBack(conn, routerPacket, request, error, athenaFlag);
-            logger.error("error when doHandle", e);
+            logger.error("error when handleRequest", e);
             return;
         } finally {
             if (athenaFlag) {

@@ -189,7 +189,7 @@ public class VenusHttpServlet extends HttpServlet {
         	if(StringUtil.isEmpty(traceId)){
         		traceId = new UUID(VenusTracerUtil.randomUUID()).toString();
         	}
-            // doHandle service endpoint
+            // handleRequest service endpoint
             result = handleRequest(apiName, version, traceId, parameterMap);
 
            /* if (logger.isDebugEnabled()) {
@@ -209,7 +209,7 @@ public class VenusHttpServlet extends HttpServlet {
             result.setErrorCode(errorCode);
             result.setErrorMessage(e.getMessage());
 
-            logger.error("error when doHandle", e);
+            logger.error("error when handleRequest", e);
             return;
         } finally {
             long endTime = TimeUtil.currentTimeMillis();
