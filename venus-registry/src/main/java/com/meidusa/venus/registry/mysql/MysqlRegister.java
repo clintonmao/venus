@@ -133,9 +133,7 @@ public class MysqlRegister implements Register, DisposableBean {
 				venusServiceMappingDO.setIsDelete(false);
 				venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
 			} else {
-				if (!serviceMapping.isActive()) {
-					venusServiceMappingDAO.updateServiceMapping(serviceMapping.getId(), true);
-				}
+				venusServiceMappingDAO.updateServiceMapping(serviceMapping.getId(), true, false);
 				String oldVersion = serviceMapping.getVersion();// 有区间的version需特殊处理
 
 			}
@@ -226,9 +224,7 @@ public class MysqlRegister implements Register, DisposableBean {
 				venusServiceMappingDO.setIsDelete(false);
 				venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
 			} else {
-				if (!serviceMapping.isActive()) {
-					venusServiceMappingDAO.updateServiceMapping(serviceMapping.getId(), true);
-				}
+				venusServiceMappingDAO.updateServiceMapping(serviceMapping.getId(), true, false);
 			}
 		} catch (Exception e) {
 			subscribleFailUrls.add(url);

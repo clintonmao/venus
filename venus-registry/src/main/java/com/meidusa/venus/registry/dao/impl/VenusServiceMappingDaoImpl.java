@@ -20,7 +20,7 @@ import com.meidusa.venus.registry.domain.VenusServiceMappingDO;
 public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 
 	private static final String SELECT_FIELDS_TABLE = "select id, server_id, service_id, version, active, sync,role,is_delete,create_time, update_time,registe_time,heartbeat_time from t_venus_service_mapping ";
-	
+
 	@Resource
 	private JdbcTemplate jdbcTemplate;
 
@@ -30,7 +30,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 		int update = 0;
 		try {
 			update = this.jdbcTemplate.update(sql, mapping.getServerId(), mapping.getServiceId(), mapping.getVersion(),
-					mapping.isActive(), mapping.isSync(), mapping.getRole(),mapping.getIsDelete());
+					mapping.isActive(), mapping.isSync(), mapping.getRole(), mapping.getIsDelete());
 		} catch (Exception e) {
 			throw new DAOException("保存服务映射关系异常", e);
 		}
@@ -38,22 +38,22 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	}
 
 	@Override
-	public boolean updateServiceMapping(int id,boolean active) throws DAOException {
-		String sql = "update t_venus_service_mapping set active = ?,update_time=now() where id = ?";
+	public boolean updateServiceMapping(int id, boolean active, boolean isDelete) throws DAOException {
+		String sql = "update t_venus_service_mapping set active = ?,is_delete=?,update_time=now() where id = ?";
 		try {
-			this.jdbcTemplate.update(sql, id, active);
+			this.jdbcTemplate.update(sql, active, isDelete, id);
 		} catch (Exception e) {
 			throw new DAOException("更新映射关系异常", e);
 		}
 		return false;
 	}
-	
+
 	@Override
-	public boolean updateServiceMappingHeartBeatTime(int serverId,int serviceId,String version, String role) throws DAOException {
+	public boolean updateServiceMappingHeartBeatTime(int serverId, int serviceId, String version, String role)
+			throws DAOException {
 		String sql = "update t_venus_service_mapping set heartbeat_time = now() where server_id = ? and service_id = ? and role=?";
 		try {
-			this.jdbcTemplate.update(sql, serverId, serviceId,
-					role);
+			this.jdbcTemplate.update(sql, serverId, serviceId, role);
 		} catch (Exception e) {
 			throw new DAOException("更新映射关系heartbeat_time时间异常", e);
 		}
@@ -61,11 +61,10 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	}
 
 	@Override
-	public boolean deleteServiceMapping(int serverId, int serviceId, String version, String role)
-			throws DAOException {
+	public boolean deleteServiceMapping(int serverId, int serviceId, String version, String role) throws DAOException {
 		String sql = "update t_venus_service_mapping set is_delete = 1 where server_id = ? and service_id = ? and version=? and role=?";
 		try {
-			this.jdbcTemplate.update(sql, serverId, serviceId, version,role);
+			this.jdbcTemplate.update(sql, serverId, serviceId, version, role);
 		} catch (Exception e) {
 			throw new DAOException("更新映射关系异常", e);
 		}
