@@ -224,7 +224,7 @@ public class VenusInvokerTask implements Runnable{
             if(filter != null){
                 filter.before(request);
             }
-            postMessageBack(conn, routerPacket, request, error);
+            //postMessageBack(conn, routerPacket, request, error);
             if(filter != null){
                 filter.after(error);
             }

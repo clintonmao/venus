@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.meidusa.venus.backend.invoker.support.InvocationObserver;
+import com.meidusa.venus.backend.services.InvocationObserver;
 import com.meidusa.venus.backend.services.EndpointInvocation;
 import com.meidusa.venus.backend.services.RequestContext;
 import com.meidusa.venus.backend.services.InterceptorMapping;
@@ -27,36 +27,36 @@ public class VenusEndpointInvocation implements EndpointInvocation {
      * 拦截器列表
      */
     protected Iterator<InterceptorMapping> interceptors;
-    
-    /**
-     * 是否已经执行
-     */
-    private boolean executed;
-    
-    /**
-     * 执行结果
-     */
-    private Object result;
-    
-    /**
-     * 相关的endpoint
-     */
-    private Endpoint endpoint;
-    
-    /**
-     * 请求上下文
-     */
-    private RequestContext context;
-    
-    /**
-     * 返回类型
-     */
-    private ResultType type = ResultType.RESPONSE;
-    
+
     /**
      * 调用前后的 InvocationObserver 列表, endpoint 调用前后会执行相应的方法
      */
     private List<InvocationObserver> observerList = new ArrayList<InvocationObserver>();
+
+    /**
+     * 是否已经执行
+     */
+    private boolean executed;
+
+    /**
+     * 执行结果
+     */
+    private Object result;
+
+    /**
+     * 相关的endpoint
+     */
+    private Endpoint endpoint;
+
+    /**
+     * 请求上下文
+     */
+    private RequestContext context;
+
+    /**
+     * 返回类型
+     */
+    private ResultType type = ResultType.RESPONSE;
 
     public VenusEndpointInvocation(RequestContext context, Endpoint endpoint) {
         this.endpoint = endpoint;
