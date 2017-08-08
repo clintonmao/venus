@@ -116,9 +116,13 @@ public class MysqlRegister implements Register, DisposableBean {
 				venusServiceDO.setAppId(appId);
 				venusServiceDO.setVersion(url.getVersion());
 				venusServiceDO.setRegisteType(RegisteConstant.AUTO_REGISTE);
+				venusServiceDO.setMethods(url.getMethods());
 				serviceId = venusServiceDAO.addService(venusServiceDO);
 			} else {
 				serviceId = service.getId();
+				if (StringUtils.isNotBlank(url.getMethods())) {
+					venusServiceDAO.updateService(url.getMethods(), serviceId);
+				}
 			}
 
 			VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(serverId, serviceId,
