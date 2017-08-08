@@ -5,7 +5,6 @@ import com.meidusa.venus.backend.services.RequestInfo;
 import com.meidusa.venus.backend.services.RequestContext;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.serializer.MediaTypes;
-import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
@@ -15,15 +14,15 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
  */
 public class RequestHandler {
 
-    public RequestInfo getRequestInfo(byte packetSerializeType, VenusFrontendConnection conn, VenusRouterPacket routerPacket) {
+    public RequestInfo getRequestInfo(byte packetSerializeType, VenusRouterPacket routerPacket, RpcInvocation invocation) {
         RequestInfo info = new RequestInfo();
         if (routerPacket != null) {
             info.setRemoteIp(InetAddressUtil.intToAddress(routerPacket.srcIP));
         } else {
-            info.setRemoteIp(conn.getHost());
+            info.setRemoteIp(invocation.getHost());
         }
         info.setProtocol(RequestInfo.Protocol.SOCKET);
-        info.setClientId(conn.getClientId());
+        info.setClientId(invocation.getClientId());
         if (packetSerializeType == PacketConstant.CONTENT_TYPE_JSON) {
             info.setAccept(MediaTypes.APPLICATION_JSON);
         } else if (packetSerializeType == PacketConstant.CONTENT_TYPE_BSON) {

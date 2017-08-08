@@ -26,6 +26,7 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceResponsePacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
+import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.rpc.Result;
 import com.meidusa.venus.util.*;
 import org.slf4j.Logger;
@@ -150,9 +151,15 @@ public class VenusInvokerTask implements Runnable{
      * @return
      */
     RpcInvocation buildInvocation(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
+        RpcInvocation invocation = new RpcInvocation();
         SerializeServiceRequestPacket requestPacket = parseRequest(conn, data);
-        //TODO 构造invocation
-        return null;
+        invocation.setServiceRequestPacket(requestPacket);
+        invocation.setLocalHost(conn.getLocalHost());
+        invocation.setHost(conn.getHost());
+        invocation.setClientId(conn.getClientId());
+        //TODO get endpoint
+        invocation.setResultType(null);
+        return invocation;
     }
 
     /**
@@ -245,6 +252,29 @@ public class VenusInvokerTask implements Runnable{
             throw new ErrorPacketWrapperException(error);
         }
 
+    }
+
+    /**
+     * 根据方法定义获取返回类型
+     * @param endpoint
+     * @return
+     */
+    EndpointInvocation.ResultType getResultType(Endpoint endpoint){
+        EndpointInvocation.ResultType resultType = EndpointInvocation.ResultType.RESPONSE;
+        if (endpoint.isVoid()) {
+            resultType = EndpointInvocation.ResultType.OK;
+            if (endpoint.isAsync()) {
+                resultType = EndpointInvocation.ResultType.NONE;
+            }
+
+            for (Class clazz : endpoint.getMethod().getParameterTypes()) {
+                if (InvocationListener.class.isAssignableFrom(clazz)) {
+                    resultType = EndpointInvocation.ResultType.NOTIFY;
+                    break;
+                }
+            }
+        }
+        return resultType;
     }
 
 

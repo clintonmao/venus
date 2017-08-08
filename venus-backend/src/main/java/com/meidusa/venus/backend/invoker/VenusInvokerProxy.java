@@ -23,7 +23,6 @@ import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.io.support.VenusStatus;
-import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.rpc.*;
 import com.meidusa.venus.service.monitor.MonitorRuntime;
@@ -83,7 +82,7 @@ public class VenusInvokerProxy implements Invoker{
 
     private VenusExceptionFactory venusExceptionFactory;
 
-    private VenusFrontendConnection conn;
+    //private VenusFrontendConnection conn;
 
     private Tuple<Long, byte[]> data;
 
@@ -116,7 +115,7 @@ public class VenusInvokerProxy implements Invoker{
     @Override
     public Result invoke(Invocation invocation) throws RpcException {
         RpcInvocation rpcInvocation = (RpcInvocation)invocation;
-        //横切面操作，校验、认证、流控、降级
+        //前置操作，校验、认证、流控、降级
         for(Filter filter : getFilters()){
             Result result = filter.filte(rpcInvocation);
             if(result != null){
@@ -168,28 +167,25 @@ public class VenusInvokerProxy implements Invoker{
         RequestInfo info = getRequestInfo(conn, request);
         */
         //获取方法返回结果类型
-        EndpointInvocation.ResultType resultType = getResultType(endpoint);
+        EndpointInvocation.ResultType resultType = invocation.getResultType();
 
         //初始化参数信息
         RemotingInvocationListener<Serializable> invocationListener = null;
-        initParamsAndInvocationListener(request,invocationListener,conn,routerPacket);
-
-        //有效性校验
-        validRequest(conn,invocation,resultType,invocationListener);
+        initParamsAndInvocationListener(request,invocationListener,invocation.getConn(),routerPacket);
 
         //构造请求上下文信息
         RequestHandler requestHandler = new RequestHandler();
-        RequestInfo requestInfo = requestHandler.getRequestInfo(packetSerializeType, conn, routerPacket);
-        RequestContext context = requestHandler.createContext(requestInfo, endpoint, request);
+        RequestInfo requestInfo = requestHandler.getRequestInfo(packetSerializeType, routerPacket, invocation);
+        RequestContext requestContext = requestHandler.createContext(requestInfo, endpoint, request);
 
         //调用服务
         boolean athenaFlag = endpoint.getService().getAthenaFlag();
         if (athenaFlag) {
             AthenaReporterDelegate.getDelegate().metric(apiName + ".handleRequest");
             AthenaTransactionId transactionId = new AthenaTransactionId();
-            transactionId.setRootId(context.getRootId());
-            transactionId.setParentId(context.getParentId());
-            transactionId.setMessageId(context.getMessageId());
+            transactionId.setRootId(requestContext.getRootId());
+            transactionId.setParentId(requestContext.getParentId());
+            transactionId.setMessageId(requestContext.getMessageId());
             AthenaTransactionDelegate.getDelegate().startServerTransaction(transactionId, apiName);
             AthenaTransactionDelegate.getDelegate().setServerInputSize(data.right.length);
         }
@@ -201,12 +197,12 @@ public class VenusInvokerProxy implements Invoker{
         Response result = null;
 
         try {
-            if (conn.isClosed() && resultType == EndpointInvocation.ResultType.RESPONSE) {
+            if (invocation.getConn().isClosed() && resultType == EndpointInvocation.ResultType.RESPONSE) {
                 throw new RpcException("conn is closed.");
             }
 
             ThreadLocalMap.put(VenusTracerUtil.REQUEST_TRACE_ID, traceID);
-            ThreadLocalMap.put(ThreadLocalConstant.REQUEST_CONTEXT, context);
+            ThreadLocalMap.put(ThreadLocalConstant.REQUEST_CONTEXT, requestContext);
 
             //无任何实现 delete by zhangzh 2017.8.8
             /*
@@ -216,7 +212,7 @@ public class VenusInvokerProxy implements Invoker{
             */
 
             //调用服务实例
-            result = invokeEndpoint(context,endpoint);
+            result = invokeEndpoint(requestContext,endpoint);
 
             if(athenaFlag) {
                 AthenaReporterDelegate.getDelegate().metric(apiName + ".complete");
@@ -288,7 +284,7 @@ public class VenusInvokerProxy implements Invoker{
                 AthenaReporterDelegate.getDelegate().metric(apiName + ".timeout");
             }
             MonitorRuntime.getInstance().calculateAverage(endpoint.getService().getName(), endpoint.getName(), executeTime, false);
-            PerformanceHandler.logPerformance(endpoint, request, queuedTime, executeTime, conn.getHost(), sourceIp, result);
+            PerformanceHandler.logPerformance(endpoint, request, queuedTime, executeTime, invocation.getHost(), sourceIp, result);
             //无任何实现 delete by zhangzh 2017.8.8
             /*
             if (filter != null) {
@@ -367,29 +363,6 @@ public class VenusInvokerProxy implements Invoker{
     }
 
     /**
-     * 根据方法定义获取返回类型
-     * @param endpoint
-     * @return
-     */
-    EndpointInvocation.ResultType getResultType(Endpoint endpoint){
-        EndpointInvocation.ResultType resultType = EndpointInvocation.ResultType.RESPONSE;
-        if (endpoint.isVoid()) {
-            resultType = EndpointInvocation.ResultType.OK;
-            if (endpoint.isAsync()) {
-                resultType = EndpointInvocation.ResultType.NONE;
-            }
-
-            for (Class clazz : endpoint.getMethod().getParameterTypes()) {
-                if (InvocationListener.class.isAssignableFrom(clazz)) {
-                    resultType = EndpointInvocation.ResultType.NOTIFY;
-                    break;
-                }
-            }
-        }
-        return resultType;
-    }
-
-    /**
      * 初始化参数信息
      * @param request
      * @param invocationListener
@@ -406,121 +379,7 @@ public class VenusInvokerProxy implements Invoker{
         }
     }
 
-    /**
-     * 校验请求有效性
-     * @param conn
-     * @param invocation
-     * @param resultType
-     * @param invocationListener
-     * @return
-     */
-    void validRequest(VenusFrontendConnection conn, RpcInvocation invocation, EndpointInvocation.ResultType resultType, RemotingInvocationListener<Serializable> invocationListener){
-        Tuple<Long, byte[]> data = invocation.getData();
-        byte[] message = invocation.getMessage();
-        byte packetSerializeType = invocation.getPacketSerializeType();
-        long waitTime = invocation.getWaitTime();
-        String finalSourceIp = invocation.getFinalSourceIp();
-        VenusRouterPacket routerPacket = invocation.getRouterPacket();
-        byte serializeType = invocation.getSerializeType();
-        SerializeServiceRequestPacket request = invocation.getServiceRequestPacket();
-        final String apiName = request.apiName;
-        final Endpoint endpoint = invocation.getEp();
 
-        checkVersion(endpoint, request);
-        checkActive(endpoint, request);
-        checkTimeout(conn,endpoint, request, waitTime);
-        /*
-        __TIMEOUT:{
-            if (errorPacket != null) {
-                if (resultType == EndpointInvocation.ResultType.NOTIFY) {
-                    if(isTimeout){
-                        break __TIMEOUT;
-                    }
-                    if (invocationListener != null) {
-                        invocationListener.onException(new ServiceVersionNotAllowException(errorPacket.message));
-                    } else {
-                        postMessageBack(conn, routerPacket, request, errorPacket);
-                    }
-                } else {
-                    postMessageBack(conn, routerPacket, request, errorPacket);
-                }
-                if(filter != null){
-                    filter.before(request);
-                }
-                logPerformance(endpoint,UUID.toString(request.traceId),apiName,waitTime,0,conn.getHost(),finalSourceIp,request.clientId,request.clientRequestId,request.parameterMap, errorPacket);
-                if(filter != null){
-                    filter.after(errorPacket);
-                }
-            }
-        }
-        */
-
-    }
-
-    /**
-     * 校验超时时间
-     * @param conn
-     * @param endpoint
-     * @param request
-     * @param waitTime
-     */
-    void checkTimeout(VenusFrontendConnection conn, Endpoint endpoint, AbstractServiceRequestPacket request, long waitTime) {
-        if (waitTime > endpoint.getTimeWait()) {
-            ErrorPacket error = new ErrorPacket();
-            AbstractServicePacket.copyHead(request, error);
-            error.errorCode = VenusExceptionCodeConstant.INVOCATION_ABORT_WAIT_TIMEOUT;
-            error.message = String.format(TIMEOUT, request.apiName,conn.getLocalHost(),waitTime);
-            throw new ErrorPacketWrapperException(error);
-        }
-    }
-
-    /**
-     * 校验开启状态
-     * @param endpoint
-     * @param request
-     */
-    void checkActive(Endpoint endpoint, AbstractServiceRequestPacket request) {
-        Service service = endpoint.getService();
-        if (!service.isActive() || !endpoint.isActive()) {
-            ErrorPacket error = new ErrorPacket();
-            AbstractServicePacket.copyHead(request, error);
-            error.errorCode = VenusExceptionCodeConstant.SERVICE_INACTIVE_EXCEPTION;
-            StringBuffer buffer = new StringBuffer();
-            buffer.append("Service=").append(endpoint.getService().getName());
-            if (!service.isActive()) {
-                buffer.append(" is not active");
-            }
-
-            if (!endpoint.isActive()) {
-                buffer.append(", endpoint=").append(endpoint.getName()).append(" is not active");
-            }
-
-            error.message = buffer.toString();
-            throw new ErrorPacketWrapperException(error);
-        }
-        return;
-    }
-
-    /**
-     * 校验版本号
-     * @param endpoint
-     * @param request
-     */
-    void checkVersion(Endpoint endpoint, AbstractServiceRequestPacket request) {
-        Service service = endpoint.getService();
-
-        // service version check
-        Range range = service.getVersionRange();
-        if (range == null || range.contains(request.serviceVersion)) {
-            return;
-        } else {
-            ErrorPacket error = new ErrorPacket();
-            AbstractServicePacket.copyHead(request, error);
-            error.errorCode = VenusExceptionCodeConstant.SERVICE_VERSION_NOT_ALLOWD_EXCEPTION;
-            error.message = "Service=" + endpoint.getService().getName() + ",version=" + request.serviceVersion + " not allow";
-            throw new ErrorPacketWrapperException(error);
-        }
-    }
 
     protected void logPerformance(Endpoint endpoint,String traceId,String apiName,long queuedTime,
                                   long executTime,String remoteIp,String sourceIP, long clientId,long requestId,

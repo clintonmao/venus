@@ -75,15 +75,33 @@ public class InvokerInvocationHandler implements InvocationHandler {
     private Router router = new ConditionRouter();
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        //构造请求对象
-        Invocation invocation = buildInvocation(proxy,method,args);
+        try {
+            //构造请求对象
+            Invocation invocation = buildInvocation(proxy,method,args);
 
+            //服务调用
+            Result result = doInvoke(invocation);
+
+            //返回结果
+            //TODO 处理成功调用，但失败情况
+            return result.getObject();
+        } catch (Exception e) {
+            //TODO 处理异常
+            return null;
+        }
+    }
+
+    /**
+     * 调用服务
+     * @param invocation
+     * @return
+     */
+    Result doInvoke(Invocation invocation){
         //前置处理
         for(Filter filter : getFilters()){
             Result result = filter.filte(invocation);
             if(result != null){
-                //TODO 异常处理
-                return result.getObject();
+                return result;
             }
         }
 
@@ -98,12 +116,12 @@ public class InvokerInvocationHandler implements InvocationHandler {
             //mock调用
             Invoker mockInvoker = getMockInvoker(invocation);
             Result result = mockInvoker.invoke(invocation);
-            return result.getObject();
+            return result;
         }else{
             //集群调用
             Invoker clusterInvoker = getClusterInvoker(addressList,invocation);
             Result result = clusterInvoker.invoke(invocation);
-            return result.getObject();
+            return result;
         }
     }
 
