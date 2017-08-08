@@ -54,6 +54,7 @@ public class ResultUtils {
 		venusService.setVersion(rs.getString("version"));
 		venusService.setDescription(rs.getString("description"));
 		venusService.setAppId(rs.getInt("app_id"));
+		venusService.setRegisteType(rs.getInt("registe_type"));
 
 		venusService.setCreateTime(rs.getTimestamp("create_time"));
 		venusService.setUpdateTime(rs.getTimestamp("update_time"));
@@ -114,7 +115,6 @@ public class ResultUtils {
 					System.out.println(mockConfig);
 				}
 			}
-
 		}
 	}
 

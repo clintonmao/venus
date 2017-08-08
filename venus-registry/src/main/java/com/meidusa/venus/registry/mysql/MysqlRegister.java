@@ -245,10 +245,8 @@ public class MysqlRegister implements Register, DisposableBean {
 		try {
 			VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
 					url.getInterfaceName());
-			if (null != service && null != service.getRegisteType()
-					&& service.getRegisteType() == RegisteConstant.AUTO_REGISTE) {// 自动注册的逻辑删除,手动注册的不更新
-				String localIp = NetworkInterfaceManager.INSTANCE.getLocalHostAddress();
-				VenusServerDO server = venusServerDAO.getServer(localIp, 0);
+			if (null != service) {
+				VenusServerDO server = venusServerDAO.getServer(url.getHost(), 0);
 				if (null != server) {
 					VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(server.getId(),
 							service.getId(), RegisteConstant.CONSUMER);
@@ -278,8 +276,8 @@ public class MysqlRegister implements Register, DisposableBean {
 
 	@Override
 	public ServiceDefinition lookup(URL url) throws VenusRegisteException {
-//		 ServiceDefineRunnable run = new ServiceDefineRunnable();
-//		 run.run();//测试接口时用
+		// ServiceDefineRunnable run = new ServiceDefineRunnable();
+		// run.run();//测试接口时用
 		// 接口名 服务名 版本号 加载服务的server信息及serviceConfig信息
 		// 根据本地 ServiceDefinition 列表去查找
 		String serviceName = url.getServiceName();
