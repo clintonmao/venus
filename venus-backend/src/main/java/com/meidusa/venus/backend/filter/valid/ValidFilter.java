@@ -26,7 +26,7 @@ public class ValidFilter implements Filter {
     private static final String TIMEOUT = "waiting-timeout for execution,api=%s,ip=%s,time=%d (ms)";
 
     @Override
-    public Result filte(Invocation invocation) throws RpcException {
+    public Result invoke(Invocation invocation) throws RpcException {
         RpcInvocation rpcInvocation = (RpcInvocation)invocation;
         valid(rpcInvocation);
         return null;

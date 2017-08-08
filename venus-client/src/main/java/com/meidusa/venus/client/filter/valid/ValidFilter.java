@@ -18,7 +18,7 @@ public class ValidFilter implements Filter {
     private static Logger logger = LoggerFactory.getLogger(ValidFilter.class);
 
     @Override
-    public Result filte(Invocation invocation) throws RpcException {
+    public Result invoke(Invocation invocation) throws RpcException {
         //endpoint定义校验
         if(invocation.getEndpoint() == null){
             Method method = invocation.getMethod();

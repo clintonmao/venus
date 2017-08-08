@@ -15,7 +15,7 @@ import com.meidusa.venus.rpc.limit.ActivesLimitFilter;
 import com.meidusa.venus.rpc.limit.TpsLimitFilter;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.metainfo.EndpointParameterUtil;
-import com.meidusa.venus.rpc.mock.ReturnMockInvoker;
+import com.meidusa.venus.rpc.mock.MockFilterProxy;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
 import com.meidusa.venus.rpc.router.Router;
@@ -97,9 +97,9 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * @return
      */
     Result doInvoke(Invocation invocation){
-        //前置处理
+        //前置处理，校验、流控、降级等
         for(Filter filter : getFilters()){
-            Result result = filter.filte(invocation);
+            Result result = filter.invoke(invocation);
             if(result != null){
                 return result;
             }
@@ -111,18 +111,10 @@ public class InvokerInvocationHandler implements InvocationHandler {
         //路由规则过滤
         addressList = router.filter(addressList,invocation);
 
-        //服务调用，直接放通调用或者集群容错调用
-        if(isNeedMock(invocation)){
-            //mock调用
-            Invoker mockInvoker = getMockInvoker(invocation);
-            Result result = mockInvoker.invoke(invocation);
-            return result;
-        }else{
-            //集群调用
-            Invoker clusterInvoker = getClusterInvoker(addressList,invocation);
-            Result result = clusterInvoker.invoke(invocation);
-            return result;
-        }
+        //集群调用
+        Invoker clusterInvoker = getClusterInvoker(addressList,invocation);
+        Result result = clusterInvoker.invoke(invocation);
+        return result;
     }
 
     /**
@@ -133,6 +125,8 @@ public class InvokerInvocationHandler implements InvocationHandler {
         return new Filter[]{
                 //校验
                 new ValidFilter(),
+                //流控
+                new MockFilterProxy(),
                 //并发数流控
                 new ActivesLimitFilter(),
                 //TPS控制
@@ -205,26 +199,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
     Invoker getClusterInvoker(List<Address> addressList,Invocation invocation){
         //TODO 处理集群容错wrapper
         return new FailoverClusterInvoker();
-    }
-
-    /**
-     * 判断是否需要放通处理
-     * @param invocation
-     * @return
-     */
-    boolean isNeedMock(Invocation invocation){
-        //TODO
-        return false;
-    }
-
-    /**
-     * 获取mock invoker
-     * @param invocation
-     * @return
-     */
-    Invoker getMockInvoker(Invocation invocation){
-        //TODO 处理mock wrapper
-        return new ReturnMockInvoker();
     }
 
     public Class<?> getServiceType() {

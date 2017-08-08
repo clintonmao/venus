@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 
 /**
- * venus协议提供方服务调用
+ * venus服务调用task
  * Created by Zhangzhihua on 2017/8/2.
  */
 public class VenusInvokerTask implements Runnable{

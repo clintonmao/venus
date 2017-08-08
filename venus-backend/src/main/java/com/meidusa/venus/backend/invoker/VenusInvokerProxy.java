@@ -19,11 +19,9 @@ import com.meidusa.venus.exception.*;
 import com.meidusa.venus.extension.athena.AthenaTransactionId;
 import com.meidusa.venus.extension.athena.delegate.AthenaReporterDelegate;
 import com.meidusa.venus.extension.athena.delegate.AthenaTransactionDelegate;
-import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.io.support.VenusStatus;
-import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.rpc.*;
 import com.meidusa.venus.service.monitor.MonitorRuntime;
 import com.meidusa.venus.util.*;
@@ -37,7 +35,7 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 
 /**
- * venus服务调用代理，除调用服务实现，还要处理校验、认证、流控、降级相关功能
+ * venus服务调用代理，除调用服务实现，还负责校验、认证、流控、降级、监控相关处理
  * Created by Zhangzhihua on 2017/8/2.
  */
 public class VenusInvokerProxy implements Invoker{
@@ -117,7 +115,7 @@ public class VenusInvokerProxy implements Invoker{
         RpcInvocation rpcInvocation = (RpcInvocation)invocation;
         //前置操作，校验、认证、流控、降级
         for(Filter filter : getFilters()){
-            Result result = filter.filte(rpcInvocation);
+            Result result = filter.invoke(rpcInvocation);
             if(result != null){
                 return result;
             }

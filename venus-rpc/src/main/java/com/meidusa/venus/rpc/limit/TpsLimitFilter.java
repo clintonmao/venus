@@ -12,7 +12,7 @@ import com.meidusa.venus.rpc.RpcException;
 public class TpsLimitFilter implements Filter {
 
     @Override
-    public Result filte(Invocation invocation) throws RpcException {
+    public Result invoke(Invocation invocation) throws RpcException {
         //TODO 判断开启状态
         //TODO
         return null;

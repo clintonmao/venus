@@ -12,7 +12,7 @@ import com.meidusa.venus.rpc.RpcException;
 public class ActivesLimitFilter implements Filter {
 
     @Override
-    public Result filte(Invocation invocation) throws RpcException {
+    public Result invoke(Invocation invocation) throws RpcException {
         //TODO 判断开启情况
         //FIXME
         return null;

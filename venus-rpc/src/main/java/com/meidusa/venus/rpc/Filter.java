@@ -14,5 +14,5 @@ public interface Filter {
      * 若返回值为空，则表示不需要返回继续后续流程
      * @throws RpcException
      */
-    Result filte(Invocation invocation) throws RpcException;
+    Result invoke(Invocation invocation) throws RpcException;
 }
