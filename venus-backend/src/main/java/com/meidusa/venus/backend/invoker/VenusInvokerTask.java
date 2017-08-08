@@ -138,25 +138,28 @@ public class VenusInvokerTask implements Runnable{
             //解析请求对象
             RpcInvocation invocation = buildInvocation(conn, data);
 
-            //横切面操作，校验、认证、流控、降级
-            for(Filter filter : getFilters()){
-                Result result = filter.filte(invocation);
-                if(result != null){
-                    //TODO handleResponse();
-                    return;
-                }
-            }
+            Result result = doHandle(conn, invocation);
 
-            //处理调用请求
-            Response result = handleRequest(conn,invocation);
-
-            //响应结果
-            handleResponse(context, endpoint,null, null, false,result);
-        } catch (Throwable e) {
+            handleResponse(context,null,null,null,false,null);
+        } catch (Exception e) {
             //TODO 处理异常
-            logger.error("");
-            //TODO handleResponse(result);
+            //handleResponse(context,null,null,null,false,null);
         }
+    }
+
+    public Result doHandle(VenusFrontendConnection conn, RpcInvocation invocation) {
+        //横切面操作，校验、认证、流控、降级
+        for(Filter filter : getFilters()){
+            Result result = filter.filte(invocation);
+            if(result != null){
+                //TODO handleResponse();
+                return result;
+            }
+        }
+
+        //处理调用请求 TODO 统一或适配result/response
+        Response result = invoke(conn,invocation);
+        return null;
     }
 
     /**
@@ -273,10 +276,10 @@ public class VenusInvokerTask implements Runnable{
     }
 
     /**
-     * doInvoke
+     * invoke
      * @return
      */
-    public Response handleRequest(VenusFrontendConnection conn, RpcInvocation invocation) throws RpcException{
+    public Response invoke(VenusFrontendConnection conn, RpcInvocation invocation) throws RpcException{
         //获取调用信息
         Tuple<Long, byte[]> data = invocation.getData();
         byte[] message = invocation.getMessage();
@@ -310,34 +313,12 @@ public class VenusInvokerTask implements Runnable{
         RequestContext context = requestHandler.createContext(requestInfo, endpoint, request);
 
         //调用服务
-        return invoke(conn, endpoint,
-                context, resultType,
-                routerPacket,
-                request, serializeType,
-                invocationListener, venusExceptionFactory,
-                data);
-    }
-
-
-    /**
-     * 调用服务
-     * @param conn
-     * @param endpoint
-     * @param context
-     * @param resultType
-     * @param routerPacket
-     * @param request
-     * @param serializeType
-     * @param invocationListener
-     * @param venusExceptionFactory
-     * @param data
-     */
-    public Response invoke(VenusFrontendConnection conn, Endpoint endpoint,
-                           RequestContext context, EndpointInvocation.ResultType resultType,
-                           VenusRouterPacket routerPacket, SerializeServiceRequestPacket request,
-                           short serializeType, RemotingInvocationListener<Serializable> invocationListener,
-                           VenusExceptionFactory venusExceptionFactory, Tuple<Long, byte[]> data) {
-
+//        return invoke(conn, endpoint,
+//                context, resultType,
+//                routerPacket,
+//                request, serializeType,
+//                invocationListener, venusExceptionFactory,
+//                data);
         /*
         this.conn = conn;
         this.endpoint = endpoint;
@@ -474,7 +455,6 @@ public class VenusInvokerTask implements Runnable{
             ThreadLocalMap.remove(ThreadLocalConstant.REQUEST_CONTEXT);
             ThreadLocalMap.remove(VenusTracerUtil.REQUEST_TRACE_ID);
         }
-
     }
 
     /**
