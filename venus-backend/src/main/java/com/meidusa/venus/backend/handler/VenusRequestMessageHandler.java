@@ -56,26 +56,7 @@ public class VenusRequestMessageHandler implements MessageHandler<VenusFrontendC
     @Autowired
     private ServiceManager serviceManager;
 
-    private VenusInvokerTask venusInvokerHandler;
-
-    static Map<Class<?>,Integer> codeMap = new HashMap<Class<?>,Integer>();
-
-    static {
-        Map<Class<?>,ExceptionCode>  map = ClasspathAnnotationScanner.find(Exception.class,ExceptionCode.class);
-        if(map != null){
-            for(Map.Entry<Class<?>, ExceptionCode> entry:map.entrySet()){
-                codeMap.put(entry.getKey(), entry.getValue().errorCode());
-            }
-        }
-
-        Map<Class<?>,RemoteException> rmap = ClasspathAnnotationScanner.find(Exception.class,RemoteException.class);
-
-        if(rmap != null){
-            for(Map.Entry<Class<?>, RemoteException> entry:rmap.entrySet()){
-                codeMap.put(entry.getKey(), entry.getValue().errorCode());
-            }
-        }
-    }
+    private VenusInvokerTask venusInvokerTask;
 
     @Override
     public void init() throws InitialisationException {
@@ -87,7 +68,8 @@ public class VenusRequestMessageHandler implements MessageHandler<VenusFrontendC
 
     @Override
     public void handle(VenusFrontendConnection conn, Tuple<Long, byte[]> data) {
-        //TODO 多线程调用handler 处理队列满问题
+        //TODO 多线程调用handler，并处理异常问题，如队列满等
+        executor.execute(new VenusInvokerTask(conn, data));
     }
 
     public boolean isExecutorEnabled() {
