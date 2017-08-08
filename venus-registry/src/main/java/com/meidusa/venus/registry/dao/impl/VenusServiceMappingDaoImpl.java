@@ -40,35 +40,38 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	@Override
 	public boolean updateServiceMapping(int id, boolean active, boolean isDelete) throws DAOException {
 		String sql = "update t_venus_service_mapping set active = ?,is_delete=?,update_time=now() where id = ?";
+		int update = 0;
 		try {
-			this.jdbcTemplate.update(sql, active, isDelete, id);
+			update = this.jdbcTemplate.update(sql, active, isDelete, id);
 		} catch (Exception e) {
 			throw new DAOException("更新映射关系异常", e);
 		}
-		return false;
+		return update > 0 ? true : false;
 	}
 
 	@Override
 	public boolean updateServiceMappingHeartBeatTime(int serverId, int serviceId, String version, String role)
 			throws DAOException {
 		String sql = "update t_venus_service_mapping set heartbeat_time = now() where server_id = ? and service_id = ? and role=?";
+		int update = 0;
 		try {
-			this.jdbcTemplate.update(sql, serverId, serviceId, role);
+			update = this.jdbcTemplate.update(sql, serverId, serviceId, role);
 		} catch (Exception e) {
 			throw new DAOException("更新映射关系heartbeat_time时间异常", e);
 		}
-		return false;
+		return update > 0 ? true : false;
 	}
 
 	@Override
 	public boolean deleteServiceMapping(int serverId, int serviceId, String version, String role) throws DAOException {
 		String sql = "update t_venus_service_mapping set is_delete = 1 where server_id = ? and service_id = ? and version=? and role=?";
+		int update = 0;
 		try {
-			this.jdbcTemplate.update(sql, serverId, serviceId, version, role);
+			update = this.jdbcTemplate.update(sql, serverId, serviceId, version, role);
 		} catch (Exception e) {
 			throw new DAOException("更新映射关系异常", e);
 		}
-		return false;
+		return update > 0 ? true : false;
 	}
 
 	@Override
@@ -94,11 +97,12 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	}
 
 	@Override
-	public List<VenusServiceMappingDO> getServiceMapping(Integer serviceId, String role, boolean isDelete) throws DAOException {
+	public List<VenusServiceMappingDO> getServiceMapping(Integer serviceId, String role, boolean isDelete)
+			throws DAOException {
 		String sql = SELECT_FIELDS_TABLE + " where service_id = ? and role=? and is_delete=?";
 
 		try {
-			return this.jdbcTemplate.query(sql, new Object[] { serviceId, role, isDelete},
+			return this.jdbcTemplate.query(sql, new Object[] { serviceId, role, isDelete },
 					new ResultSetExtractor<List<VenusServiceMappingDO>>() {
 						@Override
 						public List<VenusServiceMappingDO> extractData(ResultSet rs)
