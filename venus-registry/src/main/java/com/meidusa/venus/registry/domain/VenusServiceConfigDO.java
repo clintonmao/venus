@@ -1,12 +1,17 @@
 package com.meidusa.venus.registry.domain;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
-
 import java.io.Serializable;
 import java.util.Date;
 
+import org.apache.commons.lang.builder.ToStringBuilder;
+
+import com.meidusa.venus.govern.FlowControl;
+import com.meidusa.venus.govern.MockConfig;
+import com.meidusa.venus.govern.RouterRule;
+
 /**
  * 服务配置
+ * 
  * @author longhaisheng
  *
  */
@@ -29,6 +34,15 @@ public class VenusServiceConfigDO implements Serializable {
 	private Date createTime;
 
 	private Date updateTime;
+
+	// 路由规则
+	private RouterRule routerRule;
+
+	// 流控配置
+	private FlowControl flowControl;
+
+	// 降级配置
+	private MockConfig mockConfig;
 
 	public Integer getId() {
 		return id;
@@ -92,6 +106,30 @@ public class VenusServiceConfigDO implements Serializable {
 
 	public void setUpdateTime(Date updateTime) {
 		this.updateTime = updateTime;
+	}
+
+	public RouterRule getRouterRule() {
+		return routerRule;
+	}
+
+	public void setRouterRule(RouterRule routerRule) {
+		this.routerRule = routerRule;
+	}
+
+	public FlowControl getFlowControl() {
+		return flowControl;
+	}
+
+	public void setFlowControl(FlowControl flowControl) {
+		this.flowControl = flowControl;
+	}
+
+	public MockConfig getMockConfig() {
+		return mockConfig;
+	}
+
+	public void setMockConfig(MockConfig mockConfig) {
+		this.mockConfig = mockConfig;
 	}
 
 	@Override

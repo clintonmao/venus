@@ -278,8 +278,8 @@ public class MysqlRegister implements Register, DisposableBean {
 
 	@Override
 	public ServiceDefinition lookup(URL url) throws VenusRegisteException {
-		// ServiceDefineRunnable run = new ServiceDefineRunnable();
-		// run.run();//测试接口时用
+//		 ServiceDefineRunnable run = new ServiceDefineRunnable();
+//		 run.run();//测试接口时用
 		// 接口名 服务名 版本号 加载服务的server信息及serviceConfig信息
 		// 根据本地 ServiceDefinition 列表去查找
 		String serviceName = url.getServiceName();

@@ -72,7 +72,7 @@ public class SpringTestCase extends AbstractJUnit4SpringContextTests {
 
 	}
 
-	// @Test
+	@Test
 	public void testLookUp() {
 		URL u = new URL();
 		u.setServiceName("orderService");

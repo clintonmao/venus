@@ -8,6 +8,9 @@ import com.meidusa.fastjson.JSON;
 
 import org.apache.commons.collections.CollectionUtils;
 
+import com.meidusa.venus.govern.FlowControl;
+import com.meidusa.venus.govern.MockConfig;
+import com.meidusa.venus.govern.RouterRule;
 import com.meidusa.venus.registry.domain.VenusApplicationDO;
 import com.meidusa.venus.registry.domain.VenusServerDO;
 import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
@@ -96,15 +99,20 @@ public class ResultUtils {
 				int type = c.getType();
 				// 1- 路由规则，2-流控配置，3-降级配置
 				if (type == 1) {
-					
+					RouterRule routerRule = JSON.parseObject(c.getConfig(), RouterRule.class);
+					c.setRouterRule(routerRule);
+					System.out.println(routerRule);
 				}
 				if (type == 2) {
-					
+					FlowControl flowControl = JSON.parseObject(c.getConfig(), FlowControl.class);
+					c.setFlowControl(flowControl);
+					System.out.println(flowControl);
 				}
 				if (type == 3) {
-
+					MockConfig mockConfig = JSON.parseObject(c.getConfig(), MockConfig.class);
+					c.setMockConfig(mockConfig);
+					System.out.println(mockConfig);
 				}
-
 			}
 
 		}
