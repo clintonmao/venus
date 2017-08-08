@@ -102,17 +102,14 @@ public class ResultUtils {
 				if (type == 1) {
 					RouterRule routerRule = JSON.parseObject(c.getConfig(), RouterRule.class);
 					c.setRouterRule(routerRule);
-					System.out.println(routerRule);
 				}
 				if (type == 2) {
 					FlowControl flowControl = JSON.parseObject(c.getConfig(), FlowControl.class);
 					c.setFlowControl(flowControl);
-					System.out.println(flowControl);
 				}
 				if (type == 3) {
 					MockConfig mockConfig = JSON.parseObject(c.getConfig(), MockConfig.class);
 					c.setMockConfig(mockConfig);
-					System.out.println(mockConfig);
 				}
 			}
 		}
