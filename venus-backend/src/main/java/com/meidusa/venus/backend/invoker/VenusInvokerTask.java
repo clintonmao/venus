@@ -27,6 +27,7 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceResponsePacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.notify.InvocationListener;
+import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.rpc.Result;
 import com.meidusa.venus.util.*;
 import org.slf4j.Logger;
@@ -157,8 +158,10 @@ public class VenusInvokerTask implements Runnable{
         invocation.setLocalHost(conn.getLocalHost());
         invocation.setHost(conn.getHost());
         invocation.setClientId(conn.getClientId());
+        //初始化参数信息
+        initParamsForInvocationListener(request,invocation.getConn(),routerPacket);
         //TODO get endpoint
-        invocation.setResultType(null);
+        invocation.setResultType(getResultType(null));
         return invocation;
     }
 
@@ -252,6 +255,22 @@ public class VenusInvokerTask implements Runnable{
             throw new ErrorPacketWrapperException(error);
         }
 
+    }
+
+    /**
+     * 初始化参数信息
+     * @param request
+     * @param conn
+     * @param routerPacket
+     */
+    void initParamsForInvocationListener(SerializeServiceRequestPacket request, VenusFrontendConnection conn, VenusRouterPacket routerPacket){
+        for (Map.Entry<String, Object> entry : request.parameterMap.entrySet()) {
+            if (entry.getValue() instanceof ReferenceInvocationListener) {
+                RemotingInvocationListener<Serializable> invocationListener = new RemotingInvocationListener<Serializable>(conn, (ReferenceInvocationListener) entry.getValue(), request,
+                        routerPacket);
+                request.parameterMap.put(entry.getKey(), invocationListener);
+            }
+        }
     }
 
     /**

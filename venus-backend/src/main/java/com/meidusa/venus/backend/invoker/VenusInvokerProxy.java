@@ -169,10 +169,6 @@ public class VenusInvokerProxy implements Invoker{
         //获取方法返回结果类型
         EndpointInvocation.ResultType resultType = invocation.getResultType();
 
-        //初始化参数信息
-        RemotingInvocationListener<Serializable> invocationListener = null;
-        initParamsAndInvocationListener(request,invocationListener,invocation.getConn(),routerPacket);
-
         //构造请求上下文信息
         RequestHandler requestHandler = new RequestHandler();
         RequestInfo requestInfo = requestHandler.getRequestInfo(packetSerializeType, routerPacket, invocation);
@@ -361,25 +357,6 @@ public class VenusInvokerProxy implements Invoker{
 
         return response;
     }
-
-    /**
-     * 初始化参数信息
-     * @param request
-     * @param invocationListener
-     * @param conn
-     * @param routerPacket
-     */
-    void initParamsAndInvocationListener(SerializeServiceRequestPacket request,RemotingInvocationListener<Serializable> invocationListener,VenusFrontendConnection conn,VenusRouterPacket routerPacket){
-        for (Map.Entry<String, Object> entry : request.parameterMap.entrySet()) {
-            if (entry.getValue() instanceof ReferenceInvocationListener) {
-                invocationListener = new RemotingInvocationListener<Serializable>(conn, (ReferenceInvocationListener) entry.getValue(), request,
-                        routerPacket);
-                request.parameterMap.put(entry.getKey(), invocationListener);
-            }
-        }
-    }
-
-
 
     protected void logPerformance(Endpoint endpoint,String traceId,String apiName,long queuedTime,
                                   long executTime,String remoteIp,String sourceIP, long clientId,long requestId,
