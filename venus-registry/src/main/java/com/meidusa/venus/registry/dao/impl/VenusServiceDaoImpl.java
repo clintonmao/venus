@@ -30,10 +30,11 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 
 	@Override
 	public int addService(VenusServiceDO venusServiceDO) throws DAOException {
-		final String sql = "insert into t_venus_service (name,interface_name,version, description,app_id,registe_type, create_time, update_time) values ('"
+		final String sql = "insert into t_venus_service (name,interface_name,version, description,app_id,registe_type,methods, create_time, update_time) values ('"
 				+ venusServiceDO.getName() + "', '" + venusServiceDO.getInterfaceName() + "', '"
 				+ venusServiceDO.getVersion() + "', '" + venusServiceDO.getDescription() + "', "
-				+ venusServiceDO.getAppId() + "," + venusServiceDO.getRegisteType() + ", now(), now())";
+				+ venusServiceDO.getAppId() + "," + venusServiceDO.getRegisteType() + ",'" + venusServiceDO.getMethods()
+				+ "', now(), now())";
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		int autoIncId = 0;
 		jdbcTemplate.update(new PreparedStatementCreator() {
@@ -47,13 +48,11 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 	}
 
 	@Override
-	public boolean updateService(VenusServiceDO venusServiceDO) throws DAOException {
-		String sql = "update t_venus_service set name=?,interface_name=?,version=?, description=?,app_id=? update_time=now() where id=?";
+	public boolean updateService(String methods, int id) throws DAOException {
+		String sql = "update t_venus_service set methods=?,update_time=now() where id=?";
 		int update = 0;
 		try {
-			update = this.jdbcTemplate.update(sql, venusServiceDO.getName(), venusServiceDO.getInterfaceName(),
-					venusServiceDO.getVersion(), venusServiceDO.getDescription(), venusServiceDO.getAppId(),
-					venusServiceDO.getId());
+			update = this.jdbcTemplate.update(sql, methods, id);
 		} catch (Exception e) {
 			throw new DAOException("更新venusService异常", e);
 		}

@@ -28,6 +28,8 @@ public class VenusServiceDO implements Serializable {
 	/** 注册类型：0 手动：1 自动 */
 	private Integer registeType;
 
+	private String methods;
+
 	public Integer getId() {
 		return id;
 	}
@@ -98,6 +100,14 @@ public class VenusServiceDO implements Serializable {
 
 	public void setRegisteType(Integer registeType) {
 		this.registeType = registeType;
+	}
+
+	public String getMethods() {
+		return methods;
+	}
+
+	public void setMethods(String methods) {
+		this.methods = methods;
 	}
 
 	@Override

@@ -8,7 +8,7 @@ import org.apache.commons.lang.StringUtils;
 
 /**
  * 各种地址抽象URL，如
- * 服务注册地址,venus://com.chexiang.order.OrderService/orderService?version=1.0.0&host=192.168.1.1&port=9000
+ * 服务注册地址,venus://com.chexiang.order.OrderService/orderService?version=1.0.0&host=192.168.1.1&port=9000&methods=getOrderById,selectAllOrder
  * 服务订阅地址,subscrible://com.chexiang.order.OrderService/orderService?version=1.0.0&host=192.168.1.2
  * Created by Zhangzhihua on 2017/7/27.
  */
@@ -45,7 +45,9 @@ public class URL implements Serializable {
 
 	/** 订阅检测 */
 	private boolean consumerCheck;
-	
+
+	private String methods;
+
 	/** 服务地址属性映射表，即?后属性<K,V> */
 	private Map<String, Object> properties = new HashMap<String, Object>();
 
@@ -117,6 +119,9 @@ public class URL implements Serializable {
 						if (split[0].equals("application")) {
 							u.setApplication(split[1]);
 						}
+						if (split[0].equals("methods")) {
+							u.setMethods(split[1]);
+						}
 					}
 				}
 				u.setProperties(map);
@@ -148,6 +153,7 @@ public class URL implements Serializable {
 		result = prime * result + ((host == null) ? 0 : host.hashCode());
 		result = prime * result + ((interfaceName == null) ? 0 : interfaceName.hashCode());
 		result = prime * result + ((loadbanlance == null) ? 0 : loadbanlance.hashCode());
+		result = prime * result + ((methods == null) ? 0 : methods.hashCode());
 		result = prime * result + ((path == null) ? 0 : path.hashCode());
 		result = prime * result + port;
 		result = prime * result + ((properties == null) ? 0 : properties.hashCode());
@@ -187,6 +193,11 @@ public class URL implements Serializable {
 			if (other.loadbanlance != null)
 				return false;
 		} else if (!loadbanlance.equals(other.loadbanlance))
+			return false;
+		if (methods == null) {
+			if (other.methods != null)
+				return false;
+		} else if (!methods.equals(other.methods))
 			return false;
 		if (path == null) {
 			if (other.path != null)
@@ -282,12 +293,20 @@ public class URL implements Serializable {
 		this.consumerCheck = consumerCheck;
 	}
 
+	public String getMethods() {
+		return methods;
+	}
+
+	public void setMethods(String methods) {
+		this.methods = methods;
+	}
+
 	@Override
 	public String toString() {
 		return "URL [protocol=" + protocol + ", path=" + path + ", interfaceName=" + interfaceName + ", serviceName="
 				+ serviceName + ", version=" + version + ", host=" + host + ", port=" + port + ", application="
-				+ application + ", loadbanlance=" + loadbanlance + ", consumerCheck=" + consumerCheck + ", properties="
-				+ properties + "]";
+				+ application + ", loadbanlance=" + loadbanlance + ", consumerCheck=" + consumerCheck + ", methods="
+				+ methods + ", properties=" + properties + "]";
 	}
 
 	public static void main(String args[]) {

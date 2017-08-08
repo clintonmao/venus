@@ -9,7 +9,7 @@ public interface VenusServiceDAO {
 
 	int addService(VenusServiceDO venusServiceDO) throws DAOException;
 
-	boolean updateService(VenusServiceDO venusServiceDO) throws DAOException;
+	boolean updateService(String methods, int id) throws DAOException;
 
 	/**
 	 * 
