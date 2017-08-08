@@ -9,8 +9,7 @@ import com.meidusa.venus.annotations.ExceptionCode;
 import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.backend.invoker.VenusInvokerTask;
 import com.meidusa.venus.backend.services.ServiceManager;
-import com.meidusa.venus.exception.*;
-import com.meidusa.venus.io.ServiceFilter;
+import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.util.ClasspathAnnotationScanner;
 import org.slf4j.Logger;
@@ -56,8 +55,6 @@ public class VenusRequestMessageHandler implements MessageHandler<VenusFrontendC
 
     @Autowired
     private ServiceManager serviceManager;
-
-    private ServiceFilter filter;
 
     private VenusInvokerTask venusInvokerHandler;
 

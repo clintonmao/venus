@@ -11,7 +11,7 @@ import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.annotations.ExceptionCode;
 import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
-import com.meidusa.venus.backend.interceptors.valid.ValidInterceptor;
+import com.meidusa.venus.backend.filter.valid.ValidFilter;
 import com.meidusa.venus.backend.invoker.callback.RemotingInvocationListener;
 import com.meidusa.venus.backend.invoker.support.*;
 import com.meidusa.venus.backend.invoker.sync.VenusEndpointInvocation;
@@ -28,7 +28,6 @@ import com.meidusa.venus.exception.*;
 import com.meidusa.venus.extension.athena.AthenaTransactionId;
 import com.meidusa.venus.extension.athena.delegate.AthenaReporterDelegate;
 import com.meidusa.venus.extension.athena.delegate.AthenaTransactionDelegate;
-import com.meidusa.venus.io.ServiceFilter;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
@@ -38,11 +37,9 @@ import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.io.support.VenusStatus;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
-import com.meidusa.venus.rpc.Interceptor;
+import com.meidusa.venus.rpc.Filter;
 import com.meidusa.venus.rpc.Result;
 import com.meidusa.venus.rpc.RpcException;
-import com.meidusa.venus.rpc.limit.ActivesLimitInterceptor;
-import com.meidusa.venus.rpc.limit.TpsLimitInterceptor;
 import com.meidusa.venus.service.monitor.MonitorRuntime;
 import com.meidusa.venus.util.*;
 import org.slf4j.Logger;
@@ -88,8 +85,6 @@ public class VenusInvokerTask implements Runnable{
     private RequestContext context;
 
     private EndpointInvocation.ResultType resultType;
-
-    private ServiceFilter filter;
 
     private byte[] traceID;
 
@@ -144,8 +139,8 @@ public class VenusInvokerTask implements Runnable{
             RpcInvocation invocation = buildInvocation(conn, data);
 
             //横切面操作，校验、认证、流控、降级
-            for(Interceptor interceptor:getInterceptors()){
-                Result result = interceptor.intercept(invocation);
+            for(Filter filter : getFilters()){
+                Result result = filter.filte(invocation);
                 if(result != null){
                     //TODO handleResponse();
                     return;
@@ -168,10 +163,10 @@ public class VenusInvokerTask implements Runnable{
      * 获取拦截器列表
      * @return
      */
-    Interceptor[] getInterceptors(){
-        return new Interceptor[]{
+    Filter[] getFilters(){
+        return new Filter[]{
                 //校验
-                new ValidInterceptor()
+                new ValidFilter()
         };
     }
 
@@ -246,13 +241,15 @@ public class VenusInvokerTask implements Runnable{
                 }
             }
             error.message = e.getMessage();
+            //无任何实现 delete by zhangzh 2017.8.8
+            /*
             if(filter != null){
                 filter.before(request);
             }
-            //postMessageBack(conn, routerPacket, request, error);
             if(filter != null){
                 filter.after(error);
             }
+            */
 
             if(request != null){
                 logPerformance(ep,request.traceId == null ? UUID.toString(PacketConstant.EMPTY_TRACE_ID) : UUID.toString(request.traceId),apiPacket.apiName,waitTime,0,conn.getHost(),finalSourceIp,request.clientId,request.clientRequestId,request.parameterMap, error);
@@ -315,7 +312,7 @@ public class VenusInvokerTask implements Runnable{
         //调用服务
         return invoke(conn, endpoint,
                 context, resultType,
-                filter, routerPacket,
+                routerPacket,
                 request, serializeType,
                 invocationListener, venusExceptionFactory,
                 data);
@@ -328,7 +325,6 @@ public class VenusInvokerTask implements Runnable{
      * @param endpoint
      * @param context
      * @param resultType
-     * @param filter
      * @param routerPacket
      * @param request
      * @param serializeType
@@ -337,10 +333,10 @@ public class VenusInvokerTask implements Runnable{
      * @param data
      */
     public Response invoke(VenusFrontendConnection conn, Endpoint endpoint,
-                                 RequestContext context, EndpointInvocation.ResultType resultType, ServiceFilter filter,
-                                 VenusRouterPacket routerPacket, SerializeServiceRequestPacket request,
-                                 short serializeType, RemotingInvocationListener<Serializable> invocationListener,
-                                 VenusExceptionFactory venusExceptionFactory, Tuple<Long, byte[]> data) {
+                           RequestContext context, EndpointInvocation.ResultType resultType,
+                           VenusRouterPacket routerPacket, SerializeServiceRequestPacket request,
+                           short serializeType, RemotingInvocationListener<Serializable> invocationListener,
+                           VenusExceptionFactory venusExceptionFactory, Tuple<Long, byte[]> data) {
 
         /*
         this.conn = conn;
@@ -388,9 +384,12 @@ public class VenusInvokerTask implements Runnable{
             ThreadLocalMap.put(VenusTracerUtil.REQUEST_TRACE_ID, traceID);
             ThreadLocalMap.put(ThreadLocalConstant.REQUEST_CONTEXT, context);
 
+            //无任何实现 delete by zhangzh 2017.8.8
+            /*
             if (filter != null) {
                 filter.before(request);
             }
+            */
 
             //调用服务实例
             result = doInvoke(context,endpoint);
@@ -466,9 +465,12 @@ public class VenusInvokerTask implements Runnable{
             }
             MonitorRuntime.getInstance().calculateAverage(endpoint.getService().getName(), endpoint.getName(), executeTime, false);
             PerformanceHandler.logPerformance(endpoint, request, queuedTime, executeTime, conn.getHost(), sourceIp, result);
+            //无任何实现 delete by zhangzh 2017.8.8
+            /*
             if (filter != null) {
                 filter.after(resultPacket);
             }
+            */
             ThreadLocalMap.remove(ThreadLocalConstant.REQUEST_CONTEXT);
             ThreadLocalMap.remove(VenusTracerUtil.REQUEST_TRACE_ID);
         }

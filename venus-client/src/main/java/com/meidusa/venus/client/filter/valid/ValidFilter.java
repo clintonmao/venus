@@ -1,6 +1,6 @@
-package com.meidusa.venus.client.interceptor.valid;
+package com.meidusa.venus.client.filter.valid;
 
-import com.meidusa.venus.rpc.Interceptor;
+import com.meidusa.venus.rpc.Filter;
 import com.meidusa.venus.rpc.Invocation;
 import com.meidusa.venus.rpc.Result;
 import com.meidusa.venus.rpc.RpcException;
@@ -13,12 +13,12 @@ import java.lang.reflect.Method;
  * 校验处理
  * Created by Zhangzhihua on 2017/8/1.
  */
-public class ValidInterceptor implements Interceptor {
+public class ValidFilter implements Filter {
 
-    private static Logger logger = LoggerFactory.getLogger(ValidInterceptor.class);
+    private static Logger logger = LoggerFactory.getLogger(ValidFilter.class);
 
     @Override
-    public Result intercept(Invocation invocation) throws RpcException {
+    public Result filte(Invocation invocation) throws RpcException {
         //endpoint定义校验
         if(invocation.getEndpoint() == null){
             Method method = invocation.getMethod();

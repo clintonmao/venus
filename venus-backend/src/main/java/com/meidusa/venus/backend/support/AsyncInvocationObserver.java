@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.support.observer;
+package com.meidusa.venus.backend.support;
 
 import com.meidusa.venus.backend.services.EndpointInvocation;
 import com.meidusa.venus.backend.services.InvocationObserver;

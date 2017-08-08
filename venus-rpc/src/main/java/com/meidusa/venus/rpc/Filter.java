@@ -2,10 +2,10 @@ package com.meidusa.venus.rpc;
 
 
 /**
- * interceptor
+ * filter
  * Created by Zhangzhihua on 2017/8/1.
  */
-public interface Interceptor {
+public interface Filter {
 
     /**
      * 横切面接口
@@ -14,5 +14,5 @@ public interface Interceptor {
      * 若返回值为空，则表示不需要返回继续后续流程
      * @throws RpcException
      */
-    Result intercept(Invocation invocation) throws RpcException;
+    Result filte(Invocation invocation) throws RpcException;
 }

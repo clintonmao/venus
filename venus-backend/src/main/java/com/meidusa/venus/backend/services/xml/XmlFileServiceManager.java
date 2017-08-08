@@ -256,12 +256,12 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                     interceptorConfigs = endpointConfig.getInterceptorConfigs();
                 }
 
-                // ignore 'null' or empty intercept stack name
+                // ignore 'null' or empty filte stack name
                 if (!StringUtil.isEmpty(id) && !"null".equalsIgnoreCase(id)) {
                     List<InterceptorMapping> list = new ArrayList<InterceptorMapping>();
                     InterceptorStackConfig stackConfig = interceptorStatcks.get(id);
                     if (stackConfig == null) {
-                        throw new VenusConfigException("interceptor stack not found with name=" + id);
+                        throw new VenusConfigException("filter stack not found with name=" + id);
                     }
                     InterceptorStack stack = new InterceptorStack();
                     stack.setName(stackConfig.getName());
@@ -306,13 +306,13 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
             List<InterceptorMapping> result, Map<String, InterceptorConfig> configs, Class<?> clazz, String ep) throws VenusConfigException {
         InterceptorStackConfig stackConfig = interceptorStatcks.get(id);
         if (stackConfig == null) {
-            throw new VenusConfigException("interceptor stack not found with name=" + id);
+            throw new VenusConfigException("filter stack not found with name=" + id);
         }
         for (Object s : stackConfig.getInterceptors()) {
             if (s instanceof InterceptorRef) {
                 InterceptorMapping mapping = interceptors.get(((InterceptorRef) s).getName());
                 if (mapping == null) {
-                    throw new VenusConfigException("interceptor not found with name=" + s);
+                    throw new VenusConfigException("filter not found with name=" + s);
                 }
                 Interceptor interceptor = mapping.getInterceptor();
                 if (configs != null) {
@@ -327,7 +327,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
             } else if (s instanceof InterceptorStackRef) {
                 loadInterceptors(interceptorStatcks, interceptors, ((InterceptorStackRef) s).getName(), result, configs, clazz, ep);
             } else {
-                throw new VenusConfigException("unknow interceptor config with name=" + s);
+                throw new VenusConfigException("unknow filter config with name=" + s);
             }
         }
     }

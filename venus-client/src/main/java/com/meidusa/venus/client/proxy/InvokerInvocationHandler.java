@@ -7,12 +7,12 @@ import com.meidusa.venus.Address;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
-import com.meidusa.venus.client.interceptor.valid.ValidInterceptor;
+import com.meidusa.venus.client.filter.valid.ValidFilter;
 import com.meidusa.venus.rpc.*;
 import com.meidusa.venus.client.cluster.FailoverClusterInvoker;
 import com.meidusa.venus.exception.VenusExceptionFactory;
-import com.meidusa.venus.rpc.limit.ActivesLimitInterceptor;
-import com.meidusa.venus.rpc.limit.TpsLimitInterceptor;
+import com.meidusa.venus.rpc.limit.ActivesLimitFilter;
+import com.meidusa.venus.rpc.limit.TpsLimitFilter;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.metainfo.EndpointParameterUtil;
 import com.meidusa.venus.rpc.mock.ReturnMockInvoker;
@@ -79,8 +79,8 @@ public class InvokerInvocationHandler implements InvocationHandler {
         Invocation invocation = buildInvocation(proxy,method,args);
 
         //前置处理
-        for(Interceptor interceptor:getInterceptors()){
-            Result result = interceptor.intercept(invocation);
+        for(Filter filter : getFilters()){
+            Result result = filter.filte(invocation);
             if(result != null){
                 //TODO 异常处理
                 return result.getObject();
@@ -111,14 +111,14 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * 获取interceptors TODO 初始化处理
      * @return
      */
-    Interceptor[] getInterceptors(){
-        return new Interceptor[]{
+    Filter[] getFilters(){
+        return new Filter[]{
                 //校验
-                new ValidInterceptor(),
+                new ValidFilter(),
                 //并发数流控
-                new ActivesLimitInterceptor(),
+                new ActivesLimitFilter(),
                 //TPS控制
-                new TpsLimitInterceptor()
+                new TpsLimitFilter()
         };
     }
 

@@ -99,7 +99,7 @@ public class VenusEndpointInvocation implements EndpointInvocation {
 
         if (interceptors != null && interceptors.hasNext()) {
             final InterceptorMapping interceptor = interceptors.next();
-            String interceptorMsg = "interceptor: " + interceptor.getName();
+            String interceptorMsg = "filter: " + interceptor.getName();
             UtilTimerStack.push(interceptorMsg);
             try {
                 result = interceptor.getInterceptor().intercept(VenusEndpointInvocation.this);
@@ -120,14 +120,20 @@ public class VenusEndpointInvocation implements EndpointInvocation {
                         this.type = ResultType.NOTIFY;
                     }
                 }
+                //无任何实现 delete by zhangzh 2017.8.8
+                /*
                 for (InvocationObserver observer : observerList) {
                     observer.beforeInvoke(this, getContext());
                 }
+                */
                 Object instance = this.getEndpoint().getService().getInstance();
                 result = getEndpoint().getMethod().invoke(instance, parameters);
+                //delete by zhangzh 2017.8.8
+                /*
                 for (InvocationObserver observer : observerList) {
                     observer.afterInvoke(this, getContext());
                 }
+                */
             } catch (IllegalArgumentException e) {
                 throw new ServiceInvokeException(e);
             } catch (InvocationTargetException e) {

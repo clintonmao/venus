@@ -11,7 +11,6 @@ import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.backend.services.ServiceManager;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.exception.VenusExceptionFactory;
-import com.meidusa.venus.io.ServiceFilter;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.support.VenusStatus;
@@ -41,8 +40,6 @@ public class VenusMessageHandler implements MessageHandler<VenusFrontendConnecti
     private boolean executorProtected;
 
     private boolean useThreadLocalExecutor;
-
-    private ServiceFilter filter;
 
     private Executor executor;
 
