@@ -16,7 +16,7 @@ public class VenusServiceConfigDO implements Serializable {
 
 	private Integer id;
 
-	private String type;
+	private int type;
 
 	private String config;
 
@@ -38,11 +38,11 @@ public class VenusServiceConfigDO implements Serializable {
 		this.id = id;
 	}
 
-	public String getType() {
+	public int getType() {
 		return type;
 	}
 
-	public void setType(String type) {
+	public void setType(int type) {
 		this.type = type;
 	}
 

@@ -45,6 +45,7 @@ public class SpringTestCase extends AbstractJUnit4SpringContextTests {
 		u.setPort(16800);
 		u.setProtocol("venus");
 		u.setLoadbanlance("random");
+		u.setMethods("getOrderById[java.lang.String],selectAllOrder[java.lang.String]");
 
 		mysqlRegister.registe(u);
 
@@ -64,6 +65,7 @@ public class SpringTestCase extends AbstractJUnit4SpringContextTests {
 		u.setPort(0);
 		u.setProtocol("subscrible");
 		u.setLoadbanlance("random");
+		u.setMethods("getOrderById[java.lang.String],selectAllOrder[java.lang.String]");
 
 		u.setConsumerCheck(true);
 		mysqlRegister.subscrible(u);
@@ -84,6 +86,7 @@ public class SpringTestCase extends AbstractJUnit4SpringContextTests {
 		u.setPort(0);
 		u.setProtocol("subscrible");
 		u.setLoadbanlance("random");
+		u.setMethods("getOrderById[java.lang.String],selectAllOrder[java.lang.String]");
 
 		u.setConsumerCheck(true);
 		mysqlRegister.subscrible(u);
