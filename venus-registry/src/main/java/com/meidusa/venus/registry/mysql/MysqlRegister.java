@@ -245,10 +245,8 @@ public class MysqlRegister implements Register, DisposableBean {
 		try {
 			VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
 					url.getInterfaceName());
-			if (null != service && null != service.getRegisteType()
-					&& service.getRegisteType() == RegisteConstant.AUTO_REGISTE) {// 自动注册的逻辑删除,手动注册的不更新
-				String localIp = NetworkInterfaceManager.INSTANCE.getLocalHostAddress();
-				VenusServerDO server = venusServerDAO.getServer(localIp, 0);
+			if (null != service) {
+				VenusServerDO server = venusServerDAO.getServer(url.getHost(), 0);
 				if (null != server) {
 					VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(server.getId(),
 							service.getId(), RegisteConstant.CONSUMER);

@@ -45,12 +45,13 @@ public class SpringTestCase extends AbstractJUnit4SpringContextTests {
 		u.setPort(16800);
 		u.setProtocol("venus");
 		u.setLoadbanlance("random");
+		u.setMethods("getOrderById[java.lang.String],selectAllOrder[java.lang.String]");
 
 		mysqlRegister.registe(u);
 
 	}
 
-	// @Test
+	@Test
 	public void testSubscrible() {
 		URL u = new URL();
 		u.setServiceName("orderService");
@@ -64,14 +65,58 @@ public class SpringTestCase extends AbstractJUnit4SpringContextTests {
 		u.setPort(0);
 		u.setProtocol("subscrible");
 		u.setLoadbanlance("random");
+		u.setMethods("getOrderById[java.lang.String],selectAllOrder[java.lang.String]");
 
 		u.setConsumerCheck(true);
 		mysqlRegister.subscrible(u);
 
 	}
 
-	// @Test
+	@Test
 	public void testLookUp() {
+		URL u = new URL();
+		u.setServiceName("orderService");
+		u.setInterfaceName("com.chexiang.order.OrderService");
+		u.setVersion("1.0.0");
+		
+		u.setPath("com.chexiang.order.OrderService/orderService");
+		u.setApplication("test-order-domain");
+		u.setHost("192.168.1.100");
+		
+		u.setPort(0);
+		u.setProtocol("subscrible");
+		u.setLoadbanlance("random");
+		u.setMethods("getOrderById[java.lang.String],selectAllOrder[java.lang.String]");
+		
+		u.setConsumerCheck(true);
+		mysqlRegister.subscrible(u);
+		
+		ServiceDefinition lookup = mysqlRegister.lookup(u);
+		System.out.println(lookup);
+		
+	}
+	
+	@Test
+	public void testUnregiste() {
+		URL u = new URL();
+		u.setServiceName("orderService");
+		u.setInterfaceName("com.chexiang.order.OrderService");
+		u.setVersion("1.0.0");
+		
+		u.setPath("com.chexiang.order.OrderService/orderService");
+		u.setApplication("test-order-domain");
+		u.setHost("192.168.0.1");
+		
+		u.setPort(16800);
+		u.setProtocol("venus");
+		u.setLoadbanlance("random");
+		u.setMethods("getOrderById[java.lang.String],selectAllOrder[java.lang.String]");
+		mysqlRegister.unregiste(u);
+		
+	}
+	
+	@Test
+	public void testUnsubscrible() {
 		URL u = new URL();
 		u.setServiceName("orderService");
 		u.setInterfaceName("com.chexiang.order.OrderService");
@@ -84,12 +129,10 @@ public class SpringTestCase extends AbstractJUnit4SpringContextTests {
 		u.setPort(0);
 		u.setProtocol("subscrible");
 		u.setLoadbanlance("random");
+		u.setMethods("getOrderById[java.lang.String],selectAllOrder[java.lang.String]");
 
 		u.setConsumerCheck(true);
-		mysqlRegister.subscrible(u);
-
-		ServiceDefinition lookup = mysqlRegister.lookup(u);
-		System.out.println(lookup);
+		mysqlRegister.unsubscrible(u);
 
 	}
 

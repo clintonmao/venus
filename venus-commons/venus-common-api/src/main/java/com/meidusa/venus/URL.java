@@ -8,7 +8,7 @@ import org.apache.commons.lang.StringUtils;
 
 /**
  * 各种地址抽象URL，如
- * 服务注册地址,venus://com.chexiang.order.OrderService/orderService?version=1.0.0&host=192.168.1.1&port=9000&methods=getOrderById,selectAllOrder
+ * 服务注册地址,venus://com.chexiang.order.OrderService/orderService?version=1.0.0&host=192.168.1.1&port=9000&methods=getOrderById[java.lang.String],selectAllOrder[java.lang.String]
  * 服务订阅地址,subscrible://com.chexiang.order.OrderService/orderService?version=1.0.0&host=192.168.1.2
  * Created by Zhangzhihua on 2017/7/27.
  */
