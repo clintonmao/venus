@@ -3,7 +3,6 @@ package com.meidusa.venus.backend.invoker;
 import com.meidusa.fastjson.JSON;
 import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.toolkit.common.util.Tuple;
-import com.meidusa.toolkit.net.Connection;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.annotations.ExceptionCode;
 import com.meidusa.venus.annotations.RemoteException;
@@ -26,9 +25,7 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.io.support.VenusStatus;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
-import com.meidusa.venus.rpc.Filter;
-import com.meidusa.venus.rpc.Result;
-import com.meidusa.venus.rpc.RpcException;
+import com.meidusa.venus.rpc.*;
 import com.meidusa.venus.service.monitor.MonitorRuntime;
 import com.meidusa.venus.util.*;
 import org.slf4j.Logger;
@@ -44,7 +41,7 @@ import java.util.concurrent.Executor;
  * venus服务调用代理，除调用服务实现，还要处理校验、认证、流控、降级相关功能
  * Created by Zhangzhihua on 2017/8/2.
  */
-public class VenusInvokerProxy{
+public class VenusInvokerProxy implements Invoker{
 
     private static Logger logger = LoggerFactory.getLogger(VenusInvokerProxy.class);
 
@@ -111,42 +108,30 @@ public class VenusInvokerProxy{
         }
     }
 
-//    public VenusInvokerProxy(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
-//        this.conn = conn;
-//        this.data = data;
-//    }
-//
-//    @Override
-//    public void run() {
-//        handle(this.conn,this.data);
-//    }
-//
-//    public void handle(VenusFrontendConnection conn, Tuple<Long, byte[]> data) {
-//        try {
-//            //解析请求对象
-//            RpcInvocation invocation = buildInvocation(conn, data);
-//
-//            Result result = doHandle(conn, invocation);
-//
-//            handleResponse(context,null,null,null,false,null);
-//        } catch (Exception e) {
-//            //TODO 处理异常
-//            //handleResponse(context,null,null,null,false,null);
-//        }
-//    }
+    @Override
+    public void init() throws RpcException {
 
-    public Result invoke(VenusFrontendConnection conn, RpcInvocation invocation) {
+    }
+
+    @Override
+    public Result invoke(Invocation invocation) throws RpcException {
+        RpcInvocation rpcInvocation = (RpcInvocation)invocation;
         //横切面操作，校验、认证、流控、降级
         for(Filter filter : getFilters()){
-            Result result = filter.filte(invocation);
+            Result result = filter.filte(rpcInvocation);
             if(result != null){
                 return result;
             }
         }
 
         //处理调用请求 TODO 统一或适配result/response
-        Response result = doInvoke(conn,invocation);
+        Response result = doInvoke(rpcInvocation);
         return null;
+    }
+
+    @Override
+    public void destroy() throws RpcException {
+
     }
 
     /**
@@ -160,113 +145,11 @@ public class VenusInvokerProxy{
         };
     }
 
-//    /**
-//     * 构造请求对象 TODO 统一接口invocation定义
-//     * @return
-//     */
-//    RpcInvocation buildInvocation(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
-//        SerializeServiceRequestPacket requestPacket = parseRequest(conn, data);
-//        //TODO 构造invocation
-//        return null;
-//    }
-//
-//    /**
-//     * 解析请求消息
-//     * @param conn
-//     * @param data
-//     * @return
-//     */
-//    SerializeServiceRequestPacket parseRequest(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
-//        //TODO 代码复用
-//        final long waitTime = TimeUtil.currentTimeMillis() - data.left;
-//        byte[] message = data.right;
-//        int type = AbstractServicePacket.getType(message);
-//        VenusRouterPacket routerPacket = null;
-//        byte serializeType = conn.getSerializeType();
-//        String sourceIp = conn.getHost();
-//        if (PacketConstant.PACKET_TYPE_ROUTER == type) {
-//            routerPacket = new VenusRouterPacket();
-//            routerPacket.original = message;
-//            routerPacket.init(message);
-//            type = AbstractServicePacket.getType(routerPacket.data);
-//            message = routerPacket.data;
-//            serializeType = routerPacket.serializeType;
-//            sourceIp = InetAddressUtil.intToAddress(routerPacket.srcIP);
-//        }
-//        final byte packetSerializeType = serializeType;
-//        final String finalSourceIp = sourceIp;
-//
-//        SerializeServiceRequestPacket request = null;
-//        Endpoint ep = null;
-//        ServiceAPIPacket apiPacket = new ServiceAPIPacket();
-//        try {
-//            ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
-//            apiPacket.init(packetBuffer);
-//
-//            ep = getServiceManager().getEndpoint(apiPacket.apiName);
-//
-//            Serializer serializer = SerializerFactory.getSerializer(packetSerializeType);
-//            request = new SerializeServiceRequestPacket(serializer, ep.getParameterTypeDict());
-//
-//            packetBuffer.setPosition(0);
-//            request.init(packetBuffer);
-//            VenusTracerUtil.logReceive(request.traceId, request.apiName, JSON.toJSONString(request.parameterMap,JSON_FEATURE) );
-//
-//            return request;
-//        } catch (Exception e) {
-//            ErrorPacket error = new ErrorPacket();
-//            AbstractServicePacket.copyHead(apiPacket, error);
-//            if (e instanceof CodedException || codeMap.containsKey(e.getClass())) {
-//                if(e instanceof CodedException){
-//                    CodedException codeEx = (CodedException) e;
-//                    error.errorCode = codeEx.getErrorCode();
-//                }else{
-//                    error.errorCode = codeMap.get(e.getClass());
-//                }
-//            } else {
-//                if (e instanceof JSONException || e instanceof SerializeException) {
-//                    error.errorCode = VenusExceptionCodeConstant.REQUEST_ILLEGAL;
-//                } else {
-//                    error.errorCode = VenusExceptionCodeConstant.UNKNOW_EXCEPTION;
-//                }
-//            }
-//            error.message = e.getMessage();
-//            //无任何实现 delete by zhangzh 2017.8.8
-//            /*
-//            if(filter != null){
-//                filter.before(request);
-//            }
-//            if(filter != null){
-//                filter.after(error);
-//            }
-//            */
-//
-//            if(request != null){
-//                logPerformance(ep,request.traceId == null ? UUID.toString(PacketConstant.EMPTY_TRACE_ID) : UUID.toString(request.traceId),apiPacket.apiName,waitTime,0,conn.getHost(),finalSourceIp,request.clientId,request.clientRequestId,request.parameterMap, error);
-//
-//                if (e instanceof VenusExceptionLevel) {
-//                    if (((VenusExceptionLevel) e).getLevel() != null) {
-//                        logDependsOnLevel(((VenusExceptionLevel) e).getLevel(), logger, e.getMessage() + " client:{clientID=" + apiPacket.clientId
-//                                + ",ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + finalSourceIp + ", apiName=" + apiPacket.apiName
-//                                + "}", e);
-//                    }
-//                } else {
-//                    logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + finalSourceIp + ", apiName="+ apiPacket.apiName + "]", e);
-//                }
-//            }else{
-//                logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + finalSourceIp + ", apiName="+ apiPacket.apiName + "]", e);
-//            }
-//
-//            throw new ErrorPacketWrapperException(error);
-//        }
-//
-//    }
-
     /**
      * invoke
      * @return
      */
-    public Response doInvoke(VenusFrontendConnection conn, RpcInvocation invocation) throws RpcException{
+    public Response doInvoke(RpcInvocation invocation) throws RpcException{
         //获取调用信息
         Tuple<Long, byte[]> data = invocation.getData();
         byte[] message = invocation.getMessage();
@@ -639,119 +522,6 @@ public class VenusInvokerProxy{
         }
     }
 
-
-//    /**
-//     * 处理响应结果
-//     * @param context
-//     * @param endpoint
-//     * @param responseHandler
-//     * @param resultPacket
-//     * @param athenaFlag
-//     * @throws Exception
-//     */
-//    void handleResponse(RequestContext context, Endpoint endpoint, ResponseHandler responseHandler, AbstractServicePacket resultPacket, boolean athenaFlag,Response result) throws Exception{
-//        if (resultType == EndpointInvocation.ResultType.RESPONSE) {
-//            handleResponseByResponse(context,endpoint,responseHandler,resultPacket,athenaFlag, result);
-//        } else if (resultType == EndpointInvocation.ResultType.OK) {
-//            handleResponseByOK(context,endpoint,responseHandler,resultPacket,athenaFlag,result);
-//        } else if (resultType == EndpointInvocation.ResultType.NOTIFY) {
-//            handleResponseByNotify(context,endpoint,responseHandler,resultPacket,athenaFlag,result);
-//        }
-//    }
-//
-//    /**
-//     * 处理response同步类型调用
-//     * @param context
-//     * @param endpoint
-//     * @param result
-//     */
-//    void handleResponseByResponse(RequestContext context, Endpoint endpoint, ResponseHandler responseHandler, AbstractServicePacket resultPacket, boolean athenaFlag, Response result) throws Exception{
-//        if (result.getErrorCode() == 0) {
-//            Serializer serializer = SerializerFactory.getSerializer(serializeType);
-//            ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, endpoint.getMethod()
-//                    .getGenericReturnType());
-//            AbstractServicePacket.copyHead(request, response);
-//            response.result = result.getResult();
-//            resultPacket = response;
-//            responseHandler.postMessageBack(conn, routerPacket, request, response, athenaFlag);
-//        }else{
-//            ErrorPacket error = new ErrorPacket();
-//            AbstractServicePacket.copyHead(request, error);
-//            error.errorCode = result.getErrorCode();
-//            error.message = result.getErrorMessage();
-//            Throwable throwable = result.getException();
-//            if (throwable != null) {
-//                Serializer serializer = SerializerFactory.getSerializer(serializeType);
-//                Map<String, PropertyDescriptor> mpd = Utils.getBeanPropertyDescriptor(throwable.getClass());
-//                Map<String, Object> additionalData = new HashMap<String, Object>();
-//
-//                for (Map.Entry<String, PropertyDescriptor> entry : mpd.entrySet()) {
-//                    additionalData.put(entry.getKey(), entry.getValue().getReadMethod().invoke(throwable));
-//                }
-//                error.additionalData = serializer.encode(additionalData);
-//            }
-//            resultPacket = error;
-//            responseHandler.postMessageBack(conn, routerPacket, request, error, athenaFlag);
-//        }
-//    }
-//
-//    /**
-//     * 处理OK类型调用
-//     * @param context
-//     * @param endpoint
-//     */
-//    void handleResponseByOK(RequestContext context, Endpoint endpoint, ResponseHandler responseHandler, AbstractServicePacket resultPacket, boolean athenaFlag,Response result) throws Exception{
-//        if (result.getErrorCode() == 0) {
-//            OKPacket ok = new OKPacket();
-//            AbstractServicePacket.copyHead(request, ok);
-//            resultPacket = ok;
-//            responseHandler.postMessageBack(conn, routerPacket, request, ok, athenaFlag);
-//        }else{
-//            ErrorPacket error = new ErrorPacket();
-//            AbstractServicePacket.copyHead(request, error);
-//            error.errorCode = result.getErrorCode();
-//            error.message = result.getErrorMessage();
-//            Throwable throwable = result.getException();
-//            if (throwable != null) {
-//                Serializer serializer = SerializerFactory.getSerializer(serializeType);
-//                Map<String, PropertyDescriptor> mpd = Utils.getBeanPropertyDescriptor(throwable.getClass());
-//                Map<String, Object> additionalData = new HashMap<String, Object>();
-//
-//                for (Map.Entry<String, PropertyDescriptor> entry : mpd.entrySet()) {
-//                    additionalData.put(entry.getKey(), entry.getValue().getReadMethod().invoke(throwable));
-//                }
-//                error.additionalData = serializer.encode(additionalData);
-//            }
-//            resultPacket = error;
-//            responseHandler.postMessageBack(conn, routerPacket, request, error, athenaFlag);
-//        }
-//    }
-//
-//    /**
-//     * 处理listener调用
-//     * @param context
-//     * @param endpoint
-//     * @param responseHandler
-//     * @param resultPacket
-//     * @param athenaFlag
-//     * @throws Exception
-//     */
-//    void handleResponseByNotify(RequestContext context, Endpoint endpoint, ResponseHandler responseHandler, AbstractServicePacket resultPacket, boolean athenaFlag,Response result) throws Exception{
-//        if (result.getErrorCode() == 0) {
-//            if (invocationListener != null && !invocationListener.isResponsed()) {
-//                invocationListener.onException(new ServiceNotCallbackException("Server side not call back error"));
-//            }
-//        }else{
-//            if (invocationListener != null && !invocationListener.isResponsed()) {
-//                if (result.getException() == null) {
-//                    invocationListener.onException(new DefaultVenusException(result.getErrorCode(), result.getErrorMessage()));
-//                } else {
-//                    invocationListener.onException(result.getException());
-//                }
-//            }
-//        }
-//    }
-
     protected void logPerformance(Endpoint endpoint,String traceId,String apiName,long queuedTime,
                                   long executTime,String remoteIp,String sourceIP, long clientId,long requestId,
                                   Map<String,Object > parameterMap,Object result){
@@ -879,15 +649,6 @@ public class VenusInvokerProxy{
                 break;
             default:
                 break;
-        }
-    }
-
-    public void postMessageBack(Connection conn, VenusRouterPacket routerPacket, AbstractServicePacket source, AbstractServicePacket result) {
-        if (routerPacket == null) {
-            conn.write(result.toByteBuffer());
-        } else {
-            routerPacket.data = result.toByteArray();
-            conn.write(routerPacket.toByteBuffer());
         }
     }
 

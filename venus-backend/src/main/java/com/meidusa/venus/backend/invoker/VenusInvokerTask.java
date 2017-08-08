@@ -123,13 +123,20 @@ public class VenusInvokerTask implements Runnable{
         handle(this.conn,this.data);
     }
 
+    /**
+     * 处理远程调用请求
+     * @param conn
+     * @param data
+     */
     public void handle(VenusFrontendConnection conn, Tuple<Long, byte[]> data) {
         try {
             //解析请求对象
             RpcInvocation invocation = buildInvocation(conn, data);
 
-            Result result = venusInvokerProxy.invoke(conn,invocation);
+            //调用服务
+            Result result = venusInvokerProxy.invoke(invocation);
 
+            //输出响应
             handleResponse(context,null,null,null,false,null);
         } catch (Exception e) {
             //TODO 处理异常
@@ -241,161 +248,6 @@ public class VenusInvokerTask implements Runnable{
     }
 
 
-//    /**
-//     * 根据方法定义获取返回类型
-//     * @param endpoint
-//     * @return
-//     */
-//    EndpointInvocation.ResultType getResultType(Endpoint endpoint){
-//        EndpointInvocation.ResultType resultType = EndpointInvocation.ResultType.RESPONSE;
-//        if (endpoint.isVoid()) {
-//            resultType = EndpointInvocation.ResultType.OK;
-//            if (endpoint.isAsync()) {
-//                resultType = EndpointInvocation.ResultType.NONE;
-//            }
-//
-//            for (Class clazz : endpoint.getMethod().getParameterTypes()) {
-//                if (InvocationListener.class.isAssignableFrom(clazz)) {
-//                    resultType = EndpointInvocation.ResultType.NOTIFY;
-//                    break;
-//                }
-//            }
-//        }
-//        return resultType;
-//    }
-//
-//    /**
-//     * 初始化参数信息
-//     * @param request
-//     * @param invocationListener
-//     * @param conn
-//     * @param routerPacket
-//     */
-//    void initParamsAndInvocationListener(SerializeServiceRequestPacket request,RemotingInvocationListener<Serializable> invocationListener,VenusFrontendConnection conn,VenusRouterPacket routerPacket){
-//        for (Map.Entry<String, Object> entry : request.parameterMap.entrySet()) {
-//            if (entry.getValue() instanceof ReferenceInvocationListener) {
-//                invocationListener = new RemotingInvocationListener<Serializable>(conn, (ReferenceInvocationListener) entry.getValue(), request,
-//                        routerPacket);
-//                request.parameterMap.put(entry.getKey(), invocationListener);
-//            }
-//        }
-//    }
-
-//    /**
-//     * 校验请求有效性
-//     * @param conn
-//     * @param invocation
-//     * @param resultType
-//     * @param invocationListener
-//     * @return
-//     */
-//    void validRequest(VenusFrontendConnection conn, RpcInvocation invocation, EndpointInvocation.ResultType resultType, RemotingInvocationListener<Serializable> invocationListener){
-//        Tuple<Long, byte[]> data = invocation.getData();
-//        byte[] message = invocation.getMessage();
-//        byte packetSerializeType = invocation.getPacketSerializeType();
-//        long waitTime = invocation.getWaitTime();
-//        String finalSourceIp = invocation.getFinalSourceIp();
-//        VenusRouterPacket routerPacket = invocation.getRouterPacket();
-//        byte serializeType = invocation.getSerializeType();
-//        SerializeServiceRequestPacket request = invocation.getServiceRequestPacket();
-//        final String apiName = request.apiName;
-//        final Endpoint endpoint = invocation.getEp();
-//
-//        checkVersion(endpoint, request);
-//        checkActive(endpoint, request);
-//        checkTimeout(conn,endpoint, request, waitTime);
-//        /*
-//        __TIMEOUT:{
-//            if (errorPacket != null) {
-//                if (resultType == EndpointInvocation.ResultType.NOTIFY) {
-//                    if(isTimeout){
-//                        break __TIMEOUT;
-//                    }
-//                    if (invocationListener != null) {
-//                        invocationListener.onException(new ServiceVersionNotAllowException(errorPacket.message));
-//                    } else {
-//                        postMessageBack(conn, routerPacket, request, errorPacket);
-//                    }
-//                } else {
-//                    postMessageBack(conn, routerPacket, request, errorPacket);
-//                }
-//                if(filter != null){
-//                    filter.before(request);
-//                }
-//                logPerformance(endpoint,UUID.toString(request.traceId),apiName,waitTime,0,conn.getHost(),finalSourceIp,request.clientId,request.clientRequestId,request.parameterMap, errorPacket);
-//                if(filter != null){
-//                    filter.after(errorPacket);
-//                }
-//            }
-//        }
-//        */
-//
-//    }
-//
-//    /**
-//     * 校验超时时间
-//     * @param conn
-//     * @param endpoint
-//     * @param request
-//     * @param waitTime
-//     */
-//    void checkTimeout(VenusFrontendConnection conn, Endpoint endpoint, AbstractServiceRequestPacket request, long waitTime) {
-//        if (waitTime > endpoint.getTimeWait()) {
-//            ErrorPacket error = new ErrorPacket();
-//            AbstractServicePacket.copyHead(request, error);
-//            error.errorCode = VenusExceptionCodeConstant.INVOCATION_ABORT_WAIT_TIMEOUT;
-//            error.message = String.format(TIMEOUT, request.apiName,conn.getLocalHost(),waitTime);
-//            throw new ErrorPacketWrapperException(error);
-//        }
-//    }
-//
-//    /**
-//     * 校验开启状态
-//     * @param endpoint
-//     * @param request
-//     */
-//    void checkActive(Endpoint endpoint, AbstractServiceRequestPacket request) {
-//        Service service = endpoint.getService();
-//        if (!service.isActive() || !endpoint.isActive()) {
-//            ErrorPacket error = new ErrorPacket();
-//            AbstractServicePacket.copyHead(request, error);
-//            error.errorCode = VenusExceptionCodeConstant.SERVICE_INACTIVE_EXCEPTION;
-//            StringBuffer buffer = new StringBuffer();
-//            buffer.append("Service=").append(endpoint.getService().getName());
-//            if (!service.isActive()) {
-//                buffer.append(" is not active");
-//            }
-//
-//            if (!endpoint.isActive()) {
-//                buffer.append(", endpoint=").append(endpoint.getName()).append(" is not active");
-//            }
-//
-//            error.message = buffer.toString();
-//            throw new ErrorPacketWrapperException(error);
-//        }
-//        return;
-//    }
-//
-//    /**
-//     * 校验版本号
-//     * @param endpoint
-//     * @param request
-//     */
-//    void checkVersion(Endpoint endpoint, AbstractServiceRequestPacket request) {
-//        Service service = endpoint.getService();
-//
-//        // service version check
-//        Range range = service.getVersionRange();
-//        if (range == null || range.contains(request.serviceVersion)) {
-//            return;
-//        } else {
-//            ErrorPacket error = new ErrorPacket();
-//            AbstractServicePacket.copyHead(request, error);
-//            error.errorCode = VenusExceptionCodeConstant.SERVICE_VERSION_NOT_ALLOWD_EXCEPTION;
-//            error.message = "Service=" + endpoint.getService().getName() + ",version=" + request.serviceVersion + " not allow";
-//            throw new ErrorPacketWrapperException(error);
-//        }
-//    }
 
 
     /**
@@ -507,6 +359,15 @@ public class VenusInvokerTask implements Runnable{
                     invocationListener.onException(result.getException());
                 }
             }
+        }
+    }
+
+    public void postMessageBack(Connection conn, VenusRouterPacket routerPacket, AbstractServicePacket source, AbstractServicePacket result) {
+        if (routerPacket == null) {
+            conn.write(result.toByteBuffer());
+        } else {
+            routerPacket.data = result.toByteArray();
+            conn.write(routerPacket.toByteBuffer());
         }
     }
 
@@ -637,15 +498,6 @@ public class VenusInvokerTask implements Runnable{
                 break;
             default:
                 break;
-        }
-    }
-
-    public void postMessageBack(Connection conn, VenusRouterPacket routerPacket, AbstractServicePacket source, AbstractServicePacket result) {
-        if (routerPacket == null) {
-            conn.write(result.toByteBuffer());
-        } else {
-            routerPacket.data = result.toByteArray();
-            conn.write(routerPacket.toByteBuffer());
         }
     }
 
