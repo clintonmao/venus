@@ -200,8 +200,8 @@ public class VenusInvokerProxy implements Invoker{
 
             //无任何实现 delete by zhangzh 2017.8.8
             /*
-            if (filter != null) {
-                filter.before(request);
+            if (filte != null) {
+                filte.before(request);
             }
             */
 
@@ -281,8 +281,8 @@ public class VenusInvokerProxy implements Invoker{
             PerformanceHandler.logPerformance(endpoint, request, queuedTime, executeTime, invocation.getHost(), sourceIp, result);
             //无任何实现 delete by zhangzh 2017.8.8
             /*
-            if (filter != null) {
-                filter.after(resultPacket);
+            if (filte != null) {
+                filte.after(resultPacket);
             }
             */
             ThreadLocalMap.remove(ThreadLocalConstant.REQUEST_CONTEXT);

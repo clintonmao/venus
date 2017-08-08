@@ -66,11 +66,13 @@ public class VenusEndpointInvocation implements EndpointInvocation {
         this.context = context;
     }
 
+    /*
     public void addObserver(InvocationObserver observer) {
         if (!observerList.contains(observer)) {
             observerList.add(observer);
         }
     }
+    */
 
     @Override
     public RequestContext getContext() {
@@ -99,7 +101,7 @@ public class VenusEndpointInvocation implements EndpointInvocation {
 
         if (interceptors != null && interceptors.hasNext()) {
             final InterceptorMapping interceptor = interceptors.next();
-            String interceptorMsg = "filter: " + interceptor.getName();
+            String interceptorMsg = "filte: " + interceptor.getName();
             UtilTimerStack.push(interceptorMsg);
             try {
                 result = interceptor.getInterceptor().intercept(VenusEndpointInvocation.this);

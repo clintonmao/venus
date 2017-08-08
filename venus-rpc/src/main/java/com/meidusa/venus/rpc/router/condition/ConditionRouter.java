@@ -13,7 +13,7 @@ import java.util.List;
 public class ConditionRouter implements Router {
 
     @Override
-    public List<Address> filter(List<Address> addressList, Invocation invocation) {
+    public List<Address> filte(List<Address> addressList, Invocation invocation) {
         //TODO 若没有可用提供者，抛异常
         return null;
     }

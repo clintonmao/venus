@@ -67,12 +67,12 @@ public class ValidFilter implements Filter {
                 } else {
                     postMessageBack(conn, routerPacket, request, errorPacket);
                 }
-                if(filter != null){
-                    filter.before(request);
+                if(filte != null){
+                    filte.before(request);
                 }
                 logPerformance(endpoint,UUID.toString(request.traceId),apiName,waitTime,0,conn.getHost(),finalSourceIp,request.clientId,request.clientRequestId,request.parameterMap, errorPacket);
-                if(filter != null){
-                    filter.after(errorPacket);
+                if(filte != null){
+                    filte.after(errorPacket);
                 }
             }
         }

@@ -228,11 +228,11 @@ public class VenusInvokerTask implements Runnable{
             error.message = e.getMessage();
             //无任何实现 delete by zhangzh 2017.8.8
             /*
-            if(filter != null){
-                filter.before(request);
+            if(filte != null){
+                filte.before(request);
             }
-            if(filter != null){
-                filter.after(error);
+            if(filte != null){
+                filte.after(error);
             }
             */
 

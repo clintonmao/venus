@@ -41,7 +41,7 @@ public class BackendBeanUtilsBean extends BeanUtilsBean {
                         try {
                             temp = ConfigUtil.filter((String) value, beanContext);
                         } catch (Exception e) {
-                            logger.error("config filter " + value + " error", e);
+                            logger.error("config filte " + value + " error", e);
                         }
                         if (temp == null) {
                             temp = ConfigUtil.filter((String) value);

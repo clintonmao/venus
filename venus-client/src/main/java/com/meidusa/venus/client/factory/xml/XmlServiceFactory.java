@@ -339,7 +339,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
     VenusClientConfig parseClientConfig(){
         VenusClientConfig clientConfig = new VenusClientConfig();
         for (Resource configFile : configFiles) {
-            // configFile = (String) ConfigUtil.filter(configFile);
+            // configFile = (String) ConfigUtil.filte(configFile);
             URL url = this.getClass().getResource("venusClientRule.xml");
             if (url == null) {
                 throw new VenusConfigException("venusClientRule.xml not found!,pls rebuild venus!");
