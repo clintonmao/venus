@@ -8,6 +8,7 @@ import com.meidusa.venus.URL;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.filter.valid.ValidFilter;
+import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
 import com.meidusa.venus.rpc.*;
 import com.meidusa.venus.client.cluster.FailoverClusterInvoker;
 import com.meidusa.venus.exception.VenusExceptionFactory;
@@ -23,6 +24,7 @@ import com.meidusa.venus.rpc.router.condition.ConditionRouter;
 import com.meidusa.venus.service.registry.ServiceDefinition;
 import com.meidusa.venus.util.VenusTracerUtil;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,6 +76,11 @@ public class InvokerInvocationHandler implements InvocationHandler {
      */
     private Router router = new ConditionRouter();
 
+    /**
+     * jvm内部调用
+     */
+    private InjvmInvoker injvmInvoker;
+
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         try {
             //构造请求对象
@@ -105,6 +112,38 @@ public class InvokerInvocationHandler implements InvocationHandler {
             }
         }
 
+        //根据配置选择jvm内部调用还是集群环境容错调用
+        Service service = invocation.getService();
+        Endpoint endpoint = invocation.getEndpoint();
+        if (endpoint != null && service != null) {
+            if (StringUtils.isEmpty(service.implement())) {
+                //集群容错调用
+                return doInvokeInCluster(invocation);
+            } else {
+                //jvm内部调用
+                return doInvokeInJvm(invocation);
+            }
+        }else{
+            //TODO 确认endpoint为空情况
+            return doInvokeInJvm(invocation);
+        }
+    }
+
+    /**
+     * jvm内部调用
+     * @param invocation
+     * @return
+     */
+    Result doInvokeInJvm(Invocation invocation){
+        return injvmInvoker.invoke(invocation);
+    }
+
+    /**
+     * 集群容错调用
+     * @param invocation
+     * @return
+     */
+    Result doInvokeInCluster(Invocation invocation){
         //寻址，TODO 地址变化对连接池的影响
         List<Address> addressList = lookup(invocation);
 

@@ -151,41 +151,20 @@ public class VenusInvoker extends AbstractInvoker implements Invoker{
 
     @Override
     public Result doInvoke(Invocation invocation) throws RpcException {
-        Method method = invocation.getMethod();
-        Object[] args = invocation.getArgs();
-        Service service = invocation.getService();
-        Endpoint endpoint = invocation.getEndpoint();
         try {
-            if (endpoint != null && service != null) {
-                if (StringUtils.isEmpty(service.implement())) {
-                    return new Result(doInvokeRemote(invocation));
-                } else {
-                    //jvm内部调用
-                    return injvmInvoker.invoke(invocation);
-                }
+            //构造请求消息
+            SerializeServiceRequestPacket serviceRequestPacket = buildRequest(invocation);
+
+            //调用
+            Object object = null;
+            if (invocation.isAsync()) {
+                object = doInvokeRemoteWithAsync(invocation, serviceRequestPacket);
+            } else {
+                object = doInvokeRemoteWithSync(invocation, serviceRequestPacket);
             }
-            //TODO 确认endpoint为空情况
-            return new Result(method.invoke(this, args));
+            return new Result(object);
         } catch (Exception e) {
             throw new RpcException(e);
-        }
-    }
-
-    /**
-     * 远程调用
-     * @param invocation
-     * @return
-     * @throws Exception
-     */
-    protected Object doInvokeRemote(Invocation invocation) throws Exception {
-        //构造请求消息
-        SerializeServiceRequestPacket serviceRequestPacket = buildRequest(invocation);
-
-        //调用
-        if (invocation.isAsync()) {
-            return doInvokeRemoteWithAsync(invocation, serviceRequestPacket);
-        } else {
-            return doInvokeRemoteWithSync(invocation, serviceRequestPacket);
         }
     }
 
