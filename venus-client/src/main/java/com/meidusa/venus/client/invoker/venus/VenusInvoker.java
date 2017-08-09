@@ -15,10 +15,8 @@ import com.meidusa.venus.rpc.Result;
 import com.meidusa.venus.rpc.RpcException;
 import com.meidusa.venus.annotations.*;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
-import com.meidusa.venus.client.invoker.venus.hander.InvocationListenerContainer;
 import com.meidusa.venus.client.factory.xml.XmlServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.*;
-import com.meidusa.venus.client.invoker.venus.hander.VenusNIOMessageHandler;
 import com.meidusa.venus.rpc.Invoker;
 import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
 import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
@@ -250,12 +248,12 @@ public class VenusInvoker extends AbstractInvoker implements Invoker{
             //获取连接 TODO 地址变化情况
             nioConnPool = getNioConnPool();
             conn = nioConnPool.borrowObject();
-
             borrowed = TimeUtil.currentTimeMillis();
             ByteBuffer buffer = serviceRequestPacket.toByteBuffer();
             if(service.athenaFlag()) {
                 AthenaTransactionDelegate.getDelegate().setClientOutputSize(buffer.limit());
             }
+
             //发送请求消息，响应由handler类处理
             conn.write(buffer);
             VenusTracerUtil.logRequest(traceID, serviceRequestPacket.apiName, JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
