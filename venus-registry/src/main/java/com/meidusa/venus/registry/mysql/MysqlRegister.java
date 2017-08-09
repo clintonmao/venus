@@ -24,7 +24,6 @@ import com.meidusa.venus.registry.dao.VenusServerDAO;
 import com.meidusa.venus.registry.dao.VenusServiceConfigDAO;
 import com.meidusa.venus.registry.dao.VenusServiceDAO;
 import com.meidusa.venus.registry.dao.VenusServiceMappingDAO;
-import com.meidusa.venus.registry.dao.impl.NetworkInterfaceManager;
 import com.meidusa.venus.registry.dao.impl.ResultUtils;
 import com.meidusa.venus.registry.domain.RegisteConstant;
 import com.meidusa.venus.registry.domain.VenusApplicationDO;
@@ -71,6 +70,10 @@ public class MysqlRegister implements Register, DisposableBean {
 
 	@Autowired
 	private VenusServiceMappingDAO venusServiceMappingDAO;
+
+	private boolean loadRunning = false;
+
+	private boolean heartbeatRunning = false;
 
 	@Override
 	public void registe(URL url) throws VenusRegisteException {
@@ -153,6 +156,10 @@ public class MysqlRegister implements Register, DisposableBean {
 
 	@Override
 	public void unregiste(URL url) throws VenusRegisteException {
+		if (StringUtils.isBlank(url.getVersion())) {
+			logger.error("服务{}取消注册异常,异常原因：{} ", url.getServiceName(), "version为空");
+			throw new VenusRegisteException("取消注册异常" + url.getServiceName() + ",version为空");
+		}
 		try {
 			VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
 					url.getInterfaceName());
@@ -242,6 +249,10 @@ public class MysqlRegister implements Register, DisposableBean {
 
 	@Override
 	public void unsubscrible(URL url) throws VenusRegisteException {
+		if (StringUtils.isBlank(url.getVersion())) {
+			logger.error("服务{}取消订阅异常,异常原因：{} ", url.getServiceName(), "version为空");
+			throw new VenusRegisteException("取消订阅异常" + url.getServiceName() + ",version为空");
+		}
 		try {
 			VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
 					url.getInterfaceName());
@@ -265,7 +276,10 @@ public class MysqlRegister implements Register, DisposableBean {
 
 	@Override
 	public void heartbeat() throws VenusRegisteException {
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new HeartBeatRunnable(), 10, 10, TimeUnit.SECONDS);
+		if (!heartbeatRunning) {
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new HeartBeatRunnable(), 10, 10, TimeUnit.SECONDS);
+			heartbeatRunning = true;
+		}
 	}
 
 	@Override
@@ -296,7 +310,10 @@ public class MysqlRegister implements Register, DisposableBean {
 
 	@Override
 	public void load() throws VenusRegisteException {
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefineRunnable(), 10, 60, TimeUnit.SECONDS);
+		if (!loadRunning) {
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefineRunnable(), 10, 60, TimeUnit.SECONDS);
+			loadRunning = true;
+		}
 	}
 
 	@Override
