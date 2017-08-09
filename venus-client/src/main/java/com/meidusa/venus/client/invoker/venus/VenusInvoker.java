@@ -436,7 +436,7 @@ public class VenusInvoker extends AbstractInvoker implements Invoker{
             long end = TimeUtil.currentTimeMillis();
             long time = end - borrowed;
             StringBuffer buffer = new StringBuffer();
-            buffer.append("[").append(borrowed - start).append(",").append(time).append("]ms (client-sync) traceID=").append(UUID.toString(traceID)).append(", api=").append(serviceRequestPacket.apiName);
+            buffer.append("[").append(borrowed - start).append(",").append(time).append("]ms (client-invocation) traceID=").append(UUID.toString(traceID)).append(", api=").append(serviceRequestPacket.apiName);
             if (remoteAddress != null) {
                 buffer.append(", remote=").append(remoteAddress);
             }else{

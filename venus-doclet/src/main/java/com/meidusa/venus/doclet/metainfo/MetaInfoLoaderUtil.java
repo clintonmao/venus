@@ -56,7 +56,7 @@ public class MetaInfoLoaderUtil {
 				endpointInfo.setAsync("callback");
 			}
 			else {
-				endpointInfo.setAsync("sync");
+				endpointInfo.setAsync("invocation");
 			}
 			endpointInfos[i]=endpointInfo;
 			

@@ -2,7 +2,7 @@ package com.meidusa.venus.backend.http;
 
 import com.meidusa.fastjson.JSONException;
 import com.meidusa.toolkit.util.TimeUtil;
-import com.meidusa.venus.backend.invoker.sync.VenusEndpointInvocation;
+import com.meidusa.venus.backend.invoker.invocation.VenusEndpointInvocation;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.support.Response;
 import com.meidusa.venus.backend.invoker.support.LogHandler;

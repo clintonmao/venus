@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.invoker.sync;
+package com.meidusa.venus.backend.invoker.invocation;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;

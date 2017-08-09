@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.invoker.callback;
+package com.meidusa.venus.backend.invoker.invocation;
 
 import java.beans.PropertyDescriptor;
 import java.util.HashMap;
