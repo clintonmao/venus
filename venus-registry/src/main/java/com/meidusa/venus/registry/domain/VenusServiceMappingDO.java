@@ -15,7 +15,7 @@ public class VenusServiceMappingDO implements Serializable {
 
 	private VenusServiceDO service;
 
-	/**根着角色走，如果角色是订阅方，就是订阅方的serverID,如果是注册方，就是注册方的serverID */
+	/** 根着角色走，如果角色是订阅方，就是订阅方的serverID,如果是注册方，就是注册方的serverID */
 	private Integer serverId;
 
 	private Integer serviceId;
@@ -42,6 +42,8 @@ public class VenusServiceMappingDO implements Serializable {
 
 	/** 角色：provider||consumer */
 	private String role;
+
+	private Integer consumerAppId;
 
 	public Integer getId() {
 		return id;
@@ -153,6 +155,14 @@ public class VenusServiceMappingDO implements Serializable {
 
 	public void setIsDelete(Boolean isDelete) {
 		this.isDelete = isDelete;
+	}
+
+	public Integer getConsumerAppId() {
+		return consumerAppId;
+	}
+
+	public void setConsumerAppId(Integer consumerAppId) {
+		this.consumerAppId = consumerAppId;
 	}
 
 	@Override

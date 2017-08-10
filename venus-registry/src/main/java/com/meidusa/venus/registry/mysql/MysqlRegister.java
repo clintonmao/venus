@@ -134,6 +134,7 @@ public class MysqlRegister implements Register, DisposableBean {
 				VenusServiceMappingDO venusServiceMappingDO = new VenusServiceMappingDO();
 				venusServiceMappingDO.setServerId(serverId);
 				venusServiceMappingDO.setServiceId(serviceId);
+				venusServiceMappingDO.setConsumerAppId(0);
 				venusServiceMappingDO.setSync(true);
 				venusServiceMappingDO.setActive(true);
 				venusServiceMappingDO.setRole(RegisteConstant.PROVIDER);
@@ -194,6 +195,7 @@ public class MysqlRegister implements Register, DisposableBean {
 				throw new VenusRegisteException("服务订阅异常,原因:服务" + url.getServiceName() + "不存在");
 			}
 			String appCode = url.getApplication();
+			int appId = 0;
 			if (StringUtils.isNotBlank(appCode)) {
 				VenusApplicationDO application = venusApplicationDAO.getApplication(appCode);
 				if (null == application) {
@@ -203,8 +205,9 @@ public class MysqlRegister implements Register, DisposableBean {
 					venusApplicationDO.setConsumer(true);
 					venusApplicationDO.setUpdateName(RegisteConstant.CONSUMER);
 					venusApplicationDO.setCreateName(RegisteConstant.CONSUMER);
-					venusApplicationDAO.addApplication(venusApplicationDO);
+					appId = venusApplicationDAO.addApplication(venusApplicationDO);
 				} else {
+					appId = application.getId();
 					if (null == application.isConsumer()
 							|| (null != application.isConsumer() && !application.isConsumer())) {
 						application.setConsumer(true);// 更新应用为订阅方
@@ -234,6 +237,7 @@ public class MysqlRegister implements Register, DisposableBean {
 				venusServiceMappingDO.setRole(RegisteConstant.CONSUMER);
 				venusServiceMappingDO.setVersion(url.getVersion());
 				venusServiceMappingDO.setIsDelete(false);
+				venusServiceMappingDO.setConsumerAppId(appId);
 				venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
 			} else {
 				venusServiceMappingDAO.updateServiceMapping(serviceMapping.getId(), true, false);
