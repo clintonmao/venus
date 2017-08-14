@@ -4,8 +4,8 @@ import com.meidusa.venus.Address;
 import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.Invocation;
 import com.meidusa.venus.Result;
-import com.meidusa.venus.client.loadbanlance.Loadbanlance;
-import com.meidusa.venus.client.loadbanlance.random.RandomLoadbanlance;
+import com.meidusa.venus.client.cluster.loadbanlance.Loadbanlance;
+import com.meidusa.venus.client.cluster.loadbanlance.RandomLoadbanlance;
 import com.meidusa.venus.Invoker;
 import com.meidusa.venus.RpcException;
 

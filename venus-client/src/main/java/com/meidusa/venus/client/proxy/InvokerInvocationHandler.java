@@ -84,8 +84,30 @@ public class InvokerInvocationHandler implements InvocationHandler {
             //构造请求对象
             Invocation invocation = buildInvocation(proxy,method,args);
 
-            //服务调用
-            Result result = doInvoke(invocation);
+            //前置处理，校验、流控、降级等
+            for(Filter filter : getFilters()){
+                Result result = filter.invoke(invocation);
+                if(result != null){
+                    return result;
+                }
+            }
+
+            //根据配置选择jvm内部调用还是集群环境容错调用
+            Result result = null;
+            Service service = invocation.getService();
+            Endpoint endpoint = invocation.getEndpoint();
+            if (endpoint != null && service != null) {
+                if (StringUtils.isEmpty(service.implement())) {
+                    //集群容错调用
+                    result = doInvokeInCluster(invocation);
+                } else {
+                    //jvm内部调用
+                    result = doInvokeInJvm(invocation);
+                }
+            }else{
+                //TODO 确认endpoint为空情况
+                result = doInvokeInJvm(invocation);
+            }
 
             //返回结果
             //TODO 处理成功调用，但失败情况
@@ -93,37 +115,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
         } catch (Exception e) {
             //TODO 处理异常
             return null;
-        }
-    }
-
-    /**
-     * 调用服务
-     * @param invocation
-     * @return
-     */
-    Result doInvoke(Invocation invocation){
-        //前置处理，校验、流控、降级等
-        for(Filter filter : getFilters()){
-            Result result = filter.invoke(invocation);
-            if(result != null){
-                return result;
-            }
-        }
-
-        //根据配置选择jvm内部调用还是集群环境容错调用
-        Service service = invocation.getService();
-        Endpoint endpoint = invocation.getEndpoint();
-        if (endpoint != null && service != null) {
-            if (StringUtils.isEmpty(service.implement())) {
-                //集群容错调用
-                return doInvokeInCluster(invocation);
-            } else {
-                //jvm内部调用
-                return doInvokeInJvm(invocation);
-            }
-        }else{
-            //TODO 确认endpoint为空情况
-            return doInvokeInJvm(invocation);
         }
     }
 

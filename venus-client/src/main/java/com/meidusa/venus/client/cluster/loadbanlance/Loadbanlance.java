@@ -1,4 +1,4 @@
-package com.meidusa.venus.client.loadbanlance;
+package com.meidusa.venus.client.cluster.loadbanlance;
 
 import com.meidusa.venus.Address;
 
