@@ -94,6 +94,7 @@ public class VenusNIOMessageHandler implements MessageHandler<VenusBackendConnec
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_RESPONSE:
                 // ignore
+                //TODO notfiy
                 break;
             case PacketConstant.PACKET_TYPE_NOTIFY_PUBLISH:
                 SerializeServiceNofityPacket packet = null;

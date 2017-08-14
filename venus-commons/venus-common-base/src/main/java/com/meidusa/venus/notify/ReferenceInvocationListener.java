@@ -1,5 +1,7 @@
 package com.meidusa.venus.notify;
 
+import com.meidusa.venus.notify.InvocationListener;
+
 import java.io.Serializable;
 
 public class ReferenceInvocationListener<T> implements InvocationListener<T>, Serializable {

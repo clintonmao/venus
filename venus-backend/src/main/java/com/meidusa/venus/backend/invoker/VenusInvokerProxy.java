@@ -8,9 +8,7 @@ import com.meidusa.venus.annotations.ExceptionCode;
 import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
 import com.meidusa.venus.backend.filter.valid.ValidFilter;
-import com.meidusa.venus.backend.invoker.invocation.RemotingInvocationListener;
 import com.meidusa.venus.backend.invoker.support.*;
-import com.meidusa.venus.backend.invoker.invocation.VenusEndpointInvocation;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.bean.PerformanceLogger;
 import com.meidusa.venus.backend.support.Response;
@@ -19,7 +17,10 @@ import com.meidusa.venus.exception.*;
 import com.meidusa.venus.extension.athena.AthenaTransactionId;
 import com.meidusa.venus.extension.athena.delegate.AthenaReporterDelegate;
 import com.meidusa.venus.extension.athena.delegate.AthenaTransactionDelegate;
-import com.meidusa.venus.io.packet.*;
+import com.meidusa.venus.io.packet.AbstractServicePacket;
+import com.meidusa.venus.io.packet.ErrorPacket;
+import com.meidusa.venus.io.packet.PacketConstant;
+import com.meidusa.venus.io.packet.VenusRouterPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.io.support.VenusStatus;
 import com.meidusa.venus.rpc.*;
@@ -28,7 +29,6 @@ import com.meidusa.venus.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -76,7 +76,7 @@ public class VenusInvokerProxy implements Invoker{
 
     private VenusRouterPacket routerPacket;
 
-    private RemotingInvocationListener<Serializable> invocationListener;
+    //private RemotingInvocationListener<Serializable> invocationListener;
 
     private VenusExceptionFactory venusExceptionFactory;
 
@@ -298,7 +298,7 @@ public class VenusInvokerProxy implements Invoker{
      */
     private Response invokeEndpoint(RequestContext context, Endpoint endpoint) {
         Response response = new Response();
-        VenusEndpointInvocation invocation = new VenusEndpointInvocation(context, endpoint);
+        VenusInvoker invocation = new VenusInvoker(context, endpoint);
         //invocation.addObserver(ObserverScanner.getInvocationObservers());
         try {
             UtilTimerStack.push(ENDPOINT_INVOKED_TIME);

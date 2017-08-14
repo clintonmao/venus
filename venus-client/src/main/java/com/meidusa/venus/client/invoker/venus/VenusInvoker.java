@@ -10,6 +10,7 @@ import com.meidusa.toolkit.net.*;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.client.invoker.AbstractInvoker;
+import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.rpc.Invocation;
 import com.meidusa.venus.rpc.Result;
 import com.meidusa.venus.rpc.RpcException;
@@ -33,7 +34,6 @@ import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
-import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.util.UUID;
 import com.meidusa.venus.util.Utils;
 import com.meidusa.venus.util.VenusAnnotationUtils;
@@ -256,6 +256,7 @@ public class VenusInvoker extends AbstractInvoker implements Invoker{
 
             //发送请求消息，响应由handler类处理
             conn.write(buffer);
+            //TODO wait
             VenusTracerUtil.logRequest(traceID, serviceRequestPacket.apiName, JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
             return null;
         } finally {
@@ -305,7 +306,7 @@ public class VenusInvoker extends AbstractInvoker implements Invoker{
 
         byte[] bts;
         try {
-            //获取连接
+            //获取连接 TODO 连接创建、复用、地址变化
             bioConnPool = getBioConnPool();
             conn = (AbstractBIOConnection) bioConnPool.borrowObject();
             remoteAddress =  conn.getRemoteAddress();

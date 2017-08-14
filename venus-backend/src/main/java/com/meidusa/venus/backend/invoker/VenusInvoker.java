@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.invoker.invocation;
+package com.meidusa.venus.backend.invoker;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import com.meidusa.venus.notify.InvocationListener;
  * @author Struct
  * TODO 统一invoker接口定义
  */
-public class VenusEndpointInvocation implements EndpointInvocation {
+public class VenusInvoker implements EndpointInvocation {
 
     private static String ENDPOINT_INVOKED = "handleRequest endpoint: ";
     
@@ -58,7 +58,7 @@ public class VenusEndpointInvocation implements EndpointInvocation {
      */
     private ResultType type = ResultType.RESPONSE;
 
-    public VenusEndpointInvocation(RequestContext context, Endpoint endpoint) {
+    public VenusInvoker(RequestContext context, Endpoint endpoint) {
         this.endpoint = endpoint;
         if (endpoint.getInterceptorStack() != null) {
             interceptors = endpoint.getInterceptorStack().getInterceptors().iterator();
@@ -104,7 +104,7 @@ public class VenusEndpointInvocation implements EndpointInvocation {
             String interceptorMsg = "filte: " + interceptor.getName();
             UtilTimerStack.push(interceptorMsg);
             try {
-                result = interceptor.getInterceptor().intercept(VenusEndpointInvocation.this);
+                result = interceptor.getInterceptor().intercept(VenusInvoker.this);
             } finally {
                 UtilTimerStack.pop(interceptorMsg);
             }
