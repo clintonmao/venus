@@ -1,6 +1,9 @@
-package com.meidusa.venus.rpc.mock;
+package com.meidusa.venus.client.filter.mock;
 
-import com.meidusa.venus.rpc.*;
+import com.meidusa.venus.Filter;
+import com.meidusa.venus.Invocation;
+import com.meidusa.venus.Result;
+import com.meidusa.venus.RpcException;
 
 /**
  * 快速返回放通处理

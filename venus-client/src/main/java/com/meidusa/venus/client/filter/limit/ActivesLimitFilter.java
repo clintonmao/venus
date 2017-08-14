@@ -1,9 +1,9 @@
-package com.meidusa.venus.rpc.limit;
+package com.meidusa.venus.client.filter.limit;
 
-import com.meidusa.venus.rpc.Filter;
-import com.meidusa.venus.rpc.Invocation;
-import com.meidusa.venus.rpc.Result;
-import com.meidusa.venus.rpc.RpcException;
+import com.meidusa.venus.Filter;
+import com.meidusa.venus.Invocation;
+import com.meidusa.venus.Result;
+import com.meidusa.venus.RpcException;
 
 /**
  * 并发数流控处理

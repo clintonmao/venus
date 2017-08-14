@@ -1,8 +1,8 @@
-package com.meidusa.venus.rpc.router.condition;
+package com.meidusa.venus.client.router.condition;
 
 import com.meidusa.venus.Address;
-import com.meidusa.venus.rpc.Invocation;
-import com.meidusa.venus.rpc.router.Router;
+import com.meidusa.venus.client.router.Router;
+import com.meidusa.venus.Invocation;
 
 import java.util.List;
 

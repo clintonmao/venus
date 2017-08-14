@@ -80,10 +80,5 @@
 			<artifactId>venus-monitor</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>com.meidusa.venus</groupId>
-			<artifactId>venus-rpc</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 	</dependencies>
 </project>

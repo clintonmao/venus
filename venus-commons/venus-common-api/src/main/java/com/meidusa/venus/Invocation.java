@@ -1,4 +1,4 @@
-package com.meidusa.venus.rpc;
+package com.meidusa.venus;
 
 import com.meidusa.venus.Address;
 import com.meidusa.venus.annotations.Endpoint;

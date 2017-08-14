@@ -10,7 +10,7 @@ import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.factory.xml.XmlServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.*;
-import com.meidusa.venus.client.invoker.AbstractInvoker;
+import com.meidusa.venus.client.invoker.AbstractClientInvoker;
 import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
 import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.exception.InvalidParameterException;
@@ -28,10 +28,10 @@ import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
-import com.meidusa.venus.rpc.Invocation;
-import com.meidusa.venus.rpc.Invoker;
-import com.meidusa.venus.rpc.Result;
-import com.meidusa.venus.rpc.RpcException;
+import com.meidusa.venus.Invocation;
+import com.meidusa.venus.Invoker;
+import com.meidusa.venus.Result;
+import com.meidusa.venus.RpcException;
 import com.meidusa.venus.util.UUID;
 import com.meidusa.venus.util.VenusAnnotationUtils;
 import com.meidusa.venus.util.VenusTracerUtil;
@@ -54,7 +54,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * venus协议服务调用实现
  * Created by Zhangzhihua on 2017/7/31.
  */
-public class VenusClientInvoker extends AbstractInvoker implements Invoker{
+public class VenusClientInvoker extends AbstractClientInvoker implements Invoker{
 
     private static Logger logger = LoggerFactory.getLogger(InvokerInvocationHandler.class);
 

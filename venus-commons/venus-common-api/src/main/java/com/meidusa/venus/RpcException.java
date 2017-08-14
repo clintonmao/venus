@@ -1,4 +1,4 @@
-package com.meidusa.venus.rpc;
+package com.meidusa.venus;
 
 /**
  * rpc调用异常

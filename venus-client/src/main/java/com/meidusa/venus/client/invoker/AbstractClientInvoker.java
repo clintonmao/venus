@@ -2,12 +2,11 @@ package com.meidusa.venus.client.invoker;
 
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
-import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.exception.CodedException;
-import com.meidusa.venus.rpc.Invocation;
-import com.meidusa.venus.rpc.Invoker;
-import com.meidusa.venus.rpc.Result;
-import com.meidusa.venus.rpc.RpcException;
+import com.meidusa.venus.Invocation;
+import com.meidusa.venus.Invoker;
+import com.meidusa.venus.Result;
+import com.meidusa.venus.RpcException;
 import com.meidusa.venus.util.VenusAnnotationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +17,9 @@ import java.lang.reflect.Method;
  * 抽象invoker
  * Created by Zhangzhihua on 2017/8/2.
  */
-public abstract class AbstractInvoker implements Invoker {
+public abstract class AbstractClientInvoker implements Invoker {
 
-    private static Logger logger = LoggerFactory.getLogger(AbstractInvoker.class);
+    private static Logger logger = LoggerFactory.getLogger(AbstractClientInvoker.class);
 
     private static Logger exceptionLogger = LoggerFactory.getLogger("venus.client.exception");
 

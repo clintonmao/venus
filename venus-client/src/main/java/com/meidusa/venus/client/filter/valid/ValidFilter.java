@@ -1,9 +1,9 @@
 package com.meidusa.venus.client.filter.valid;
 
-import com.meidusa.venus.rpc.Filter;
-import com.meidusa.venus.rpc.Invocation;
-import com.meidusa.venus.rpc.Result;
-import com.meidusa.venus.rpc.RpcException;
+import com.meidusa.venus.Filter;
+import com.meidusa.venus.Invocation;
+import com.meidusa.venus.Result;
+import com.meidusa.venus.RpcException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

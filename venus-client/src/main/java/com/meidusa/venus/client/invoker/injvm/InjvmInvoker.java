@@ -1,11 +1,11 @@
 package com.meidusa.venus.client.invoker.injvm;
 
-import com.meidusa.venus.rpc.Invocation;
-import com.meidusa.venus.rpc.Result;
-import com.meidusa.venus.rpc.RpcException;
+import com.meidusa.venus.Invocation;
+import com.meidusa.venus.Result;
+import com.meidusa.venus.RpcException;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
-import com.meidusa.venus.rpc.Invoker;
+import com.meidusa.venus.Invoker;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

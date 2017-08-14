@@ -28,7 +28,7 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceResponsePacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.notify.InvocationListener;
-import com.meidusa.venus.rpc.Result;
+import com.meidusa.venus.Result;
 import com.meidusa.venus.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
