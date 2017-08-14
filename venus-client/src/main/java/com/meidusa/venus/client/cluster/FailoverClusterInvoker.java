@@ -1,7 +1,7 @@
 package com.meidusa.venus.client.cluster;
 
 import com.meidusa.venus.Address;
-import com.meidusa.venus.client.invoker.venus.VenusInvoker;
+import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.rpc.Invocation;
 import com.meidusa.venus.rpc.Result;
 import com.meidusa.venus.rpc.loadbanlance.Loadbanlance;
@@ -55,7 +55,7 @@ public class FailoverClusterInvoker implements Invoker {
      */
     Invoker getInvoker(Invocation invocation){
         //TODO
-        return new VenusInvoker();
+        return new VenusClientInvoker();
     }
 
     /**

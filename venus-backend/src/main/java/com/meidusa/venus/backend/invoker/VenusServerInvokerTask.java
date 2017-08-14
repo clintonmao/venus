@@ -42,9 +42,9 @@ import java.util.concurrent.Executor;
  * venus服务调用task
  * Created by Zhangzhihua on 2017/8/2.
  */
-public class VenusInvokerTask implements Runnable{
+public class VenusServerInvokerTask implements Runnable{
 
-    private static Logger logger = LoggerFactory.getLogger(VenusInvokerTask.class);
+    private static Logger logger = LoggerFactory.getLogger(VenusServerInvokerTask.class);
 
     private static Logger performanceLogger = LoggerFactory.getLogger("venus.backend.performance");
 
@@ -95,7 +95,7 @@ public class VenusInvokerTask implements Runnable{
     /**
      * 服务调用代理
      */
-    private VenusInvokerProxy venusInvokerProxy;
+    private VenusServerInvokerProxy venusInvokerProxy;
 
     static {
         Map<Class<?>,ExceptionCode>  map = ClasspathAnnotationScanner.find(Exception.class,ExceptionCode.class);
@@ -114,7 +114,7 @@ public class VenusInvokerTask implements Runnable{
         }
     }
 
-    public VenusInvokerTask(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
+    public VenusServerInvokerTask(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
         this.conn = conn;
         this.data = data;
     }

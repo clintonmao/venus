@@ -15,6 +15,7 @@ package com.meidusa.venus.client.invoker.venus;
 
 import java.lang.reflect.Type;
 
+import com.meidusa.venus.io.handler.VenusClientMessageHandler;
 import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,9 +41,9 @@ import com.meidusa.venus.util.VenusTracerUtil;
 /**
  * 服务调用NIO消息响应处理
  */
-public class VenusNIOMessageHandler implements MessageHandler<VenusBackendConnection, byte[]> {
+public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler implements MessageHandler<VenusBackendConnection, byte[]> {
 
-    private static Logger logger = LoggerFactory.getLogger(VenusNIOMessageHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(VenusClientInvokerMessageHandler.class);
 
     private InvocationListenerContainer container;
 
@@ -130,18 +131,15 @@ public class VenusNIOMessageHandler implements MessageHandler<VenusBackendConnec
                 } else {
                     tuple.left.callback(packet.callbackObject);
                 }
-
                 break;
             case PacketConstant.PACKET_TYPE_PONG:
+                super.handle(conn, message);
                 break;
-
             case PacketConstant.PACKET_TYPE_PING:
-                PongPacket pong = new PongPacket();
-                conn.write(pong.toByteBuffer());
+                super.handle(conn, message);
                 break;
-
             default:
-
+                super.handle(conn, message);
         }
     }
 

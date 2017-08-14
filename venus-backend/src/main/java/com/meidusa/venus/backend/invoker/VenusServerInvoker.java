@@ -19,7 +19,7 @@ import com.meidusa.venus.notify.InvocationListener;
  * @author Struct
  * TODO 统一invoker接口定义
  */
-public class VenusInvoker implements EndpointInvocation {
+public class VenusServerInvoker implements EndpointInvocation {
 
     private static String ENDPOINT_INVOKED = "handleRequest endpoint: ";
     
@@ -58,7 +58,7 @@ public class VenusInvoker implements EndpointInvocation {
      */
     private ResultType type = ResultType.RESPONSE;
 
-    public VenusInvoker(RequestContext context, Endpoint endpoint) {
+    public VenusServerInvoker(RequestContext context, Endpoint endpoint) {
         this.endpoint = endpoint;
         if (endpoint.getInterceptorStack() != null) {
             interceptors = endpoint.getInterceptorStack().getInterceptors().iterator();
@@ -104,7 +104,7 @@ public class VenusInvoker implements EndpointInvocation {
             String interceptorMsg = "filte: " + interceptor.getName();
             UtilTimerStack.push(interceptorMsg);
             try {
-                result = interceptor.getInterceptor().intercept(VenusInvoker.this);
+                result = interceptor.getInterceptor().intercept(VenusServerInvoker.this);
             } finally {
                 UtilTimerStack.pop(interceptorMsg);
             }

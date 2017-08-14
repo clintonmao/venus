@@ -19,17 +19,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 /**
- * venus消息（包括心跳、状态、远程调用）接收事件处理
+ * venus服务端消息处理类
  * @author structchen
  *
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
-public class VenusMessageHandler implements MessageHandler<VenusFrontendConnection, Tuple<Long, byte[]>>, Initialisable {
+public class VenusServerMessageHandler implements MessageHandler<VenusFrontendConnection, Tuple<Long, byte[]>>, Initialisable {
 
-    private static Logger logger = LoggerFactory.getLogger(VenusMessageHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(VenusServerMessageHandler.class);
 
     private int maxExecutionThread;
 
@@ -51,13 +50,15 @@ public class VenusMessageHandler implements MessageHandler<VenusFrontendConnecti
     /**
      * 请求类型消息处理
      */
-    private MessageHandler requestMessageHandler;
+    //private MessageHandler requestMessageHandler;
 
     @Override
     public void init() throws InitialisationException {
+        /*
         if (executor == null && executorEnabled && !useThreadLocalExecutor && maxExecutionThread > 0) {
             executor = Executors.newFixedThreadPool(maxExecutionThread);
         }
+        */
     }
 
     @Override
@@ -111,7 +112,7 @@ public class VenusMessageHandler implements MessageHandler<VenusFrontendConnecti
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:
                 //远程调用消息处理
-                requestMessageHandler.handle(conn, data);
+                //TODO 不支持，需要子类实现 requestMessageHandler.handle(conn, data);
                 break;
             default:
                 StringBuilder buffer = new StringBuilder("receive unknown packet type=" + type + "  from ");
@@ -205,11 +206,4 @@ public class VenusMessageHandler implements MessageHandler<VenusFrontendConnecti
         this.serviceManager = serviceManager;
     }
 
-    public MessageHandler getRequestMessageHandler() {
-        return requestMessageHandler;
-    }
-
-    public void setRequestMessageHandler(MessageHandler requestMessageHandler) {
-        this.requestMessageHandler = requestMessageHandler;
-    }
 }

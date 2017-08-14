@@ -5,19 +5,18 @@ import com.meidusa.toolkit.common.bean.util.Initialisable;
 import com.meidusa.toolkit.common.bean.util.InitialisationException;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.MessageHandler;
-import com.meidusa.venus.annotations.ExceptionCode;
-import com.meidusa.venus.annotations.RemoteException;
-import com.meidusa.venus.backend.invoker.VenusInvokerTask;
+import com.meidusa.toolkit.net.util.InetAddressUtil;
+import com.meidusa.toolkit.util.TimeUtil;
+import com.meidusa.venus.backend.invoker.VenusServerInvokerTask;
 import com.meidusa.venus.backend.services.ServiceManager;
 import com.meidusa.venus.exception.VenusExceptionFactory;
+import com.meidusa.venus.io.handler.VenusServerMessageHandler;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
-import com.meidusa.venus.util.ClasspathAnnotationScanner;
+import com.meidusa.venus.io.packet.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -27,9 +26,9 @@ import java.util.concurrent.Executors;
  *
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
-public class VenusRequestMessageHandler implements MessageHandler<VenusFrontendConnection, Tuple<Long, byte[]>>, Initialisable {
+public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler implements MessageHandler<VenusFrontendConnection, Tuple<Long, byte[]>>, Initialisable {
 
-    private static Logger logger = LoggerFactory.getLogger(VenusRequestMessageHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(VenusServerInvokerMessageHandler.class);
 
     private static Logger performanceLogger = LoggerFactory.getLogger("venus.backend.performance");
 
@@ -56,7 +55,7 @@ public class VenusRequestMessageHandler implements MessageHandler<VenusFrontendC
     @Autowired
     private ServiceManager serviceManager;
 
-    private VenusInvokerTask venusInvokerTask;
+    private VenusServerInvokerTask venusInvokerTask;
 
     @Override
     public void init() throws InitialisationException {
@@ -68,8 +67,44 @@ public class VenusRequestMessageHandler implements MessageHandler<VenusFrontendC
 
     @Override
     public void handle(VenusFrontendConnection conn, Tuple<Long, byte[]> data) {
-        //TODO 多线程调用handler，并处理异常问题，如队列满等
-        executor.execute(new VenusInvokerTask(conn, data));
+        final long waitTime = TimeUtil.currentTimeMillis() - data.left;
+        byte[] message = data.right;
+
+        int type = AbstractServicePacket.getType(message);
+        VenusRouterPacket routerPacket = null;
+        byte serializeType = conn.getSerializeType();
+        String sourceIp = conn.getHost();
+        if (PacketConstant.PACKET_TYPE_ROUTER == type) {
+            routerPacket = new VenusRouterPacket();
+            routerPacket.original = message;
+            routerPacket.init(message);
+            type = AbstractServicePacket.getType(routerPacket.data);
+            message = routerPacket.data;
+            serializeType = routerPacket.serializeType;
+            sourceIp = InetAddressUtil.intToAddress(routerPacket.srcIP);
+        }
+        final byte packetSerializeType = serializeType;
+        final String finalSourceIp = sourceIp;
+
+        switch (type) {
+            case PacketConstant.PACKET_TYPE_PING:
+                super.handle(conn, data);
+                break;
+            case PacketConstant.PACKET_TYPE_PONG:
+                super.handle(conn, data);
+                break;
+            case PacketConstant.PACKET_TYPE_VENUS_STATUS_REQUEST:
+                super.handle(conn, data);
+                break;
+            case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:
+                //远程调用消息处理
+                //TODO 多线程调用handler，并处理异常问题，如队列满等
+                executor.execute(new VenusServerInvokerTask(conn, data));
+                break;
+            default:
+                super.handle(conn, data);
+        }
+
     }
 
     public boolean isExecutorEnabled() {

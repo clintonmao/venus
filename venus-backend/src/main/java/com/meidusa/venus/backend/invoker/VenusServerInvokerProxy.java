@@ -38,9 +38,9 @@ import java.util.concurrent.Executor;
  * venus服务调用代理，除调用服务实现，还负责校验、认证、流控、降级、监控相关处理
  * Created by Zhangzhihua on 2017/8/2.
  */
-public class VenusInvokerProxy implements Invoker{
+public class VenusServerInvokerProxy implements Invoker{
 
-    private static Logger logger = LoggerFactory.getLogger(VenusInvokerProxy.class);
+    private static Logger logger = LoggerFactory.getLogger(VenusServerInvokerProxy.class);
 
     private static Logger performanceLogger = LoggerFactory.getLogger("venus.backend.performance");
 
@@ -298,7 +298,7 @@ public class VenusInvokerProxy implements Invoker{
      */
     private Response invokeEndpoint(RequestContext context, Endpoint endpoint) {
         Response response = new Response();
-        VenusInvoker invocation = new VenusInvoker(context, endpoint);
+        VenusServerInvoker invocation = new VenusServerInvoker(context, endpoint);
         //invocation.addObserver(ObserverScanner.getInvocationObservers());
         try {
             UtilTimerStack.push(ENDPOINT_INVOKED_TIME);
