@@ -12,6 +12,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,7 +38,7 @@ import com.meidusa.venus.service.registry.ServiceDefinition;
  * mysql服务注册中心类 Created by Zhangzhihua on 2017/7/27.
  */
 @Component
-public class MysqlRegister implements Register, DisposableBean {
+public class MysqlRegister implements Register, InitializingBean, DisposableBean {
 
 	private static Logger logger = LoggerFactory.getLogger(MysqlRegister.class);
 
@@ -48,10 +49,10 @@ public class MysqlRegister implements Register, DisposableBean {
 	private Set<URL> subscribleUrls = new HashSet<URL>();
 
 	/** 注册失败的URLS */
-	private Set<URL> registeFailUrls = new HashSet<URL>();
+	private Set<URL> registeFailUrls = new HashSet<URL>();// 失败的继续跑启线程定时运行
 
 	/** 订阅失败的URLS */
-	private Set<URL> subscribleFailUrls = new HashSet<URL>();
+	private Set<URL> subscribleFailUrls = new HashSet<URL>();// 失败的继续跑启线程定时运行
 
 	/** 已订阅成功的 服务定义对象 */
 	private Set<ServiceDefinition> subscribleServiceDefinitions = new HashSet<ServiceDefinition>();
@@ -434,5 +435,40 @@ public class MysqlRegister implements Register, DisposableBean {
 				}
 			}
 		}
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 10, 10, TimeUnit.SECONDS);
+	}
+
+	private class UrlFailRunnable implements Runnable {
+		@Override
+		public void run() {
+			if (CollectionUtils.isNotEmpty(registeFailUrls)) {
+				for (Iterator<URL> iterator = registeFailUrls.iterator(); iterator.hasNext();) {
+					URL url = iterator.next();
+					try {
+						registe(url);
+						iterator.remove();
+					} catch (Exception e) {
+						logger.error("Fail服务{}重新注册异常 ,异常原因：{}", url.getServiceName(), e);
+					}
+				}
+			}
+			if (CollectionUtils.isNotEmpty(subscribleFailUrls)) {
+				for (Iterator<URL> iterator = subscribleFailUrls.iterator(); iterator.hasNext();) {
+					URL url = iterator.next();
+					try {
+						subscrible(url);
+						iterator.remove();
+					} catch (Exception e) {
+						logger.error("Fail服务{}重新订阅异常 ,异常原因：{}", url.getServiceName(), e);
+					}
+				}
+			}
+
+		}
+
 	}
 }
