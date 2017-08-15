@@ -26,7 +26,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 
 	@Override
 	public boolean addServiceMapping(VenusServiceMappingDO mapping) throws DAOException {
-		String sql = "insert into t_venus_service_mapping (server_id,service_id,consumer_app_id,version, active, sync,role,is_delete,create_time, update_time,registe_time) values (?, ?, ?, ?, ?, ?, ?,?,now(), now(),now())";
+		String sql = "insert into t_venus_service_mapping (server_id,service_id,consumer_app_id,version, active, sync,role,is_delete,create_time, update_time,registe_time) values (?, ?, ?, ?, ?, ?, ?, ?,now(), now(),now())";
 		int update = 0;
 		try {
 			update = this.jdbcTemplate.update(sql, mapping.getServerId(), mapping.getServiceId(),

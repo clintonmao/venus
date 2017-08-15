@@ -114,12 +114,12 @@ public class MysqlRegister implements Register {
 				if (jdbcTemplate == null) {
 					jdbcTemplate = new JdbcTemplate(dataSource);
 				}
+				register.setVenusApplicationDAO(new VenusApplicationDaoImpl(jdbcTemplate));
+				register.setVenusServerDAO(new VenusServerDaoImpl(jdbcTemplate));
+				register.setVenusServiceConfigDAO(new VenusServiceConfigDaoImpl(jdbcTemplate));
+				register.setVenusServiceDAO(new VenusServiceDaoImpl(jdbcTemplate));
+				register.setVenusServiceMappingDAO(new VenusServiceMappingDaoImpl(jdbcTemplate));
 			}
-			register.setVenusApplicationDAO(new VenusApplicationDaoImpl(jdbcTemplate));
-			register.setVenusServerDAO(new VenusServerDaoImpl(jdbcTemplate));
-			register.setVenusServiceConfigDAO(new VenusServiceConfigDaoImpl(jdbcTemplate));
-			register.setVenusServiceDAO(new VenusServiceDaoImpl(jdbcTemplate));
-			register.setVenusServiceMappingDAO(new VenusServiceMappingDaoImpl(jdbcTemplate));
 		}
 
 		return register;
@@ -196,6 +196,7 @@ public class MysqlRegister implements Register {
 				String oldVersion = serviceMapping.getVersion();// 有区间的version需特殊处理
 
 			}
+			heartbeat();
 		} catch (Exception e) {
 			registeFailUrls.add(url);
 			logger.error("服务{}注册异常,异常原因：{} ", url.getServiceName(), e);
@@ -292,12 +293,14 @@ public class MysqlRegister implements Register {
 			} else {
 				venusServiceMappingDAO.updateServiceMapping(serviceMapping.getId(), true, false);
 			}
+			heartbeat();
 		} catch (Exception e) {
 			subscribleFailUrls.add(url);
 			logger.error("服务{}订阅异常 ,异常原因：{}", url.getServiceName(), e);
 			throw new VenusRegisteException("服务订阅异常" + url.getServiceName(), e);
 		}
 		subscribleUrls.add(url);
+		
 
 	}
 

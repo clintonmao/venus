@@ -26,7 +26,7 @@ public class DataSourceUtil {
 					ds.setPassword(map[1]);
 				}
 			}
-			ds.setUrl("jdbc:" + substring);
+			ds.setUrl(substring.startsWith("jdbc:") ? substring : ("jdbc:" + substring));
 			ds.setTestOnBorrow(true);
 			ds.setTestOnReturn(true);
 			ds.setTestWhileIdle(true);
