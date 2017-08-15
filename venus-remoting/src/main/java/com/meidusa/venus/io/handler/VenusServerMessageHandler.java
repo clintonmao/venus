@@ -8,17 +8,12 @@ import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.toolkit.util.TimeUtil;
-import com.meidusa.venus.backend.services.ServiceManager;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
-import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.support.VenusStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.concurrent.Executor;
 
 /**
  * venus服务端消息处理类
@@ -30,35 +25,8 @@ public class VenusServerMessageHandler implements MessageHandler<VenusFrontendCo
 
     private static Logger logger = LoggerFactory.getLogger(VenusServerMessageHandler.class);
 
-    private int maxExecutionThread;
-
-    private int threadLiveTime = 30;
-
-    private boolean executorEnabled = false;
-
-    private boolean executorProtected;
-
-    private boolean useThreadLocalExecutor;
-
-    private Executor executor;
-
-    private VenusExceptionFactory venusExceptionFactory;
-
-    @Autowired
-    private ServiceManager serviceManager;
-
-    /**
-     * 请求类型消息处理
-     */
-    //private MessageHandler requestMessageHandler;
-
     @Override
     public void init() throws InitialisationException {
-        /*
-        if (executor == null && executorEnabled && !useThreadLocalExecutor && maxExecutionThread > 0) {
-            executor = Executors.newFixedThreadPool(maxExecutionThread);
-        }
-        */
     }
 
     @Override
@@ -140,70 +108,6 @@ public class VenusServerMessageHandler implements MessageHandler<VenusFrontendCo
             routerPacket.data = result.toByteArray();
             conn.write(routerPacket.toByteBuffer());
         }
-    }
-
-    public boolean isExecutorEnabled() {
-        return executorEnabled;
-    }
-
-    public void setExecutorEnabled(boolean executorEnabled) {
-        this.executorEnabled = executorEnabled;
-    }
-
-    public boolean isExecutorProtected() {
-        return executorProtected;
-    }
-
-    public boolean isUseThreadLocalExecutor() {
-        return useThreadLocalExecutor;
-    }
-
-    public void setUseThreadLocalExecutor(boolean useThreadLocalExecutor) {
-        this.useThreadLocalExecutor = useThreadLocalExecutor;
-    }
-
-    public void setExecutorProtected(boolean executorProtected) {
-        this.executorProtected = executorProtected;
-    }
-
-    public int getThreadLiveTime() {
-        return threadLiveTime;
-    }
-
-    public void setThreadLiveTime(int threadLiveTime) {
-        this.threadLiveTime = threadLiveTime;
-    }
-
-    public int getMaxExecutionThread() {
-        return maxExecutionThread;
-    }
-
-    public void setMaxExecutionThread(int maxExecutionThread) {
-        this.maxExecutionThread = maxExecutionThread;
-    }
-
-    public VenusExceptionFactory getVenusExceptionFactory() {
-        return venusExceptionFactory;
-    }
-
-    public Executor getExecutor() {
-        return executor;
-    }
-
-    public void setExecutor(Executor executor) {
-        this.executor = executor;
-    }
-
-    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
-        this.venusExceptionFactory = venusExceptionFactory;
-    }
-
-    public ServiceManager getServiceManager() {
-        return serviceManager;
-    }
-
-    public void setServiceManager(ServiceManager serviceManager) {
-        this.serviceManager = serviceManager;
     }
 
 }

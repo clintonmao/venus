@@ -13,23 +13,13 @@
  */
 package com.meidusa.venus.io.handler;
 
-import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.MessageHandler;
-import com.meidusa.venus.exception.DefaultVenusException;
-import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.network.VenusBackendConnection;
-import com.meidusa.venus.io.packet.*;
-import com.meidusa.venus.io.packet.serialize.SerializeServiceNofityPacket;
-import com.meidusa.venus.io.serializer.Serializer;
-import com.meidusa.venus.io.serializer.SerializerFactory;
-import com.meidusa.venus.notify.InvocationListener;
-import com.meidusa.venus.util.Utils;
-import com.meidusa.venus.util.VenusTracerUtil;
-import org.apache.commons.beanutils.BeanUtils;
+import com.meidusa.venus.io.packet.AbstractServicePacket;
+import com.meidusa.venus.io.packet.PacketConstant;
+import com.meidusa.venus.io.packet.PongPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.lang.reflect.Type;
 
 /**
  * venuw客户端消息处理类
@@ -37,16 +27,6 @@ import java.lang.reflect.Type;
 public class VenusClientMessageHandler implements MessageHandler<VenusBackendConnection, byte[]> {
 
     private static Logger logger = LoggerFactory.getLogger(VenusClientMessageHandler.class);
-
-    private VenusExceptionFactory venusExceptionFactory;
-
-    public VenusExceptionFactory getVenusExceptionFactory() {
-        return venusExceptionFactory;
-    }
-
-    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
-        this.venusExceptionFactory = venusExceptionFactory;
-    }
 
     public void handle(VenusBackendConnection conn, byte[] message) {
         int type = AbstractServicePacket.getType(message);

@@ -275,7 +275,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * @return
      */
     public Register getRegister(String registerUrl) {
-        //TODO 缓存
-        return new MysqlRegister();
+        return MysqlRegister.getInstance(registerUrl);
     }
 }
