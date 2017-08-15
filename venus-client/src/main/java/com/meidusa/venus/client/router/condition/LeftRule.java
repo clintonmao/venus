@@ -8,28 +8,48 @@ import com.meidusa.venus.URL;
  */
 public class LeftRule {
 
-    private String app;
+    private String appExp;
 
-    private String[] hosts;
+    private String appValue;
+
+    private String hostExp;
+
+    private String[] hostValues;
 
     public boolean isMatch(URL url){
         //TODO 解析url消费者信息，若匹配则返回true
         return false;
     }
 
-    public String getApp() {
-        return app;
+    public String getAppExp() {
+        return appExp;
     }
 
-    public void setApp(String app) {
-        this.app = app;
+    public void setAppExp(String appExp) {
+        this.appExp = appExp;
     }
 
-    public String[] getHosts() {
-        return hosts;
+    public String getAppValue() {
+        return appValue;
     }
 
-    public void setHosts(String[] hosts) {
-        this.hosts = hosts;
+    public void setAppValue(String appValue) {
+        this.appValue = appValue;
+    }
+
+    public String getHostExp() {
+        return hostExp;
+    }
+
+    public void setHostExp(String hostExp) {
+        this.hostExp = hostExp;
+    }
+
+    public String[] getHostValues() {
+        return hostValues;
+    }
+
+    public void setHostValues(String[] hostValues) {
+        this.hostValues = hostValues;
     }
 }

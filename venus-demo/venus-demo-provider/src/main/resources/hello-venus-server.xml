@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<venus-server>
+	<services>
+		<service type="com.chexiang.venus.demo.provider.HelloService">
+			<property name="instance">${helloService}</property>
+		</service>
+	</services>
+</venus-server>

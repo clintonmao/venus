@@ -8,38 +8,68 @@ import com.meidusa.venus.URL;
  */
 public class RightRule {
 
-    private String app;
+    private String appExp;
 
-    private String[] hosts;
+    private String appValue;
 
-    private String[] versions;
+    private String hostExp;
+
+    private String[] hostValues;
+
+    private String versionExp;
+
+    private String[] versionValues;
 
     public boolean isMatch(URL url){
         //TODO 解析url提供者信息，若匹配则返回true
         return false;
     }
 
-    public String getApp() {
-        return app;
+    public String getAppExp() {
+        return appExp;
     }
 
-    public void setApp(String app) {
-        this.app = app;
+    public void setAppExp(String appExp) {
+        this.appExp = appExp;
     }
 
-    public String[] getHosts() {
-        return hosts;
+    public String getAppValue() {
+        return appValue;
     }
 
-    public void setHosts(String[] hosts) {
-        this.hosts = hosts;
+    public void setAppValue(String appValue) {
+        this.appValue = appValue;
     }
 
-    public String[] getVersions() {
-        return versions;
+    public String getHostExp() {
+        return hostExp;
     }
 
-    public void setVersions(String[] versions) {
-        this.versions = versions;
+    public void setHostExp(String hostExp) {
+        this.hostExp = hostExp;
+    }
+
+    public String[] getHostValues() {
+        return hostValues;
+    }
+
+    public void setHostValues(String[] hostValues) {
+        this.hostValues = hostValues;
+    }
+
+    public String getVersionExp() {
+        return versionExp;
+    }
+
+    public void setVersionExp(String versionExp) {
+        this.versionExp = versionExp;
+    }
+
+    public String[] getVersionValues() {
+        return versionValues;
+    }
+
+    public void setVersionValues(String[] versionValues) {
+        this.versionValues = versionValues;
     }
 }

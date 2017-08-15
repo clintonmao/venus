@@ -6,6 +6,7 @@ import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.toolkit.common.util.StringUtil;
+import com.meidusa.venus.URL;
 import com.meidusa.venus.annotations.PerformanceLevel;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.backend.interceptor.Configurable;
@@ -26,6 +27,8 @@ import com.meidusa.venus.backend.services.xml.support.VenusServiceRegistry;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.extension.athena.AthenaExtensionResolver;
+import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.registry.mysql.MysqlRegister;
 import com.meidusa.venus.service.monitor.MonitorRuntime;
 import com.meidusa.venus.service.monitor.MonitorService;
 import com.meidusa.venus.service.registry.ServiceRegistry;
@@ -77,9 +80,10 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     public void afterPropertiesSet() throws Exception {
         beanContext = new BackendBeanContext(beanFactory);
         BeanContextBean.getInstance().setBeanContext(beanContext);
-        VenusBeanUtilsBean.setInstance(new BackendBeanUtilsBean(new ConvertUtilsBean(), new PropertyUtilsBean(), beanContext));
-        AthenaExtensionResolver.getInstance().resolver();
-        CodeMapScanner.getCodeMap();
+        //TODO 确认注释代码
+//        VenusBeanUtilsBean.setInstance(new BackendBeanUtilsBean(new ConvertUtilsBean(), new PropertyUtilsBean(), beanContext));
+//        AthenaExtensionResolver.getInstance().resolver();
+//        CodeMapScanner.getCodeMap();
 
         //解析配置文件
         VenusServerConfig venusServerConfig = parseConfig();
@@ -93,20 +97,39 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
         //初始化服务
         initServices(serviceConfigList, interceptors, interceptorStacks);
-    }
 
-    /**
-     * 导出服务
-     */
-    void export(){
-        //本地代理导出映射
+        //注册服务 TODO 改为依次实例化、注册
+        registe(serviceConfigList);
     }
 
     /**
      * 服务注册
      */
-    void registe(){
-        //TODO 调用远程注册服务
+    void registe(List<ServiceConfig> serviceConfigList){
+        for (ServiceConfig serviceConfig : serviceConfigList) {
+            URL registerUrl = getURL(serviceConfig);
+            Register register = getRegister();
+            register.registe(registerUrl);
+        }
+    }
+
+    /**
+     * 获取注册url
+     * @param serviceConfig
+     * @return
+     */
+    URL getURL(ServiceConfig serviceConfig){
+        String strUrl = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0&host=10.47.16.40&port=9000&methods=sayHello[java.lang.String]";
+        URL url = URL.parse(strUrl);
+        return url;
+    }
+
+    /**
+     * 获取注册中心
+     * @return
+     */
+    Register getRegister(){
+        return new MysqlRegister();
     }
 
     /**
@@ -173,7 +196,9 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      */
     private void initServices(List<ServiceConfig> serviceConfigList, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStacks) {
         for (ServiceConfig config : serviceConfigList) {
+            //初始化服务
             Service service = initService(config, interceptors, interceptorStacks);
+
             Map<String, Collection<Endpoint>> ends = service.getEndpoints().asMap();
             for (Map.Entry<String, Collection<Endpoint>> entry : ends.entrySet()) {
                 if (entry.getValue() != null && !entry.getValue().isEmpty()) {
