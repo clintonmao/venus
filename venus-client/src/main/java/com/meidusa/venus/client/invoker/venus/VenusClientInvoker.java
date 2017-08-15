@@ -22,6 +22,7 @@ import com.meidusa.venus.io.network.AbstractBIOConnection;
 import com.meidusa.venus.io.network.VenusBackendConnectionFactory;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.packet.ServicePacketBuffer;
+import com.meidusa.venus.io.packet.ServiceResponsePacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
@@ -90,10 +91,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      */
     private InvocationListenerContainer container = new InvocationListenerContainer();
 
-    /**
-     * NIO消息响应处理
-     */
-    private VenusClientInvokerMessageHandler handler = new VenusClientInvokerMessageHandler();
+
 
     /**
      * bio连接池映射表
@@ -112,6 +110,19 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     private Map<String, Object> realPoolMap = new HashMap<String, Object>();
 
     private InjvmInvoker injvmInvoker = new InjvmInvoker();
+
+    //TODO 优化锁对象
+    private Object lock = new Object();
+
+    /**
+     * 响应映射表
+     */
+    private Map<byte[],ServiceResponsePacket> serviceResponsePacketMap = new HashMap<byte[], ServiceResponsePacket>();
+
+    /**
+     * NIO消息响应处理
+     */
+    private VenusClientInvokerMessageHandler handler = new VenusClientInvokerMessageHandler();
 
     @Override
     public void init() throws RpcException {
@@ -142,10 +153,13 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
         handler.setVenusExceptionFactory(venusExceptionFactory);
         handler.setContainer(this.container);
+        handler.setLock(lock);
+        handler.setServiceResponsePacketMap(serviceResponsePacketMap);
     }
 
     @Override
     public Result doInvoke(Invocation invocation) throws RpcException {
+        byte[] messageId = invocation.getMessageId();
         try {
             //构造请求消息
             SerializeServiceRequestPacket serviceRequestPacket = buildRequest(invocation);
@@ -154,17 +168,15 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             sendRequestByNio(invocation, serviceRequestPacket);
 
             //TODO 处理void、callback情况
-            //TODO 同步对象
-            synchronized (container){
-                //TODO 处理超时情况
-                container.wait(3000);
-
-                //TODO 处理响应结果
-                Object result = fetchResponse(null);
-
-                //TODO 处理成功、失败情况
+            synchronized (lock){
+                lock.wait(3000);
             }
-            return new Result(null);
+            //处理响应结果
+            Result result = fetchResponse(messageId);
+            if(result == null){
+                throw new RpcException(String.format("invoke timeout:%","3000ms"));
+            }
+            return result;
         } catch (Exception e) {
             throw new RpcException(e);
         }
@@ -172,10 +184,11 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     /**
      * 获取对应请求的响应结果
-     * @param requestId
+     * @param messageId
      * @return
      */
-    Object fetchResponse(String requestId){
+    Result fetchResponse(byte[] messageId){
+        ServiceResponsePacket serviceResponsePacket = serviceResponsePacketMap.get(messageId);
         return null;
     }
 

@@ -5,6 +5,7 @@ import com.meidusa.venus.Invocation;
 import com.meidusa.venus.Invoker;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.RpcException;
+import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 
 import java.util.List;
 
@@ -25,10 +26,21 @@ public class FastfailClusterInvoker implements Invoker {
 
     @Override
     public Result invoke(Invocation invocation) throws RpcException {
-        return null;
+        Invoker invoker = getInvoker(invocation);
+        return  invoker.invoke(invocation);
     }
 
     @Override
     public void destroy() throws RpcException {
+    }
+
+    /**
+     * 获取invoker
+     * @param invocation
+     * @return
+     */
+    Invoker getInvoker(Invocation invocation){
+        //TODO
+        return new VenusClientInvoker();
     }
 }

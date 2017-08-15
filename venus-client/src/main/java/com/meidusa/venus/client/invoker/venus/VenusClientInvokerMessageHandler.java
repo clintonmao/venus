@@ -13,9 +13,13 @@
  */
 package com.meidusa.venus.client.invoker.venus;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.Map;
 
 import com.meidusa.venus.io.handler.VenusClientMessageHandler;
+import com.meidusa.venus.io.packet.*;
+import com.meidusa.venus.io.packet.serialize.SerializeServiceResponsePacket;
 import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,12 +29,6 @@ import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.venus.exception.DefaultVenusException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.network.VenusBackendConnection;
-import com.meidusa.venus.io.packet.AbstractServicePacket;
-import com.meidusa.venus.io.packet.ErrorPacket;
-import com.meidusa.venus.io.packet.OKPacket;
-import com.meidusa.venus.io.packet.PacketConstant;
-import com.meidusa.venus.io.packet.PongPacket;
-import com.meidusa.venus.io.packet.ServicePacketBuffer;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceNofityPacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
@@ -45,27 +43,19 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
 
     private static Logger logger = LoggerFactory.getLogger(VenusClientInvokerMessageHandler.class);
 
-    private InvocationListenerContainer container;
-
     private VenusExceptionFactory venusExceptionFactory;
 
-    public VenusExceptionFactory getVenusExceptionFactory() {
-        return venusExceptionFactory;
-    }
+    private InvocationListenerContainer container;
 
-    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
-        this.venusExceptionFactory = venusExceptionFactory;
-    }
+    //TODO lock传递
+    private Object lock;
 
-    public InvocationListenerContainer getContainer() {
-        return container;
-    }
-
-    public void setContainer(InvocationListenerContainer container) {
-        this.container = container;
-    }
+    private Map<byte[],ServiceResponsePacket> serviceResponsePacketMap;
 
     public void handle(VenusBackendConnection conn, byte[] message) {
+        Method method = null;//invocation.getMethod();
+        Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
+
         int type = AbstractServicePacket.getType(message);
         switch (type) {
             case PacketConstant.PACKET_TYPE_ERROR:
@@ -77,7 +67,6 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                     logger.error("receive error packet,errorCode=" + error.errorCode + ",message=" + error.message);
                 } else {
                     if (error.additionalData != null) {
-                        Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
                         Object obj = serializer.decode(error.additionalData, Utils.getBeanFieldType(e.getClass(), Exception.class));
                         try {
                             BeanUtils.copyProperties(e, obj);
@@ -94,8 +83,14 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 ok.init(message);
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_RESPONSE:
-                // ignore
-                //TODO notfiy
+                ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, method.getGenericReturnType());
+                response.init(message);
+                //TODO 确认messageId?
+                byte[] messageId = null;
+                serviceResponsePacketMap.put(messageId,response);
+                synchronized (lock){
+                    lock.notify();
+                }
                 break;
             case PacketConstant.PACKET_TYPE_NOTIFY_PUBLISH:
                 SerializeServiceNofityPacket packet = null;
@@ -107,7 +102,6 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
 
                 Tuple<InvocationListener, Type> tuple = container.getInvocationListener(listenerClass, identityHashCode);
 
-                Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
                 packet = new SerializeServiceNofityPacket(serializer, tuple.right);
 
                 packet.init(message);
@@ -143,4 +137,35 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         }
     }
 
+    public VenusExceptionFactory getVenusExceptionFactory() {
+        return venusExceptionFactory;
+    }
+
+    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
+        this.venusExceptionFactory = venusExceptionFactory;
+    }
+
+    public InvocationListenerContainer getContainer() {
+        return container;
+    }
+
+    public void setContainer(InvocationListenerContainer container) {
+        this.container = container;
+    }
+
+    public Object getLock() {
+        return lock;
+    }
+
+    public void setLock(Object lock) {
+        this.lock = lock;
+    }
+
+    public Map<byte[], ServiceResponsePacket> getServiceResponsePacketMap() {
+        return serviceResponsePacketMap;
+    }
+
+    public void setServiceResponsePacketMap(Map<byte[], ServiceResponsePacket> serviceResponsePacketMap) {
+        this.serviceResponsePacketMap = serviceResponsePacketMap;
+    }
 }

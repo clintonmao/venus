@@ -8,6 +8,9 @@ import com.meidusa.venus.client.cluster.loadbanlance.Loadbanlance;
 import com.meidusa.venus.client.cluster.loadbanlance.RandomLoadbanlance;
 import com.meidusa.venus.Invoker;
 import com.meidusa.venus.RpcException;
+import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -16,6 +19,8 @@ import java.util.List;
  * Created by Zhangzhihua on 2017/7/31.
  */
 public class FailoverClusterInvoker implements Invoker {
+
+    private static Logger logger = LoggerFactory.getLogger(FailoverClusterInvoker.class);
 
     /**
      * 地址列表
@@ -42,7 +47,7 @@ public class FailoverClusterInvoker implements Invoker {
                 // 调用
                 return  invoker.invoke(invocation);
             } catch (RpcException e) {
-                //TODO 异常日志处理
+                logger.warn("invoke failed.",e);
             }
         }
         throw new RpcException(String.format("serivce %,method % invoke failed with % tries.","","",""));

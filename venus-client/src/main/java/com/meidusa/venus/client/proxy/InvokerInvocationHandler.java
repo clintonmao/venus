@@ -137,7 +137,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
         List<Address> addressList = lookup(invocation);
 
         //路由规则过滤
-        addressList = router.filte(addressList,invocation);
+        addressList = router.filte(addressList, invocation);
 
         //集群调用
         Invoker clusterInvoker = getClusterInvoker(addressList,invocation);

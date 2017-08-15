@@ -14,6 +14,10 @@ import java.util.List;
  */
 public class Invocation {
 
+    private byte[] traceID;
+
+    private byte[] messageId;
+
     private Class<?> serviceType;
 
     private Method method;
@@ -26,7 +30,7 @@ public class Invocation {
 
     private EndpointParameter[] params;
 
-    private byte[] traceID;
+
 
     boolean async;
 
@@ -102,5 +106,13 @@ public class Invocation {
 
     public void setAsync(boolean async) {
         this.async = async;
+    }
+
+    public byte[] getMessageId() {
+        return messageId;
+    }
+
+    public void setMessageId(byte[] messageId) {
+        this.messageId = messageId;
     }
 }

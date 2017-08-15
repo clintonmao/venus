@@ -12,10 +12,9 @@ import java.util.List;
 public interface Router {
 
     /**
-     * 根据路由规划过滤可使用地址列表 TODO invocation参数定义?
+     * 根据路由规则过滤地址列表 TODO invocation参数定义?
      * @param addressList
-     * @param invocation
-     * @return
+     * @param invocation  @return
      */
     List<Address> filte(List<Address> addressList, Invocation invocation);
 }

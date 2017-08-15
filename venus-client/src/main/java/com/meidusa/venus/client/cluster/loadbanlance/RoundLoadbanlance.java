@@ -11,8 +11,17 @@ import java.util.List;
  */
 public class RoundLoadbanlance implements Loadbanlance {
 
+    private int index = 0;
+
     @Override
     public Address select(List<Address> addressList) {
-        return null;
+        //TODO 实现及权重因子
+        Address address = addressList.get(index);
+        if(index < addressList.size()){
+            index++;
+        }else{
+            index = 0;
+        }
+        return address;
     }
 }
