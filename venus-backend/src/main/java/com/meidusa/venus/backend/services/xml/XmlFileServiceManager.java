@@ -35,6 +35,7 @@ import com.meidusa.venus.service.registry.ServiceRegistry;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.digester.Digester;
 import org.apache.commons.digester.RuleSet;
 import org.apache.commons.digester.xmlrules.FromXmlRuleSet;
@@ -106,10 +107,12 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * 服务注册
      */
     void registe(List<ServiceConfig> serviceConfigList){
-        for (ServiceConfig serviceConfig : serviceConfigList) {
-            URL registerUrl = getURL(serviceConfig);
+        if(CollectionUtils.isNotEmpty(serviceConfigList)){
             Register register = getRegister();
-            register.registe(registerUrl);
+            for (ServiceConfig serviceConfig : serviceConfigList) {
+                URL registerUrl = getURL(serviceConfig);
+                register.registe(registerUrl);
+            }
         }
     }
 
@@ -129,7 +132,8 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @return
      */
     Register getRegister(){
-        return new MysqlRegister();
+        String registerUrl = "mysql://10.32.173.250:3306/registry_new?username=registry&password=registry";
+        return MysqlRegister.getInstance(registerUrl);
     }
 
     /**
