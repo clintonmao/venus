@@ -90,12 +90,21 @@ public class MysqlRegister implements Register {
 
 	/**
 	 * url =
-	 * "jdbc:mysql://10.32.173.250/registry_new?username=registry&password=registry";
+	 * "mysql://10.32.173.250:3306/registry_new?username=registry&password=registry";
 	 * 
 	 * @param url
 	 * @return
 	 */
 	public final static MysqlRegister getInstance(String url) {
+		if (!url.startsWith("mysql://")) {
+			throw new IllegalArgumentException("URL 参数异常,非jdbc mysql协议,url=>" + url);
+		}
+		if (!url.contains("username=")) {
+			throw new IllegalArgumentException("URL 参数异常,未包含用户名,url=>" + url);
+		}
+		if (!url.contains("password=")) {
+			throw new IllegalArgumentException("URL 参数异常,未包含密码,url=>" + url);
+		}
 		dataSource = DataSourceUtil.getBasicDataSource(url);
 		if (jdbcTemplate == null) {
 			synchronized (MysqlRegister.class) {

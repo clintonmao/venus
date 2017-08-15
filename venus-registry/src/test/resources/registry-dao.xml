@@ -6,7 +6,7 @@
        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
        http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
 
-	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+<!-- 	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
 		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
 		<property name="url" value="jdbc:mysql://10.32.173.250/registry_new" />
 		<property name="username" value="registry" />
@@ -23,6 +23,6 @@
 	</bean>
 
 	<context:annotation-config />
-	<context:component-scan base-package="com.meidusa.venus.registry" />
+	<context:component-scan base-package="com.meidusa.venus.registry" /> -->
 
 </beans>
