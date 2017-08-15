@@ -6,6 +6,7 @@ import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.toolkit.common.util.StringUtil;
+import com.meidusa.venus.RpcException;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.annotations.PerformanceLevel;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
@@ -50,6 +51,8 @@ import org.springframework.core.io.Resource;
 
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 
 /**
@@ -122,9 +125,26 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @return
      */
     URL getURL(ServiceConfig serviceConfig){
-        String strUrl = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0&host=10.47.16.40&port=9000&methods=sayHello[java.lang.String]";
+        String strUrl = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0&host=%s&port=9000&methods=sayHello[java.lang.String]";
+        strUrl = String.format(strUrl,getLocalIp());
+        logger.info("registerUrl:%",strUrl);
         URL url = URL.parse(strUrl);
         return url;
+    }
+
+    /**
+     * 获取本机ip
+     * @return
+     */
+    String getLocalIp(){
+        try {
+            InetAddress addr = InetAddress.getLocalHost();
+            String localIp =  addr.getHostAddress();
+            logger.info("localIp:%",localIp);
+            return localIp;
+        } catch (UnknownHostException e) {
+            throw new RpcException(e);
+        }
     }
 
     /**
