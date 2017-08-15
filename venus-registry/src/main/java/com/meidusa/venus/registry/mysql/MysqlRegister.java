@@ -97,12 +97,15 @@ public class MysqlRegister implements Register {
 	 */
 	public final static MysqlRegister getInstance(String url) {
 		if (!url.startsWith("mysql://")) {
+			logger.error("URL 参数异常,非jdbc mysql协议,url=>{}",url);
 			throw new IllegalArgumentException("URL 参数异常,非jdbc mysql协议,url=>" + url);
 		}
 		if (!url.contains("username=")) {
+			logger.error("URL 参数异常,未包含用户名,url=>{}",url);
 			throw new IllegalArgumentException("URL 参数异常,未包含用户名,url=>" + url);
 		}
 		if (!url.contains("password=")) {
+			logger.error("URL 参数异常,未包含密码,url=>{}",url);
 			throw new IllegalArgumentException("URL 参数异常,未包含密码,url=>" + url);
 		}
 		dataSource = DataSourceUtil.getBasicDataSource(url);
