@@ -7,25 +7,25 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Resource;
-
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Component;
 
 import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.dao.VenusServerDAO;
 import com.meidusa.venus.registry.domain.VenusServerDO;
 
-@Component
 public class VenusServerDaoImpl implements VenusServerDAO {
 
-	@Resource
 	private JdbcTemplate jdbcTemplate;
+
+	public VenusServerDaoImpl(JdbcTemplate jdbcTemplate) {
+		super();
+		this.jdbcTemplate = jdbcTemplate;
+	}
 
 	@Override
 	public int addServer(VenusServerDO venusServerDO) throws DAOException {

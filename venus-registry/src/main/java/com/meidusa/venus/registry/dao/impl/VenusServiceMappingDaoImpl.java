@@ -5,24 +5,24 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Resource;
-
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.stereotype.Component;
 
 import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.dao.VenusServiceMappingDAO;
 import com.meidusa.venus.registry.domain.VenusServiceMappingDO;
 
-@Component
 public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 
 	private static final String SELECT_FIELDS_TABLE = "select id, server_id, service_id, version, active, sync,role,consumer_app_id,is_delete,create_time, update_time,registe_time,heartbeat_time from t_venus_service_mapping ";
 
-	@Resource
 	private JdbcTemplate jdbcTemplate;
+
+	public VenusServiceMappingDaoImpl(JdbcTemplate jdbcTemplate) {
+		super();
+		this.jdbcTemplate = jdbcTemplate;
+	}
 
 	@Override
 	public boolean addServiceMapping(VenusServiceMappingDO mapping) throws DAOException {

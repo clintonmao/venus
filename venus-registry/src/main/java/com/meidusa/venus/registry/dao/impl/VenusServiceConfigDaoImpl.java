@@ -5,22 +5,22 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Resource;
-
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
-import org.springframework.stereotype.Component;
 
 import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.dao.VenusServiceConfigDAO;
 import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
 
-@Component
 public class VenusServiceConfigDaoImpl implements VenusServiceConfigDAO {
 
-	@Resource
 	private JdbcTemplate jdbcTemplate;
+
+	public VenusServiceConfigDaoImpl(JdbcTemplate jdbcTemplate) {
+		super();
+		this.jdbcTemplate = jdbcTemplate;
+	}
 
 	@Override
 	public List<VenusServiceConfigDO> getServiceConfigs(Integer serviceId) throws DAOException {

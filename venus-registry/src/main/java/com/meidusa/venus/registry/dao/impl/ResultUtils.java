@@ -66,7 +66,7 @@ public class ResultUtils {
 		venusServiceMapping.setId(rs.getInt("id"));
 		venusServiceMapping.setVersion(rs.getString("version"));
 		venusServiceMapping.setActive(rs.getBoolean("active"));
-		venusServiceMapping.setSync(rs.getBoolean("invocation"));
+		venusServiceMapping.setSync(rs.getBoolean("sync"));
 
 		venusServiceMapping.setServerId(rs.getInt("server_id"));
 		venusServiceMapping.setServiceId(rs.getInt("service_id"));

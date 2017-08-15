@@ -5,33 +5,31 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import javax.annotation.Resource;
-
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Component;
 
 import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.dao.VenusApplicationDAO;
 import com.meidusa.venus.registry.domain.VenusApplicationDO;
 
-@Component
 public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 
-	@Resource
 	private JdbcTemplate jdbcTemplate;
+
+	public VenusApplicationDaoImpl(JdbcTemplate jdbcTemplate) {
+		super();
+		this.jdbcTemplate = jdbcTemplate;
+	}
 
 	@Override
 	public int addApplication(VenusApplicationDO venusApplicationDO) throws DAOException {
 		final String sql = "insert into t_venus_application (app_code,provider,consumer,create_name,update_name,create_time, update_time) values ('"
-				+ venusApplicationDO.getAppCode() + "',"
-				+ venusApplicationDO.isProvider() + ","
-				+ venusApplicationDO.isConsumer() + ", '" 
-				+ venusApplicationDO.getCreateName() + "', '"
+				+ venusApplicationDO.getAppCode() + "'," + venusApplicationDO.isProvider() + ","
+				+ venusApplicationDO.isConsumer() + ", '" + venusApplicationDO.getCreateName() + "', '"
 				+ venusApplicationDO.getUpdateName() + "', now(), now())";
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		int autoIncId = 0;
@@ -51,7 +49,8 @@ public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 		String sql = "update t_venus_application set provider=?,consumer=?,update_time=now() where id=?";
 		int update = 0;
 		try {
-			update = this.jdbcTemplate.update(sql, venusApplicationDO.isProvider(),venusApplicationDO.isConsumer(), venusApplicationDO.getId());
+			update = this.jdbcTemplate.update(sql, venusApplicationDO.isProvider(), venusApplicationDO.isConsumer(),
+					venusApplicationDO.getId());
 		} catch (Exception e) {
 			throw new DAOException("更新venusApplication异常", e);
 		}

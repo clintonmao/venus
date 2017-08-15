@@ -8,13 +8,11 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.URL;
@@ -25,7 +23,13 @@ import com.meidusa.venus.registry.dao.VenusServerDAO;
 import com.meidusa.venus.registry.dao.VenusServiceConfigDAO;
 import com.meidusa.venus.registry.dao.VenusServiceDAO;
 import com.meidusa.venus.registry.dao.VenusServiceMappingDAO;
+import com.meidusa.venus.registry.dao.impl.DataSourceUtil;
 import com.meidusa.venus.registry.dao.impl.ResultUtils;
+import com.meidusa.venus.registry.dao.impl.VenusApplicationDaoImpl;
+import com.meidusa.venus.registry.dao.impl.VenusServerDaoImpl;
+import com.meidusa.venus.registry.dao.impl.VenusServiceConfigDaoImpl;
+import com.meidusa.venus.registry.dao.impl.VenusServiceDaoImpl;
+import com.meidusa.venus.registry.dao.impl.VenusServiceMappingDaoImpl;
 import com.meidusa.venus.registry.domain.RegisteConstant;
 import com.meidusa.venus.registry.domain.VenusApplicationDO;
 import com.meidusa.venus.registry.domain.VenusServerDO;
@@ -37,8 +41,7 @@ import com.meidusa.venus.service.registry.ServiceDefinition;
 /**
  * mysql服务注册中心类 Created by Zhangzhihua on 2017/7/27.
  */
-@Component
-public class MysqlRegister implements Register, InitializingBean, DisposableBean {
+public class MysqlRegister implements Register {
 
 	private static Logger logger = LoggerFactory.getLogger(MysqlRegister.class);
 
@@ -57,24 +60,58 @@ public class MysqlRegister implements Register, InitializingBean, DisposableBean
 	/** 已订阅成功的 服务定义对象 */
 	private Set<ServiceDefinition> subscribleServiceDefinitions = new HashSet<ServiceDefinition>();
 
-	@Autowired
 	private VenusServiceDAO venusServiceDAO;
 
-	@Autowired
 	private VenusServiceConfigDAO venusServiceConfigDAO;
 
-	@Autowired
 	private VenusApplicationDAO venusApplicationDAO;
 
-	@Autowired
 	private VenusServerDAO venusServerDAO;
 
-	@Autowired
 	private VenusServiceMappingDAO venusServiceMappingDAO;
 
 	private boolean loadRunning = false;
 
 	private boolean heartbeatRunning = false;
+
+	private static BasicDataSource dataSource;
+
+	private static JdbcTemplate jdbcTemplate;
+
+	private static MysqlRegister register = new MysqlRegister();
+
+	private MysqlRegister() {
+		try {
+			init();
+		} catch (Exception e) {
+			logger.error("init初始化异常,异常原因：{} ", e);
+		}
+	}
+
+	/**
+	 * url =
+	 * "jdbc:mysql://10.32.173.250/registry_new?username=registry&password=registry";
+	 * 
+	 * @param url
+	 * @return
+	 */
+	public final static MysqlRegister getInstance(String url) {
+		dataSource = DataSourceUtil.getBasicDataSource(url);
+		if (jdbcTemplate == null) {
+			synchronized (MysqlRegister.class) {
+				if (jdbcTemplate == null) {
+					jdbcTemplate = new JdbcTemplate(dataSource);
+				}
+			}
+			register.setVenusApplicationDAO(new VenusApplicationDaoImpl(jdbcTemplate));
+			register.setVenusServerDAO(new VenusServerDaoImpl(jdbcTemplate));
+			register.setVenusServiceConfigDAO(new VenusServiceConfigDaoImpl(jdbcTemplate));
+			register.setVenusServiceDAO(new VenusServiceDaoImpl(jdbcTemplate));
+			register.setVenusServiceMappingDAO(new VenusServiceMappingDaoImpl(jdbcTemplate));
+		}
+
+		return register;
+	}
 
 	@Override
 	public void registe(URL url) throws VenusRegisteException {
@@ -437,9 +474,8 @@ public class MysqlRegister implements Register, InitializingBean, DisposableBean
 		}
 	}
 
-	@Override
-	public void afterPropertiesSet() throws Exception {
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 10, 10, TimeUnit.SECONDS);
+	public void init() throws Exception {
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 5, 10, TimeUnit.SECONDS);
 	}
 
 	private class UrlFailRunnable implements Runnable {
@@ -471,4 +507,45 @@ public class MysqlRegister implements Register, InitializingBean, DisposableBean
 		}
 
 	}
+
+	public VenusServiceDAO getVenusServiceDAO() {
+		return venusServiceDAO;
+	}
+
+	public void setVenusServiceDAO(VenusServiceDAO venusServiceDAO) {
+		this.venusServiceDAO = venusServiceDAO;
+	}
+
+	public VenusServiceConfigDAO getVenusServiceConfigDAO() {
+		return venusServiceConfigDAO;
+	}
+
+	public void setVenusServiceConfigDAO(VenusServiceConfigDAO venusServiceConfigDAO) {
+		this.venusServiceConfigDAO = venusServiceConfigDAO;
+	}
+
+	public VenusApplicationDAO getVenusApplicationDAO() {
+		return venusApplicationDAO;
+	}
+
+	public void setVenusApplicationDAO(VenusApplicationDAO venusApplicationDAO) {
+		this.venusApplicationDAO = venusApplicationDAO;
+	}
+
+	public VenusServerDAO getVenusServerDAO() {
+		return venusServerDAO;
+	}
+
+	public void setVenusServerDAO(VenusServerDAO venusServerDAO) {
+		this.venusServerDAO = venusServerDAO;
+	}
+
+	public VenusServiceMappingDAO getVenusServiceMappingDAO() {
+		return venusServiceMappingDAO;
+	}
+
+	public void setVenusServiceMappingDAO(VenusServiceMappingDAO venusServiceMappingDAO) {
+		this.venusServiceMappingDAO = venusServiceMappingDAO;
+	}
+
 }
