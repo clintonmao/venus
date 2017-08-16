@@ -73,6 +73,7 @@ public class ResultUtils {
 
 		venusServiceMapping.setServerId(rs.getInt("server_id"));
 		venusServiceMapping.setServiceId(rs.getInt("service_id"));
+		venusServiceMapping.setProviderAppId(rs.getInt("provider_app_id"));
 		venusServiceMapping.setConsumerAppId(rs.getInt("consumer_app_id"));
 		venusServiceMapping.setIsDelete(rs.getBoolean("is_delete"));
 

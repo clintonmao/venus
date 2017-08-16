@@ -44,6 +44,8 @@ public class VenusServiceMappingDO implements Serializable {
 	private String role;
 
 	private Integer consumerAppId;
+	
+	private Integer providerAppId;
 
 	public Integer getId() {
 		return id;
@@ -163,6 +165,14 @@ public class VenusServiceMappingDO implements Serializable {
 
 	public void setConsumerAppId(Integer consumerAppId) {
 		this.consumerAppId = consumerAppId;
+	}
+
+	public Integer getProviderAppId() {
+		return providerAppId;
+	}
+
+	public void setProviderAppId(Integer providerAppId) {
+		this.providerAppId = providerAppId;
 	}
 
 	@Override

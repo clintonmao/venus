@@ -192,6 +192,7 @@ public class MysqlRegister implements Register {
 				VenusServiceMappingDO venusServiceMappingDO = new VenusServiceMappingDO();
 				venusServiceMappingDO.setServerId(serverId);
 				venusServiceMappingDO.setServiceId(serviceId);
+				venusServiceMappingDO.setProviderAppId(appId);
 				venusServiceMappingDO.setConsumerAppId(0);
 				venusServiceMappingDO.setSync(true);
 				venusServiceMappingDO.setActive(true);
@@ -300,6 +301,7 @@ public class MysqlRegister implements Register {
 				venusServiceMappingDO.setRole(RegisteConstant.CONSUMER);
 				venusServiceMappingDO.setVersion(url.getVersion());
 				venusServiceMappingDO.setIsDelete(false);
+				venusServiceMappingDO.setProviderAppId(0);
 				venusServiceMappingDO.setConsumerAppId(appId);
 				venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
 			} else {
@@ -345,7 +347,7 @@ public class MysqlRegister implements Register {
 	@Override
 	public void heartbeat() throws VenusRegisteException {
 		if (!heartbeatRunning) {
-			GlobalScheduler.getInstance().scheduleAtFixedRate(new HeartBeatRunnable(), 10, 10, TimeUnit.SECONDS);
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new HeartBeatRunnable(), 10, heartBeatSecond, TimeUnit.SECONDS);
 			heartbeatRunning = true;
 		}
 	}
@@ -547,19 +549,24 @@ public class MysqlRegister implements Register {
 		@Override
 		public void run() {
 			int seconds = 10 * heartBeatSecond;
-			Date date = getSubSecond(new Date(), seconds);
-			DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			String currentDateTime = format.format(date);
+			try {
+				Date date = getSubSecond(new Date(), seconds);
+				DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				String currentDateTime = format.format(date);
 
-			List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMappings(currentDateTime);
-			if (CollectionUtils.isNotEmpty(serviceMappings)) {
-				List<Integer> ids=new ArrayList<Integer>();
-				for (Iterator<VenusServiceMappingDO> iterator = serviceMappings.iterator(); iterator.hasNext();) {
-					VenusServiceMappingDO mapping = iterator.next();
-					Integer id = mapping.getId();
-					ids.add(id);
+				List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO
+						.getServiceMappings(currentDateTime);
+				if (CollectionUtils.isNotEmpty(serviceMappings)) {
+					List<Integer> ids = new ArrayList<Integer>();
+					for (Iterator<VenusServiceMappingDO> iterator = serviceMappings.iterator(); iterator.hasNext();) {
+						VenusServiceMappingDO mapping = iterator.next();
+						Integer id = mapping.getId();
+						ids.add(id);
+					}
+					venusServiceMappingDAO.updateServiceMappings(ids);
 				}
-				venusServiceMappingDAO.updateServiceMappings(ids);
+			} catch (Exception e) {
+				logger.error("ClearInvalidRunnable is error",e);
 			}
 		}
 
@@ -611,5 +618,5 @@ public class MysqlRegister implements Register {
 	public void setVenusServiceMappingDAO(VenusServiceMappingDAO venusServiceMappingDAO) {
 		this.venusServiceMappingDAO = venusServiceMappingDAO;
 	}
-	
+
 }

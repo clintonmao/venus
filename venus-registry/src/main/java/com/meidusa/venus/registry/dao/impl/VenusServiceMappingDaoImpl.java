@@ -16,7 +16,7 @@ import com.meidusa.venus.registry.domain.VenusServiceMappingDO;
 
 public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 
-	private static final String SELECT_FIELDS_TABLE = "select id, server_id, service_id, version, active, sync,role,consumer_app_id,is_delete,create_time, update_time,registe_time,heartbeat_time from t_venus_service_mapping ";
+	private static final String SELECT_FIELDS_TABLE = "select id, server_id, service_id, version, active, sync,role,provider_app_id,consumer_app_id,is_delete,create_time, update_time,registe_time,heartbeat_time from t_venus_service_mapping ";
 
 	private JdbcTemplate jdbcTemplate;
 
@@ -27,10 +27,10 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 
 	@Override
 	public boolean addServiceMapping(VenusServiceMappingDO mapping) throws DAOException {
-		String sql = "insert into t_venus_service_mapping (server_id,service_id,consumer_app_id,version, active, sync,role,is_delete,create_time, update_time,registe_time) values (?, ?, ?, ?, ?, ?, ?, ?,now(), now(),now())";
+		String sql = "insert into t_venus_service_mapping (server_id,service_id,provider_app_id,consumer_app_id,version, active, sync,role,is_delete,create_time, update_time,registe_time) values (?, ?, ?, ?, ?, ?, ?, ?, ?,now(), now(),now())";
 		int update = 0;
 		try {
-			update = this.jdbcTemplate.update(sql, mapping.getServerId(), mapping.getServiceId(),
+			update = this.jdbcTemplate.update(sql, mapping.getServerId(), mapping.getServiceId(),mapping.getProviderAppId(),
 					mapping.getConsumerAppId(), mapping.getVersion(), mapping.isActive(), mapping.isSync(),
 					mapping.getRole(), mapping.getIsDelete());
 		} catch (Exception e) {
