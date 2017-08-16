@@ -9,8 +9,14 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>venus-registry</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+		<module>venus-registry-api</module>
+		<module>venus-registry-service</module>
+		<module>venus-registry-endpoint</module>
+	</modules>
 
-	<dependencies>
+    <dependencies>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
