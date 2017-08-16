@@ -1,6 +1,11 @@
 package com.meidusa.venus.registry.mysql;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -77,6 +82,8 @@ public class MysqlRegister implements Register {
 	private static BasicDataSource dataSource;
 
 	private static JdbcTemplate jdbcTemplate;
+
+	private int heartBeatSecond = 10;
 
 	private static MysqlRegister register = new MysqlRegister();
 
@@ -535,6 +542,36 @@ public class MysqlRegister implements Register {
 
 	}
 
+	private class ClearInvalidRunnable implements Runnable {
+
+		@Override
+		public void run() {
+			int seconds = 10 * heartBeatSecond;
+			Date date = getSubSecond(new Date(), seconds);
+			DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			String currentDateTime = format.format(date);
+
+			List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMappings(currentDateTime);
+			if (CollectionUtils.isNotEmpty(serviceMappings)) {
+				List<Integer> ids=new ArrayList<Integer>();
+				for (Iterator<VenusServiceMappingDO> iterator = serviceMappings.iterator(); iterator.hasNext();) {
+					VenusServiceMappingDO mapping = iterator.next();
+					Integer id = mapping.getId();
+					ids.add(id);
+				}
+				venusServiceMappingDAO.updateServiceMappings(ids);
+			}
+		}
+
+	}
+
+	public static final Date getSubSecond(Date date, int second) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.add(Calendar.SECOND, -second);
+		return calendar.getTime();
+	}
+
 	public VenusServiceDAO getVenusServiceDAO() {
 		return venusServiceDAO;
 	}
@@ -574,5 +611,5 @@ public class MysqlRegister implements Register {
 	public void setVenusServiceMappingDAO(VenusServiceMappingDAO venusServiceMappingDAO) {
 		this.venusServiceMappingDAO = venusServiceMappingDAO;
 	}
-
+	
 }

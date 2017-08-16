@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 
 import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.dao.VenusServiceMappingDAO;
+import com.meidusa.venus.registry.domain.VenusServiceDO;
 import com.meidusa.venus.registry.domain.VenusServiceMappingDO;
 
 public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
@@ -160,5 +161,47 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 		} catch (Exception e) {
 			throw new DAOException("根据serverID＝>" + serverId + "获取服务映射关系异常", e);
 		}
+	}
+
+	public List<VenusServiceMappingDO> getServiceMappings(String dateStr) throws DAOException {
+		String sql = SELECT_FIELDS_TABLE + " where heartbeat_time <= ?";
+
+		try {
+			return this.jdbcTemplate.query(sql, new Object[] { dateStr },
+					new ResultSetExtractor<List<VenusServiceMappingDO>>() {
+						@Override
+						public List<VenusServiceMappingDO> extractData(ResultSet rs)
+								throws SQLException, DataAccessException {
+							List<VenusServiceMappingDO> returnList = new ArrayList<VenusServiceMappingDO>();
+							while (rs.next()) {
+								VenusServiceMappingDO mapping = ResultUtils.resultToVenusServiceMappingDO(rs);
+								returnList.add(mapping);
+							}
+							return returnList;
+						}
+					});
+		} catch (Exception e) {
+			throw new DAOException("根据大于等于heartbeat_time＝>" + dateStr + "获取服务映射关系列表异常", e);
+		}
+	}
+
+	public boolean updateServiceMappings(List<Integer> ids) throws DAOException {
+		if (ids.isEmpty()) {
+			return false;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (Integer id : ids) {
+			sb.append(id);
+			sb.append(",");
+		}
+		String str = sb.substring(0, sb.length() - 1);
+		String sql = "update t_venus_service_mapping set is_delete=? where id in(" + str + ")";
+		int update = 0;
+		try {
+			update = this.jdbcTemplate.update(sql, true);
+		} catch (Exception e) {
+			throw new DAOException("逻辑删除更新映射关系异常", e);
+		}
+		return update > 0 ? true : false;
 	}
 }
