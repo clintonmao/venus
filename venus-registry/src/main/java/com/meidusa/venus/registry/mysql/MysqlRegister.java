@@ -356,7 +356,7 @@ public class MysqlRegister implements Register {
 	public void clearInvalid() throws VenusRegisteException {
 		registeFailUrls.clear();
 		subscribleFailUrls.clear();
-
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 5, 10, TimeUnit.SECONDS);
 		// 清理线程 清理心跳的脏数据
 	}
 
