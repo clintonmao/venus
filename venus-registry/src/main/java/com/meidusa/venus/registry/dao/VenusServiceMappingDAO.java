@@ -22,5 +22,9 @@ public interface VenusServiceMappingDAO {
 	VenusServiceMappingDO getServiceMapping(Integer id) throws DAOException;
 
 	List<VenusServiceMappingDO> getServiceMappings(Integer serverId) throws DAOException;
+	
+	List<VenusServiceMappingDO> getServiceMappings(String dateStr) throws DAOException;
+	
+	boolean updateServiceMappings(List<Integer> ids) throws DAOException;
 
 }

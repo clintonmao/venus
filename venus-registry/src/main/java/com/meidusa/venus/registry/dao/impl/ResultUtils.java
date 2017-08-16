@@ -56,6 +56,9 @@ public class ResultUtils {
 		venusService.setAppId(rs.getInt("app_id"));
 		venusService.setRegisteType(rs.getInt("registe_type"));
 
+		venusService.setMethods(rs.getString("methods"));
+		venusService.setIsDelete(rs.getBoolean("is_delete"));
+
 		venusService.setCreateTime(rs.getTimestamp("create_time"));
 		venusService.setUpdateTime(rs.getTimestamp("update_time"));
 		return venusService;
@@ -70,6 +73,7 @@ public class ResultUtils {
 
 		venusServiceMapping.setServerId(rs.getInt("server_id"));
 		venusServiceMapping.setServiceId(rs.getInt("service_id"));
+		venusServiceMapping.setProviderAppId(rs.getInt("provider_app_id"));
 		venusServiceMapping.setConsumerAppId(rs.getInt("consumer_app_id"));
 		venusServiceMapping.setIsDelete(rs.getBoolean("is_delete"));
 

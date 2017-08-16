@@ -1,6 +1,11 @@
 package com.meidusa.venus.registry.mysql;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -78,6 +83,8 @@ public class MysqlRegister implements Register {
 
 	private static JdbcTemplate jdbcTemplate;
 
+	private int heartBeatSecond = 10;
+
 	private static MysqlRegister register = new MysqlRegister();
 
 	private MysqlRegister() {
@@ -97,15 +104,15 @@ public class MysqlRegister implements Register {
 	 */
 	public final static MysqlRegister getInstance(String url) {
 		if (!url.startsWith("mysql://")) {
-			logger.error("URL 参数异常,非jdbc mysql协议,url=>{}",url);
+			logger.error("URL 参数异常,非jdbc mysql协议,url=>{}", url);
 			throw new IllegalArgumentException("URL 参数异常,非jdbc mysql协议,url=>" + url);
 		}
 		if (!url.contains("username=")) {
-			logger.error("URL 参数异常,未包含用户名,url=>{}",url);
+			logger.error("URL 参数异常,未包含用户名,url=>{}", url);
 			throw new IllegalArgumentException("URL 参数异常,未包含用户名,url=>" + url);
 		}
 		if (!url.contains("password=")) {
-			logger.error("URL 参数异常,未包含密码,url=>{}",url);
+			logger.error("URL 参数异常,未包含密码,url=>{}", url);
 			throw new IllegalArgumentException("URL 参数异常,未包含密码,url=>" + url);
 		}
 		dataSource = DataSourceUtil.getBasicDataSource(url);
@@ -170,11 +177,12 @@ public class MysqlRegister implements Register {
 				venusServiceDO.setVersion(url.getVersion());
 				venusServiceDO.setRegisteType(RegisteConstant.AUTO_REGISTE);
 				venusServiceDO.setMethods(url.getMethods());
+				venusServiceDO.setIsDelete(false);
 				serviceId = venusServiceDAO.addService(venusServiceDO);
 			} else {
 				serviceId = service.getId();
 				if (StringUtils.isNotBlank(url.getMethods())) {
-					venusServiceDAO.updateService(url.getMethods(), serviceId);
+					venusServiceDAO.updateService(url.getMethods(), false, serviceId);
 				}
 			}
 
@@ -184,6 +192,7 @@ public class MysqlRegister implements Register {
 				VenusServiceMappingDO venusServiceMappingDO = new VenusServiceMappingDO();
 				venusServiceMappingDO.setServerId(serverId);
 				venusServiceMappingDO.setServiceId(serviceId);
+				venusServiceMappingDO.setProviderAppId(appId);
 				venusServiceMappingDO.setConsumerAppId(0);
 				venusServiceMappingDO.setSync(true);
 				venusServiceMappingDO.setActive(true);
@@ -245,6 +254,10 @@ public class MysqlRegister implements Register {
 				logger.error("服务订阅异常,原因:服务{}不存在 ", url.getServiceName());
 				throw new VenusRegisteException("服务订阅异常,原因:服务" + url.getServiceName() + "不存在");
 			}
+			if (service.getIsDelete() && url.isConsumerCheck()) {// 服务不存在并且配置了检测则抛出异常
+				logger.error("服务订阅异常,原因:服务{}已删除", url.getServiceName());
+				throw new VenusRegisteException("服务订阅异常,原因:服务" + url.getServiceName() + "不存在");
+			}
 			String appCode = url.getApplication();
 			int appId = 0;
 			if (StringUtils.isNotBlank(appCode)) {
@@ -288,6 +301,7 @@ public class MysqlRegister implements Register {
 				venusServiceMappingDO.setRole(RegisteConstant.CONSUMER);
 				venusServiceMappingDO.setVersion(url.getVersion());
 				venusServiceMappingDO.setIsDelete(false);
+				venusServiceMappingDO.setProviderAppId(0);
 				venusServiceMappingDO.setConsumerAppId(appId);
 				venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
 			} else {
@@ -300,7 +314,6 @@ public class MysqlRegister implements Register {
 			throw new VenusRegisteException("服务订阅异常" + url.getServiceName(), e);
 		}
 		subscribleUrls.add(url);
-		
 
 	}
 
@@ -334,7 +347,7 @@ public class MysqlRegister implements Register {
 	@Override
 	public void heartbeat() throws VenusRegisteException {
 		if (!heartbeatRunning) {
-			GlobalScheduler.getInstance().scheduleAtFixedRate(new HeartBeatRunnable(), 10, 10, TimeUnit.SECONDS);
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new HeartBeatRunnable(), 10, heartBeatSecond, TimeUnit.SECONDS);
 			heartbeatRunning = true;
 		}
 	}
@@ -343,6 +356,8 @@ public class MysqlRegister implements Register {
 	public void clearInvalid() throws VenusRegisteException {
 		registeFailUrls.clear();
 		subscribleFailUrls.clear();
+
+		// 清理线程 清理心跳的脏数据
 	}
 
 	@Override
@@ -392,7 +407,7 @@ public class MysqlRegister implements Register {
 					try {
 						List<Integer> serverIds = new ArrayList<Integer>();
 						VenusServiceDO service = venusServiceDAO.getService(serviceName, version, interfaceName);
-						if (null == service) {
+						if (null == service || (null != service && service.getIsDelete())) {
 							continue;
 						}
 						Integer serviceId = service.getId();
@@ -453,6 +468,9 @@ public class MysqlRegister implements Register {
 					String version = url.getVersion();
 					try {
 						VenusServiceDO service = venusServiceDAO.getService(serviceName, version, interfaceName);
+						if (service.getIsDelete()) {
+							continue;
+						}
 						int serviceID = service.getId();
 						String host = url.getHost();
 						int port = url.getPort();
@@ -474,6 +492,9 @@ public class MysqlRegister implements Register {
 					String version = url.getVersion();
 					try {
 						VenusServiceDO service = venusServiceDAO.getService(serviceName, version, interfaceName);
+						if (service.getIsDelete()) {
+							continue;
+						}
 						int serviceID = service.getId();
 						String host = url.getHost();
 						VenusServerDO server = venusServerDAO.getServer(host, 0);
@@ -521,6 +542,41 @@ public class MysqlRegister implements Register {
 
 		}
 
+	}
+
+	private class ClearInvalidRunnable implements Runnable {
+
+		@Override
+		public void run() {
+			int seconds = 10 * heartBeatSecond;
+			try {
+				Date date = getSubSecond(new Date(), seconds);
+				DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				String currentDateTime = format.format(date);
+
+				List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO
+						.getServiceMappings(currentDateTime);
+				if (CollectionUtils.isNotEmpty(serviceMappings)) {
+					List<Integer> ids = new ArrayList<Integer>();
+					for (Iterator<VenusServiceMappingDO> iterator = serviceMappings.iterator(); iterator.hasNext();) {
+						VenusServiceMappingDO mapping = iterator.next();
+						Integer id = mapping.getId();
+						ids.add(id);
+					}
+					venusServiceMappingDAO.updateServiceMappings(ids);
+				}
+			} catch (Exception e) {
+				logger.error("ClearInvalidRunnable is error",e);
+			}
+		}
+
+	}
+
+	public static final Date getSubSecond(Date date, int second) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.add(Calendar.SECOND, -second);
+		return calendar.getTime();
 	}
 
 	public VenusServiceDAO getVenusServiceDAO() {
