@@ -2,7 +2,7 @@
 <venus-client xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:noNamespaceSchemaLocation="venus-client.xsd">
 	<remotes>
-		<remote name="UMSRemote" loadbalance="1">
+		<remote name="helloRemote" loadbalance="1">
 			<!-- 与远程连接的socket相关的配置 -->
 			<factory>
 				<!-- 支持多节点负责均衡的高可用配置，默认采用轮询  -->
@@ -32,9 +32,13 @@
 			</authenticator>
 		</remote>
 	</remotes>
+
 	<!-- 服务接口列表 -->
 	<services>
-		<!-- 定义服务以及指定该服务提供方的远程相关配置 -->	
+		<!-- 定义服务以及指定该服务提供方的远程相关配置 -->
+		<!--
 		<service type="com.saic.framework.message.UniMessageService" remote="UMSRemote"/>
+		-->
+		<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="192.168.1.1:9000"/>
 	</services>
 </venus-client>

@@ -5,7 +5,10 @@ import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Param;
 import com.meidusa.venus.notify.InvocationListener;
+import com.meidusa.venus.registry.mysql.MysqlRegister;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.junit.BeforeClass;
@@ -21,34 +24,45 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(locations = "classpath:/applicationContext-consumer.xml")
 public class TestHelloService {
 
+    private static Logger logger = LoggerFactory.getLogger(TestHelloService.class);
+
     @Autowired
     HelloService helloService;
 
     @Test
     public void testSayHello(){
+        logger.info("testSayHello begin...");
         helloService.sayHello("jack");
+        logger.info("testSayHello end...");
+//        while (true){
+//            try {
+//                Thread.sleep(3000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
     }
 
-    @Test
-    public void testSayHelloWithCallback(){
-        helloService.sayHello("jack", new InvocationListener() {
-            @Override
-            public void callback(Object object) {
-                System.out.println(object);
-            }
-
-            @Override
-            public void onException(Exception e) {
-                System.out.println(e);
-            }
-        });
-    }
-
-
-    @Test
-    public void testGetHello(){
-        helloService.getHello("jack");
-    }
+//    @Test
+//    public void testSayHelloWithCallback(){
+//        helloService.sayHello("jack", new InvocationListener() {
+//            @Override
+//            public void callback(Object object) {
+//                System.out.println(object);
+//            }
+//
+//            @Override
+//            public void onException(Exception e) {
+//                System.out.println(e);
+//            }
+//        });
+//    }
+//
+//
+//    @Test
+//    public void testGetHello(){
+//        helloService.getHello("jack");
+//    }
 
 
 }
