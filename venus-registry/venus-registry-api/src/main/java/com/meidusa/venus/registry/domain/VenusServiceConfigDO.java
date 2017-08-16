@@ -5,10 +5,6 @@ import java.util.Date;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 
-import com.meidusa.venus.govern.FlowControl;
-import com.meidusa.venus.govern.MockConfig;
-import com.meidusa.venus.govern.RouterRule;
-
 /**
  * 服务配置
  * 

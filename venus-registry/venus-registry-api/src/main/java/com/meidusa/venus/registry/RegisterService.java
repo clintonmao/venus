@@ -18,9 +18,10 @@ public interface RegisterService {
     /**
      * 服务反注册
      * @param url
+     * @return TODO
      * @throws VenusRegisteException
      */
-    void unregiste(URL url) throws VenusRegisteException;
+    boolean unregiste(URL url) throws VenusRegisteException;
 
     /**
      * 服务订阅
@@ -32,9 +33,10 @@ public interface RegisterService {
     /**
      * 服务反订阅
      * @param url
+     * @return TODO
      * @throws VenusRegisteException
      */
-    void unsubscrible(URL url) throws VenusRegisteException;
+    boolean unsubscrible(URL url) throws VenusRegisteException;
 
     /**
      * 提供方、消费方心跳检测
@@ -61,4 +63,12 @@ public interface RegisterService {
      * @throws VenusRegisteException
      */
     void destroy() throws VenusRegisteException;
+    
+    ServiceDefinition urlToServiceDefine(URL url);
+    
+    void heartbeatRegister(URL url);
+    
+    void heartbeatSubcribe(URL url);
+    
+    void clearInvalidService(String currentDateTime);
 }
