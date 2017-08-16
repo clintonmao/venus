@@ -16,7 +16,7 @@
 	<bean id="serviceFactory" class="com.meidusa.venus.client.VenusServiceFactory" destroy-method="destroy">
 		<property name="configFiles">
 			<list>
-				<value>file:${project.home}/ums-venus-client.xml</value>
+				<value>classpath:hello-venus-client.xml</value>
 			</list>
 		</property>
 		<property name="needPing" value="false"/>

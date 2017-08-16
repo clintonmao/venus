@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
     <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>D://logs/venus-provider.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -10,7 +16,7 @@
         </layout>
     </appender>
 
-    <root level="WARN">
-        <appender-ref ref="file" />
+    <root level="DEBUG">
+        <appender-ref ref="stdout" />
     </root>
 </configuration>
