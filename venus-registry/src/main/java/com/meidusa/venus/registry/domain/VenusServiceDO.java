@@ -30,6 +30,8 @@ public class VenusServiceDO implements Serializable {
 
 	private String methods;
 
+	private boolean isDelete;
+
 	public Integer getId() {
 		return id;
 	}
@@ -108,6 +110,14 @@ public class VenusServiceDO implements Serializable {
 
 	public void setMethods(String methods) {
 		this.methods = methods;
+	}
+
+	public boolean getIsDelete() {
+		return isDelete;
+	}
+
+	public void setIsDelete(boolean isDelete) {
+		this.isDelete = isDelete;
 	}
 
 	@Override

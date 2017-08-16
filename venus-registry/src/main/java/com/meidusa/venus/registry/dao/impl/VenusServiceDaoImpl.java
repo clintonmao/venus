@@ -21,6 +21,8 @@ import com.meidusa.venus.registry.domain.VenusServiceDO;
 
 public class VenusServiceDaoImpl implements VenusServiceDAO {
 
+	private static final String SELECT_FIELDS = "select id, name,interface_name,version, description, app_id,registe_type,methods,is_delete,create_time, update_time ";
+	
 	private JdbcTemplate jdbcTemplate;
 
 	public VenusServiceDaoImpl(JdbcTemplate jdbcTemplate) {
@@ -30,11 +32,11 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 
 	@Override
 	public int addService(VenusServiceDO venusServiceDO) throws DAOException {
-		final String sql = "insert into t_venus_service (name,interface_name,version, description,app_id,registe_type,methods, create_time, update_time) values ('"
+		final String sql = "insert into t_venus_service (name,interface_name,version, description,app_id,registe_type,methods,is_delete, create_time, update_time) values ('"
 				+ venusServiceDO.getName() + "', '" + venusServiceDO.getInterfaceName() + "', '"
 				+ venusServiceDO.getVersion() + "', '" + venusServiceDO.getDescription() + "', "
 				+ venusServiceDO.getAppId() + "," + venusServiceDO.getRegisteType() + ",'" + venusServiceDO.getMethods()
-				+ "', now(), now())";
+				+ "'," + venusServiceDO.getIsDelete() + ", now(), now())";
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		int autoIncId = 0;
 		jdbcTemplate.update(new PreparedStatementCreator() {
@@ -48,11 +50,11 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 	}
 
 	@Override
-	public boolean updateService(String methods, int id) throws DAOException {
-		String sql = "update t_venus_service set methods=?,update_time=now() where id=?";
+	public boolean updateService(String methods, boolean isDelete, int id) throws DAOException {
+		String sql = "update t_venus_service set methods=?,is_delete=?,update_time=now() where id=?";
 		int update = 0;
 		try {
-			update = this.jdbcTemplate.update(sql, methods, id);
+			update = this.jdbcTemplate.update(sql, methods, isDelete, id);
 		} catch (Exception e) {
 			throw new DAOException("更新venusService异常", e);
 		}
@@ -61,7 +63,7 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 
 	@Override
 	public VenusServiceDO getService(Integer id) throws DAOException {
-		String sql = "select id, name,interface_name,version, description, app_id,registe_type,create_time, update_time from t_venus_service where id = ?";
+		String sql = SELECT_FIELDS + " from t_venus_service where id = ?";
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] { id }, new ResultSetExtractor<VenusServiceDO>() {
 				@Override
@@ -80,7 +82,7 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 
 	@Override
 	public VenusServiceDO getService(String serviceName, String version, String interfaceName) throws DAOException {
-		String sql = "select id, name,interface_name,version, description, app_id,registe_type, create_time, update_time from t_venus_service where ";
+		String sql = SELECT_FIELDS + " from t_venus_service where ";
 		Object[] params = new Object[] { serviceName, version };
 		if (StringUtils.isNotBlank(serviceName)) {
 			sql = sql + " name=? and version=?";
@@ -115,8 +117,7 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 			sb.append(",");
 		}
 		String str = sb.substring(0, sb.length() - 1);
-		String sql = "select id, name,interface_name,version, description, app_id,registe_type,create_time, update_time from t_venus_service where id in("
-				+ str + ")";
+		String sql = SELECT_FIELDS + " from t_venus_service where id in(" + str + ")";
 		try {
 			return this.jdbcTemplate.query(sql, new ResultSetExtractor<List<VenusServiceDO>>() {
 				@Override

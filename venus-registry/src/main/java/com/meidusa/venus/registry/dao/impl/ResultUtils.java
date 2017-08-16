@@ -56,6 +56,9 @@ public class ResultUtils {
 		venusService.setAppId(rs.getInt("app_id"));
 		venusService.setRegisteType(rs.getInt("registe_type"));
 
+		venusService.setMethods(rs.getString("methods"));
+		venusService.setIsDelete(rs.getBoolean("is_delete"));
+
 		venusService.setCreateTime(rs.getTimestamp("create_time"));
 		venusService.setUpdateTime(rs.getTimestamp("update_time"));
 		return venusService;

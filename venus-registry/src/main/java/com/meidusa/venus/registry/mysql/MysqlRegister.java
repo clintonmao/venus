@@ -97,15 +97,15 @@ public class MysqlRegister implements Register {
 	 */
 	public final static MysqlRegister getInstance(String url) {
 		if (!url.startsWith("mysql://")) {
-			logger.error("URL 参数异常,非jdbc mysql协议,url=>{}",url);
+			logger.error("URL 参数异常,非jdbc mysql协议,url=>{}", url);
 			throw new IllegalArgumentException("URL 参数异常,非jdbc mysql协议,url=>" + url);
 		}
 		if (!url.contains("username=")) {
-			logger.error("URL 参数异常,未包含用户名,url=>{}",url);
+			logger.error("URL 参数异常,未包含用户名,url=>{}", url);
 			throw new IllegalArgumentException("URL 参数异常,未包含用户名,url=>" + url);
 		}
 		if (!url.contains("password=")) {
-			logger.error("URL 参数异常,未包含密码,url=>{}",url);
+			logger.error("URL 参数异常,未包含密码,url=>{}", url);
 			throw new IllegalArgumentException("URL 参数异常,未包含密码,url=>" + url);
 		}
 		dataSource = DataSourceUtil.getBasicDataSource(url);
@@ -170,11 +170,12 @@ public class MysqlRegister implements Register {
 				venusServiceDO.setVersion(url.getVersion());
 				venusServiceDO.setRegisteType(RegisteConstant.AUTO_REGISTE);
 				venusServiceDO.setMethods(url.getMethods());
+				venusServiceDO.setIsDelete(false);
 				serviceId = venusServiceDAO.addService(venusServiceDO);
 			} else {
 				serviceId = service.getId();
 				if (StringUtils.isNotBlank(url.getMethods())) {
-					venusServiceDAO.updateService(url.getMethods(), serviceId);
+					venusServiceDAO.updateService(url.getMethods(), false, serviceId);
 				}
 			}
 
@@ -245,6 +246,10 @@ public class MysqlRegister implements Register {
 				logger.error("服务订阅异常,原因:服务{}不存在 ", url.getServiceName());
 				throw new VenusRegisteException("服务订阅异常,原因:服务" + url.getServiceName() + "不存在");
 			}
+			if (service.getIsDelete() && url.isConsumerCheck()) {// 服务不存在并且配置了检测则抛出异常
+				logger.error("服务订阅异常,原因:服务{}已删除", url.getServiceName());
+				throw new VenusRegisteException("服务订阅异常,原因:服务" + url.getServiceName() + "不存在");
+			}
 			String appCode = url.getApplication();
 			int appId = 0;
 			if (StringUtils.isNotBlank(appCode)) {
@@ -300,7 +305,6 @@ public class MysqlRegister implements Register {
 			throw new VenusRegisteException("服务订阅异常" + url.getServiceName(), e);
 		}
 		subscribleUrls.add(url);
-		
 
 	}
 
@@ -343,6 +347,8 @@ public class MysqlRegister implements Register {
 	public void clearInvalid() throws VenusRegisteException {
 		registeFailUrls.clear();
 		subscribleFailUrls.clear();
+
+		// 清理线程 清理心跳的脏数据
 	}
 
 	@Override
@@ -392,7 +398,7 @@ public class MysqlRegister implements Register {
 					try {
 						List<Integer> serverIds = new ArrayList<Integer>();
 						VenusServiceDO service = venusServiceDAO.getService(serviceName, version, interfaceName);
-						if (null == service) {
+						if (null == service || (null != service && service.getIsDelete())) {
 							continue;
 						}
 						Integer serviceId = service.getId();
@@ -453,6 +459,9 @@ public class MysqlRegister implements Register {
 					String version = url.getVersion();
 					try {
 						VenusServiceDO service = venusServiceDAO.getService(serviceName, version, interfaceName);
+						if (service.getIsDelete()) {
+							continue;
+						}
 						int serviceID = service.getId();
 						String host = url.getHost();
 						int port = url.getPort();
@@ -474,6 +483,9 @@ public class MysqlRegister implements Register {
 					String version = url.getVersion();
 					try {
 						VenusServiceDO service = venusServiceDAO.getService(serviceName, version, interfaceName);
+						if (service.getIsDelete()) {
+							continue;
+						}
 						int serviceID = service.getId();
 						String host = url.getHost();
 						VenusServerDO server = venusServerDAO.getServer(host, 0);
