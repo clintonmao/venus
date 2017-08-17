@@ -70,11 +70,14 @@ public class MysqlRegister implements Register {
 		}
 	}
 
+	// injvm
 	// 192.168.1.1:9000;192.168.1.2:9000
 	public final static MysqlRegister getInstance(String url) {
-		if (url.startsWith("mysql:") || url.startsWith("jdbc:")) {
-			// class.formName
-			mysqlRegister.setRegisterService(MysqlRegisterService.getInstance(url));
+		if (StringUtils.isBlank(url)) {
+			return null;
+		}
+		if (url.equals("injvm") || url.equals("local")) {
+			mysqlRegister.setRegisterService(new MysqlRegisterService());
 		} else {
 			String[] split = url.split(";");
 			List<HostPort> hosts = new ArrayList<HostPort>();

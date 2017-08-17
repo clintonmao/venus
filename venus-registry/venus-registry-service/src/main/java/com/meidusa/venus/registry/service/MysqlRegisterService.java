@@ -57,7 +57,11 @@ public class MysqlRegisterService implements RegisterService {
 
 	private static JdbcTemplate jdbcTemplate;
 
-	private static MysqlRegisterService mysqlRegisterService = new MysqlRegisterService();
+	private String connectStr;
+
+	public MysqlRegisterService() {
+		this("mysql://10.32.173.250:3306/registry_new?username=registry&password=registry");
+	}
 
 	/**
 	 * url =
@@ -66,7 +70,7 @@ public class MysqlRegisterService implements RegisterService {
 	 * @param url
 	 * @return
 	 */
-	public final static MysqlRegisterService getInstance(String url) {
+	public MysqlRegisterService(String url) {
 		if (!url.startsWith("mysql://")) {
 			logger.error("URL 参数异常,非jdbc mysql协议,url=>{}", url);
 			throw new IllegalArgumentException("URL 参数异常,非jdbc mysql协议,url=>" + url);
@@ -85,15 +89,14 @@ public class MysqlRegisterService implements RegisterService {
 				if (jdbcTemplate == null) {
 					jdbcTemplate = new JdbcTemplate(dataSource);
 				}
-				mysqlRegisterService.setVenusApplicationDAO(new VenusApplicationDaoImpl(jdbcTemplate));
-				mysqlRegisterService.setVenusServerDAO(new VenusServerDaoImpl(jdbcTemplate));
-				mysqlRegisterService.setVenusServiceConfigDAO(new VenusServiceConfigDaoImpl(jdbcTemplate));
-				mysqlRegisterService.setVenusServiceDAO(new VenusServiceDaoImpl(jdbcTemplate));
-				mysqlRegisterService.setVenusServiceMappingDAO(new VenusServiceMappingDaoImpl(jdbcTemplate));
+				this.setVenusApplicationDAO(new VenusApplicationDaoImpl(jdbcTemplate));
+				this.setVenusServerDAO(new VenusServerDaoImpl(jdbcTemplate));
+				this.setVenusServiceConfigDAO(new VenusServiceConfigDaoImpl(jdbcTemplate));
+				this.setVenusServiceDAO(new VenusServiceDaoImpl(jdbcTemplate));
+				this.setVenusServiceMappingDAO(new VenusServiceMappingDaoImpl(jdbcTemplate));
 			}
 		}
 
-		return mysqlRegisterService;
 	}
 
 	@Override
@@ -272,25 +275,22 @@ public class MysqlRegisterService implements RegisterService {
 		return false;
 	}
 
-/*	@Override
-	public void heartbeat() throws VenusRegisteException {
-
-	}
-
-	@Override
-	public ServiceDefinition lookup(URL url) throws VenusRegisteException {
-		return null;
-	}
-
-	@Override
-	public void load() throws VenusRegisteException {
-
-	}
-
-	@Override
-	public void destroy() throws VenusRegisteException {
-
-	}*/
+	/*
+	 * @Override public void heartbeat() throws VenusRegisteException {
+	 * 
+	 * }
+	 * 
+	 * @Override public ServiceDefinition lookup(URL url) throws
+	 * VenusRegisteException { return null; }
+	 * 
+	 * @Override public void load() throws VenusRegisteException {
+	 * 
+	 * }
+	 * 
+	 * @Override public void destroy() throws VenusRegisteException {
+	 * 
+	 * }
+	 */
 
 	public ServiceDefinition urlToServiceDefine(URL url) {
 		String interfaceName = url.getInterfaceName();
@@ -442,6 +442,14 @@ public class MysqlRegisterService implements RegisterService {
 
 	public void setVenusServiceMappingDAO(VenusServiceMappingDAO venusServiceMappingDAO) {
 		this.venusServiceMappingDAO = venusServiceMappingDAO;
+	}
+
+	public String getConnectStr() {
+		return connectStr;
+	}
+
+	public void setConnectStr(String connectStr) {
+		this.connectStr = connectStr;
 	}
 
 }
