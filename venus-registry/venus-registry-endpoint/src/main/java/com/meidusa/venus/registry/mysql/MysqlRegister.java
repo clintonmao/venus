@@ -51,18 +51,23 @@ public class MysqlRegister implements Register {
 	private int heartBeatSecond = 10;
 
 	private RegisterService registerService;
+	
+	private static MysqlRegister mysqlRegister = new MysqlRegister();
 
 	private MysqlRegister() {
-
-	}
-
-	public MysqlRegister(String url) {
-		 registerService = MysqlRegisterService.getInstance(url);
 		try {
 			init();
 		} catch (Exception e) {
 			logger.error("init初始化异常,异常原因：{} ", e);
 		}
+	}
+	
+	//injvm
+	//192.168.1.1:9000;192.168.1.2:9000
+	public final static MysqlRegister getInstance(String url) {
+		mysqlRegister.setRegisterService(MysqlRegisterService.getInstance(url));
+		//class.formName
+		return mysqlRegister;
 	}
 
 	public void init() throws Exception {
@@ -281,5 +286,15 @@ public class MysqlRegister implements Register {
 		calendar.add(Calendar.SECOND, -second);
 		return calendar.getTime();
 	}
+
+	public RegisterService getRegisterService() {
+		return registerService;
+	}
+
+	public void setRegisterService(RegisterService registerService) {
+		this.registerService = registerService;
+	}
+	
+	
 
 }
