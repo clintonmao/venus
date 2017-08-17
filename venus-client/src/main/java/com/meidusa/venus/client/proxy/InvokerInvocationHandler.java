@@ -20,6 +20,7 @@ import com.meidusa.venus.registry.mysql.MysqlRegister;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
 import com.meidusa.venus.service.registry.ServiceDefinition;
+import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusTracerUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -98,7 +99,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * 订阅服务
      */
     void subscrible(){
-        String subscribleUrl = "subscrible://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0&host=" + getLocalIp();
+        String subscribleUrl = "subscrible://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0&host=" + NetUtil.getLocalIp();
         URL url = URL.parse(subscribleUrl);
         logger.info("url:{}",url);
         getRegister().subscrible(url);
@@ -110,21 +111,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
      */
     Register getRegister(){
         return MysqlRegister.getInstance(true,null);
-    }
-
-    /**
-     * 获取本机ip
-     * @return
-     */
-    String getLocalIp(){
-        try {
-            InetAddress addr = InetAddress.getLocalHost();
-            String localIp =  addr.getHostAddress();
-            logger.info("localIp:%",localIp);
-            return localIp;
-        } catch (UnknownHostException e) {
-            throw new RpcException(e);
-        }
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {

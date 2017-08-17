@@ -6,19 +6,12 @@ import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.toolkit.common.util.StringUtil;
-import com.meidusa.venus.RpcException;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.annotations.PerformanceLevel;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.backend.interceptor.Configurable;
-import com.meidusa.venus.backend.services.Interceptor;
-import com.meidusa.venus.backend.services.InterceptorMapping;
-import com.meidusa.venus.backend.services.InterceptorStack;
 import com.meidusa.venus.backend.interceptor.config.InterceptorConfig;
-import com.meidusa.venus.backend.services.AbstractServiceManager;
-import com.meidusa.venus.backend.services.Endpoint;
-import com.meidusa.venus.backend.services.Service;
-import com.meidusa.venus.backend.services.SingletonService;
+import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.bean.*;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanContext;
 import com.meidusa.venus.backend.services.xml.support.VenusMonitorService;
@@ -33,6 +26,7 @@ import com.meidusa.venus.service.monitor.MonitorRuntime;
 import com.meidusa.venus.service.monitor.MonitorService;
 import com.meidusa.venus.service.registry.HostPort;
 import com.meidusa.venus.service.registry.ServiceRegistry;
+import com.meidusa.venus.util.NetUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.digester.Digester;
 import org.apache.commons.digester.RuleSet;
@@ -48,8 +42,6 @@ import org.springframework.core.io.Resource;
 
 import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.*;
 
 /**
@@ -123,25 +115,10 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      */
     URL getURL(ServiceConfig serviceConfig){
         String strUrl = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0&host=%s&port=9000&methods=sayHello[java.lang.String]";
-        strUrl = String.format(strUrl,getLocalIp());
+        strUrl = String.format(strUrl, NetUtil.getLocalIp());
         logger.info("registerUrl:%",strUrl);
         URL url = URL.parse(strUrl);
         return url;
-    }
-
-    /**
-     * 获取本机ip
-     * @return
-     */
-    String getLocalIp(){
-        try {
-            InetAddress addr = InetAddress.getLocalHost();
-            String localIp =  addr.getHostAddress();
-            logger.info("localIp:%",localIp);
-            return localIp;
-        } catch (UnknownHostException e) {
-            throw new RpcException(e);
-        }
     }
 
     /**
