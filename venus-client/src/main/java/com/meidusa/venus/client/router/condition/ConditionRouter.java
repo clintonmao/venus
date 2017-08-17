@@ -26,6 +26,7 @@ public class ConditionRouter implements Router {
     public List<Address> filte(List<Address> addressList, Invocation invocation) {
         List<Address> avalibleAddressList = new ArrayList<Address>();
         for(Address address:addressList){
+            /*
             URL url = getURL(address,invocation);
             List<ConditionRule> conditionRuleList = urlConditionRuleMap.get(url);
             //若不匹配，则过滤掉
@@ -37,6 +38,8 @@ public class ConditionRouter implements Router {
                 }
                 avalibleAddressList.add(address);
             }
+            */
+            avalibleAddressList.add(address);
         }
         return avalibleAddressList;
     }

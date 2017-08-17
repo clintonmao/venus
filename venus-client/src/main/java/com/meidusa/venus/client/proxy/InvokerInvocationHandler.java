@@ -5,6 +5,7 @@ import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
+import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.filter.valid.ValidFilter;
 import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
@@ -16,9 +17,11 @@ import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.metainfo.EndpointParameterUtil;
 import com.meidusa.venus.client.filter.mock.MockFilterProxy;
 import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.registry.RegisterService;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
+import com.meidusa.venus.service.registry.HostPort;
 import com.meidusa.venus.service.registry.ServiceDefinition;
 import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusTracerUtil;
@@ -33,6 +36,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * 服务调用代理，执行校验/认证/流控/降级/寻址/路由/调用/容错等逻辑
@@ -59,6 +63,11 @@ public class InvokerInvocationHandler implements InvocationHandler {
     private String registerUrl = "192.168.1.1:9000";
 
     /**
+     * 注册中心
+     */
+    private Register register;
+
+    /**
      * 异常处理
      */
     private VenusExceptionFactory venusExceptionFactory;
@@ -67,11 +76,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * 认证配置
      */
     private DummyAuthenticator authenticator;
-
-    /**
-     * 注册中心
-     */
-    private Register register;
 
     /**
      * 路由服务
@@ -110,7 +114,39 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * @return
      */
     Register getRegister(){
-        return MysqlRegister.getInstance(true,null);
+        if(register != null){
+            return register;
+        }
+        //TODO 对于远程，使用registerUrl初始化remoteRegisterService
+        register = MysqlRegister.getInstance(true,null);
+        return register;
+    }
+
+    /**
+     * 获取注册中心远程服务
+     * @param registerUrl
+     * @return
+     */
+    RegisterService getRegisterService(String registerUrl){
+        String[] split = registerUrl.split(";");
+        List<HostPort> hosts = new ArrayList<HostPort>();
+        for (int i = 0; i < split.length; i++) {
+            String str = split[i];
+            String[] split2 = str.split(":");
+            if (split2.length > 1) {
+                String host = split2[0];
+                String port = split2[1];
+                HostPort hp = new HostPort(host, Integer.parseInt(port));
+                hosts.add(hp);
+            }
+        }
+
+        HostPort hp = hosts.get(new Random().nextInt(hosts.size()));
+        SimpleServiceFactory ssf = new SimpleServiceFactory(hp.getHost(), hp.getPort());
+        ssf.setCoTimeout(60000);
+        ssf.setSoTimeout(60000);
+        RegisterService registerService = ssf.getService(RegisterService.class);
+        return registerService;
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -146,9 +182,9 @@ public class InvokerInvocationHandler implements InvocationHandler {
             //返回结果
             //TODO 处理成功调用，但失败情况
             return result.getObject();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             //TODO 处理异常
-            return null;
+            throw  e;
         }
     }
 
@@ -238,9 +274,9 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
         String serviceUrl = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
         URL url = URL.parse(serviceUrl);
-        ServiceDefinition serviceDefinition = getRegister(registerUrl).lookup(url);
+        ServiceDefinition serviceDefinition = getRegister().lookup(url);
         if(serviceDefinition == null || CollectionUtils.isEmpty(serviceDefinition.getIpAddress())){
-            throw new RpcException(String.format("service % not found available providers.",url));
+            throw new RpcException("service not found available providers.");
         }
 
         logger.info("serviceDefinition:{}",serviceDefinition);
@@ -344,12 +380,4 @@ public class InvokerInvocationHandler implements InvocationHandler {
         this.registerUrl = registerUrl;
     }
 
-    /**
-     * 根据注册中心url获取注册中心对象
-     * @param registerUrl
-     * @return
-     */
-    public Register getRegister(String registerUrl) {
-        return MysqlRegister.getInstance(true,null);
-    }
 }

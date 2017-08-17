@@ -31,39 +31,36 @@ public class TestHelloService {
 
     @Test
     public void testSayHello(){
-        while (true){
-            try {
-                logger.info("testSayHello begin...");
-                helloService.sayHello("jack");
-                logger.info("testSayHello end...");
-
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        logger.info("testSayHello begin...");
+        helloService.sayHello("jack");
+        logger.info("testSayHello end...");
     }
 
-//    @Test
-//    public void testSayHelloWithCallback(){
-//        helloService.sayHello("jack", new InvocationListener() {
-//            @Override
-//            public void callback(Object object) {
-//                System.out.println(object);
-//            }
-//
-//            @Override
-//            public void onException(Exception e) {
-//                System.out.println(e);
-//            }
-//        });
-//    }
-//
-//
-//    @Test
-//    public void testGetHello(){
-//        helloService.getHello("jack");
-//    }
+    //@Test
+    public void testSayHelloWithCallback(){
+        helloService.sayHello("jack", new InvocationListener() {
+            @Override
+            public void callback(Object object) {
+                System.out.println(object);
+            }
+
+            @Override
+            public void onException(Exception e) {
+                System.out.println(e);
+            }
+        });
+    }
+
+
+    //@Test
+    public void testGetHello(){
+        try {
+            Hello hello = helloService.getHello("jack");
+            System.out.println("hello:" + hello);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 
 }

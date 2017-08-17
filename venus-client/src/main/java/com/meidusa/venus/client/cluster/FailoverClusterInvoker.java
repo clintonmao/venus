@@ -30,7 +30,7 @@ public class FailoverClusterInvoker implements Invoker {
     /**
      * retry次数 TODO 读取配置
      */
-    private int retry = 3;
+    private int retry = 1;
 
     @Override
     public void init() throws RpcException {
