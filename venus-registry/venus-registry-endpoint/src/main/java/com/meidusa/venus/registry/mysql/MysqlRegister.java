@@ -184,11 +184,14 @@ public class MysqlRegister implements Register {
 		String serviceName = url.getServiceName();
 		String interfaceName = url.getInterfaceName();
 		String version = url.getVersion();
-		for (Iterator<ServiceDefinition> iterator = subscribleServiceDefinitions.iterator(); iterator.hasNext();) {
-			ServiceDefinition define = iterator.next();
-			if (null != define && define.getName().equals(serviceName)) {
-				if (version.equals(define.getVersionRange())) {// TODO version
-					return define;
+		synchronized (MysqlRegister.class) {
+			for (Iterator<ServiceDefinition> iterator = subscribleServiceDefinitions.iterator(); iterator.hasNext();) {
+				ServiceDefinition define = iterator.next();
+				if (null != define && define.getName().equals(serviceName)) {
+					if (version.equals(define.getVersionRange())) {// TODO
+																	// version
+						return define;
+					}
 				}
 			}
 		}
@@ -211,8 +214,10 @@ public class MysqlRegister implements Register {
 					tempSet.add(def);
 				}
 			}
-			subscribleServiceDefinitions.clear();// TODO 多线程并发问题
-			subscribleServiceDefinitions.addAll(tempSet);
+			synchronized (MysqlRegister.class) {
+				subscribleServiceDefinitions.clear();
+				subscribleServiceDefinitions.addAll(tempSet);
+			}
 		}
 	}
 
@@ -222,7 +227,9 @@ public class MysqlRegister implements Register {
 		subscribleUrls.clear();
 		registeFailUrls.clear();
 		subscribleFailUrls.clear();
-		subscribleServiceDefinitions.clear();
+		synchronized (MysqlRegister.class) {
+			subscribleServiceDefinitions.clear();
+		}
 	}
 
 	private class ServiceDefineRunnable implements Runnable {
