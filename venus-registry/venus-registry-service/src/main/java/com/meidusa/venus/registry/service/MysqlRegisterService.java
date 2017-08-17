@@ -296,8 +296,8 @@ public class MysqlRegisterService implements RegisterService {
 		String interfaceName = url.getInterfaceName();
 		String serviceName = url.getServiceName();
 		String version = url.getVersion();
+		List<Integer> serverIds = new ArrayList<Integer>();
 		try {
-			List<Integer> serverIds = new ArrayList<Integer>();
 			VenusServiceDO service = venusServiceDAO.getService(serviceName, version, interfaceName);
 			if (null == service || (null != service && service.getIsDelete())) {
 				return null;
@@ -341,6 +341,7 @@ public class MysqlRegisterService implements RegisterService {
 			logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
 			throw new VenusRegisteException("ServiceDefineRunnable 运行异常,服务名：" + url.getServiceName(), e);
 		}
+
 		return null;
 	}
 
@@ -363,12 +364,14 @@ public class MysqlRegisterService implements RegisterService {
 			logger.error("服务{}subscrible更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);
 			throw new VenusRegisteException("subscrible更新heartBeatTime异常,服务名：" + url.getServiceName(), e);
 		}
+
 	}
 
 	public void heartbeatRegister(URL url) {
 		String interfaceName = url.getInterfaceName();
 		String serviceName = url.getServiceName();
 		String version = url.getVersion();
+
 		try {
 			VenusServiceDO service = venusServiceDAO.getService(serviceName, version, interfaceName);
 			if (service.getIsDelete()) {
@@ -385,6 +388,7 @@ public class MysqlRegisterService implements RegisterService {
 			logger.error("服务{}registe更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);
 			throw new VenusRegisteException("registe更新heartBeatTime异常,服务名：" + url.getServiceName(), e);
 		}
+
 	}
 
 	public void clearInvalidService(String currentDateTime) {

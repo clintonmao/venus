@@ -52,18 +52,22 @@ public class MysqlRegister implements Register {
 	private static MysqlRegister register = new MysqlRegister();
 
 	private RegisterService registerService;
-	
+
 	public MysqlRegister() {
-		
+
 	}
 
 	public MysqlRegister(URL url) {
-//		registerService = MysqlRegisterService.getInstance(url);
+		// registerService = MysqlRegisterService.getInstance(url);
 		try {
 			init();
 		} catch (Exception e) {
 			logger.error("init初始化异常,异常原因：{} ", e);
 		}
+	}
+
+	public void init() throws Exception {
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 5, 10, TimeUnit.SECONDS);
 	}
 
 	@Override
@@ -87,7 +91,8 @@ public class MysqlRegister implements Register {
 			throw new VenusRegisteException("取消注册异常" + url.getServiceName() + ",version为空");
 		}
 		try {
-			if (registerService.unregiste(url)) {
+			boolean unregiste = registerService.unregiste(url);
+			if (unregiste) {
 				registeUrls.remove(url);
 			}
 		} catch (Exception e) {
@@ -117,7 +122,8 @@ public class MysqlRegister implements Register {
 			throw new VenusRegisteException("取消订阅异常" + url.getServiceName() + ",version为空");
 		}
 		try {
-			if (registerService.unsubscrible(url)) {
+			boolean unsubscrible = registerService.unsubscrible(url);
+			if (unsubscrible) {
 				subscribleUrls.remove(url);
 			}
 		} catch (Exception e) {
@@ -137,10 +143,8 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public void clearInvalid() throws VenusRegisteException {
-		registeFailUrls.clear();
-		subscribleFailUrls.clear();
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 5, 10, TimeUnit.SECONDS);
-		// 清理线程 清理心跳的脏数据
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 5, 10, TimeUnit.SECONDS); // 清理线程
+																												// 清理心跳的脏数据
 	}
 
 	@Override
@@ -184,7 +188,12 @@ public class MysqlRegister implements Register {
 		public void run() {
 			if (CollectionUtils.isNotEmpty(subscribleUrls)) {
 				for (URL url : subscribleUrls) {
-					ServiceDefinition def = registerService.urlToServiceDefine(url);
+					ServiceDefinition def = null;
+					try {
+						def = registerService.urlToServiceDefine(url);
+					} catch (Exception e) {
+						logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
+					}
 					if (subscribleServiceDefinitions.size() < 1000) {
 						subscribleServiceDefinitions.add(def);
 					}
@@ -200,20 +209,24 @@ public class MysqlRegister implements Register {
 			if (CollectionUtils.isNotEmpty(registeUrls)) {
 				for (Iterator<URL> iterator = registeUrls.iterator(); iterator.hasNext();) {
 					URL url = iterator.next();
-					registerService.heartbeatRegister(url);
+					try {
+						registerService.heartbeatRegister(url);
+					} catch (Exception e) {
+						logger.error("服务{}registe更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);
+					}
 				}
 			}
 			if (CollectionUtils.isNotEmpty(subscribleUrls)) {
 				for (Iterator<URL> iterator = subscribleUrls.iterator(); iterator.hasNext();) {
 					URL url = iterator.next();
-					registerService.heartbeatSubcribe(url);
+					try {
+						registerService.heartbeatSubcribe(url);
+					} catch (Exception e) {
+						logger.error("服务{}subscrible更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);
+					}
 				}
 			}
 		}
-	}
-
-	public void init() throws Exception {
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 5, 10, TimeUnit.SECONDS);
 	}
 
 	private class UrlFailRunnable implements Runnable {
@@ -269,5 +282,5 @@ public class MysqlRegister implements Register {
 		calendar.add(Calendar.SECOND, -second);
 		return calendar.getTime();
 	}
-	
+
 }
