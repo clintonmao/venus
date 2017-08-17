@@ -60,21 +60,25 @@ public class MysqlRegister implements Register {
 
 	/**
 	 * 获取MysqlRegister
-	 * @param isInjvm 是否本地引用
-	 * @param remoteRegisterService 远程引用实例
+	 * 
+	 * @param isInjvm
+	 *            是否本地引用
+	 * @param remoteRegisterService
+	 *            远程引用实例
 	 * @return
 	 */
-	public final static MysqlRegister getInstance(boolean isInjvm,RegisterService remoteRegisterService) {
-		if(!isInjvm && remoteRegisterService == null){
+	public final static MysqlRegister getInstance(boolean isInjvm, RegisterService remoteRegisterService) {
+		if (!isInjvm && remoteRegisterService == null) {
 			throw new IllegalArgumentException("isInjvm and registerService not allow empty.");
 		}
 
 		if (isInjvm) {
 			RegisterService localRegisterService = null;
 			try {
-				localRegisterService = (RegisterService)Class.forName("com.meidusa.venus.registry.service.MysqlRegisterService").newInstance();
+				localRegisterService = (RegisterService) Class
+						.forName("com.meidusa.venus.registry.service.MysqlRegisterService").newInstance();
 			} catch (Exception e) {
-				logger.error("new MysqlRegisterService failed.",e);
+				logger.error("new MysqlRegisterService failed.", e);
 				return null;
 			}
 			mysqlRegister.setRegisterService(localRegisterService);
@@ -88,6 +92,10 @@ public class MysqlRegister implements Register {
 		load();
 		clearInvalid();
 		GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 5, 10, TimeUnit.SECONDS);
+		if (!loadRunning) {
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefineRunnable(), 10, 60, TimeUnit.SECONDS);
+			loadRunning = true;
+		}
 	}
 
 	@Override
@@ -132,7 +140,7 @@ public class MysqlRegister implements Register {
 			throw new VenusRegisteException("服务订阅异常" + url.getServiceName(), e);
 		}
 		subscribleUrls.add(url);
-
+		load();
 	}
 
 	@Override
@@ -189,9 +197,22 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public void load() throws VenusRegisteException {
-		if (!loadRunning) {
-			GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefineRunnable(), 10, 60, TimeUnit.SECONDS);
-			loadRunning = true;
+		if (CollectionUtils.isNotEmpty(subscribleUrls)) {
+			Set<ServiceDefinition> tempSet = new HashSet<ServiceDefinition>();
+			for (URL url : subscribleUrls) {
+				ServiceDefinition def = null;
+				try {
+					def = registerService.urlToServiceDefine(url);
+					logger.info("srvDef:{}", def);
+				} catch (Exception e) {
+					logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
+				}
+				if (null != def) {
+					tempSet.add(def);
+				}
+			}
+			subscribleServiceDefinitions.clear();
+			subscribleServiceDefinitions.addAll(tempSet);
 		}
 	}
 
@@ -206,22 +227,29 @@ public class MysqlRegister implements Register {
 
 	private class ServiceDefineRunnable implements Runnable {
 		public void run() {
-			if (CollectionUtils.isNotEmpty(subscribleUrls)) {
-				for (URL url : subscribleUrls) {
-					ServiceDefinition def = null;
-					try {
-						def = registerService.urlToServiceDefine(url);
-						logger.info("srvDef:{}",def);
-					} catch (Exception e) {
-						logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
-					}
-					if (subscribleServiceDefinitions.size() < 1000) {//TODO
-						subscribleServiceDefinitions.add(def);
-					}
-				}
-			}
+			loadServiceDefine();
 		}
 
+	}
+	
+	private void loadServiceDefine() {
+		if (CollectionUtils.isNotEmpty(subscribleUrls)) {
+			Set<ServiceDefinition> tempSet = new HashSet<ServiceDefinition>();
+			for (URL url : subscribleUrls) {
+				ServiceDefinition def = null;
+				try {
+					def = registerService.urlToServiceDefine(url);
+					logger.info("srvDef:{}", def);
+				} catch (Exception e) {
+					logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
+				}
+				if (null != def) {
+					tempSet.add(def);
+				}
+			}
+			subscribleServiceDefinitions.clear();
+			subscribleServiceDefinitions.addAll(tempSet);
+		}
 	}
 
 	private class HeartBeatRunnable implements Runnable {
@@ -292,7 +320,7 @@ public class MysqlRegister implements Register {
 				DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				String currentDateTime = format.format(date);
 				String updateTime = format.format(updateDate);
-				registerService.clearInvalidService(currentDateTime,updateTime);
+				registerService.clearInvalidService(currentDateTime, updateTime);
 			} catch (Exception e) {
 				logger.error("ClearInvalidRunnable is error", e);
 			}
