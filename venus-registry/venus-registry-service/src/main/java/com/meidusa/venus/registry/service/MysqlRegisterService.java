@@ -53,9 +53,9 @@ public class MysqlRegisterService implements RegisterService {
 
 	private VenusServiceMappingDAO venusServiceMappingDAO;
 
-	private static BasicDataSource dataSource;
+	private BasicDataSource dataSource;
 
-	private static JdbcTemplate jdbcTemplate;
+	private JdbcTemplate jdbcTemplate;
 
 	private String connectStr;
 
