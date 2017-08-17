@@ -23,12 +23,15 @@ import com.meidusa.venus.backend.services.xml.bean.*;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanContext;
 import com.meidusa.venus.backend.services.xml.support.VenusMonitorService;
 import com.meidusa.venus.backend.services.xml.support.VenusServiceRegistry;
+import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.registry.RegisterService;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
 import com.meidusa.venus.service.monitor.MonitorRuntime;
 import com.meidusa.venus.service.monitor.MonitorService;
+import com.meidusa.venus.service.registry.HostPort;
 import com.meidusa.venus.service.registry.ServiceRegistry;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.digester.Digester;
@@ -146,8 +149,38 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @return
      */
     Register getRegister(){
-        String registerUrl = "mysql://10.32.173.250:3306/registry_new?username=registry&password=registry";
-        return MysqlRegister.getInstance(registerUrl);
+        /*
+        String registerUrl = "192.168.1.1:9000;192.168.1.2:9000";
+        RegisterService registerService = getRegisterService(registerUrl);
+        */
+        return MysqlRegister.getInstance(true,null);
+    }
+
+    /**
+     * 获取注册中心远程服务
+     * @param registerUrl
+     * @return
+     */
+    RegisterService getRegisterService(String registerUrl){
+        String[] split = registerUrl.split(";");
+        List<HostPort> hosts = new ArrayList<HostPort>();
+        for (int i = 0; i < split.length; i++) {
+            String str = split[i];
+            String[] split2 = str.split(":");
+            if (split2.length > 1) {
+                String host = split2[0];
+                String port = split2[1];
+                HostPort hp = new HostPort(host, Integer.parseInt(port));
+                hosts.add(hp);
+            }
+        }
+
+        HostPort hp = hosts.get(new Random().nextInt(hosts.size()));
+        SimpleServiceFactory ssf = new SimpleServiceFactory(hp.getHost(), hp.getPort());
+        ssf.setCoTimeout(60000);
+        ssf.setSoTimeout(60000);
+        RegisterService registerService = ssf.getService(RegisterService.class);
+        return registerService;
     }
 
     /**

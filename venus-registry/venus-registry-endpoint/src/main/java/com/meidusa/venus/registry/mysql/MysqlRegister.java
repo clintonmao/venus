@@ -1,32 +1,20 @@
 package com.meidusa.venus.registry.mysql;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
+import com.meidusa.toolkit.common.runtime.GlobalScheduler;
+import com.meidusa.venus.URL;
+import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.registry.RegisterService;
+import com.meidusa.venus.registry.VenusRegisteException;
+import com.meidusa.venus.service.registry.ServiceDefinition;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.meidusa.toolkit.common.runtime.GlobalScheduler;
-import com.meidusa.venus.URL;
-import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
-import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.RegisterService;
-import com.meidusa.venus.registry.VenusRegisteException;
-import com.meidusa.venus.registry.service.MysqlRegisterService;
-import com.meidusa.venus.service.registry.HostPort;
-import com.meidusa.venus.service.registry.ServiceDefinition;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * mysql服务注册中心类 Created by Zhangzhihua on 2017/7/27.
@@ -70,37 +58,28 @@ public class MysqlRegister implements Register {
 		}
 	}
 
-	// injvm
-	// 192.168.1.1:9000;192.168.1.2:9000
-	public final static MysqlRegister getInstance(String url) {
-		if (StringUtils.isBlank(url)) {
-			return null;
+	/**
+	 * 获取MysqlRegister
+	 * @param isInjvm 是否本地引用
+	 * @param remoteRegisterService 远程引用实例
+	 * @return
+	 */
+	public final static MysqlRegister getInstance(boolean isInjvm,RegisterService remoteRegisterService) {
+		if(!isInjvm && remoteRegisterService == null){
+			throw new IllegalArgumentException("isInjvm and registerService not allow empty.");
 		}
-		if (!url.contains(":")) {
-			return null;
-		}
-		if (url.equals("injvm") || url.equals("local")) {
-			mysqlRegister.setRegisterService(new MysqlRegisterService());
-		} else {
-			String[] split = url.split(";");
-			List<HostPort> hosts = new ArrayList<HostPort>();
-			for (int i = 0; i < split.length; i++) {
-				String str = split[i];
-				String[] split2 = str.split(":");
-				if (split2.length > 1) {
-					String host = split2[0];
-					String port = split2[1];
-					HostPort hp = new HostPort(host, Integer.parseInt(port));
-					hosts.add(hp);
-				}
-			}
 
-			HostPort hp = hosts.get(RANDOM.nextInt(hosts.size()));
-			SimpleServiceFactory ssf = new SimpleServiceFactory(hp.getHost(), hp.getPort());
-			ssf.setCoTimeout(60000);
-			ssf.setSoTimeout(60000);
-			RegisterService registerService = ssf.getService(RegisterService.class);
-			mysqlRegister.setRegisterService(registerService);
+		if (isInjvm) {
+			RegisterService localRegisterService = null;
+			try {
+				localRegisterService = (RegisterService)Class.forName("com.meidusa.venus.registry.service.MysqlRegisterService").newInstance();
+			} catch (Exception e) {
+				logger.error("new MysqlRegisterService failed.",e);
+				return null;
+			}
+			mysqlRegister.setRegisterService(localRegisterService);
+		} else {
+			mysqlRegister.setRegisterService(remoteRegisterService);
 		}
 		return mysqlRegister;
 	}

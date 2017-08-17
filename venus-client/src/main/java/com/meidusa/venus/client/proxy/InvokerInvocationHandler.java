@@ -275,6 +275,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * @return
      */
     public Register getRegister(String registerUrl) {
-        return MysqlRegister.getInstance(registerUrl);
+        return MysqlRegister.getInstance(true,null);
     }
 }
