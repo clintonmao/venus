@@ -19,6 +19,7 @@ import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.RegisterService;
 import com.meidusa.venus.registry.VenusRegisteException;
+import com.meidusa.venus.registry.service.MysqlRegisterService;
 import com.meidusa.venus.service.registry.ServiceDefinition;
 
 /**
@@ -49,16 +50,14 @@ public class MysqlRegister implements Register {
 
 	private int heartBeatSecond = 10;
 
-	private static MysqlRegister register = new MysqlRegister();
-
 	private RegisterService registerService;
 
-	public MysqlRegister() {
+	private MysqlRegister() {
 
 	}
 
-	public MysqlRegister(URL url) {
-		// registerService = MysqlRegisterService.getInstance(url);
+	public MysqlRegister(String url) {
+		 registerService = MysqlRegisterService.getInstance(url);
 		try {
 			init();
 		} catch (Exception e) {
