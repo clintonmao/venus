@@ -211,7 +211,7 @@ public class MysqlRegister implements Register {
 					tempSet.add(def);
 				}
 			}
-			subscribleServiceDefinitions.clear();
+			subscribleServiceDefinitions.clear();// TODO 多线程并发问题
 			subscribleServiceDefinitions.addAll(tempSet);
 		}
 	}
@@ -227,29 +227,9 @@ public class MysqlRegister implements Register {
 
 	private class ServiceDefineRunnable implements Runnable {
 		public void run() {
-			loadServiceDefine();
+			load();
 		}
 
-	}
-	
-	private void loadServiceDefine() {
-		if (CollectionUtils.isNotEmpty(subscribleUrls)) {
-			Set<ServiceDefinition> tempSet = new HashSet<ServiceDefinition>();
-			for (URL url : subscribleUrls) {
-				ServiceDefinition def = null;
-				try {
-					def = registerService.urlToServiceDefine(url);
-					logger.info("srvDef:{}", def);
-				} catch (Exception e) {
-					logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
-				}
-				if (null != def) {
-					tempSet.add(def);
-				}
-			}
-			subscribleServiceDefinitions.clear();
-			subscribleServiceDefinitions.addAll(tempSet);
-		}
 	}
 
 	private class HeartBeatRunnable implements Runnable {
