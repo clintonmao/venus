@@ -272,7 +272,7 @@ public class MysqlRegisterService implements RegisterService {
 		return false;
 	}
 
-	@Override
+/*	@Override
 	public void heartbeat() throws VenusRegisteException {
 
 	}
@@ -290,7 +290,7 @@ public class MysqlRegisterService implements RegisterService {
 	@Override
 	public void destroy() throws VenusRegisteException {
 
-	}
+	}*/
 
 	public ServiceDefinition urlToServiceDefine(URL url) {
 		String interfaceName = url.getInterfaceName();

@@ -38,31 +38,31 @@ public interface RegisterService {
      */
     boolean unsubscrible(URL url) throws VenusRegisteException;
 
-    /**
-     * 提供方、消费方心跳检测
-     * @throws VenusRegisteException
-     */
-    void heartbeat() throws VenusRegisteException;
-
-    /**
-     * 从本地查找服务定义
-     * @param url
-     * @return
-     * @throws VenusRegisteException
-     */
-    ServiceDefinition lookup(URL url) throws VenusRegisteException;
-
-    /**
-     * 加载服务定义到本地
-     * @throws VenusRegisteException
-     */
-    void load() throws VenusRegisteException;
-
-    /**
-     * 销毁，清理、释放相关资源
-     * @throws VenusRegisteException
-     */
-    void destroy() throws VenusRegisteException;
+//    /**
+//     * 提供方、消费方心跳检测
+//     * @throws VenusRegisteException
+//     */
+//    void heartbeat() throws VenusRegisteException;
+//
+//    /**
+//     * 从本地查找服务定义
+//     * @param url
+//     * @return
+//     * @throws VenusRegisteException
+//     */
+//    ServiceDefinition lookup(URL url) throws VenusRegisteException;
+//
+//    /**
+//     * 加载服务定义到本地
+//     * @throws VenusRegisteException
+//     */
+//    void load() throws VenusRegisteException;
+//
+//    /**
+//     * 销毁，清理、释放相关资源
+//     * @throws VenusRegisteException
+//     */
+//    void destroy() throws VenusRegisteException;
     
     ServiceDefinition urlToServiceDefine(URL url);
     
