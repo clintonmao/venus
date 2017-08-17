@@ -85,6 +85,8 @@ public class MysqlRegister implements Register {
 	}
 
 	public void init() throws Exception {
+		load();
+
 		GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 5, 10, TimeUnit.SECONDS);
 	}
 
@@ -209,6 +211,7 @@ public class MysqlRegister implements Register {
 					ServiceDefinition def = null;
 					try {
 						def = registerService.urlToServiceDefine(url);
+						logger.info("srvDef:{}",def);
 					} catch (Exception e) {
 						logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
 					}

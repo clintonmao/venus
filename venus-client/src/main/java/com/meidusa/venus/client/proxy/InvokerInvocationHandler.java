@@ -28,6 +28,9 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -52,7 +55,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
     /**
      * 注册中心地址
      */
-    private String registerUrl;
+    private String registerUrl = "192.168.1.1:9000";
 
     /**
      * 异常处理
@@ -78,6 +81,51 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * jvm内部调用
      */
     private InjvmInvoker injvmInvoker;
+
+
+    public InvokerInvocationHandler(){
+        init();
+    }
+
+    /**
+     * 初始化
+     */
+    void init(){
+        subscrible();
+    }
+
+    /**
+     * 订阅服务
+     */
+    void subscrible(){
+        String subscribleUrl = "subscrible://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0&host=" + getLocalIp();
+        URL url = URL.parse(subscribleUrl);
+        logger.info("url:{}",url);
+        getRegister().subscrible(url);
+    }
+
+    /**
+     * 获取注册中心
+     * @return
+     */
+    Register getRegister(){
+        return MysqlRegister.getInstance(true,null);
+    }
+
+    /**
+     * 获取本机ip
+     * @return
+     */
+    String getLocalIp(){
+        try {
+            InetAddress addr = InetAddress.getLocalHost();
+            String localIp =  addr.getHostAddress();
+            logger.info("localIp:%",localIp);
+            return localIp;
+        } catch (UnknownHostException e) {
+            throw new RpcException(e);
+        }
+    }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         try {
@@ -168,20 +216,61 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * @return
      */
     List<Address> lookup(Invocation invocation){
-        //静态地址
         if(remoteConfig != null){
-            //TODO 转化为addressList
-            return null;
+            return lookupByDynamic(invocation);
+        }else if(StringUtils.isNotEmpty(registerUrl)){
+            return lookupByDynamic(invocation);
+        }else{
+            throw new RpcException("remoteConfig and registerUrl not allow empty.");
         }
-        //注册中心查找
-        URL url = null;
+    }
+
+    /**
+     * 静态寻址，直接配置addressList或remote
+     * @param invocation
+     * @return
+     */
+    List<Address> lookupByStatic(Invocation invocation){
+        List<Address> addressList = new ArrayList<Address>();
+        //TODO 确认及处理多个地址格式
+        String ipAddressList = remoteConfig.getFactory().getIpAddressList();
+        String[] arr = ipAddressList.split(":");
+        Address address = new Address();
+        address.setHost(arr[0]);
+        address.setPort(Integer.parseInt(arr[1]));
+        addressList.add(address);
+        return addressList;
+    }
+
+    /**
+     * 动态寻址，注册中心查找
+     * @param invocation
+     * @return
+     */
+    List<Address> lookupByDynamic(Invocation invocation){
+        List<Address> addressList = new ArrayList<Address>();
+
+        String serviceUrl = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
+        URL url = URL.parse(serviceUrl);
         ServiceDefinition serviceDefinition = getRegister(registerUrl).lookup(url);
         if(serviceDefinition == null || CollectionUtils.isEmpty(serviceDefinition.getIpAddress())){
-            throw new RpcException(String.format("service % not found available providers.",serviceType.getName()));
+            throw new RpcException(String.format("service % not found available providers.",url));
         }
-        //TODO 若都为空，抛异常
-        return null;
+
+        logger.info("serviceDefinition:{}",serviceDefinition);
+
+        for(String item:serviceDefinition.getIpAddress()){
+            String[] arr = item.split(":");
+            Address address = new Address();
+            address.setHost(arr[0]);
+            address.setPort(Integer.parseInt(arr[1]));
+            addressList.add(address);
+        }
+
+        return addressList;
     }
+
+
 
     /**
      * 构造请求

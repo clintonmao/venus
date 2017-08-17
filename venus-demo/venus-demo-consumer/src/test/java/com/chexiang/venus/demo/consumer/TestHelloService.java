@@ -31,16 +31,17 @@ public class TestHelloService {
 
     @Test
     public void testSayHello(){
-        logger.info("testSayHello begin...");
-        helloService.sayHello("jack");
-        logger.info("testSayHello end...");
-//        while (true){
-//            try {
-//                Thread.sleep(3000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
+        while (true){
+            try {
+                logger.info("testSayHello begin...");
+                helloService.sayHello("jack");
+                logger.info("testSayHello end...");
+
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 //    @Test
