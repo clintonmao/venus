@@ -76,6 +76,9 @@ public class MysqlRegister implements Register {
 		if (StringUtils.isBlank(url)) {
 			return null;
 		}
+		if (!url.contains(":")) {
+			return null;
+		}
 		if (url.equals("injvm") || url.equals("local")) {
 			mysqlRegister.setRegisterService(new MysqlRegisterService());
 		} else {
