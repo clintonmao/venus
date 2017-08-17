@@ -374,7 +374,7 @@ public class MysqlRegisterService implements RegisterService {
 
 		try {
 			VenusServiceDO service = venusServiceDAO.getService(serviceName, version, interfaceName);
-			if (service.getIsDelete()) {
+			if (null != service && service.getIsDelete()) {
 				return;
 			}
 			int serviceID = service.getId();
@@ -391,7 +391,7 @@ public class MysqlRegisterService implements RegisterService {
 
 	}
 
-	public void clearInvalidService(String currentDateTime) {
+	public void clearInvalidService(String currentDateTime, String updateTime) {
 		List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMappings(currentDateTime);
 		if (CollectionUtils.isNotEmpty(serviceMappings)) {
 			List<Integer> ids = new ArrayList<Integer>();
@@ -401,6 +401,32 @@ public class MysqlRegisterService implements RegisterService {
 				ids.add(id);
 			}
 			venusServiceMappingDAO.updateServiceMappings(ids);
+			List<VenusServiceMappingDO> deleteServiceMappings = venusServiceMappingDAO
+					.getDeleteServiceMappings(updateTime, RegisteConstant.PROVIDER, true);// 取两分钟内删除的服务提供者
+			Set<Integer> serviceIds = new HashSet<Integer>();
+			if (CollectionUtils.isNotEmpty(deleteServiceMappings)) {
+				for (VenusServiceMappingDO venusServiceMappingDO : deleteServiceMappings) {
+					serviceIds.add(venusServiceMappingDO.getServiceId());
+				}
+
+				if (CollectionUtils.isNotEmpty(serviceIds)) {
+					for (Integer sid : serviceIds) {
+						List<VenusServiceMappingDO> serviceMappings2 = venusServiceMappingDAO.getServiceMappings(sid);
+						int deleteSize = 0;
+						for (Iterator<VenusServiceMappingDO> iterator = serviceMappings2.iterator(); iterator
+								.hasNext();) {
+							VenusServiceMappingDO vsd = iterator.next();
+							if (vsd.getIsDelete()) {
+								deleteSize++;
+							}
+						}
+
+						if (deleteSize != 0 && deleteSize == serviceMappings2.size()) {
+							venusServiceDAO.updateService(sid, true);// 更新service表
+						}
+					}
+				}
+			}
 		}
 	}
 

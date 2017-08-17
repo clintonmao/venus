@@ -60,6 +60,18 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		}
 		return update > 0;
 	}
+	
+	@Override
+	public boolean updateService(int id, boolean isDelete) throws DAOException {
+		String sql = "update t_venus_service set is_delete=?,update_time=now() where id=?";
+		int update = 0;
+		try {
+			update = this.jdbcTemplate.update(sql, isDelete, id);
+		} catch (Exception e) {
+			throw new DAOException("更新venusService异常", e);
+		}
+		return update > 0;
+	}
 
 	@Override
 	public VenusServiceDO getService(Integer id) throws DAOException {

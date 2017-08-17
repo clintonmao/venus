@@ -70,5 +70,5 @@ public interface RegisterService {
     
     void heartbeatSubcribe(URL url);
     
-    void clearInvalidService(String currentDateTime);
+    void clearInvalidService(String currentDateTime,String updateTime);
 }

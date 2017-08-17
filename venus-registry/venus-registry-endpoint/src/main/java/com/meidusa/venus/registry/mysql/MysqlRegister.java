@@ -86,7 +86,7 @@ public class MysqlRegister implements Register {
 
 	public void init() throws Exception {
 		load();
-
+		clearInvalid();
 		GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 5, 10, TimeUnit.SECONDS);
 	}
 
@@ -163,7 +163,7 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public void clearInvalid() throws VenusRegisteException {
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 5, 10, TimeUnit.SECONDS); // 清理线程
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 5, 60, TimeUnit.SECONDS); // 清理线程
 																												// 清理心跳的脏数据
 	}
 
@@ -215,7 +215,7 @@ public class MysqlRegister implements Register {
 					} catch (Exception e) {
 						logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
 					}
-					if (subscribleServiceDefinitions.size() < 1000) {
+					if (subscribleServiceDefinitions.size() < 1000) {//TODO
 						subscribleServiceDefinitions.add(def);
 					}
 				}
@@ -285,11 +285,14 @@ public class MysqlRegister implements Register {
 		@Override
 		public void run() {
 			int seconds = 10 * heartBeatSecond;
+			int updateSeconds = 12 * heartBeatSecond;
 			try {
 				Date date = getSubSecond(new Date(), seconds);
+				Date updateDate = getSubSecond(new Date(), updateSeconds);
 				DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				String currentDateTime = format.format(date);
-				registerService.clearInvalidService(currentDateTime);
+				String updateTime = format.format(updateDate);
+				registerService.clearInvalidService(currentDateTime,updateTime);
 			} catch (Exception e) {
 				logger.error("ClearInvalidRunnable is error", e);
 			}
