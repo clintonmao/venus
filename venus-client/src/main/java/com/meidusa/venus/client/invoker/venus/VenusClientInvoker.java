@@ -258,7 +258,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         BackendConnection conn = null;
         try {
             //获取连接 TODO 地址变化情况
-            nioConnPool = getNioConnPool(url);
+            nioConnPool = getNioConnPool(url,null);
             conn = nioConnPool.borrowObject();
             borrowed = TimeUtil.currentTimeMillis();
             ByteBuffer buffer = serviceRequestPacket.toByteBuffer();
@@ -613,7 +613,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @throws Exception
      * @param url
      */
-    public BackendConnectionPool getNioConnPool(URL url) throws Exception {
+    public BackendConnectionPool getNioConnPool(URL url,RemoteConfig remoteConfig) throws Exception {
         //若存在，则直接使用，否则新建
         String address = String.format("%s:%s",url.getHost(),String.valueOf(url.getPort()));
         if(nioPoolMap.get(address) != null){
@@ -667,81 +667,79 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         return nioPool;
     }
 
-    /**
-     * 创建nio连接池
-     * @param remoteConfig
-     * @param realPools
-     * @return
-     * @throws Exception
-     */
-    private BackendConnectionPool createNioPool(RemoteConfig remoteConfig, Map<String, Object> realPools) throws Exception {
-        //RemoteContainer container = new RemoteContainer();
-        FactoryConfig factoryConfig = remoteConfig.getFactory();
-        if (factoryConfig == null) {
-            throw new ConfigurationException(remoteConfig.getName() + " factory cannot be null");
-        }
-        String ipAddress = factoryConfig.getIpAddressList();
-        if(StringUtils.isEmpty(ipAddress)) {
-            throw new IllegalArgumentException("remtoe=" + remoteConfig.getName() + ", ipaddress cannot be null");
-        }
-        PoolConfig poolConfig = remoteConfig.getPool();
-        //TODO 地址合法性校验
-        String ipList[] = StringUtil.split(ipAddress, ", ");
-        BackendConnectionPool nioPools[] = new BackendConnectionPool[ipList.length];
-
-        for (int i = 0; i < ipList.length; i++) {
-            String shareName = remoteConfig.isShare() ? "SHARED-" : "";
-            if (remoteConfig.isShare()) {
-                nioPools[i] = (PollingBackendConnectionPool) realPools.get("N-" + shareName + ipList[i]);
-                if (nioPools[i] != null) {
-                    continue;
-                }
-            }
-
-            VenusBackendConnectionFactory nioFactory = new VenusBackendConnectionFactory();
-
-            nioPools[i] = new PollingBackendConnectionPool("N-" + shareName + ipList[i], nioFactory, 8);
-            if (poolConfig != null) {
-                BeanUtils.copyProperties(nioPools[i], poolConfig);
-            }
-            if (remoteConfig.getAuthenticator() != null) {
-                nioFactory.setAuthenticator(remoteConfig.getAuthenticator());
-            }
-            if (factoryConfig != null) {
-                BeanUtils.copyProperties(nioFactory, factoryConfig);
-            }
-
-            String temp[] = StringUtil.split(ipList[i], ":");
-            if (temp.length > 1) {
-                nioFactory.setHost(temp[0]);
-                nioFactory.setPort(Integer.valueOf(temp[1]));
-            } else {
-                nioFactory.setHost(temp[0]);
-                nioFactory.setPort(16800);
-            }
-
-            if (this.isEnableAsync()) {
-                nioFactory.setConnector(this.connector);
-                nioFactory.setMessageHandler(handler);
-                // nioPools[i].setName("n-connPool-"+nioFactory.getIpAddress());
-                nioPools[i].init();
-                realPools.put(nioPools[i].getName(), nioPools[i]);
-            }
-        }//end for
-
-        if (ipList.length > 1) {
-            MultipleLoadBalanceBackendConnectionPool multipleLoadBalanceBackendConnectionPool = new MultipleLoadBalanceBackendConnectionPool(remoteConfig.getName(), remoteConfig.getLoadbalance(),
-                    nioPools);
-            multipleLoadBalanceBackendConnectionPool.init();
-
-            realPools.put(multipleLoadBalanceBackendConnectionPool.getName(), multipleLoadBalanceBackendConnectionPool);
-            return multipleLoadBalanceBackendConnectionPool;
-        } else {
-            return nioPools[0];
-        }
-    }
-
-
+//    /**
+//     * 创建nio连接池
+//     * @param remoteConfig
+//     * @param realPools
+//     * @return
+//     * @throws Exception
+//     */
+//    private BackendConnectionPool createNioPool(RemoteConfig remoteConfig, Map<String, Object> realPools) throws Exception {
+//        //RemoteContainer container = new RemoteContainer();
+//        FactoryConfig factoryConfig = remoteConfig.getFactory();
+//        if (factoryConfig == null) {
+//            throw new ConfigurationException(remoteConfig.getName() + " factory cannot be null");
+//        }
+//        String ipAddress = factoryConfig.getIpAddressList();
+//        if(StringUtils.isEmpty(ipAddress)) {
+//            throw new IllegalArgumentException("remtoe=" + remoteConfig.getName() + ", ipaddress cannot be null");
+//        }
+//        PoolConfig poolConfig = remoteConfig.getPool();
+//        //TODO 地址合法性校验
+//        String ipList[] = StringUtil.split(ipAddress, ", ");
+//        BackendConnectionPool nioPools[] = new BackendConnectionPool[ipList.length];
+//
+//        for (int i = 0; i < ipList.length; i++) {
+//            String shareName = remoteConfig.isShare() ? "SHARED-" : "";
+//            if (remoteConfig.isShare()) {
+//                nioPools[i] = (PollingBackendConnectionPool) realPools.get("N-" + shareName + ipList[i]);
+//                if (nioPools[i] != null) {
+//                    continue;
+//                }
+//            }
+//
+//            VenusBackendConnectionFactory nioFactory = new VenusBackendConnectionFactory();
+//
+//            nioPools[i] = new PollingBackendConnectionPool("N-" + shareName + ipList[i], nioFactory, 8);
+//            if (poolConfig != null) {
+//                BeanUtils.copyProperties(nioPools[i], poolConfig);
+//            }
+//            if (remoteConfig.getAuthenticator() != null) {
+//                nioFactory.setAuthenticator(remoteConfig.getAuthenticator());
+//            }
+//            if (factoryConfig != null) {
+//                BeanUtils.copyProperties(nioFactory, factoryConfig);
+//            }
+//
+//            String temp[] = StringUtil.split(ipList[i], ":");
+//            if (temp.length > 1) {
+//                nioFactory.setHost(temp[0]);
+//                nioFactory.setPort(Integer.valueOf(temp[1]));
+//            } else {
+//                nioFactory.setHost(temp[0]);
+//                nioFactory.setPort(16800);
+//            }
+//
+//            if (this.isEnableAsync()) {
+//                nioFactory.setConnector(this.connector);
+//                nioFactory.setMessageHandler(handler);
+//                // nioPools[i].setName("n-connPool-"+nioFactory.getIpAddress());
+//                nioPools[i].init();
+//                realPools.put(nioPools[i].getName(), nioPools[i]);
+//            }
+//        }//end for
+//
+//        if (ipList.length > 1) {
+//            MultipleLoadBalanceBackendConnectionPool multipleLoadBalanceBackendConnectionPool = new MultipleLoadBalanceBackendConnectionPool(remoteConfig.getName(), remoteConfig.getLoadbalance(),
+//                    nioPools);
+//            multipleLoadBalanceBackendConnectionPool.init();
+//
+//            realPools.put(multipleLoadBalanceBackendConnectionPool.getName(), multipleLoadBalanceBackendConnectionPool);
+//            return multipleLoadBalanceBackendConnectionPool;
+//        } else {
+//            return nioPools[0];
+//        }
+//    }
 
     /**
      * 设置连接超时时间

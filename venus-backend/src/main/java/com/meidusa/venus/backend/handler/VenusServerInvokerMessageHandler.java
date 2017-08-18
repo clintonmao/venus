@@ -55,8 +55,6 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
     @Autowired
     private ServiceManager serviceManager;
 
-    private VenusServerInvokerTask venusInvokerTask;
-
     @Override
     public void init() throws InitialisationException {
         /* TODO 具体参数功能
