@@ -28,16 +28,14 @@ public class FailoverClusterInvoker implements ClusterInvoker {
 
     @Override
     public Result invoke(Invocation invocation, List<URL> urlList) throws RpcException {
+        //TODO 只针对系统异常进行重试
         for(int i=0;i<retry;i++){
             try {
-                //查找地址
+                //选择地址
                 URL url = getLoadbanlance().select(urlList);
 
-                //获取对应协议的invoker
-                Invoker invoker = getInvoker();
-
                 // 调用
-                return  invoker.invoke(invocation, url);
+                return  getInvoker().invoke(invocation, url);
             } catch (RpcException e) {
                 logger.warn("invoke failed.",e);
             }

@@ -6,12 +6,12 @@ import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.toolkit.net.*;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.toolkit.util.TimeUtil;
+import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.factory.xml.XmlServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.*;
 import com.meidusa.venus.client.invoker.AbstractClientInvoker;
-import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
 import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.exception.InvalidParameterException;
 import com.meidusa.venus.exception.VenusConfigException;
@@ -29,10 +29,6 @@ import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
-import com.meidusa.venus.Invocation;
-import com.meidusa.venus.Invoker;
-import com.meidusa.venus.Result;
-import com.meidusa.venus.RpcException;
 import com.meidusa.venus.util.UUID;
 import com.meidusa.venus.util.VenusAnnotationUtils;
 import com.meidusa.venus.util.VenusTracerUtil;
@@ -109,8 +105,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      */
     private Map<String, Object> realPoolMap = new HashMap<String, Object>();
 
-    private InjvmInvoker injvmInvoker = new InjvmInvoker();
-
     //TODO 优化锁对象
     private Object lock = new Object();
 
@@ -158,14 +152,14 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     }
 
     @Override
-    public Result doInvoke(Invocation invocation) throws RpcException {
+    public Result doInvoke(Invocation invocation, URL url) throws RpcException {
         byte[] messageId = invocation.getMessageId();
         try {
             //构造请求消息
             SerializeServiceRequestPacket serviceRequestPacket = buildRequest(invocation);
 
             //发送消息
-            sendRequestByNio(invocation, serviceRequestPacket);
+            sendRequest(url, invocation, serviceRequestPacket);
 
             //TODO 处理void、callback情况
             synchronized (lock){
@@ -180,16 +174,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         } catch (Exception e) {
             throw new RpcException(e);
         }
-    }
-
-    /**
-     * 获取对应请求的响应结果
-     * @param messageId
-     * @return
-     */
-    Result fetchResponse(byte[] messageId){
-        ServiceResponsePacket serviceResponsePacket = serviceResponsePacketMap.get(messageId);
-        return null;
     }
 
     /**
@@ -251,12 +235,14 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     /**
      * async异步调用
+     *
+     * @param url
      * @param invocation
      * @param serviceRequestPacket
      * @return
      * @throws Exception
      */
-    void sendRequestByNio(Invocation invocation, SerializeServiceRequestPacket serviceRequestPacket) throws Exception{
+    void sendRequest(URL url, Invocation invocation, SerializeServiceRequestPacket serviceRequestPacket) throws Exception{
         if (!this.isEnableAsync()) {
             throw new VenusConfigException("service callback call disabled");
         }
@@ -272,19 +258,28 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         BackendConnection conn = null;
         try {
             //获取连接 TODO 地址变化情况
-            nioConnPool = getNioConnPool();
+            nioConnPool = getNioConnPool(url);
             conn = nioConnPool.borrowObject();
             borrowed = TimeUtil.currentTimeMillis();
             ByteBuffer buffer = serviceRequestPacket.toByteBuffer();
+
+            /* TODO athena
             if(service.athenaFlag()) {
                 AthenaTransactionDelegate.getDelegate().setClientOutputSize(buffer.limit());
             }
+            */
 
             //发送请求消息，响应由handler类处理
             conn.write(buffer);
             //TODO wait
+            /* TODO tracer log
             VenusTracerUtil.logRequest(traceID, serviceRequestPacket.apiName, JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
-        } finally {
+            */
+        } catch (Exception e){
+            logger.error("sendRequest error.",e);
+            throw e;
+        }finally {
+            /* TODO athena
             if (service.athenaFlag()) {
                 AthenaTransactionDelegate.getDelegate().completeClientTransaction();
             }
@@ -296,6 +291,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
                 performanceLogger.debug(buffer.toString());
             }
+            */
 
             if (conn != null && nioConnPool != null) {
                 nioConnPool.returnObject(conn);
@@ -515,43 +511,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 //        }//end finally
 //    }
 
-    /**
-     * 设置连接超时时间
-     * @param conn
-     * @param serviceConfig
-     * @param endpoint
-     * @throws SocketException
-     */
-    void setConnectionConfig(AbstractBIOConnection conn, ServiceConfig serviceConfig, Endpoint endpoint) throws SocketException {
-        int soTimeout = 0;
-        int oldTimeout = 0;
 
-        oldTimeout = conn.getSoTimeout();
-        if (serviceConfig != null) {
-            EndpointConfig endpointConfig = serviceConfig.getEndpointConfig(endpoint.name());
-            if (endpointConfig != null) {
-                int eTimeOut = endpointConfig.getTimeWait();
-                if (eTimeOut > 0) {
-                    soTimeout = eTimeOut;
-                }
-            } else {
-                if (serviceConfig.getTimeWait() > 0) {
-                    soTimeout = serviceConfig.getTimeWait();
-                } else {
-                    if (endpoint.timeWait() > 0) {
-                        soTimeout = endpoint.timeWait();
-                    }
-                }
-            }
-        } else {
-            if (endpoint.timeWait() > 0) {
-                soTimeout = endpoint.timeWait();
-            }
-        }
-        if (soTimeout > 0) {
-            conn.setSoTimeout(soTimeout);
-        }
-    }
 
 //    /**
 //     * 根据远程配置获取bio连接池
@@ -648,12 +608,22 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
 
     /**
-     * 根据远程配置获取nio连接池
+     * 根据远程配置获取nio连接池 TODO 地址变化对连接的影响；地址未变但连接已断开其影响
      * @return
      * @throws Exception
+     * @param url
      */
-    public BackendConnectionPool getNioConnPool() throws Exception {
-        //TODO 使用List<Address>，不限于静态，要支持动态
+    public BackendConnectionPool getNioConnPool(URL url) throws Exception {
+        //若存在，则直接使用，否则新建
+        String address = String.format("%s:%s",url.getHost(),String.valueOf(url.getPort()));
+        if(nioPoolMap.get(address) != null){
+            return nioPoolMap.get(address);
+        }
+
+        BackendConnectionPool backendConnectionPool = createNioPool(url,new RemoteConfig());
+        nioPoolMap.put(address,backendConnectionPool);
+        return backendConnectionPool;
+        /*
         String ipAddressList = remoteConfig.getFactory().getIpAddressList();
         if(nioPoolMap.get(ipAddressList) != null){
             return nioPoolMap.get(ipAddressList);
@@ -662,6 +632,39 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         BackendConnectionPool backendConnectionPool = createNioPool(remoteConfig, realPoolMap);
         nioPoolMap.put(remoteConfig.getFactory().getIpAddressList(),backendConnectionPool);
         return backendConnectionPool;
+        */
+    }
+
+    /**
+     * 创建连接池
+     * @param url
+     * @param remoteConfig
+     * @return
+     * @throws Exception
+     */
+    private BackendConnectionPool createNioPool(URL url,RemoteConfig remoteConfig) throws Exception {
+        //初始化连接工厂
+        VenusBackendConnectionFactory nioFactory = new VenusBackendConnectionFactory();
+        nioFactory.setHost(url.getHost());
+        nioFactory.setPort(Integer.valueOf(url.getPort()));
+        if (remoteConfig.getAuthenticator() != null) {
+            nioFactory.setAuthenticator(remoteConfig.getAuthenticator());
+        }
+        FactoryConfig factoryConfig = remoteConfig.getFactory();
+        if (factoryConfig != null) {
+            BeanUtils.copyProperties(nioFactory, factoryConfig);
+        }
+        nioFactory.setConnector(this.connector);
+        nioFactory.setMessageHandler(handler);
+
+        //初始化连接池
+        BackendConnectionPool nioPool = new PollingBackendConnectionPool("N-" + url.getHost(), nioFactory, 8);
+        PoolConfig poolConfig = remoteConfig.getPool();
+        if (poolConfig != null) {
+            BeanUtils.copyProperties(nioPool, poolConfig);
+        }
+        nioPool.init();
+        return nioPool;
     }
 
     /**
@@ -736,6 +739,56 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         } else {
             return nioPools[0];
         }
+    }
+
+
+
+    /**
+     * 设置连接超时时间
+     * @param conn
+     * @param serviceConfig
+     * @param endpoint
+     * @throws SocketException
+     */
+    void setConnectionConfig(AbstractBIOConnection conn, ServiceConfig serviceConfig, Endpoint endpoint) throws SocketException {
+        int soTimeout = 0;
+        int oldTimeout = 0;
+
+        oldTimeout = conn.getSoTimeout();
+        if (serviceConfig != null) {
+            EndpointConfig endpointConfig = serviceConfig.getEndpointConfig(endpoint.name());
+            if (endpointConfig != null) {
+                int eTimeOut = endpointConfig.getTimeWait();
+                if (eTimeOut > 0) {
+                    soTimeout = eTimeOut;
+                }
+            } else {
+                if (serviceConfig.getTimeWait() > 0) {
+                    soTimeout = serviceConfig.getTimeWait();
+                } else {
+                    if (endpoint.timeWait() > 0) {
+                        soTimeout = endpoint.timeWait();
+                    }
+                }
+            }
+        } else {
+            if (endpoint.timeWait() > 0) {
+                soTimeout = endpoint.timeWait();
+            }
+        }
+        if (soTimeout > 0) {
+            conn.setSoTimeout(soTimeout);
+        }
+    }
+
+    /**
+     * 获取对应请求的响应结果
+     * @param messageId
+     * @return
+     */
+    Result fetchResponse(byte[] messageId){
+        ServiceResponsePacket serviceResponsePacket = serviceResponsePacketMap.get(messageId);
+        return null;
     }
 
     /**

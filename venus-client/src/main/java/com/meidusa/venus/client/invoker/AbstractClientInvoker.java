@@ -31,7 +31,7 @@ public abstract class AbstractClientInvoker implements Invoker {
             init();
 
             //调用相应协议实现
-            return doInvoke(invocation);
+            return doInvoke(invocation, url);
         } catch (Throwable e) {
             if (!(e instanceof CodedException)) {
                 if (exceptionLogger.isInfoEnabled()) {
@@ -49,8 +49,9 @@ public abstract class AbstractClientInvoker implements Invoker {
     /**
      * 协议服务调用实现
      * @param invocation
+     * @param url
      * @return
      * @throws RpcException
      */
-    public abstract Result doInvoke(Invocation invocation) throws RpcException;
+    public abstract Result doInvoke(Invocation invocation, URL url) throws RpcException;
 }

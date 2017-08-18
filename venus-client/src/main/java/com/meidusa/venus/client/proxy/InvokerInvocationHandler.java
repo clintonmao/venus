@@ -220,12 +220,12 @@ public class InvokerInvocationHandler implements InvocationHandler {
         return new Filter[]{
                 //校验
                 new ValidFilter(),
-                //流控
-                new MockFilterProxy(),
                 //并发数流控
                 new ActivesLimitFilter(),
                 //TPS控制
-                new TpsLimitFilter()
+                new TpsLimitFilter(),
+                //降级
+                new MockFilterProxy()
         };
     }
 
