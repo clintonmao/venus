@@ -412,7 +412,7 @@ public class MysqlRegisterService implements RegisterService {
 						if (null != venusServiceDO.getRegisteType()
 								&& venusServiceDO.getRegisteType() == RegisteConstant.AUTO_REGISTE) {
 							for (Map.Entry<Integer, Integer> ent : map.entrySet()) {
-								if (venusServiceDO.getId() == ent.getValue()) {
+								if (venusServiceDO.getId().intValue() == ent.getValue().intValue()) {
 									delete_mapping_ids.add(ent.getKey());
 								}
 							}
