@@ -57,6 +57,8 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
     private BeanContext beanContext;
 
+    private Register register;
+
     public Resource[] getConfigFiles() {
         return configFiles;
     }
@@ -130,7 +132,11 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         String registerUrl = "192.168.1.1:9000;192.168.1.2:9000";
         RegisterService registerService = getRegisterService(registerUrl);
         */
-        return MysqlRegister.getInstance(true,null);
+        if(register != null){
+            return register;
+        }
+        register = MysqlRegister.getInstance(true,null);
+        return register;
     }
 
     /**

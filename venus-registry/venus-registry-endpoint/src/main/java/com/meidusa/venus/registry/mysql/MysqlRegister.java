@@ -44,9 +44,9 @@ public class MysqlRegister implements Register {
 
 	private int heartBeatSecond = 10;
 
-	private RegisterService registerService;
+	private static RegisterService registerService = null;
 
-	private static MysqlRegister mysqlRegister = new MysqlRegister();
+	private static MysqlRegister mysqlRegister = null;
 
 	private static Random RANDOM = new Random();
 
@@ -54,7 +54,7 @@ public class MysqlRegister implements Register {
 		try {
 			init();
 		} catch (Exception e) {
-			logger.error("init初始化异常,异常原因：{} ", e);
+			logger.error("init mysql register error.",e);
 		}
 	}
 
@@ -68,6 +68,33 @@ public class MysqlRegister implements Register {
 	 * @return
 	 */
 	public final static MysqlRegister getInstance(boolean isInjvm, RegisterService remoteRegisterService) {
+		if(registerService == null){
+			registerService = initRegisterService(isInjvm, remoteRegisterService);
+		}
+
+		if(mysqlRegister == null){
+			mysqlRegister = new MysqlRegister();
+		}
+		return mysqlRegister;
+	}
+
+	void init() throws Exception {
+		if (!loadRunning) {
+			clearInvalid();//TODO 注册中心单独跑这个就可以
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 5, 10, TimeUnit.SECONDS);
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 5, 60, TimeUnit.SECONDS); // 清理线程
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefineRunnable(), 10, 60, TimeUnit.SECONDS);
+			loadRunning = true;
+		}
+	}
+
+	/**
+	 * 初始化register service
+	 * @param isInjvm
+	 * @param remoteRegisterService
+	 * @return
+	 */
+	static RegisterService initRegisterService(boolean isInjvm, RegisterService remoteRegisterService){
 		if (!isInjvm && remoteRegisterService == null) {
 			throw new IllegalArgumentException("isInjvm and registerService not allow empty.");
 		}
@@ -81,22 +108,13 @@ public class MysqlRegister implements Register {
 				logger.error("new MysqlRegisterService failed.", e);
 				return null;
 			}
-			mysqlRegister.setRegisterService(localRegisterService);
+			return localRegisterService;
 		} else {
-			mysqlRegister.setRegisterService(remoteRegisterService);
+			return remoteRegisterService;
 		}
-		return mysqlRegister;
 	}
 
-	public void init() throws Exception {
-		clearInvalid();//TODO 注册中心单独跑这个就可以
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 5, 10, TimeUnit.SECONDS);
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 5, 60, TimeUnit.SECONDS); // 清理线程
-		if (!loadRunning) {
-			GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefineRunnable(), 10, 60, TimeUnit.SECONDS);
-			loadRunning = true;
-		}
-	}
+
 
 	@Override
 	public void registe(URL url) throws VenusRegisteException {
@@ -327,7 +345,7 @@ public class MysqlRegister implements Register {
 	}
 
 	public void setRegisterService(RegisterService registerService) {
-		this.registerService = registerService;
+		MysqlRegister.registerService = registerService;
 	}
 
 }
