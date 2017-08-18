@@ -264,7 +264,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 		String sql = "delete from t_venus_service_mapping where id in(" + str + ")";
 		int update = 0;
 		try {
-			update = this.jdbcTemplate.update(sql, true);
+			update = this.jdbcTemplate.update(sql);
 		} catch (Exception e) {
 			throw new DAOException("逻辑删除更新映射关系异常", e);
 		}
