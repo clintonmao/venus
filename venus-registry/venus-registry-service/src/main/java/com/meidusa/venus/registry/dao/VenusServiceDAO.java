@@ -1,5 +1,6 @@
 package com.meidusa.venus.registry.dao;
 
+import java.util.Collection;
 import java.util.List;
 
 import com.meidusa.venus.registry.DAOException;
@@ -25,6 +26,6 @@ public interface VenusServiceDAO {
 	
 	VenusServiceDO getService(Integer id) throws DAOException;
 	
-	List<VenusServiceDO> getServices(List<Integer> ids) throws DAOException;
+	List<VenusServiceDO> getServices(Collection<Integer> ids) throws DAOException;
 
 }
