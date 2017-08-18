@@ -1,12 +1,16 @@
 package com.meidusa.venus.registry.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -392,15 +396,36 @@ public class MysqlRegisterService implements RegisterService {
 	}
 
 	public void clearInvalidService(String currentDateTime, String updateTime) {
-		List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMappings(currentDateTime);
+		List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMappings(currentDateTime);//订阅方 提供方 都清理
 		if (CollectionUtils.isNotEmpty(serviceMappings)) {
-			List<Integer> ids = new ArrayList<Integer>();
+			Map<Integer, Integer> map = new HashMap<Integer, Integer>();
 			for (Iterator<VenusServiceMappingDO> iterator = serviceMappings.iterator(); iterator.hasNext();) {
 				VenusServiceMappingDO mapping = iterator.next();
-				Integer id = mapping.getId();
-				ids.add(id);
+				map.put(mapping.getId(), mapping.getServiceId());
 			}
-			venusServiceMappingDAO.updateServiceMappings(ids);
+
+			List<Integer> delete_mapping_ids = new ArrayList<Integer>();
+			if (MapUtils.isNotEmpty(map)) {
+				List<VenusServiceDO> services = venusServiceDAO.getServices(map.values());
+				if (CollectionUtils.isNotEmpty(services)) {
+					for (VenusServiceDO venusServiceDO : services) {
+						if (null != venusServiceDO.getRegisteType()
+								&& venusServiceDO.getRegisteType() == RegisteConstant.AUTO_REGISTE) {
+							for (Map.Entry<Integer, Integer> ent : map.entrySet()) {
+								if (venusServiceDO.getId() == ent.getValue()) {
+									delete_mapping_ids.add(ent.getKey());
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if (CollectionUtils.isNotEmpty(delete_mapping_ids)) {
+				venusServiceMappingDAO.deleteServiceMappings(delete_mapping_ids);
+			}
+
+			//TODO
 			List<VenusServiceMappingDO> deleteServiceMappings = venusServiceMappingDAO
 					.getDeleteServiceMappings(updateTime, RegisteConstant.PROVIDER, true);// 取两分钟内删除的服务提供者
 			Set<Integer> serviceIds = new HashSet<Integer>();

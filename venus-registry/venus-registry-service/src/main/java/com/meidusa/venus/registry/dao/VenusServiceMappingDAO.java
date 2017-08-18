@@ -31,6 +31,8 @@ public interface VenusServiceMappingDAO {
 
 	boolean updateServiceMappings(List<Integer> ids) throws DAOException;
 	
+	boolean deleteServiceMappings(List<Integer> ids) throws DAOException;
+	
 	List<VenusServiceMappingDO> getServiceMappings(int serviceId) throws DAOException;
 
 }

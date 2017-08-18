@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -119,7 +120,7 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 	}
 
 	@Override
-	public List<VenusServiceDO> getServices(List<Integer> ids) throws DAOException {
+	public List<VenusServiceDO> getServices(Collection<Integer> ids) throws DAOException {
 		if (ids.isEmpty()) {
 			return new ArrayList<VenusServiceDO>();
 		}

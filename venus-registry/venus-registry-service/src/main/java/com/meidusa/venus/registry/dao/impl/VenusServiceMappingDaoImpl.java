@@ -165,10 +165,10 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	}
 
 	public List<VenusServiceMappingDO> getServiceMappings(String dateStr) throws DAOException {
-		String sql = SELECT_FIELDS_TABLE + " where heartbeat_time <= ? and role=?";
+		String sql = SELECT_FIELDS_TABLE + " where heartbeat_time <= ? ";
 
 		try {
-			return this.jdbcTemplate.query(sql, new Object[] { dateStr, RegisteConstant.PROVIDER },
+			return this.jdbcTemplate.query(sql, new Object[] { dateStr},
 					new ResultSetExtractor<List<VenusServiceMappingDO>>() {
 						@Override
 						public List<VenusServiceMappingDO> extractData(ResultSet rs)
@@ -242,6 +242,26 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 		}
 		String str = sb.substring(0, sb.length() - 1);
 		String sql = "update t_venus_service_mapping set is_delete=?,update_time=now() where id in(" + str + ")";
+		int update = 0;
+		try {
+			update = this.jdbcTemplate.update(sql, true);
+		} catch (Exception e) {
+			throw new DAOException("逻辑删除更新映射关系异常", e);
+		}
+		return update > 0;
+	}
+	
+	public boolean deleteServiceMappings(List<Integer> ids) throws DAOException {
+		if (ids.isEmpty()) {
+			return false;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (Integer id : ids) {
+			sb.append(id);
+			sb.append(",");
+		}
+		String str = sb.substring(0, sb.length() - 1);
+		String sql = "delete from t_venus_service_mapping where id in(" + str + ")";
 		int update = 0;
 		try {
 			update = this.jdbcTemplate.update(sql, true);

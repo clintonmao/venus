@@ -89,9 +89,9 @@ public class MysqlRegister implements Register {
 	}
 
 	public void init() throws Exception {
-		load();
-		clearInvalid();
+		clearInvalid();//TODO 注册中心单独跑这个就可以
 		GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 5, 10, TimeUnit.SECONDS);
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 5, 60, TimeUnit.SECONDS); // 清理线程
 		if (!loadRunning) {
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefineRunnable(), 10, 60, TimeUnit.SECONDS);
 			loadRunning = true;
@@ -158,6 +158,7 @@ public class MysqlRegister implements Register {
 			logger.error("服务{}取消订阅异常 ,异常原因：{}", url.getServiceName(), e);
 			throw new VenusRegisteException("取消订阅异常" + url.getServiceName(), e);
 		}
+		load();
 	}
 
 	@Override
@@ -171,8 +172,18 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public void clearInvalid() throws VenusRegisteException {
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 5, 60, TimeUnit.SECONDS); // 清理线程
-																												// 清理心跳的脏数据
+		int seconds = 10 * heartBeatSecond;
+		int updateSeconds = 12 * heartBeatSecond;
+		try {
+			Date date = getSubSecond(new Date(), seconds);
+			Date updateDate = getSubSecond(new Date(), updateSeconds);
+			DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			String currentDateTime = format.format(date);
+			String updateTime = format.format(updateDate);
+			registerService.clearInvalidService(currentDateTime, updateTime);
+		} catch (Exception e) {
+			logger.error("ClearInvalidRunnable is error", e);
+		}
 	}
 
 	@Override
@@ -299,18 +310,7 @@ public class MysqlRegister implements Register {
 
 		@Override
 		public void run() {
-			int seconds = 10 * heartBeatSecond;
-			int updateSeconds = 12 * heartBeatSecond;
-			try {
-				Date date = getSubSecond(new Date(), seconds);
-				Date updateDate = getSubSecond(new Date(), updateSeconds);
-				DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-				String currentDateTime = format.format(date);
-				String updateTime = format.format(updateDate);
-				registerService.clearInvalidService(currentDateTime, updateTime);
-			} catch (Exception e) {
-				logger.error("ClearInvalidRunnable is error", e);
-			}
+			clearInvalid();
 		}
 
 	}
