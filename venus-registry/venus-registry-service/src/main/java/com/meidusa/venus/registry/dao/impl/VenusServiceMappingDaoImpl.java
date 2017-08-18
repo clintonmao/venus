@@ -164,11 +164,11 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 		}
 	}
 
-	public List<VenusServiceMappingDO> getServiceMappings(String dateStr, String role) throws DAOException {
-		String sql = SELECT_FIELDS_TABLE + " where heartbeat_time <= ? and role=?";
+	public List<VenusServiceMappingDO> getServiceMappings(String dateStr) throws DAOException {
+		String sql = SELECT_FIELDS_TABLE + " where heartbeat_time <= ? ";
 
 		try {
-			return this.jdbcTemplate.query(sql, new Object[] { dateStr, role},
+			return this.jdbcTemplate.query(sql, new Object[] { dateStr},
 					new ResultSetExtractor<List<VenusServiceMappingDO>>() {
 						@Override
 						public List<VenusServiceMappingDO> extractData(ResultSet rs)

@@ -396,8 +396,7 @@ public class MysqlRegisterService implements RegisterService {
 	}
 
 	public void clearInvalidService(String currentDateTime, String updateTime) {
-		List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMappings(currentDateTime,
-				RegisteConstant.PROVIDER);
+		List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMappings(currentDateTime);//订阅方 提供方 都清理
 		if (CollectionUtils.isNotEmpty(serviceMappings)) {
 			Map<Integer, Integer> map = new HashMap<Integer, Integer>();
 			for (Iterator<VenusServiceMappingDO> iterator = serviceMappings.iterator(); iterator.hasNext();) {
@@ -426,6 +425,7 @@ public class MysqlRegisterService implements RegisterService {
 				venusServiceMappingDAO.deleteServiceMappings(delete_mapping_ids);
 			}
 
+			//TODO
 			List<VenusServiceMappingDO> deleteServiceMappings = venusServiceMappingDAO
 					.getDeleteServiceMappings(updateTime, RegisteConstant.PROVIDER, true);// 取两分钟内删除的服务提供者
 			Set<Integer> serviceIds = new HashSet<Integer>();
