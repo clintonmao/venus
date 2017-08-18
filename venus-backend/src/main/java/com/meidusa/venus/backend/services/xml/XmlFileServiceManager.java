@@ -116,7 +116,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @return
      */
     URL getURL(ServiceConfig serviceConfig){
-        String strUrl = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0&host=%s&port=9000&methods=sayHello[java.lang.String]";
+        String strUrl = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0&host=%s&port=16800&methods=sayHello[java.lang.String]";
         strUrl = String.format(strUrl, NetUtil.getLocalIp());
         logger.info("registerUrl:%",strUrl);
         URL url = URL.parse(strUrl);

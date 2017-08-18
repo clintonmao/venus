@@ -12,6 +12,9 @@
 	
 	<!-- import server side spring context file -->
 	<context:component-scan base-package="com.chexiang.*" />
+
+	<import resource="classpath:/spring/applicationContext-service-container.xml"/>
+
 	<!--
 	<import resource="file:${project.home:.}/conf/applicationContext-communication-client.xml"/>
 	-->
@@ -24,12 +27,14 @@
             </list>
         </property>
     </bean>
-    
+
+	<!--
     <bean id="authenticateProvider" class="com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider">
     	<property name="useDummy" value="false" />
 		<property name="username" value="111" />
 		<property name="password" value="111" />
     </bean>
+    -->
     
     <bean id="venusExceptionFactory" class="com.meidusa.venus.exception.XmlVenusExceptionFactory" init-method="init">
 		<property name="configFiles">

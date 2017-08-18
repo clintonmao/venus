@@ -10,12 +10,17 @@
 
     <bean class="com.meidusa.toolkit.net.ConnectionAcceptor" init-method="start" destroy-method="shutdown">
     	<property name="name" value="Service socket Server"/>
+		<!--
     	<property name="port" value="${venus.server.binding.port:16800}"/>
     	<property name="executorSize" value="${venus.server.manager.executor.size:32}"/>
+    	-->
+		<property name="port" value="16800"/>
+		<property name="executorSize" value="32"/>
     	<property name="connectionFactory" ref="serviceConnectionFactory"/>
     </bean>
     
     <bean id="serviceConnectionFactory" class="com.meidusa.venus.io.network.VenusBackendFrontendConnectionFactory">
+		<!--
 		<property name="messageHandler">
 			<bean id="messageHandler" class="com.meidusa.venus.backend.handler.VenusServerInvokerMessageHandler" init-method="init">
 				<property name="maxExecutionThread" value="${venus.server.handler.executor.maxThread:128}"></property>
@@ -27,5 +32,17 @@
 		</property>
 		<property name="sendBufferSize" value="${venus.socket.sendBufferSize:16}" />
 		<property name="receiveBufferSize" value="${venus.socket.receiveBufferSize:8}" />
+		-->
+		<property name="messageHandler">
+			<bean id="messageHandler" class="com.meidusa.venus.backend.handler.VenusServerInvokerMessageHandler" init-method="init">
+				<property name="maxExecutionThread" value="128"></property>
+				<property name="executorProtected" value="false"></property>
+				<property name="executorEnabled" value="false"></property>
+				<property name="useThreadLocalExecutor" value="false"/>
+				<property name="serviceManager" ref="serviceManager"/>
+			</bean>
+		</property>
+		<property name="sendBufferSize" value="16" />
+		<property name="receiveBufferSize" value="8" />
 	</bean>
 </beans>
