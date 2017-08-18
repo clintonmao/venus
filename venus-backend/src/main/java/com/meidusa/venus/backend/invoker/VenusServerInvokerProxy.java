@@ -111,11 +111,11 @@ public class VenusServerInvokerProxy implements Invoker {
     }
 
     @Override
-    public Result invoke(Invocation invocation) throws RpcException {
+    public Result invoke(Invocation invocation, URL url) throws RpcException {
         RpcInvocation rpcInvocation = (RpcInvocation)invocation;
         //前置操作，校验、认证、流控、降级
         for(Filter filter : getFilters()){
-            Result result = filter.invoke(rpcInvocation);
+            Result result = filter.invoke(rpcInvocation,null);
             if(result != null){
                 return result;
             }

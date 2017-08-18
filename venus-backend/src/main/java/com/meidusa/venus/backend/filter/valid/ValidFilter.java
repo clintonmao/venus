@@ -1,6 +1,7 @@
 package com.meidusa.venus.backend.filter.valid;
 
 import com.meidusa.toolkit.common.util.Tuple;
+import com.meidusa.venus.*;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
 import com.meidusa.venus.backend.invoker.support.RpcInvocation;
 import com.meidusa.venus.backend.services.Endpoint;
@@ -11,10 +12,6 @@ import com.meidusa.venus.io.packet.AbstractServiceRequestPacket;
 import com.meidusa.venus.io.packet.ErrorPacket;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
-import com.meidusa.venus.Filter;
-import com.meidusa.venus.Invocation;
-import com.meidusa.venus.Result;
-import com.meidusa.venus.RpcException;
 import com.meidusa.venus.util.Range;
 
 /**
@@ -26,10 +23,21 @@ public class ValidFilter implements Filter {
     private static final String TIMEOUT = "waiting-timeout for execution,api=%s,ip=%s,time=%d (ms)";
 
     @Override
-    public Result invoke(Invocation invocation) throws RpcException {
+    public void init() throws RpcException {
+
+    }
+
+    @Override
+    public Result invoke(Invocation invocation,URL url) throws RpcException {
         RpcInvocation rpcInvocation = (RpcInvocation)invocation;
         valid(rpcInvocation);
         return null;
+    }
+
+
+    @Override
+    public void destroy() throws RpcException {
+
     }
 
     /**

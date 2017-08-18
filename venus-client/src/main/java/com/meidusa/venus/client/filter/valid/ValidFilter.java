@@ -1,9 +1,6 @@
 package com.meidusa.venus.client.filter.valid;
 
-import com.meidusa.venus.Filter;
-import com.meidusa.venus.Invocation;
-import com.meidusa.venus.Result;
-import com.meidusa.venus.RpcException;
+import com.meidusa.venus.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +15,12 @@ public class ValidFilter implements Filter {
     private static Logger logger = LoggerFactory.getLogger(ValidFilter.class);
 
     @Override
-    public Result invoke(Invocation invocation) throws RpcException {
+    public void init() throws RpcException {
+
+    }
+
+    @Override
+    public Result invoke(Invocation invocation,URL url) throws RpcException {
         //endpoint定义校验
         if(invocation.getEndpoint() == null){
             Method method = invocation.getMethod();
@@ -30,5 +32,10 @@ public class ValidFilter implements Filter {
 
         //TODO 其它校验
         return null;
+    }
+
+    @Override
+    public void destroy() throws RpcException {
+
     }
 }

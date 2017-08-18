@@ -1,9 +1,6 @@
 package com.meidusa.venus.client.filter.limit;
 
-import com.meidusa.venus.Filter;
-import com.meidusa.venus.Invocation;
-import com.meidusa.venus.Result;
-import com.meidusa.venus.RpcException;
+import com.meidusa.venus.*;
 
 /**
  * 并发数流控处理
@@ -12,9 +9,19 @@ import com.meidusa.venus.RpcException;
 public class ActivesLimitFilter implements Filter {
 
     @Override
-    public Result invoke(Invocation invocation) throws RpcException {
+    public void init() throws RpcException {
+
+    }
+
+    @Override
+    public Result invoke(Invocation invocation,URL url) throws RpcException {
         //TODO 判断开启情况
         //FIXME
         return null;
+    }
+
+    @Override
+    public void destroy() throws RpcException {
+
     }
 }

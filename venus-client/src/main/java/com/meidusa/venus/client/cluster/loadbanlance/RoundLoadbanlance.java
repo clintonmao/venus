@@ -1,7 +1,6 @@
 package com.meidusa.venus.client.cluster.loadbanlance;
 
-import com.meidusa.venus.Address;
-import com.meidusa.venus.client.cluster.loadbanlance.Loadbanlance;
+import com.meidusa.venus.URL;
 
 import java.util.List;
 
@@ -14,14 +13,14 @@ public class RoundLoadbanlance implements Loadbanlance {
     private int index = 0;
 
     @Override
-    public Address select(List<Address> addressList) {
+    public URL select(List<URL> urlList) {
         //TODO 实现及权重因子
-        Address address = addressList.get(index);
-        if(index < addressList.size()){
+        URL url = urlList.get(index);
+        if(index < urlList.size()){
             index++;
         }else{
             index = 0;
         }
-        return address;
+        return url;
     }
 }

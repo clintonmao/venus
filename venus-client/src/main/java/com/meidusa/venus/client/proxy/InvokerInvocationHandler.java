@@ -5,22 +5,22 @@ import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
+import com.meidusa.venus.client.cluster.FailoverClusterInvoker;
 import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
-import com.meidusa.venus.client.filter.valid.ValidFilter;
-import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
-import com.meidusa.venus.client.cluster.FailoverClusterInvoker;
-import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.client.filter.limit.ActivesLimitFilter;
 import com.meidusa.venus.client.filter.limit.TpsLimitFilter;
+import com.meidusa.venus.client.filter.mock.MockFilterProxy;
+import com.meidusa.venus.client.filter.valid.ValidFilter;
+import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
+import com.meidusa.venus.client.router.Router;
+import com.meidusa.venus.client.router.condition.ConditionRouter;
+import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.metainfo.EndpointParameterUtil;
-import com.meidusa.venus.client.filter.mock.MockFilterProxy;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.RegisterService;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
-import com.meidusa.venus.client.router.Router;
-import com.meidusa.venus.client.router.condition.ConditionRouter;
 import com.meidusa.venus.service.registry.HostPort;
 import com.meidusa.venus.service.registry.ServiceDefinition;
 import com.meidusa.venus.util.NetUtil;
@@ -32,8 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -156,7 +154,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
             //前置处理，校验、流控、降级等
             for(Filter filter : getFilters()){
-                Result result = filter.invoke(invocation);
+                Result result = filter.invoke(invocation,null);
                 if(result != null){
                     return result;
                 }
@@ -194,7 +192,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * @return
      */
     Result doInvokeInJvm(Invocation invocation){
-        return injvmInvoker.invoke(invocation);
+        return injvmInvoker.invoke(invocation, null);
     }
 
     /**
@@ -204,14 +202,13 @@ public class InvokerInvocationHandler implements InvocationHandler {
      */
     Result doInvokeInCluster(Invocation invocation){
         //寻址，TODO 地址变化对连接池的影响
-        List<Address> addressList = lookup(invocation);
+        List<URL> urlList = lookup(invocation);
 
         //路由规则过滤
-        addressList = router.filte(addressList, invocation);
+        urlList = router.filte(urlList, invocation);
 
         //集群调用
-        Invoker clusterInvoker = getClusterInvoker(addressList,invocation);
-        Result result = clusterInvoker.invoke(invocation);
+        Result result = getClusterInvoker().invoke(invocation, urlList);
         return result;
     }
 
@@ -237,7 +234,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * @param invocation
      * @return
      */
-    List<Address> lookup(Invocation invocation){
+    List<URL> lookup(Invocation invocation){
         if(remoteConfig != null){
             return lookupByDynamic(invocation);
         }else if(StringUtils.isNotEmpty(registerUrl)){
@@ -252,16 +249,16 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * @param invocation
      * @return
      */
-    List<Address> lookupByStatic(Invocation invocation){
-        List<Address> addressList = new ArrayList<Address>();
+    List<URL> lookupByStatic(Invocation invocation){
+        List<URL> urlList = new ArrayList<URL>();
         //TODO 确认及处理多个地址格式
         String ipAddressList = remoteConfig.getFactory().getIpAddressList();
         String[] arr = ipAddressList.split(":");
-        Address address = new Address();
-        address.setHost(arr[0]);
-        address.setPort(Integer.parseInt(arr[1]));
-        addressList.add(address);
-        return addressList;
+        URL url = new URL();
+        url.setHost(arr[0]);
+        url.setPort(Integer.parseInt(arr[1]));
+        urlList.add(url);
+        return urlList;
     }
 
     /**
@@ -269,27 +266,25 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * @param invocation
      * @return
      */
-    List<Address> lookupByDynamic(Invocation invocation){
-        List<Address> addressList = new ArrayList<Address>();
+    List<URL> lookupByDynamic(Invocation invocation){
+        List<URL> urlList = new ArrayList<URL>();
 
-        String serviceUrl = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
-        URL url = URL.parse(serviceUrl);
-        ServiceDefinition serviceDefinition = getRegister().lookup(url);
+        String path = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
+        URL serviceUrl = URL.parse(path);
+        ServiceDefinition serviceDefinition = getRegister().lookup(serviceUrl);
         if(serviceDefinition == null || CollectionUtils.isEmpty(serviceDefinition.getIpAddress())){
             throw new RpcException("service not found available providers.");
         }
-
         logger.info("serviceDefinition:{}",serviceDefinition);
 
         for(String item:serviceDefinition.getIpAddress()){
             String[] arr = item.split(":");
-            Address address = new Address();
-            address.setHost(arr[0]);
-            address.setPort(Integer.parseInt(arr[1]));
-            addressList.add(address);
+            URL url = new URL();
+            url.setHost(arr[0]);
+            url.setPort(Integer.parseInt(arr[1]));
+            urlList.add(url);
         }
-
-        return addressList;
+        return urlList;
     }
 
 
@@ -335,8 +330,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * 获取cluster invoker
      * @return
      */
-    Invoker getClusterInvoker(List<Address> addressList,Invocation invocation){
-        //TODO 处理集群容错wrapper
+    ClusterInvoker getClusterInvoker(){
         return new FailoverClusterInvoker();
     }
 

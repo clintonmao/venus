@@ -1,11 +1,13 @@
 package com.meidusa.venus;
 
 
+import java.util.List;
+
 /**
  * invoker接口
  * Created by Zhangzhihua on 2017/7/31.
  */
-public interface Invoker {
+public interface ClusterInvoker {
 
     /**
      * 初始化
@@ -15,11 +17,11 @@ public interface Invoker {
     /**
      * 服务调用
      * @param invocation
-     * @param url
+     * @param urlList
      * @return
      * @throws RpcException
      */
-    Result invoke(Invocation invocation, URL url) throws RpcException;
+    Result invoke(Invocation invocation, List<URL> urlList) throws RpcException;
 
     /**
      * 销毁

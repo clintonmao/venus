@@ -1,9 +1,6 @@
 package com.meidusa.venus.client.filter.mock;
 
-import com.meidusa.venus.Filter;
-import com.meidusa.venus.Invocation;
-import com.meidusa.venus.Result;
-import com.meidusa.venus.RpcException;
+import com.meidusa.venus.*;
 
 /**
  * 快速返回放通处理
@@ -12,9 +9,17 @@ import com.meidusa.venus.RpcException;
 public class ReturnMockFilter implements Filter {
 
     @Override
-    public Result invoke(Invocation invocation) throws RpcException {
-        //TODO
+    public void init() throws RpcException {
+
+    }
+
+    @Override
+    public Result invoke(Invocation invocation, URL url) throws RpcException {
         return null;
     }
 
+    @Override
+    public void destroy() throws RpcException {
+
+    }
 }

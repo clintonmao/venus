@@ -1,7 +1,6 @@
 package com.meidusa.venus.client.cluster.loadbanlance;
 
-import com.meidusa.venus.Address;
-import com.meidusa.venus.client.cluster.loadbanlance.Loadbanlance;
+import com.meidusa.venus.URL;
 
 import java.util.List;
 import java.util.Random;
@@ -15,9 +14,9 @@ public class RandomLoadbanlance implements Loadbanlance {
     private final Random random = new Random();
 
     @Override
-    public Address select(List<Address> addressList) {
+    public URL select(List<URL> urlList) {
         //TODO 实现及权重因子
-        int index = random.nextInt(addressList.size());
-        return addressList.get(index);
+        int index = random.nextInt(urlList.size());
+        return urlList.get(index);
     }
 }

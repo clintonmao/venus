@@ -1,14 +1,9 @@
 package com.meidusa.venus.client.cluster;
 
-import com.meidusa.venus.Address;
-import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
-import com.meidusa.venus.Invocation;
-import com.meidusa.venus.Result;
+import com.meidusa.venus.*;
 import com.meidusa.venus.client.cluster.loadbanlance.Loadbanlance;
 import com.meidusa.venus.client.cluster.loadbanlance.RandomLoadbanlance;
-import com.meidusa.venus.Invoker;
-import com.meidusa.venus.RpcException;
-import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
+import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,14 +13,9 @@ import java.util.List;
  * failover集群容错invoker
  * Created by Zhangzhihua on 2017/7/31.
  */
-public class FailoverClusterInvoker implements Invoker {
+public class FailoverClusterInvoker implements ClusterInvoker {
 
     private static Logger logger = LoggerFactory.getLogger(FailoverClusterInvoker.class);
-
-    /**
-     * 地址列表
-     */
-    private List<Address> addressList;
 
     /**
      * retry次数 TODO 读取配置
@@ -37,15 +27,17 @@ public class FailoverClusterInvoker implements Invoker {
     }
 
     @Override
-    public Result invoke(Invocation invocation) throws RpcException {
+    public Result invoke(Invocation invocation, List<URL> urlList) throws RpcException {
         for(int i=0;i<retry;i++){
             try {
                 //查找地址
-                Address address = getLoadbanlance().select(addressList);
+                URL url = getLoadbanlance().select(urlList);
+
                 //获取对应协议的invoker
-                Invoker invoker = getInvoker(invocation);
+                Invoker invoker = getInvoker();
+
                 // 调用
-                return  invoker.invoke(invocation);
+                return  invoker.invoke(invocation, url);
             } catch (RpcException e) {
                 logger.warn("invoke failed.",e);
             }
@@ -55,11 +47,9 @@ public class FailoverClusterInvoker implements Invoker {
 
     /**
      * 获取invoker
-     * @param invocation
      * @return
      */
-    Invoker getInvoker(Invocation invocation){
-        //TODO
+    Invoker getInvoker(){
         return new VenusClientInvoker();
     }
 

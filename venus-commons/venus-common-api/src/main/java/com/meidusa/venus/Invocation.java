@@ -1,12 +1,10 @@
 package com.meidusa.venus;
 
-import com.meidusa.venus.Address;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.metainfo.EndpointParameter;
 
 import java.lang.reflect.Method;
-import java.util.List;
 
 /**
  * 请求对象
@@ -30,11 +28,9 @@ public class Invocation {
 
     private EndpointParameter[] params;
 
-
-
     boolean async;
 
-    private List<Address> addressList;
+    //private List<Address> addressList;
 
     public Method getMethod() {
         return method;
@@ -58,14 +54,6 @@ public class Invocation {
 
     public void setServiceType(Class<?> serviceType) {
         this.serviceType = serviceType;
-    }
-
-    public List<Address> getAddressList() {
-        return addressList;
-    }
-
-    public void setAddressList(List<Address> addressList) {
-        this.addressList = addressList;
     }
 
     public Service getService() {

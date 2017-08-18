@@ -1,11 +1,8 @@
 package com.meidusa.venus.client.invoker.injvm;
 
-import com.meidusa.venus.Invocation;
-import com.meidusa.venus.Result;
-import com.meidusa.venus.RpcException;
+import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
-import com.meidusa.venus.Invoker;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -25,7 +22,7 @@ public class InjvmInvoker implements Invoker {
     }
 
     @Override
-    public Result invoke(Invocation invocation) throws RpcException {
+    public Result invoke(Invocation invocation, URL url) throws RpcException {
         Method method = invocation.getMethod();
         Object[] args = invocation.getArgs();
         Service service = invocation.getService();

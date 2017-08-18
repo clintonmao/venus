@@ -1,6 +1,6 @@
 package com.meidusa.venus.client.cluster.loadbanlance;
 
-import com.meidusa.venus.Address;
+import com.meidusa.venus.URL;
 
 import java.util.List;
 
@@ -12,8 +12,7 @@ public interface Loadbanlance {
 
     /**
      * 选择目标地址
-     * @param addressList
      * @return
      */
-    Address select(List<Address> addressList);
+    URL select(List<URL> urlList);
 }

@@ -135,7 +135,7 @@ public class VenusServerInvokerTask implements Runnable{
             RpcInvocation invocation = buildInvocation(conn, data);
 
             //调用服务
-            Result result = venusInvokerProxy.invoke(invocation);
+            Result result = venusInvokerProxy.invoke(invocation, null);
 
             //输出响应
             handleResponse(null, null, null, false);

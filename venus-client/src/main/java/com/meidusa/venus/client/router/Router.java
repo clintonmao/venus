@@ -1,7 +1,7 @@
 package com.meidusa.venus.client.router;
 
-import com.meidusa.venus.Address;
 import com.meidusa.venus.Invocation;
+import com.meidusa.venus.URL;
 
 import java.util.List;
 
@@ -13,8 +13,8 @@ public interface Router {
 
     /**
      * 根据路由规则过滤地址列表 TODO invocation参数定义?
-     * @param addressList
+     * @param urlList
      * @param invocation  @return
      */
-    List<Address> filte(List<Address> addressList, Invocation invocation);
+    List<URL> filte(List<URL> urlList, Invocation invocation);
 }

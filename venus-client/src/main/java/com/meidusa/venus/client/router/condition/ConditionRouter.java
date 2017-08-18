@@ -1,10 +1,8 @@
 package com.meidusa.venus.client.router.condition;
 
-import com.meidusa.venus.Address;
+import com.meidusa.venus.Invocation;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.client.router.Router;
-import com.meidusa.venus.Invocation;
-import org.apache.commons.collections.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,9 +21,9 @@ public class ConditionRouter implements Router {
     Map<URL,List<ConditionRule>> urlConditionRuleMap = new HashMap<URL, List<ConditionRule>>();
 
     @Override
-    public List<Address> filte(List<Address> addressList, Invocation invocation) {
-        List<Address> avalibleAddressList = new ArrayList<Address>();
-        for(Address address:addressList){
+    public List<URL> filte(List<URL> urlList, Invocation invocation) {
+        List<URL> avalibleURLList = new ArrayList<URL>();
+        for(URL url: urlList){
             /*
             URL url = getURL(address,invocation);
             List<ConditionRule> conditionRuleList = urlConditionRuleMap.get(url);
@@ -39,18 +37,9 @@ public class ConditionRouter implements Router {
                 avalibleAddressList.add(address);
             }
             */
-            avalibleAddressList.add(address);
+            avalibleURLList.add(url);
         }
-        return avalibleAddressList;
+        return avalibleURLList;
     }
 
-    /**
-     * 获取url服务调用路径
-     * @param address
-     * @param invocation
-     * @return
-     */
-    URL getURL(Address address, Invocation invocation){
-        return null;
-    }
 }

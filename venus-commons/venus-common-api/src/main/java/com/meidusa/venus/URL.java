@@ -37,6 +37,9 @@ public class URL implements Serializable {
 	/** 端口，如 16800 */
 	private int port;
 
+	/** 机器权重 0~100 */
+	private int weight;
+
 	/** 应用名 */
 	private String application;
 
@@ -267,6 +270,14 @@ public class URL implements Serializable {
 
 	public void setPort(int port) {
 		this.port = port;
+	}
+
+	public int getWeight() {
+		return weight;
+	}
+
+	public void setWeight(int weight) {
+		this.weight = weight;
 	}
 
 	public String getApplication() {
