@@ -28,14 +28,12 @@
         </property>
     </bean>
 
-	<!--
     <bean id="authenticateProvider" class="com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider">
-    	<property name="useDummy" value="false" />
+    	<property name="useDummy" value="true" />
 		<property name="username" value="111" />
 		<property name="password" value="111" />
     </bean>
-    -->
-    
+
     <bean id="venusExceptionFactory" class="com.meidusa.venus.exception.XmlVenusExceptionFactory" init-method="init">
 		<property name="configFiles">
 			<list>

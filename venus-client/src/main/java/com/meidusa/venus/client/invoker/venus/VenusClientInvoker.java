@@ -168,7 +168,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             //处理响应结果
             Result result = fetchResponse(messageId);
             if(result == null){
-                throw new RpcException(String.format("invoke timeout:%","3000ms"));
+                throw new RpcException(String.format("invoke timeout:%s","3000ms"));
             }
             return result;
         } catch (Exception e) {

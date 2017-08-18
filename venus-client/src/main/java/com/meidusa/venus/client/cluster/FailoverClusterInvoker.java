@@ -40,7 +40,7 @@ public class FailoverClusterInvoker implements ClusterInvoker {
                 logger.warn("invoke failed.",e);
             }
         }
-        throw new RpcException(String.format("serivce %,method % invoke failed with % tries.","","",""));
+        throw new RpcException(String.format("serivce %s,method %s invoke failed with %s tries.","","",""));
     }
 
     /**

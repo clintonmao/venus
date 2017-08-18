@@ -59,7 +59,12 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
     @Override
     public void init() throws InitialisationException {
+        /* TODO 具体参数功能
         if (executor == null && executorEnabled && !useThreadLocalExecutor && maxExecutionThread > 0) {
+            executor = Executors.newFixedThreadPool(maxExecutionThread);
+        }
+        */
+        if (executor == null) {
             executor = Executors.newFixedThreadPool(maxExecutionThread);
         }
     }

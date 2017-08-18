@@ -8,6 +8,7 @@ import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.Connection;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.TimeUtil;
+import com.meidusa.venus.RpcException;
 import com.meidusa.venus.annotations.ExceptionCode;
 import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
@@ -141,6 +142,7 @@ public class VenusServerInvokerTask implements Runnable{
             handleResponse(null, null, null, false);
         } catch (Exception e) {
             //TODO 处理异常
+            throw new RpcException(e);
             //handleResponse(context,null,null,null,false,null);
         }
     }
