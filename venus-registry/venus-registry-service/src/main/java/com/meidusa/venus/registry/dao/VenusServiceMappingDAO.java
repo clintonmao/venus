@@ -14,7 +14,7 @@ public interface VenusServiceMappingDAO {
 	boolean updateServiceMappingHeartBeatTime(int serverId, int serviceId, String version, String role)
 			throws DAOException;
 
-	boolean deleteServiceMapping(int serverId, int serviceId, String version, String role) throws DAOException;
+	boolean deleteServiceMapping(int id) throws DAOException;
 
 	VenusServiceMappingDO getServiceMapping(Integer serverId, Integer serviceId, String role) throws DAOException;
 

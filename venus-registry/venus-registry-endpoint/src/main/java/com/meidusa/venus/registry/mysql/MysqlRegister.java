@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,7 +38,7 @@ public class MysqlRegister implements Register {
 	private Set<URL> subscribleFailUrls = new HashSet<URL>();// 失败的继续跑启线程定时运行
 
 	/** 已订阅成功的 服务定义对象 */
-	private Set<ServiceDefinition> subscribleServiceDefinitions = new HashSet<ServiceDefinition>();
+	private ConcurrentMap<String, ServiceDefinition> subscribleServiceDefinitionMap = new ConcurrentHashMap<String, ServiceDefinition>();
 
 	private boolean loadRunning = false;
 
@@ -48,13 +50,13 @@ public class MysqlRegister implements Register {
 
 	private static MysqlRegister mysqlRegister = null;
 
-	private static Random RANDOM = new Random();
+	private String subcribePath = "/data/app";
 
 	private MysqlRegister() {
 		try {
 			init();
 		} catch (Exception e) {
-			logger.error("init mysql register error.",e);
+			logger.error("init mysql register error.", e);
 		}
 	}
 
@@ -68,11 +70,11 @@ public class MysqlRegister implements Register {
 	 * @return
 	 */
 	public final static MysqlRegister getInstance(boolean isInjvm, RegisterService remoteRegisterService) {
-		if(registerService == null){
+		if (registerService == null) {
 			registerService = initRegisterService(isInjvm, remoteRegisterService);
 		}
 
-		if(mysqlRegister == null){
+		if (mysqlRegister == null) {
 			mysqlRegister = new MysqlRegister();
 		}
 		return mysqlRegister;
@@ -80,7 +82,7 @@ public class MysqlRegister implements Register {
 
 	void init() throws Exception {
 		if (!loadRunning) {
-			clearInvalid();//TODO 注册中心单独跑这个就可以
+			clearInvalid();// TODO 注册中心单独跑这个就可以
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 5, 10, TimeUnit.SECONDS);
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 5, 60, TimeUnit.SECONDS); // 清理线程
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefineRunnable(), 10, 60, TimeUnit.SECONDS);
@@ -90,11 +92,12 @@ public class MysqlRegister implements Register {
 
 	/**
 	 * 初始化register service
+	 * 
 	 * @param isInjvm
 	 * @param remoteRegisterService
 	 * @return
 	 */
-	static RegisterService initRegisterService(boolean isInjvm, RegisterService remoteRegisterService){
+	static RegisterService initRegisterService(boolean isInjvm, RegisterService remoteRegisterService) {
 		if (!isInjvm && remoteRegisterService == null) {
 			throw new IllegalArgumentException("isInjvm and registerService not allow empty.");
 		}
@@ -113,8 +116,6 @@ public class MysqlRegister implements Register {
 			return remoteRegisterService;
 		}
 	}
-
-
 
 	@Override
 	public void registe(URL url) throws VenusRegisteException {
@@ -210,54 +211,52 @@ public class MysqlRegister implements Register {
 		// run.run();//测试接口时用
 		// 接口名 服务名 版本号 加载服务的server信息及serviceConfig信息
 		// 根据本地 ServiceDefinition 列表去查找
+		String key = getKeyFromUrl(url);
+		return subscribleServiceDefinitionMap.get(key);
+	}
+
+	private static String getKeyFromUrl(URL url) {
 		String serviceName = url.getServiceName();
 		String interfaceName = url.getInterfaceName();
 		String version = url.getVersion();
-		synchronized (MysqlRegister.class) {
-			for (Iterator<ServiceDefinition> iterator = subscribleServiceDefinitions.iterator(); iterator.hasNext();) {
-				ServiceDefinition define = iterator.next();
-				if (null != define && define.getName().equals(serviceName)) {
-					if (version.equals(define.getVersionRange())) {// TODO
-																	// version
-						return define;
-					}
-				}
-			}
-		}
-		return null;
+		return serviceName + "_" + version + "_" + interfaceName;
 	}
 
 	@Override
 	public void load() throws VenusRegisteException {
 		if (CollectionUtils.isNotEmpty(subscribleUrls)) {
-			Set<ServiceDefinition> tempSet = new HashSet<ServiceDefinition>();
 			for (URL url : subscribleUrls) {
+				String key = getKeyFromUrl(url);
 				ServiceDefinition def = null;
 				try {
 					def = registerService.urlToServiceDefine(url);
 					logger.info("srvDef:{}", def);
+					subscribleServiceDefinitionMap.put(key, def);
 				} catch (Exception e) {
 					logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
 				}
-				if (null != def) {
-					tempSet.add(def);
-				}
-			}
-			synchronized (MysqlRegister.class) {
-				subscribleServiceDefinitions.clear();
-				subscribleServiceDefinitions.addAll(tempSet);
 			}
 		}
 	}
 
 	@Override
 	public void destroy() throws VenusRegisteException {
+		if (CollectionUtils.isNotEmpty(registeUrls)) {
+			for (URL url : registeUrls) {
+				unregiste(url);
+			}
+		}
+		if (CollectionUtils.isNotEmpty(subscribleUrls)) {
+			for (URL url : subscribleUrls) {
+				unsubscrible(url);
+			}
+		}
 		registeUrls.clear();
 		subscribleUrls.clear();
 		registeFailUrls.clear();
 		subscribleFailUrls.clear();
 		synchronized (MysqlRegister.class) {
-			subscribleServiceDefinitions.clear();
+			subscribleServiceDefinitionMap.clear();
 		}
 	}
 
