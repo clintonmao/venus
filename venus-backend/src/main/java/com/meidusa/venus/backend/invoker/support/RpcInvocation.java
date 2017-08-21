@@ -30,7 +30,7 @@ public class RpcInvocation extends Invocation{
 
     VenusRouterPacket routerPacket;
 
-    SerializeServiceRequestPacket serviceRequestPacket;
+    SerializeServiceRequestPacket request;
 
     Endpoint ep;
 
@@ -108,12 +108,12 @@ public class RpcInvocation extends Invocation{
         this.serializeType = serializeType;
     }
 
-    public SerializeServiceRequestPacket getServiceRequestPacket() {
-        return serviceRequestPacket;
+    public SerializeServiceRequestPacket getRequest() {
+        return request;
     }
 
-    public void setServiceRequestPacket(SerializeServiceRequestPacket serviceRequestPacket) {
-        this.serviceRequestPacket = serviceRequestPacket;
+    public void setRequest(SerializeServiceRequestPacket request) {
+        this.request = request;
     }
 
     public Endpoint getEp() {

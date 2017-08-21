@@ -13,12 +13,13 @@
 	<!-- import server side spring context file -->
 	<context:component-scan base-package="com.chexiang.*" />
 
+	<bean id="helloService" class="com.chexiang.venus.demo.provider.impl.DefaultHelloService"/>
+
 	<import resource="classpath:/spring/applicationContext-service-container.xml"/>
 
 	<!--
 	<import resource="file:${project.home:.}/conf/applicationContext-communication-client.xml"/>
 	-->
-	<bean id="helloService" class="com.chexiang.venus.demo.provider.impl.DefaultHelloService"/>
 
     <bean id="serviceManager" class="com.meidusa.venus.backend.services.xml.XmlFileServiceManager">
         <property name="configFiles">

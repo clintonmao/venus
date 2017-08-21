@@ -65,7 +65,7 @@
 		</pattern>
 		<pattern value="interceptors/interceptor">
 			<object-create-rule-with-init
-				classname="com.meidusa.venus.backend.services.InterceptorMapping" />
+				classname="com.meidusa.venus.backend.interceptor.InterceptorMapping" />
 			<set-properties-rule />
 			<bean-property-setter-byAttrname-rule
 				pattern="property" attrname="name" /> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->

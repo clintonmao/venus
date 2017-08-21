@@ -15,16 +15,12 @@ import com.meidusa.venus.backend.services.xml.bean.PerformanceLogger;
 import com.meidusa.venus.backend.support.Response;
 import com.meidusa.venus.backend.support.UtilTimerStack;
 import com.meidusa.venus.exception.*;
-import com.meidusa.venus.extension.athena.AthenaTransactionId;
-import com.meidusa.venus.extension.athena.delegate.AthenaReporterDelegate;
-import com.meidusa.venus.extension.athena.delegate.AthenaTransactionDelegate;
 import com.meidusa.venus.io.packet.AbstractServicePacket;
 import com.meidusa.venus.io.packet.ErrorPacket;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.io.support.VenusStatus;
-import com.meidusa.venus.service.monitor.MonitorRuntime;
 import com.meidusa.venus.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,8 +118,8 @@ public class VenusServerInvokerProxy implements Invoker {
         }
 
         //处理调用请求 TODO 统一或适配result/response
-        Response result = doInvoke(rpcInvocation);
-        return null;
+        Result result = doInvoke(rpcInvocation);
+        return result;
     }
 
     @Override
@@ -146,7 +142,9 @@ public class VenusServerInvokerProxy implements Invoker {
      * invoke
      * @return
      */
-    public Response doInvoke(RpcInvocation invocation) throws RpcException{
+    public Result doInvoke(RpcInvocation invocation) throws RpcException{
+        Result result = null;
+
         //获取调用信息
         Tuple<Long, byte[]> data = invocation.getData();
         byte[] message = invocation.getMessage();
@@ -155,7 +153,7 @@ public class VenusServerInvokerProxy implements Invoker {
         String finalSourceIp = invocation.getFinalSourceIp();
         VenusRouterPacket routerPacket = invocation.getRouterPacket();
         byte serializeType = invocation.getSerializeType();
-        SerializeServiceRequestPacket request = invocation.getServiceRequestPacket();
+        SerializeServiceRequestPacket request = invocation.getRequest();
         final String apiName = request.apiName;
         final Endpoint endpoint = invocation.getEp();//getServiceManager().getEndpoint(serviceName, methodName, request.parameterMap.keySet().toArray(new String[] {}));
         /*
@@ -173,6 +171,7 @@ public class VenusServerInvokerProxy implements Invoker {
         RequestContext requestContext = requestHandler.createContext(requestInfo, endpoint, request);
 
         //调用服务
+        /* TODO athena
         boolean athenaFlag = endpoint.getService().getAthenaFlag();
         if (athenaFlag) {
             AthenaReporterDelegate.getDelegate().metric(apiName + ".handleRequest");
@@ -183,17 +182,19 @@ public class VenusServerInvokerProxy implements Invoker {
             AthenaTransactionDelegate.getDelegate().startServerTransaction(transactionId, apiName);
             AthenaTransactionDelegate.getDelegate().setServerInputSize(data.right.length);
         }
+        */
 
 
         AbstractServicePacket resultPacket = null;
         ResponseHandler responseHandler = new ResponseHandler();
         long startRunTime = TimeUtil.currentTimeMillis();
-        Response result = null;
 
         try {
+            /* TODO 确认功能
             if (invocation.getConn().isClosed() && resultType == EndpointInvocation.ResultType.RESPONSE) {
                 throw new RpcException("conn is closed.");
             }
+            */
 
             ThreadLocalMap.put(VenusTracerUtil.REQUEST_TRACE_ID, traceID);
             ThreadLocalMap.put(ThreadLocalConstant.REQUEST_CONTEXT, requestContext);
@@ -206,16 +207,20 @@ public class VenusServerInvokerProxy implements Invoker {
             */
 
             //调用服务实例
-            result = invokeEndpoint(requestContext,endpoint);
+            result = doInvokeEndpoint(requestContext,endpoint);
 
+            /* TODO athena
             if(athenaFlag) {
                 AthenaReporterDelegate.getDelegate().metric(apiName + ".complete");
             }
+            */
             return result;
         } catch (Exception e) {
+            /* TODO athena
             if (athenaFlag) {
                 AthenaReporterDelegate.getDelegate().metric(apiName + ".error");
             }
+            */
             ErrorPacket error = new ErrorPacket();
             AbstractServicePacket.copyHead(request, error);
             Integer code = CodeMapScanner.getCodeMap().get(e.getClass());
@@ -268,6 +273,7 @@ public class VenusServerInvokerProxy implements Invoker {
             logger.error("error when handleRequest", e);
             throw new ErrorPacketWrapperException(error);
         } finally {
+            /* TODO athena
             if (athenaFlag) {
                 AthenaTransactionDelegate.getDelegate().completeServerTransaction();
             }
@@ -279,6 +285,7 @@ public class VenusServerInvokerProxy implements Invoker {
             }
             MonitorRuntime.getInstance().calculateAverage(endpoint.getService().getName(), endpoint.getName(), executeTime, false);
             PerformanceHandler.logPerformance(endpoint, request, queuedTime, executeTime, invocation.getHost(), sourceIp, result);
+            */
             //无任何实现 delete by zhangzh 2017.8.8
             /*
             if (filte != null) {
@@ -296,15 +303,19 @@ public class VenusServerInvokerProxy implements Invoker {
      * @param endpoint
      * @return
      */
-    private Response invokeEndpoint(RequestContext context, Endpoint endpoint) {
+    private Response doInvokeEndpoint(RequestContext context, Endpoint endpoint) {
         Response response = new Response();
+        //TODO 实例化
         VenusServerInvoker invocation = new VenusServerInvoker(context, endpoint);
         //invocation.addObserver(ObserverScanner.getInvocationObservers());
         try {
             UtilTimerStack.push(ENDPOINT_INVOKED_TIME);
-            response.setResult(invocation.invoke());
+            Object result = invocation.invoke();
+            response.setResult(result);
         } catch (Throwable e) {
+            /* TODO athena
             AthenaReporterDelegate.getDelegate().problem(e.getMessage(), e);
+            */
             //VenusMonitorDelegate.getInstance().reportError(e.getMessage(), e);
             if (e instanceof ServiceInvokeException) {
                 e = ((ServiceInvokeException) e).getTargetException();

@@ -9,10 +9,13 @@ import com.meidusa.venus.backend.services.InvocationObserver;
 import com.meidusa.venus.backend.services.EndpointInvocation;
 import com.meidusa.venus.backend.services.RequestContext;
 import com.meidusa.venus.backend.services.InterceptorMapping;
+import com.meidusa.venus.backend.services.xml.XmlFileServiceManager;
 import com.meidusa.venus.backend.support.UtilTimerStack;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.exception.ServiceInvokeException;
 import com.meidusa.venus.notify.InvocationListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -20,6 +23,8 @@ import com.meidusa.venus.notify.InvocationListener;
  * TODO 统一invoker接口定义
  */
 public class VenusServerInvoker implements EndpointInvocation {
+
+    private static Logger logger = LoggerFactory.getLogger(VenusServerInvoker.class);
 
     private static String ENDPOINT_INVOKED = "handleRequest endpoint: ";
     
@@ -95,9 +100,12 @@ public class VenusServerInvoker implements EndpointInvocation {
 
     @Override
     public Object invoke() {
+        //TODO 统一interceptor、filter一致实现，合并proxy/invoker
         if (executed) {
             throw new IllegalStateException("Request has already executed");
         }
+
+        Endpoint ep = this.getEndpoint();
 
         if (interceptors != null && interceptors.hasNext()) {
             final InterceptorMapping interceptor = interceptors.next();
@@ -113,7 +121,7 @@ public class VenusServerInvoker implements EndpointInvocation {
                 UtilTimerStack.push(ENDPOINT_INVOKED);
                 Object[] parameters = getContext().getEndPointer().getParameterValues(getContext().getParameters());
 
-                if (this.getEndpoint().isAsync()) {
+                if (ep.isAsync()) {
                     this.type = ResultType.NONE;
                 }
 
@@ -128,8 +136,8 @@ public class VenusServerInvoker implements EndpointInvocation {
                     observer.beforeInvoke(this, getContext());
                 }
                 */
-                Object instance = this.getEndpoint().getService().getInstance();
-                result = getEndpoint().getMethod().invoke(instance, parameters);
+                result = ep.getMethod().invoke(ep.getService().getInstance(), parameters);
+                logger.info("result:{}.",result);
                 //delete by zhangzh 2017.8.8
                 /*
                 for (InvocationObserver observer : observerList) {

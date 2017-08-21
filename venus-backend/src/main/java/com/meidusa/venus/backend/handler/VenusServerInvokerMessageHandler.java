@@ -102,7 +102,9 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
             case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:
                 //远程调用消息处理
                 //TODO 多线程调用handler，并处理异常问题，如队列满等
-                executor.execute(new VenusServerInvokerTask(conn, data));
+                VenusServerInvokerTask venusServerInvokerTask = new VenusServerInvokerTask(conn, data);
+                venusServerInvokerTask.setServiceManager(getServiceManager());
+                executor.execute(venusServerInvokerTask);
                 break;
             default:
                 super.handle(conn, data);

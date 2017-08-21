@@ -13,28 +13,28 @@
  */
 package com.meidusa.venus.client.invoker.venus;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.util.Map;
-
-import com.meidusa.venus.io.handler.VenusClientMessageHandler;
-import com.meidusa.venus.io.packet.*;
-import com.meidusa.venus.io.packet.serialize.SerializeServiceResponsePacket;
-import org.apache.commons.beanutils.BeanUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.venus.exception.DefaultVenusException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
+import com.meidusa.venus.io.handler.VenusClientMessageHandler;
 import com.meidusa.venus.io.network.VenusBackendConnection;
+import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceNofityPacket;
+import com.meidusa.venus.io.packet.serialize.SerializeServiceResponsePacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.util.Utils;
 import com.meidusa.venus.util.VenusTracerUtil;
+import org.apache.commons.beanutils.BeanUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.util.Hashtable;
+import java.util.Map;
 
 /**
  * 服务调用NIO消息响应处理
@@ -50,7 +50,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
     //TODO lock传递
     private Object lock;
 
-    private Map<byte[],ServiceResponsePacket> serviceResponsePacketMap;
+    private Map<String,AbstractServicePacket> serviceResponsePacketMap;
 
     public void handle(VenusBackendConnection conn, byte[] message) {
         Method method = null;//invocation.getMethod();
@@ -81,13 +81,17 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             case PacketConstant.PACKET_TYPE_OK:
                 OKPacket ok = new OKPacket();
                 ok.init(message);
+                logger.info("recv ok response, clientId:{},messageId:{},response:{}.",ok.clientId,ok.clientRequestId,ok);
+                serviceResponsePacketMap.put(getMessageId(ok),ok);
+                synchronized (lock){
+                    lock.notify();
+                }
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_RESPONSE:
                 ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, method.getGenericReturnType());
                 response.init(message);
-                //TODO 确认messageId?
-                byte[] messageId = null;
-                serviceResponsePacketMap.put(messageId,response);
+                logger.info("recv resp response,clientId:{},messageId:{},response:{}.",response.clientId,response.clientRequestId,response);
+                serviceResponsePacketMap.put(getMessageId(response),response);
                 synchronized (lock){
                     lock.notify();
                 }
@@ -137,6 +141,10 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         }
     }
 
+    String getMessageId(AbstractServicePacket response){
+        return String.format("%s-%s",String.valueOf(response.clientId),String.valueOf(response.clientRequestId));
+    }
+
     public VenusExceptionFactory getVenusExceptionFactory() {
         return venusExceptionFactory;
     }
@@ -161,11 +169,11 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         this.lock = lock;
     }
 
-    public Map<byte[], ServiceResponsePacket> getServiceResponsePacketMap() {
+    public Map<String, AbstractServicePacket> getServiceResponsePacketMap() {
         return serviceResponsePacketMap;
     }
 
-    public void setServiceResponsePacketMap(Map<byte[], ServiceResponsePacket> serviceResponsePacketMap) {
+    public void setServiceResponsePacketMap(Map<String, AbstractServicePacket> serviceResponsePacketMap) {
         this.serviceResponsePacketMap = serviceResponsePacketMap;
     }
 }

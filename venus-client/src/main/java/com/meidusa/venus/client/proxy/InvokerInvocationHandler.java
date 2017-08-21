@@ -179,7 +179,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
             //返回结果
             //TODO 处理成功调用，但失败情况
-            return result.getObject();
+            return result.getResult();
         } catch (Throwable e) {
             //TODO 处理异常
             throw  e;

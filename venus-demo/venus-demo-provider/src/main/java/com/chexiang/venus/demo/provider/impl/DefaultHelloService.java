@@ -12,16 +12,17 @@ public class DefaultHelloService implements HelloService {
 
     @Override
     public void sayHello(String name, InvocationListener invocationListener) {
-        System.out.println("name:" + name);
+        System.out.println("invoke sayHello with listener:" + name);
     }
 
     @Override
     public void sayHello(String name) {
-        System.out.println("name:" + name);
+        System.out.println("invoke sayHello:" + name);
     }
 
     @Override
     public Hello getHello(String name) {
+        System.out.println("invoke getHello.");
         return new Hello("zhangzh","jack");
     }
 }

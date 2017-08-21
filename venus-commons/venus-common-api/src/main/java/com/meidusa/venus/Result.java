@@ -6,17 +6,49 @@ package com.meidusa.venus;
  */
 public class Result {
 
-    private Object object;
+    private Object result;
 
-    public Result(Object object){
-        this.object = object;
+    private int errorCode;
+
+    private String errorMessage;
+
+    private Exception exception;
+
+    public Result(){}
+
+    public Result(Object result){
+        this.result = result;
     }
 
-    public Object getObject() {
-        return object;
+    public Object getResult() {
+        return result;
     }
 
-    public void setObject(Object object) {
-        this.object = object;
+    public void setResult(Object result) {
+        this.result = result;
+    }
+
+    public int getErrorCode() {
+        return errorCode;
+    }
+
+    public void setErrorCode(int errorCode) {
+        this.errorCode = errorCode;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    public Exception getException() {
+        return exception;
+    }
+
+    public void setException(Exception exception) {
+        this.exception = exception;
     }
 }

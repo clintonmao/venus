@@ -11,14 +11,17 @@ import com.meidusa.venus.annotations.PerformanceLevel;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.backend.interceptor.Configurable;
 import com.meidusa.venus.backend.interceptor.config.InterceptorConfig;
+import com.meidusa.venus.backend.invoker.support.CodeMapScanner;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.bean.*;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanContext;
+import com.meidusa.venus.backend.services.xml.support.BackendBeanUtilsBean;
 import com.meidusa.venus.backend.services.xml.support.VenusMonitorService;
 import com.meidusa.venus.backend.services.xml.support.VenusServiceRegistry;
 import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.VenusConfigException;
+import com.meidusa.venus.extension.athena.AthenaExtensionResolver;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.RegisterService;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
@@ -27,6 +30,9 @@ import com.meidusa.venus.service.monitor.MonitorService;
 import com.meidusa.venus.service.registry.HostPort;
 import com.meidusa.venus.service.registry.ServiceRegistry;
 import com.meidusa.venus.util.NetUtil;
+import com.meidusa.venus.util.VenusBeanUtilsBean;
+import org.apache.commons.beanutils.ConvertUtilsBean;
+import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.digester.Digester;
 import org.apache.commons.digester.RuleSet;
@@ -67,18 +73,13 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         this.configFiles = configFiles;
     }
 
-    public void init() {
-
-    }
-
     @Override
     public void afterPropertiesSet() throws Exception {
         beanContext = new BackendBeanContext(beanFactory);
         BeanContextBean.getInstance().setBeanContext(beanContext);
-        //TODO 确认注释代码
-//        VenusBeanUtilsBean.setInstance(new BackendBeanUtilsBean(new ConvertUtilsBean(), new PropertyUtilsBean(), beanContext));
-//        AthenaExtensionResolver.getInstance().resolver();
-//        CodeMapScanner.getCodeMap();
+        VenusBeanUtilsBean.setInstance(new BackendBeanUtilsBean(new ConvertUtilsBean(), new PropertyUtilsBean(), beanContext));
+        AthenaExtensionResolver.getInstance().resolver();
+        CodeMapScanner.getCodeMap();
 
         //解析配置文件
         VenusServerConfig venusServerConfig = parseConfig();
@@ -185,6 +186,19 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
             try {
                 InputStream is = config.getInputStream();
                 VenusServerConfig venusServerConfig = (VenusServerConfig) digester.parse(is);
+
+                //TODO disgester初始化不成功，临时设置instance
+                if(CollectionUtils.isNotEmpty(venusServerConfig.getServiceConfigs())){
+                    for(ServiceConfig serviceConfig : venusServerConfig.getServiceConfigs()){
+                        if(serviceConfig.getInstance() == null){
+                            if(beanFactory != null){
+                                Object object = beanFactory.getBean("helloService");
+                                serviceConfig.setInstance(object);
+                            }
+                        }
+                    }
+
+                }
                 serviceConfigList.addAll(venusServerConfig.getServiceConfigs());
                 interceptors.putAll(venusServerConfig.getInterceptors());
                 interceptorStacks.putAll(venusServerConfig.getInterceptorStatcks());
@@ -216,10 +230,11 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @param serviceConfigList
      */
     void addRegistryServiceConfig(List<ServiceConfig> serviceConfigList) {
-        ServiceConfig serviceConfig = new ServiceConfig();
-        serviceConfig.setActive(true);
-        serviceConfig.setType(ServiceRegistry.class);
-        serviceConfig.setInstance(new VenusServiceRegistry(getServiceMappings()));
+        ServiceConfig registerServiceConfig = new ServiceConfig();
+        registerServiceConfig.setActive(true);
+        registerServiceConfig.setType(ServiceRegistry.class);
+        registerServiceConfig.setInstance(new VenusServiceRegistry(getServiceMappings()));
+        serviceConfigList.add(registerServiceConfig);
     }
 
     /**

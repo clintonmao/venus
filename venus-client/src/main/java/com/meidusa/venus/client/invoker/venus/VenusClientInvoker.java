@@ -20,9 +20,7 @@ import com.meidusa.venus.extension.athena.AthenaTransactionId;
 import com.meidusa.venus.extension.athena.delegate.AthenaTransactionDelegate;
 import com.meidusa.venus.io.network.AbstractBIOConnection;
 import com.meidusa.venus.io.network.VenusBackendConnectionFactory;
-import com.meidusa.venus.io.packet.PacketConstant;
-import com.meidusa.venus.io.packet.ServicePacketBuffer;
-import com.meidusa.venus.io.packet.ServiceResponsePacket;
+import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
@@ -111,7 +109,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     /**
      * 响应映射表
      */
-    private Map<byte[],ServiceResponsePacket> serviceResponsePacketMap = new HashMap<byte[], ServiceResponsePacket>();
+    private Map<String,AbstractServicePacket> serviceResponsePacketMap = new HashMap<String, AbstractServicePacket>();
 
     /**
      * NIO消息响应处理
@@ -153,27 +151,36 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     @Override
     public Result doInvoke(Invocation invocation, URL url) throws RpcException {
-        byte[] messageId = invocation.getMessageId();
         try {
             //构造请求消息
-            SerializeServiceRequestPacket serviceRequestPacket = buildRequest(invocation);
+            SerializeServiceRequestPacket request = buildRequest(invocation);
 
             //发送消息
-            sendRequest(url, invocation, serviceRequestPacket);
+            sendRequest(url, invocation, request);
 
             //TODO 处理void、callback情况
             synchronized (lock){
-                lock.wait(3000);
+                lock.wait(1000);
             }
             //处理响应结果
-            Result result = fetchResponse(messageId);
+            Result result = fetchResponse(getMessageId(request));
             if(result == null){
                 throw new RpcException(String.format("invoke timeout:%s","3000ms"));
             }
+            logger.info("result:{}.",result);
             return result;
         } catch (Exception e) {
             throw new RpcException(e);
         }
+    }
+
+    /**
+     * 获取消息标识
+     * @param request
+     * @return
+     */
+    String getMessageId(SerializeServiceRequestPacket request){
+        return String.format("%s-%s",String.valueOf(request.clientId),String.valueOf(request.clientRequestId));
     }
 
     /**
@@ -205,6 +212,8 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         serviceRequestPacket.apiName = apiName;
         serviceRequestPacket.serviceVersion = service.version();
         serviceRequestPacket.parameterMap = new HashMap<String, Object>();
+
+        logger.info("send request,clientId:{},clientRequestId:{}.",serviceRequestPacket.clientId,serviceRequestPacket.clientRequestId);
 
         if (params != null) {
             for (int i = 0; i < params.length; i++) {
@@ -784,9 +793,21 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @param messageId
      * @return
      */
-    Result fetchResponse(byte[] messageId){
-        ServiceResponsePacket serviceResponsePacket = serviceResponsePacketMap.get(messageId);
-        return null;
+    Result fetchResponse(String messageId){
+        AbstractServicePacket response = serviceResponsePacketMap.get(messageId);
+        logger.info("serviceResponsePacket:{}.",response);
+        if(response == null){
+            return null;
+        }
+        if(response instanceof OKPacket){
+            return new Result(null);
+        }else if(response instanceof ServiceResponsePacket){
+            ServiceResponsePacket serviceResponsePacket = (ServiceResponsePacket)response;
+            return new Result(serviceResponsePacket.result);
+        }else{
+            return null;
+        }
+        //return serviceResponsePacket;
     }
 
     /**

@@ -53,7 +53,7 @@ public class ValidFilter implements Filter {
         String finalSourceIp = invocation.getFinalSourceIp();
         VenusRouterPacket routerPacket = invocation.getRouterPacket();
         byte serializeType = invocation.getSerializeType();
-        SerializeServiceRequestPacket request = invocation.getServiceRequestPacket();
+        SerializeServiceRequestPacket request = invocation.getRequest();
         final String apiName = request.apiName;
         final Endpoint endpoint = invocation.getEp();
 

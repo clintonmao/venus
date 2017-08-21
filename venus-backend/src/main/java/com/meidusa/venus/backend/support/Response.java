@@ -3,18 +3,29 @@
  */
 package com.meidusa.venus.backend.support;
 
+import com.meidusa.venus.Result;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 
-public class Response {
+public class Response extends Result{
 
     private Object result;
 
     private int errorCode;
+
     private String errorMessage;
 
     private Exception exception;
+
+    public Response(){
+        super();
+    }
+
+    public Response(Object result, Object result1) {
+        super(result);
+        this.result = result1;
+    }
 
     public Exception getException() {
         return exception;
