@@ -14,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -36,7 +38,7 @@ public class MysqlRegister implements Register {
 	private Set<URL> subscribleFailUrls = new HashSet<URL>();// 失败的继续跑启线程定时运行
 
 	/** 已订阅成功的 服务定义对象 */
-	private Set<ServiceDefinition> subscribleServiceDefinitions = new HashSet<ServiceDefinition>();
+	private ConcurrentMap<String, ServiceDefinition> subscribleServiceDefinitionMap = new ConcurrentHashMap<String, ServiceDefinition>();
 
 	private boolean loadRunning = false;
 
@@ -48,7 +50,7 @@ public class MysqlRegister implements Register {
 
 	private static MysqlRegister mysqlRegister = null;
 
-	private static Random RANDOM = new Random();
+	private String subcribePath = "/data/app";
 
 	private MysqlRegister() {
 		try {
@@ -209,42 +211,30 @@ public class MysqlRegister implements Register {
 		// run.run();//测试接口时用
 		// 接口名 服务名 版本号 加载服务的server信息及serviceConfig信息
 		// 根据本地 ServiceDefinition 列表去查找
+		String key = getKeyFromUrl(url);
+		return subscribleServiceDefinitionMap.get(key);
+	}
+
+	private static String getKeyFromUrl(URL url) {
 		String serviceName = url.getServiceName();
 		String interfaceName = url.getInterfaceName();
 		String version = url.getVersion();
-		synchronized (MysqlRegister.class) {
-			for (Iterator<ServiceDefinition> iterator = subscribleServiceDefinitions.iterator(); iterator.hasNext();) {
-				ServiceDefinition define = iterator.next();
-				if (null != define && define.getName().equals(serviceName)) {
-					if (version.equals(define.getVersionRange())) {// TODO
-																	// version
-						return define;
-					}
-				}
-			}
-		}
-		return null;
+		return serviceName + "_" + version + "_" + interfaceName;
 	}
 
 	@Override
 	public void load() throws VenusRegisteException {
 		if (CollectionUtils.isNotEmpty(subscribleUrls)) {
-			Set<ServiceDefinition> tempSet = new HashSet<ServiceDefinition>();
 			for (URL url : subscribleUrls) {
+				String key = getKeyFromUrl(url);
 				ServiceDefinition def = null;
 				try {
 					def = registerService.urlToServiceDefine(url);
 					logger.info("srvDef:{}", def);
+					subscribleServiceDefinitionMap.put(key, def);
 				} catch (Exception e) {
 					logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
 				}
-				if (null != def) {
-					tempSet.add(def);
-				}
-			}
-			synchronized (MysqlRegister.class) {
-				subscribleServiceDefinitions.clear();
-				subscribleServiceDefinitions.addAll(tempSet);
 			}
 		}
 	}
@@ -266,7 +256,7 @@ public class MysqlRegister implements Register {
 		registeFailUrls.clear();
 		subscribleFailUrls.clear();
 		synchronized (MysqlRegister.class) {
-			subscribleServiceDefinitions.clear();
+			subscribleServiceDefinitionMap.clear();
 		}
 	}
 
