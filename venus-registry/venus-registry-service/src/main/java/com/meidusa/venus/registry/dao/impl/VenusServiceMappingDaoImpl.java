@@ -66,11 +66,11 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	}
 
 	@Override
-	public boolean deleteServiceMapping(int serverId, int serviceId, String version, String role) throws DAOException {
-		String sql = "update t_venus_service_mapping set is_delete = 1 where server_id = ? and service_id = ? and version=? and role=?";
+	public boolean deleteServiceMapping(int id) throws DAOException {
+		String sql = "delete from t_venus_service_mapping where id = ? ";
 		int update = 0;
 		try {
-			update = this.jdbcTemplate.update(sql, serverId, serviceId, version, role);
+			update = this.jdbcTemplate.update(sql, id);
 		} catch (Exception e) {
 			throw new DAOException("更新映射关系异常", e);
 		}

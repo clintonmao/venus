@@ -190,8 +190,7 @@ public class MysqlRegisterService implements RegisterService {
 				VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(serverId, serviceId,
 						RegisteConstant.PROVIDER);
 				if (null != serviceMapping) {
-					return venusServiceMappingDAO.deleteServiceMapping(serverId, serviceId, url.getVersion(),
-							RegisteConstant.PROVIDER);
+					return venusServiceMappingDAO.deleteServiceMapping(serviceMapping.getId());
 				}
 			}
 		}
@@ -271,8 +270,7 @@ public class MysqlRegisterService implements RegisterService {
 				VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(server.getId(),
 						service.getId(), RegisteConstant.CONSUMER);
 				if (null != serviceMapping) {
-					return venusServiceMappingDAO.deleteServiceMapping(server.getId(), service.getId(),
-							url.getVersion(), RegisteConstant.CONSUMER);
+					return venusServiceMappingDAO.deleteServiceMapping(serviceMapping.getId());
 				}
 			}
 		}
@@ -396,7 +394,9 @@ public class MysqlRegisterService implements RegisterService {
 	}
 
 	public void clearInvalidService(String currentDateTime, String updateTime) {
-		List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMappings(currentDateTime);//订阅方 提供方 都清理
+		List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMappings(currentDateTime);// 订阅方
+																													// 提供方
+																													// 都清理
 		if (CollectionUtils.isNotEmpty(serviceMappings)) {
 			Map<Integer, Integer> map = new HashMap<Integer, Integer>();
 			for (Iterator<VenusServiceMappingDO> iterator = serviceMappings.iterator(); iterator.hasNext();) {
@@ -425,7 +425,7 @@ public class MysqlRegisterService implements RegisterService {
 				venusServiceMappingDAO.deleteServiceMappings(delete_mapping_ids);
 			}
 
-			//TODO
+			// TODO
 			List<VenusServiceMappingDO> deleteServiceMappings = venusServiceMappingDAO
 					.getDeleteServiceMappings(updateTime, RegisteConstant.PROVIDER, true);// 取两分钟内删除的服务提供者
 			Set<Integer> serviceIds = new HashSet<Integer>();

@@ -54,7 +54,7 @@ public class MysqlRegister implements Register {
 		try {
 			init();
 		} catch (Exception e) {
-			logger.error("init mysql register error.",e);
+			logger.error("init mysql register error.", e);
 		}
 	}
 
@@ -68,11 +68,11 @@ public class MysqlRegister implements Register {
 	 * @return
 	 */
 	public final static MysqlRegister getInstance(boolean isInjvm, RegisterService remoteRegisterService) {
-		if(registerService == null){
+		if (registerService == null) {
 			registerService = initRegisterService(isInjvm, remoteRegisterService);
 		}
 
-		if(mysqlRegister == null){
+		if (mysqlRegister == null) {
 			mysqlRegister = new MysqlRegister();
 		}
 		return mysqlRegister;
@@ -80,7 +80,7 @@ public class MysqlRegister implements Register {
 
 	void init() throws Exception {
 		if (!loadRunning) {
-			clearInvalid();//TODO 注册中心单独跑这个就可以
+			clearInvalid();// TODO 注册中心单独跑这个就可以
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 5, 10, TimeUnit.SECONDS);
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 5, 60, TimeUnit.SECONDS); // 清理线程
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefineRunnable(), 10, 60, TimeUnit.SECONDS);
@@ -90,11 +90,12 @@ public class MysqlRegister implements Register {
 
 	/**
 	 * 初始化register service
+	 * 
 	 * @param isInjvm
 	 * @param remoteRegisterService
 	 * @return
 	 */
-	static RegisterService initRegisterService(boolean isInjvm, RegisterService remoteRegisterService){
+	static RegisterService initRegisterService(boolean isInjvm, RegisterService remoteRegisterService) {
 		if (!isInjvm && remoteRegisterService == null) {
 			throw new IllegalArgumentException("isInjvm and registerService not allow empty.");
 		}
@@ -113,8 +114,6 @@ public class MysqlRegister implements Register {
 			return remoteRegisterService;
 		}
 	}
-
-
 
 	@Override
 	public void registe(URL url) throws VenusRegisteException {
@@ -252,6 +251,16 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public void destroy() throws VenusRegisteException {
+		if (CollectionUtils.isNotEmpty(registeUrls)) {
+			for (URL url : registeUrls) {
+				unregiste(url);
+			}
+		}
+		if (CollectionUtils.isNotEmpty(subscribleUrls)) {
+			for (URL url : subscribleUrls) {
+				unsubscrible(url);
+			}
+		}
 		registeUrls.clear();
 		subscribleUrls.clear();
 		registeFailUrls.clear();
