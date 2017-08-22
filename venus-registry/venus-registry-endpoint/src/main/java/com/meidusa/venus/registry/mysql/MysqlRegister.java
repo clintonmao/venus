@@ -398,33 +398,36 @@ public class MysqlRegister implements Register {
 		if (!filePath.endsWith(".txt")) {
 			return fileContents;
 		}
-		FileReader reader = null;
-		try {
-			reader = new FileReader(filePath);
-		} catch (FileNotFoundException e) {
-			logger.error("readFile filePath=>" + filePath + " is error", e);
-		}
-		BufferedReader br = new BufferedReader(reader);
-		String str = null;
-		try {
-			while ((str = br.readLine()) != null) {
-				fileContents.add(str);
+		File file = new File(filePath);
+		if (file.exists()) {
+			FileReader reader = null;
+			try {
+				reader = new FileReader(file);
+			} catch (FileNotFoundException e) {
+				logger.error("readFile filePath=>" + filePath + " is error", e);
 			}
-		} catch (IOException e) {
-			logger.error("readFile filePath=>" + filePath + " is error", e);
-		} finally {
-			if (null != br) {
-				try {
-					br.close();
-				} catch (IOException e) {
-					// ingore
+			BufferedReader br = new BufferedReader(reader);
+			String str = null;
+			try {
+				while ((str = br.readLine()) != null) {
+					fileContents.add(str);
 				}
-			}
-			if (null != reader) {
-				try {
-					reader.close();
-				} catch (IOException e) {
-					// ingore
+			} catch (IOException e) {
+				logger.error("readFile filePath=>" + filePath + " is error", e);
+			} finally {
+				if (null != br) {
+					try {
+						br.close();
+					} catch (IOException e) {
+						// ingore
+					}
+				}
+				if (null != reader) {
+					try {
+						reader.close();
+					} catch (IOException e) {
+						// ingore
+					}
 				}
 			}
 		}
@@ -454,7 +457,11 @@ public class MysqlRegister implements Register {
 		} else {
 			return;
 		}
-
+		List<String> readFiles = readFile(filePath);
+		List<String> need_write_list = get_write_list(readFiles, jsons);
+		if (CollectionUtils.isEmpty(need_write_list)) {
+			return;
+		}
 		FileWriter writer = null;
 		BufferedWriter bw = null;
 		try {
@@ -468,7 +475,7 @@ public class MysqlRegister implements Register {
 			if (file.isFile()) {
 				writer = new FileWriter(file);
 				bw = new BufferedWriter(writer);
-				for (String json : jsons) {
+				for (String json : need_write_list) {
 					bw.write(json);
 					bw.newLine();
 				}
@@ -493,6 +500,27 @@ public class MysqlRegister implements Register {
 				}
 			}
 		}
+	}
+
+	private static List<String> get_write_list(List<String> oldList, List<String> newList) {
+		List<String> returnList = new ArrayList<String>();
+		if (CollectionUtils.isEmpty(oldList)) {
+			return newList;
+		}
+		for (Iterator<String> iterator = oldList.iterator(); iterator.hasNext();) {
+			String json = iterator.next();
+			ServiceDefinition oldObject = JSON.parseObject(json, ServiceDefinition.class);
+			for (String str : newList) {
+				ServiceDefinition newObject = JSON.parseObject(str, ServiceDefinition.class);
+				if (getKey(oldObject).equals(getKey(newObject))) {
+					iterator.remove();
+				}
+			}
+		}
+		returnList.addAll(oldList);
+		returnList.addAll(newList);
+		return returnList;
+
 	}
 
 	public static boolean isWindows() {
