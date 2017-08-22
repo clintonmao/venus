@@ -1,22 +1,39 @@
 package com.meidusa.venus.registry.mysql;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.meidusa.fastjson.JSON;
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.RegisterService;
 import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.service.registry.ServiceDefinition;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
 
 /**
  * mysql服务注册中心类 Created by Zhangzhihua on 2017/7/27.
@@ -50,9 +67,12 @@ public class MysqlRegister implements Register {
 
 	private static MysqlRegister mysqlRegister = null;
 
-	private String subcribePath = "/data/app";
+	private String subcribePath = "/data/application/venusLocalSubcribe.txt";
 
 	private MysqlRegister() {
+		if (isWindows()) {
+			subcribePath = "D:\\data\\application\\venusLocalSubcribe.txt";
+		}
 		try {
 			init();
 		} catch (Exception e) {
@@ -212,7 +232,17 @@ public class MysqlRegister implements Register {
 		// 接口名 服务名 版本号 加载服务的server信息及serviceConfig信息
 		// 根据本地 ServiceDefinition 列表去查找
 		String key = getKeyFromUrl(url);
-		return subscribleServiceDefinitionMap.get(key);
+		ServiceDefinition serviceDefinition = subscribleServiceDefinitionMap.get(key);
+		if (null == serviceDefinition) {
+			List<String> readFile = readFile(subcribePath);
+			Map<String, ServiceDefinition> map = new HashMap<String, ServiceDefinition>();
+			for (String str : readFile) {
+				ServiceDefinition parseObject = JSON.parseObject(str, ServiceDefinition.class);
+				map.put(getKey(parseObject), parseObject);
+			}
+			serviceDefinition = map.get(key);
+		}
+		return serviceDefinition;
 	}
 
 	private static String getKeyFromUrl(URL url) {
@@ -222,9 +252,17 @@ public class MysqlRegister implements Register {
 		return serviceName + "_" + version + "_" + interfaceName;
 	}
 
+	private static String getKey(ServiceDefinition url) {
+		String serviceName = url.getName();
+		String interfaceName = url.getInterfaceName();
+		String version = url.getVersionRange();
+		return serviceName + "_" + version + "_" + interfaceName;
+	}
+
 	@Override
 	public void load() throws VenusRegisteException {
 		if (CollectionUtils.isNotEmpty(subscribleUrls)) {
+			List<String> jsons = new ArrayList<String>();
 			for (URL url : subscribleUrls) {
 				String key = getKeyFromUrl(url);
 				ServiceDefinition def = null;
@@ -232,9 +270,13 @@ public class MysqlRegister implements Register {
 					def = registerService.urlToServiceDefine(url);
 					logger.info("srvDef:{}", def);
 					subscribleServiceDefinitionMap.put(key, def);
+					jsons.add(JSON.toJSON(def).toString());
 				} catch (Exception e) {
 					logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
 				}
+			}
+			if (CollectionUtils.isNotEmpty(jsons)) {
+				writeFile(subcribePath, jsons);
 			}
 		}
 	}
@@ -255,9 +297,7 @@ public class MysqlRegister implements Register {
 		subscribleUrls.clear();
 		registeFailUrls.clear();
 		subscribleFailUrls.clear();
-		synchronized (MysqlRegister.class) {
-			subscribleServiceDefinitionMap.clear();
-		}
+		subscribleServiceDefinitionMap.clear();
 	}
 
 	private class ServiceDefineRunnable implements Runnable {
@@ -347,4 +387,127 @@ public class MysqlRegister implements Register {
 		MysqlRegister.registerService = registerService;
 	}
 
+	/**
+	 * 读文件
+	 * 
+	 * @param filePath
+	 * @return
+	 */
+	public static List<String> readFile(String filePath) {
+		List<String> fileContents = new ArrayList<String>();
+		if (!filePath.endsWith(".txt")) {
+			return fileContents;
+		}
+		FileReader reader = null;
+		try {
+			reader = new FileReader(filePath);
+		} catch (FileNotFoundException e) {
+			logger.error("readFile filePath=>" + filePath + " is error", e);
+		}
+		BufferedReader br = new BufferedReader(reader);
+		String str = null;
+		try {
+			while ((str = br.readLine()) != null) {
+				fileContents.add(str);
+			}
+		} catch (IOException e) {
+			logger.error("readFile filePath=>" + filePath + " is error", e);
+		} finally {
+			if (null != br) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					// ingore
+				}
+			}
+			if (null != reader) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					// ingore
+				}
+			}
+		}
+		return fileContents;
+	}
+
+	private static void mkDir(File file) {
+		if (file.getParentFile().exists()) {
+			file.mkdir();
+		} else {
+			mkDir(file.getParentFile());
+			file.mkdir();
+		}
+	}
+
+	/**
+	 * 写文件(文件目录必须存在)
+	 * 
+	 * @param filePath
+	 * @param json
+	 */
+	public static void writeFile(String filePath, List<String> jsons) {
+		if (filePath.endsWith(".txt")) {
+			String folderPath = filePath.substring(0, filePath.lastIndexOf(File.separator));
+			File f = new File(folderPath);
+			mkDir(f);
+		} else {
+			return;
+		}
+
+		FileWriter writer = null;
+		BufferedWriter bw = null;
+		try {
+			File file = new File(filePath);
+			if (file.createNewFile()) {
+				// Runtime.getRuntime().exec("chmod 777 /home/test3.txt");
+				file.setExecutable(true);
+				file.setReadable(true);
+				file.setWritable(true);
+			}
+			if (file.isFile()) {
+				writer = new FileWriter(file);
+				bw = new BufferedWriter(writer);
+				for (String json : jsons) {
+					bw.write(json);
+					bw.newLine();
+				}
+			}
+		} catch (IOException e) {
+			logger.error("writeFile filePath=>" + filePath + " is error", e);
+		} catch (NullPointerException e) {
+			logger.error("writeFile filePath=>" + filePath + " is error", e);
+		} finally {
+			if (null != bw) {
+				try {
+					bw.close();
+				} catch (IOException e) {
+					// ingore
+				}
+			}
+			if (null != writer) {
+				try {
+					writer.close();
+				} catch (IOException e) {
+					// ingore
+				}
+			}
+		}
+	}
+
+	public static boolean isWindows() {
+		String os = System.getProperty("os.name");
+		if (os.toLowerCase().startsWith("win")) {
+			return true;
+		}
+		return false;
+	}
+
+	/*
+	 * public static void main(String args[]) { List<String> jsons = new
+	 * ArrayList<String>(); jsons.add("hello1"); jsons.add("world1"); String
+	 * filePath = "D:\\soft\\b\\a.txt"; writeFile(filePath, jsons); List<String>
+	 * readFile = readFile(filePath); for (String str : readFile) {
+	 * System.out.println(str); } }
+	 */
 }

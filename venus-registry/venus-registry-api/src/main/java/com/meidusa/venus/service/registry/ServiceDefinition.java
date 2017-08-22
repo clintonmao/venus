@@ -21,6 +21,11 @@ public class ServiceDefinition {
 	 * 服务名称
 	 */
 	private String name;
+	
+	/**
+	 * 接口名称
+	 */
+	private String interfaceName;
 
 	/**
 	 * 服务版本范围
@@ -116,6 +121,14 @@ public class ServiceDefinition {
 		}
 
 		return false;
+	}
+
+	public String getInterfaceName() {
+		return interfaceName;
+	}
+
+	public void setInterfaceName(String interfaceName) {
+		this.interfaceName = interfaceName;
 	}
 
 	@Override

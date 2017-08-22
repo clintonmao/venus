@@ -329,6 +329,7 @@ public class MysqlRegisterService implements RegisterService {
 			}
 			if (CollectionUtils.isNotEmpty(hostPortSet)) {
 				ServiceDefinition def = new ServiceDefinition();
+				def.setInterfaceName(interfaceName);
 				def.setName(serviceName);
 				def.setIpAddress(hostPortSet);
 				def.setActive(true);
