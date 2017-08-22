@@ -8,7 +8,7 @@ public class Result {
 
     private Object result;
 
-    private int errorCode;
+    private int errorCode = 0;
 
     private String errorMessage;
 

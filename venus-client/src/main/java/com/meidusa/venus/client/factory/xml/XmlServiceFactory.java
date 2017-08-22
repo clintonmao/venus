@@ -224,9 +224,9 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             if (target != null) {
                 //TODO 确认此段逻辑
                 /*
-                target.getHandler().setBioConnPool(source.getHandler().getBioConnPool());
-                target.getHandler().setNioConnPool(source.getHandler().getNioConnPool());
-                target.getHandler().setSerializeType((byte) source.getHandler().getSerializeType());
+                target.getMessageHandler().setBioConnPool(source.getMessageHandler().getBioConnPool());
+                target.getMessageHandler().setNioConnPool(source.getMessageHandler().getNioConnPool());
+                target.getMessageHandler().setSerializeType((byte) source.getMessageHandler().getSerializeType());
                 */
             } else {
                 this.servicesMap.put(key, source);
@@ -296,7 +296,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             /*
             invocationHandler.setNioConnPool(tuple.right);
             invocationHandler.setBioConnPool(tuple.left);
-            invocationHandler.setHandler(this.handler);
+            invocationHandler.setMessageHandler(this.handler);
             invocationHandler.setConnector(this.connector);
             invocationHandler.setServiceFactory(this);
             invocationHandler.setContainer(this.container);

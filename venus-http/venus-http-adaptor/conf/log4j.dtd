@@ -41,7 +41,7 @@ element. -->
 >
 
 <!-- Appenders must have a name and a class. -->
-<!-- Appenders may contain an error handler, a layout, optional parameters -->
+<!-- Appenders may contain an ermessageHandlerdler, a layout, optional parameters -->
 <!-- and filters. They may also reference (or include) other appenders. -->
 <!ELEMENT appender (errorHandler?, param*, layout?, filter*, appender-ref*)>
 <!ATTLIST appender

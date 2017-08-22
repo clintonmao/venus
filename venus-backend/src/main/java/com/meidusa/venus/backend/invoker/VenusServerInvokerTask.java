@@ -133,25 +133,35 @@ public class VenusServerInvokerTask implements Runnable{
      * @param data
      */
     public void handle(VenusFrontendConnection conn, Tuple<Long, byte[]> data) {
+        RpcInvocation invocation = null;
+        Result result = null;
         try {
             //解析请求对象
-            RpcInvocation invocation = buildInvocation(conn, data);
+            invocation = buildInvocation(conn, data);
 
             //调用服务
-            Result result = venusInvokerProxy.invoke(invocation, null);
+            result = venusInvokerProxy.invoke(invocation, null);
+        } catch (Exception e) {
+            //handleResponse(context,null,null,null,false,null);
+            //TODO 异常信息包装
+            result = new Result();
+            result.setErrorCode(500);
+            result.setErrorMessage(e.getMessage());
+        }
 
-            //输出响应
+        //输出响应
+        try {
+            Endpoint ep = invocation.getEp();
+
             if (invocation.getResultType() == EndpointInvocation.ResultType.RESPONSE) {
-                handleResponseByResponse(responseHandler, endpoint, result, false);
+                handleResponseByResponse(responseHandler, ep, result, false);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
-                handleResponseByOK(responseHandler, endpoint, result, false);
+                handleResponseByOK(responseHandler, ep, result, false);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.NOTIFY) {
-                handleResponseByNotify(responseHandler, endpoint, result, false);
+                handleResponseByNotify(responseHandler, ep, result, false);
             }
         } catch (Exception e) {
-            //TODO 处理异常
-            throw new RpcException(e);
-            //handleResponse(context,null,null,null,false,null);
+            logger.error("write response error.",e);
         }
     }
 

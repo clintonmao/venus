@@ -143,8 +143,6 @@ public class VenusServerInvokerProxy implements Invoker {
      * @return
      */
     public Result doInvoke(RpcInvocation invocation) throws RpcException{
-        Result result = null;
-
         //获取调用信息
         Tuple<Long, byte[]> data = invocation.getData();
         byte[] message = invocation.getMessage();
@@ -207,14 +205,14 @@ public class VenusServerInvokerProxy implements Invoker {
             */
 
             //调用服务实例
-            result = doInvokeEndpoint(requestContext,endpoint);
+            Object object = doInvokeEndpoint(requestContext,endpoint);
 
             /* TODO athena
             if(athenaFlag) {
                 AthenaReporterDelegate.getDelegate().metric(apiName + ".complete");
             }
             */
-            return result;
+            return new Result(object);
         } catch (Exception e) {
             /* TODO athena
             if (athenaFlag) {
@@ -303,20 +301,21 @@ public class VenusServerInvokerProxy implements Invoker {
      * @param endpoint
      * @return
      */
-    private Response doInvokeEndpoint(RequestContext context, Endpoint endpoint) {
-        Response response = new Response();
+    private Object doInvokeEndpoint(RequestContext context, Endpoint endpoint) throws Exception{
         //TODO 实例化
         VenusServerInvoker invocation = new VenusServerInvoker(context, endpoint);
         //invocation.addObserver(ObserverScanner.getInvocationObservers());
         try {
             UtilTimerStack.push(ENDPOINT_INVOKED_TIME);
             Object result = invocation.invoke();
-            response.setResult(result);
-        } catch (Throwable e) {
+            return result;
+        } catch (Exception e) {
+            throw e;
             /* TODO athena
             AthenaReporterDelegate.getDelegate().problem(e.getMessage(), e);
             */
             //VenusMonitorDelegate.getInstance().reportError(e.getMessage(), e);
+            /* TODO log exception
             if (e instanceof ServiceInvokeException) {
                 e = ((ServiceInvokeException) e).getTargetException();
             }
@@ -360,11 +359,11 @@ public class VenusServerInvokerProxy implements Invoker {
                     }
                 }
             }
+            */
         } finally {
             UtilTimerStack.pop(ENDPOINT_INVOKED_TIME);
         }
 
-        return response;
     }
 
     protected void logPerformance(Endpoint endpoint,String traceId,String apiName,long queuedTime,

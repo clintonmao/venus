@@ -15,6 +15,7 @@ package com.meidusa.venus.client.invoker.venus;
 
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.MessageHandler;
+import com.meidusa.venus.Invocation;
 import com.meidusa.venus.exception.DefaultVenusException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.handler.VenusClientMessageHandler;
@@ -33,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.Hashtable;
 import java.util.Map;
 
 /**
@@ -50,7 +50,15 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
     //TODO lock传递
     private Object lock;
 
-    private Map<String,AbstractServicePacket> serviceResponsePacketMap;
+    /**
+     * 消息标识-请求映射表
+     */
+    private Map<String, Invocation> serviceInvocationMap;
+
+    /**
+     * 消息标识-响应映射表
+     */
+    private Map<String,AbstractServicePacket> serviceResponseMap;
 
     public void handle(VenusBackendConnection conn, byte[] message) {
         Method method = null;//invocation.getMethod();
@@ -61,8 +69,8 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             case PacketConstant.PACKET_TYPE_ERROR:
                 ErrorPacket error = new ErrorPacket();
                 error.init(message);
+                /* TODO 异常处理
                 Exception e = venusExceptionFactory.getException(error.errorCode, error.message);
-
                 if (e == null) {
                     logger.error("receive error packet,errorCode=" + error.errorCode + ",message=" + error.message);
                 } else {
@@ -76,22 +84,33 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                     }
                     logger.error("receive error packet", e);
                 }
+                */
+                logger.info("recv error response, clientId:{},messageId:{},response:{}.",error.clientId,error.clientRequestId,error);
+                serviceResponseMap.put(getMessageId(error),error);
+                synchronized (lock){
+                    lock.notify();
+                }
 
                 break;
             case PacketConstant.PACKET_TYPE_OK:
                 OKPacket ok = new OKPacket();
                 ok.init(message);
                 logger.info("recv ok response, clientId:{},messageId:{},response:{}.",ok.clientId,ok.clientRequestId,ok);
-                serviceResponsePacketMap.put(getMessageId(ok),ok);
+                serviceResponseMap.put(getMessageId(ok),ok);
                 synchronized (lock){
                     lock.notify();
                 }
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_RESPONSE:
-                ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, method.getGenericReturnType());
+                //获取clientId/clientRequestId，用于获取invocation请求信息
+                OKPacket resp = new OKPacket();
+                resp.init(message);
+                Invocation invocation = serviceInvocationMap.get(getMessageId(resp));
+
+                ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, invocation.getMethod().getGenericReturnType());
                 response.init(message);
                 logger.info("recv resp response,clientId:{},messageId:{},response:{}.",response.clientId,response.clientRequestId,response);
-                serviceResponsePacketMap.put(getMessageId(response),response);
+                serviceResponseMap.put(getMessageId(response),response);
                 synchronized (lock){
                     lock.notify();
                 }
@@ -169,11 +188,19 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         this.lock = lock;
     }
 
-    public Map<String, AbstractServicePacket> getServiceResponsePacketMap() {
-        return serviceResponsePacketMap;
+    public Map<String, AbstractServicePacket> getServiceResponseMap() {
+        return serviceResponseMap;
     }
 
-    public void setServiceResponsePacketMap(Map<String, AbstractServicePacket> serviceResponsePacketMap) {
-        this.serviceResponsePacketMap = serviceResponsePacketMap;
+    public void setServiceResponseMap(Map<String, AbstractServicePacket> serviceResponseMap) {
+        this.serviceResponseMap = serviceResponseMap;
+    }
+
+    public Map<String, Invocation> getServiceInvocationMap() {
+        return serviceInvocationMap;
+    }
+
+    public void setServiceInvocationMap(Map<String, Invocation> serviceInvocationMap) {
+        this.serviceInvocationMap = serviceInvocationMap;
     }
 }

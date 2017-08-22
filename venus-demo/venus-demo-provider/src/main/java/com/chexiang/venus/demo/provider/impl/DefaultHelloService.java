@@ -18,6 +18,7 @@ public class DefaultHelloService implements HelloService {
     @Override
     public void sayHello(String name) {
         System.out.println("invoke sayHello:" + name);
+        //throw new RuntimeException("test throw ex.");
     }
 
     @Override

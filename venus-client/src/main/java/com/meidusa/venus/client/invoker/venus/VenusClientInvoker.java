@@ -1,10 +1,7 @@
 package com.meidusa.venus.client.invoker.venus;
 
-import com.meidusa.fastjson.JSON;
 import com.meidusa.fastmark.feature.SerializerFeature;
-import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.toolkit.net.*;
-import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
@@ -27,11 +24,8 @@ import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
-import com.meidusa.venus.util.UUID;
 import com.meidusa.venus.util.VenusAnnotationUtils;
-import com.meidusa.venus.util.VenusTracerUtil;
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,14 +101,19 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     private Object lock = new Object();
 
     /**
-     * 响应映射表
+     * 消息标识-响应映射表
      */
-    private Map<String,AbstractServicePacket> serviceResponsePacketMap = new HashMap<String, AbstractServicePacket>();
+    private Map<String,AbstractServicePacket> serviceResponseMap = new HashMap<String, AbstractServicePacket>();
+
+    /**
+     * 消息标识-请求映射表
+     */
+    private Map<String, Invocation> serviceInvocationMap = new HashMap<String, Invocation>();
 
     /**
      * NIO消息响应处理
      */
-    private VenusClientInvokerMessageHandler handler = new VenusClientInvokerMessageHandler();
+    private VenusClientInvokerMessageHandler messageHandler = new VenusClientInvokerMessageHandler();
 
     @Override
     public void init() throws RpcException {
@@ -143,10 +142,11 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             connector.start();
         }
 
-        handler.setVenusExceptionFactory(venusExceptionFactory);
-        handler.setContainer(this.container);
-        handler.setLock(lock);
-        handler.setServiceResponsePacketMap(serviceResponsePacketMap);
+        messageHandler.setVenusExceptionFactory(venusExceptionFactory);
+        messageHandler.setContainer(this.container);
+        messageHandler.setLock(lock);
+        messageHandler.setServiceInvocationMap(serviceInvocationMap);
+        messageHandler.setServiceResponseMap(serviceResponseMap);
     }
 
     @Override
@@ -155,19 +155,24 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             //构造请求消息
             SerializeServiceRequestPacket request = buildRequest(invocation);
 
+            //添加messageId -> invocation映射表
+            serviceInvocationMap.put(getMessageId(request),invocation);
+
             //发送消息
             sendRequest(url, invocation, request);
 
-            //TODO 处理void、callback情况
+            //阻塞等待并处理响应结果 TODO callback情况
             synchronized (lock){
-                lock.wait(1000);
+                logger.info("lock wait begin...");
+                lock.wait(10000);
+                logger.info("lock wait end...");
             }
-            //处理响应结果
+
             Result result = fetchResponse(getMessageId(request));
+            logger.info("result:{}.",result);
             if(result == null){
                 throw new RpcException(String.format("invoke timeout:%s","3000ms"));
             }
-            logger.info("result:{}.",result);
             return result;
         } catch (Exception e) {
             throw new RpcException(e);
@@ -664,7 +669,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             BeanUtils.copyProperties(nioFactory, factoryConfig);
         }
         nioFactory.setConnector(this.connector);
-        nioFactory.setMessageHandler(handler);
+        nioFactory.setMessageHandler(messageHandler);
 
         //初始化连接池
         BackendConnectionPool nioPool = new PollingBackendConnectionPool("N-" + url.getHost(), nioFactory, 8);
@@ -731,7 +736,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 //
 //            if (this.isEnableAsync()) {
 //                nioFactory.setConnector(this.connector);
-//                nioFactory.setMessageHandler(handler);
+//                nioFactory.setMessageHandler(messageHandler);
 //                // nioPools[i].setName("n-connPool-"+nioFactory.getIpAddress());
 //                nioPools[i].init();
 //                realPools.put(nioPools[i].getName(), nioPools[i]);
@@ -794,16 +799,23 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @return
      */
     Result fetchResponse(String messageId){
-        AbstractServicePacket response = serviceResponsePacketMap.get(messageId);
+        AbstractServicePacket response = serviceResponseMap.get(messageId);
         logger.info("serviceResponsePacket:{}.",response);
         if(response == null){
             return null;
         }
-        if(response instanceof OKPacket){
+
+        if(response instanceof OKPacket){//无返回值
             return new Result(null);
-        }else if(response instanceof ServiceResponsePacket){
+        }else if(response instanceof ServiceResponsePacket){//有返回值
             ServiceResponsePacket serviceResponsePacket = (ServiceResponsePacket)response;
             return new Result(serviceResponsePacket.result);
+        }else if(response instanceof ErrorPacket){//调用出错
+            ErrorPacket errorPacket = (ErrorPacket)response;
+            Result result = new Result();
+            result.setErrorCode(errorPacket.errorCode);
+            result.setErrorMessage(errorPacket.message);
+            return result;
         }else{
             return null;
         }
@@ -876,12 +888,12 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         this.remoteConfig = remoteConfig;
     }
 
-    public VenusClientInvokerMessageHandler getHandler() {
-        return handler;
+    public VenusClientInvokerMessageHandler getMessageHandler() {
+        return messageHandler;
     }
 
-    public void setHandler(VenusClientInvokerMessageHandler handler) {
-        this.handler = handler;
+    public void setMessageHandler(VenusClientInvokerMessageHandler messageHandler) {
+        this.messageHandler = messageHandler;
     }
 
     public ConnectionConnector getConnector() {

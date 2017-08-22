@@ -29,11 +29,19 @@ public class TestHelloService {
     @Autowired
     HelloService helloService;
 
-    @Test
+    //@Test
     public void testSayHello(){
         logger.info("testSayHello begin...");
         helloService.sayHello("jack");
         logger.info("testSayHello end...");
+
+        /*
+        try {
+            Thread.sleep(1000*60*60);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        */
     }
 
     //@Test
@@ -52,14 +60,11 @@ public class TestHelloService {
     }
 
 
-    //@Test
+    @Test
     public void testGetHello(){
-        try {
-            Hello hello = helloService.getHello("jack");
-            System.out.println("hello:" + hello);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        System.out.println("testGetHello begin...");
+        Hello hello = helloService.getHello("jack");
+        System.out.println("testGetHello end,result:" + hello);
     }
 
 

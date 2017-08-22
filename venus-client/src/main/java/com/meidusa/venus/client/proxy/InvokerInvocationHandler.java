@@ -177,12 +177,16 @@ public class InvokerInvocationHandler implements InvocationHandler {
                 result = doInvokeInJvm(invocation);
             }
 
-            //返回结果
-            //TODO 处理成功调用，但失败情况
-            return result.getResult();
+
+            if(result.getErrorCode() == 0){//远程调用成功
+                return result.getResult();
+            }else{//远程调用失败
+                //TODO 细化异常信息
+                throw new RpcException(String.format("%s-%s",String.valueOf(result.getErrorCode()),result.getErrorMessage()));
+            }
         } catch (Throwable e) {
-            //TODO 处理异常
-            throw  e;
+            //TODO 本地异常情况
+            throw  new RpcException(e);
         }
     }
 
