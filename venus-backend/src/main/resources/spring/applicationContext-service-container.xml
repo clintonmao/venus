@@ -34,7 +34,7 @@
 		<property name="receiveBufferSize" value="${venus.socket.receiveBufferSize:8}" />
 		-->
 		<property name="messageHandler">
-			<bean id="messageHandler" class="com.meidusa.venus.backend.messageHandler.VenusServerInvokerMessageHandler" init-method="init">
+			<bean id="messageHandler" class="com.meidusa.venus.backend.handler.VenusServerInvokerMessageHandler" init-method="init">
 				<property name="maxExecutionThread" value="128"></property>
 				<property name="executorProtected" value="false"></property>
 				<property name="executorEnabled" value="false"></property>
