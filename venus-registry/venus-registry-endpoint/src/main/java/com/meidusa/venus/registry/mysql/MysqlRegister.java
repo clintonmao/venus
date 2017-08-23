@@ -469,8 +469,8 @@ public class MysqlRegister implements Register {
 		if (CollectionUtils.isEmpty(need_write_list)) {
 			return;
 		}
-		FileWriter writer = null;
-		BufferedWriter bw = null;
+		FileWriter fileWriter = null;
+		BufferedWriter bufferWriter = null;
 		try {
 			File file = new File(filePath);
 			if (file.createNewFile()) {
@@ -480,11 +480,11 @@ public class MysqlRegister implements Register {
 				file.setWritable(true);
 			}
 			if (file.isFile()) {
-				writer = new FileWriter(file);
-				bw = new BufferedWriter(writer);
+				fileWriter = new FileWriter(file);
+				bufferWriter = new BufferedWriter(fileWriter);
 				for (String json : need_write_list) {
-					bw.write(json);
-					bw.newLine();
+					bufferWriter.write(json);
+					bufferWriter.newLine();
 				}
 			}
 		} catch (IOException e) {
@@ -492,16 +492,16 @@ public class MysqlRegister implements Register {
 		} catch (NullPointerException e) {
 			logger.error("writeFile filePath=>" + filePath + " is error", e);
 		} finally {
-			if (null != bw) {
+			if (null != bufferWriter) {
 				try {
-					bw.close();
+					bufferWriter.close();
 				} catch (IOException e) {
 					// ingore
 				}
 			}
-			if (null != writer) {
+			if (null != fileWriter) {
 				try {
-					writer.close();
+					fileWriter.close();
 				} catch (IOException e) {
 					// ingore
 				}
@@ -510,17 +510,19 @@ public class MysqlRegister implements Register {
 	}
 
 	private static List<String> get_write_list(List<String> oldList, List<String> newList) {
-		List<String> returnList = new ArrayList<String>();
 		if (CollectionUtils.isEmpty(oldList)) {
 			return newList;
 		}
+		List<String> returnList = new ArrayList<String>();
 		for (Iterator<String> iterator = oldList.iterator(); iterator.hasNext();) {
 			String json = iterator.next();
 			ServiceDefinition oldObject = JSON.parseObject(json, ServiceDefinition.class);
-			for (String str : newList) {
-				ServiceDefinition newObject = JSON.parseObject(str, ServiceDefinition.class);
-				if (getKey(oldObject).equals(getKey(newObject))) {
-					iterator.remove();
+			if (CollectionUtils.isNotEmpty(newList)) {
+				for (String str : newList) {
+					ServiceDefinition newObject = JSON.parseObject(str, ServiceDefinition.class);
+					if (getKey(oldObject).equals(getKey(newObject))) {
+						iterator.remove();
+					}
 				}
 			}
 		}
@@ -538,7 +540,7 @@ public class MysqlRegister implements Register {
 		return false;
 	}
 
-	public static void main(String args[]) {
+/*	public static void main(String args[]) {
 
 		ServiceDefinition def1 = new ServiceDefinition();
 		ServiceDefinition def2 = new ServiceDefinition();
@@ -567,6 +569,6 @@ public class MysqlRegister implements Register {
 		for (String str : readFile) {
 			System.out.println(str);
 		}
-	}
+	}*/
 
 }
