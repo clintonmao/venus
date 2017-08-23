@@ -29,7 +29,7 @@ public class TestHelloService {
     @Autowired
     HelloService helloService;
 
-    //@Test
+    @Test
     public void testSayHello(){
         logger.info("testSayHello begin...");
         helloService.sayHello("jack");

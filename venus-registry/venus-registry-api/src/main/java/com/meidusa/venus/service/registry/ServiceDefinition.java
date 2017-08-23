@@ -133,9 +133,10 @@ public class ServiceDefinition {
 
 	@Override
 	public String toString() {
-		return "ServiceDefinition [name=" + name + ", versionRange=" + versionRange + ", active=" + active
-				+ ", ipAddress=" + ipAddress + ", description=" + description + ", serviceConfigs=" + serviceConfigs
-				+ "]";
+		return "ServiceDefinition [name=" + name + ", interfaceName=" + interfaceName + ", versionRange=" + versionRange
+				+ ", active=" + active + ", ipAddress=" + ipAddress + ", description=" + description
+				+ ", serviceConfigs=" + serviceConfigs + "]";
 	}
+
 
 }

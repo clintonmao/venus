@@ -229,8 +229,8 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public ServiceDefinition lookup(URL url) throws VenusRegisteException {
-		// ServiceDefineRunnable run = new ServiceDefineRunnable();
-		// run.run();//测试接口时用
+//		 ServiceDefineRunnable run = new ServiceDefineRunnable();
+//		 run.run();//测试接口时用
 		// 接口名 服务名 版本号 加载服务的server信息及serviceConfig信息
 		// 根据本地 ServiceDefinition 列表去查找
 		String key = getKeyFromUrl(url);
@@ -540,35 +540,29 @@ public class MysqlRegister implements Register {
 		return false;
 	}
 
-/*	public static void main(String args[]) {
-
-		ServiceDefinition def1 = new ServiceDefinition();
-		ServiceDefinition def2 = new ServiceDefinition();
-
-		RouterRule rr = new RouterRule();
-		VenusServiceConfigDO conf = new VenusServiceConfigDO();
-		conf.setRouterRule(rr);
-
-		List<VenusServiceConfigDO> serviceConfigs = new ArrayList<VenusServiceConfigDO>();
-		serviceConfigs.add(conf);
-		def1.setServiceConfigs(serviceConfigs);
-		def2.setServiceConfigs(serviceConfigs);
-		def1.setName("orderService");
-		def2.setName("userService");
-		def1.setVersionRange("1.0.0");
-		def2.setVersionRange("1.0.0");
-		def1.setInterfaceName("com.chexiang.Orderservice");
-		def2.setInterfaceName("com.chexiang.Userservice");
-
-		List<String> jsons = new ArrayList<String>();
-		jsons.add(JSON.toJSONString(def1));
-		jsons.add(JSON.toJSONString(def2));
-		String filePath = "D:\\soft\\b\\a.txt";
-		writeFile(filePath, jsons);
-		List<String> readFile = readFile(filePath);
-		for (String str : readFile) {
-			System.out.println(str);
-		}
-	}*/
+	/*
+	 * public static void main(String args[]) {
+	 * 
+	 * ServiceDefinition def1 = new ServiceDefinition(); ServiceDefinition def2
+	 * = new ServiceDefinition();
+	 * 
+	 * RouterRule rr = new RouterRule(); VenusServiceConfigDO conf = new
+	 * VenusServiceConfigDO(); conf.setRouterRule(rr);
+	 * 
+	 * List<VenusServiceConfigDO> serviceConfigs = new
+	 * ArrayList<VenusServiceConfigDO>(); serviceConfigs.add(conf);
+	 * def1.setServiceConfigs(serviceConfigs);
+	 * def2.setServiceConfigs(serviceConfigs); def1.setName("orderService");
+	 * def2.setName("userService"); def1.setVersionRange("1.0.0");
+	 * def2.setVersionRange("1.0.0");
+	 * def1.setInterfaceName("com.chexiang.Orderservice");
+	 * def2.setInterfaceName("com.chexiang.Userservice");
+	 * 
+	 * List<String> jsons = new ArrayList<String>();
+	 * jsons.add(JSON.toJSONString(def1)); jsons.add(JSON.toJSONString(def2));
+	 * String filePath = "D:\\soft\\b\\a.txt"; writeFile(filePath, jsons);
+	 * List<String> readFile = readFile(filePath); for (String str : readFile) {
+	 * System.out.println(str); } }
+	 */
 
 }
