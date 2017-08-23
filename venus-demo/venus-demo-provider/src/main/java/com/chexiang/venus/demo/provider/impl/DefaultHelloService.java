@@ -11,8 +11,14 @@ import org.springframework.stereotype.Component;
 public class DefaultHelloService implements HelloService {
 
     @Override
-    public void sayHello(String name, InvocationListener invocationListener) {
+    public void sayHello(String name, InvocationListener<Hello> invocationListener) {
         System.out.println("invoke sayHello with listener:" + name);
+        Hello hello = new Hello();
+        hello.setName("zhangzh");
+        hello.setNick("jack");
+        if(invocationListener != null){
+            invocationListener.callback(hello);
+        }
     }
 
     @Override

@@ -44,12 +44,13 @@ public class TestHelloService {
         */
     }
 
-    //@Test
+    @Test
     public void testSayHelloWithCallback(){
-        helloService.sayHello("jack", new InvocationListener() {
+        helloService.sayHello("jack", new InvocationListener<Hello>() {
+
             @Override
-            public void callback(Object object) {
-                System.out.println(object);
+            public void callback(Hello object) {
+                System.out.println("Hello:" + object);
             }
 
             @Override
@@ -60,7 +61,7 @@ public class TestHelloService {
     }
 
 
-    @Test
+    //@Test
     public void testGetHello(){
         System.out.println("testGetHello begin...");
         Hello hello = helloService.getHello("jack");

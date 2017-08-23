@@ -16,6 +16,7 @@ package com.meidusa.venus.client.invoker.venus;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.venus.Invocation;
+import com.meidusa.venus.RpcException;
 import com.meidusa.venus.exception.DefaultVenusException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.handler.VenusClientMessageHandler;
@@ -103,9 +104,9 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_RESPONSE:
                 //获取clientId/clientRequestId，用于获取invocation请求信息
-                OKPacket resp = new OKPacket();
-                resp.init(message);
-                Invocation invocation = serviceInvocationMap.get(getMessageId(resp));
+                OKPacket tempResp = new OKPacket();
+                tempResp.init(message);
+                Invocation invocation = serviceInvocationMap.get(getMessageId(tempResp));
 
                 ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, invocation.getMethod().getGenericReturnType());
                 response.init(message);
@@ -116,21 +117,28 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 }
                 break;
             case PacketConstant.PACKET_TYPE_NOTIFY_PUBLISH:
-                SerializeServiceNofityPacket packet = null;
                 ServicePacketBuffer buffer = new ServicePacketBuffer(message);
                 buffer.setPosition(PacketConstant.SERVICE_HEADER_SIZE + 4);
 
+                //TODO 优化，本地处理，统一改为根据msgId获取请求信息，同时为了避免不同实例问题，不与服务端耦合
+                /*
                 String listenerClass = buffer.readLengthCodedString("utf-8");
                 int identityHashCode = buffer.readInt();
-
                 Tuple<InvocationListener, Type> tuple = container.getInvocationListener(listenerClass, identityHashCode);
+                */
 
-                packet = new SerializeServiceNofityPacket(serializer, tuple.right);
+                OKPacket tempRespEx = new OKPacket();
+                tempRespEx.init(message);
+                Invocation invocationEx = serviceInvocationMap.get(getMessageId(tempRespEx));
 
+                SerializeServiceNofityPacket packet = new SerializeServiceNofityPacket(serializer, invocationEx.getType());
                 packet.init(message);
 
+                /* TODO 确认代码功能
                 VenusTracerUtil.logRequest(packet.traceId, packet.apiName);
+                */
                 if (packet.errorCode != 0) {
+                    /* TODO 异常处理方式及additionalData信息
                     Exception exception = venusExceptionFactory.getException(packet.errorCode, packet.errorMessage);
                     if (exception == null) {
                         exception = new DefaultVenusException(packet.errorCode, packet.errorMessage);
@@ -144,9 +152,15 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                             }
                         }
                     }
-                    tuple.left.onException(exception);
+                    */
+                    //TODO 确认异常构造方式
+                    RpcException exception = new RpcException(String.format("%s-%s",String.valueOf(packet.errorCode),packet.errorMessage));
+                    //TODO 改获取listener方式
+                    //tuple.left.onException(exception);
+                    invocationEx.getInvocationListener().onException(exception);
                 } else {
-                    tuple.left.callback(packet.callbackObject);
+                    //tuple.left.callback(packet.callbackObject);
+                    invocationEx.getInvocationListener().callback(packet.callbackObject);
                 }
                 break;
             case PacketConstant.PACKET_TYPE_PONG:
@@ -203,4 +217,5 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
     public void setServiceInvocationMap(Map<String, Invocation> serviceInvocationMap) {
         this.serviceInvocationMap = serviceInvocationMap;
     }
+
 }

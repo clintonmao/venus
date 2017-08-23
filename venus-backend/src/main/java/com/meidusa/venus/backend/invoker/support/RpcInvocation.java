@@ -16,6 +16,8 @@ public class RpcInvocation extends Invocation{
 
     VenusFrontendConnection conn;
 
+    VenusRouterPacket routerPacket;
+
     Tuple<Long, byte[]> data;
 
     byte[] message;
@@ -27,8 +29,6 @@ public class RpcInvocation extends Invocation{
     String finalSourceIp;
 
     long waitTime;
-
-    VenusRouterPacket routerPacket;
 
     SerializeServiceRequestPacket request;
 

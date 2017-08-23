@@ -17,7 +17,7 @@ public interface HelloService {
      * @param name
      */
     @Endpoint(name = "sayHelloWithCallback")
-    void sayHello(@Param(name="name") String name,@Param(name="callback")InvocationListener invocationListener);
+    void sayHello(@Param(name="name") String name,@Param(name="callback")InvocationListener<Hello> invocationListener);
 
     /**
      * sayHello

@@ -3,8 +3,10 @@ package com.meidusa.venus;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.metainfo.EndpointParameter;
+import com.meidusa.venus.notify.InvocationListener;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 /**
  * 请求对象
@@ -27,6 +29,10 @@ public class Invocation {
     private Endpoint endpoint;
 
     private EndpointParameter[] params;
+
+    private InvocationListener invocationListener;
+
+    private Type type;
 
     boolean async;
 
@@ -102,5 +108,21 @@ public class Invocation {
 
     public void setMessageId(byte[] messageId) {
         this.messageId = messageId;
+    }
+
+    public InvocationListener getInvocationListener() {
+        return invocationListener;
+    }
+
+    public void setInvocationListener(InvocationListener invocationListener) {
+        this.invocationListener = invocationListener;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
     }
 }

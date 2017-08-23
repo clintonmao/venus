@@ -5,13 +5,12 @@ import com.meidusa.fastjson.JSON;
 import com.meidusa.fastjson.JSONException;
 import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.toolkit.common.util.Tuple;
-import com.meidusa.toolkit.net.Connection;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.TimeUtil;
-import com.meidusa.venus.RpcException;
 import com.meidusa.venus.annotations.ExceptionCode;
 import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
+import com.meidusa.venus.backend.invoker.support.ResponseEntityWrapper;
 import com.meidusa.venus.backend.invoker.support.ResponseHandler;
 import com.meidusa.venus.backend.invoker.support.RpcInvocation;
 import com.meidusa.venus.backend.services.Endpoint;
@@ -23,18 +22,17 @@ import com.meidusa.venus.backend.support.Response;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.*;
-import com.meidusa.venus.io.packet.serialize.SerializeServiceNofityPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
-import com.meidusa.venus.io.packet.serialize.SerializeServiceResponsePacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.Result;
+import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.beans.PropertyDescriptor;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -151,14 +149,15 @@ public class VenusServerInvokerTask implements Runnable{
 
         //输出响应
         try {
-            Endpoint ep = invocation.getEp();
+            ResponseEntityWrapper responseEntityWrapper = ResponseEntityWrapper.parse(invocation,result,false);
 
             if (invocation.getResultType() == EndpointInvocation.ResultType.RESPONSE) {
-                handleResponseByResponse(responseHandler, ep, result, false);
+                responseHandler.writeResponseForResponse(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
-                handleResponseByOK(responseHandler, ep, result, false);
+                responseHandler.writeResponseForOk(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.NOTIFY) {
-                handleResponseByNotify(responseHandler, ep, result, false);
+                //TODO 里面/外围各种输出情况处理
+                responseHandler.writeResponseForNotify(responseEntityWrapper);
             }
         } catch (Exception e) {
             logger.error("write response error.",e);
@@ -175,17 +174,17 @@ public class VenusServerInvokerTask implements Runnable{
         invocation.setClientId(conn.getClientId());
         invocation.setHost(conn.getHost());
         invocation.setLocalHost(conn.getLocalHost());
-        //设置参数
-        //initParamsForInvocationListener(request,invocation.getConn(),routerPacket);
         //设置请求报文
-        SerializeServiceRequestPacket requestPacket = parseRequest(conn, data);
-        invocation.setRequest(requestPacket);
-        this.request = requestPacket;
+        SerializeServiceRequestPacket request = parseRequest(conn, data);
+        invocation.setRequest(request);
+        this.request = request;
         this.routerPacket = invocation.getRouterPacket();
         //设置调用端点
         Endpoint endpoint = parseEndpoint(conn, data);
         invocation.setEp(endpoint);
         invocation.setResultType(getResultType(endpoint));
+        //设置参数
+        initParamsForInvocationListener(request,invocation.getConn(),routerPacket,invocation);
         return invocation;
     }
 
@@ -368,22 +367,21 @@ public class VenusServerInvokerTask implements Runnable{
     }
 
     /**
-     * 初始化参数信息
+     * 设置invocationListener回调参数
      * @param request
      * @param conn
      * @param routerPacket
      */
-    /*
-    void initParamsForInvocationListener(SerializeServiceRequestPacket request, VenusFrontendConnection conn, VenusRouterPacket routerPacket){
+    void initParamsForInvocationListener(SerializeServiceRequestPacket request, VenusFrontendConnection conn, VenusRouterPacket routerPacket,RpcInvocation invocation){
         for (Map.Entry<String, Object> entry : request.parameterMap.entrySet()) {
             if (entry.getValue() instanceof ReferenceInvocationListener) {
                 RemotingInvocationListener<Serializable> invocationListener = new RemotingInvocationListener<Serializable>(conn, (ReferenceInvocationListener) entry.getValue(), request,
-                        routerPacket);
+                        routerPacket,invocation);
+                invocationListener.setResponseHandler(responseHandler);
                 request.parameterMap.put(entry.getKey(), invocationListener);
             }
         }
     }
-    */
 
     /**
      * 根据方法定义获取返回类型
@@ -408,142 +406,142 @@ public class VenusServerInvokerTask implements Runnable{
         return resultType;
     }
 
-    /**
-     * 处理response同步类型调用
-     * @param endpoint
-     * @param result
-     */
-    void handleResponseByResponse(ResponseHandler responseHandler, Endpoint endpoint, Result result, boolean athenaFlag) throws Exception{
-        if (result.getErrorCode() == 0) {
-            Serializer serializer = SerializerFactory.getSerializer(serializeType);
-            ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, endpoint.getMethod()
-                    .getGenericReturnType());
-            AbstractServicePacket.copyHead(request, response);
-            response.result = result.getResult();
-            AbstractServicePacket resultPacket = response;
-            responseHandler.postMessageBack(conn, routerPacket, request, response, athenaFlag);
-        }else{
-            ErrorPacket error = new ErrorPacket();
-            AbstractServicePacket.copyHead(request, error);
-            error.errorCode = result.getErrorCode();
-            error.message = result.getErrorMessage();
-            Throwable throwable = result.getException();
-            if (throwable != null) {
-                Serializer serializer = SerializerFactory.getSerializer(serializeType);
-                Map<String, PropertyDescriptor> mpd = Utils.getBeanPropertyDescriptor(throwable.getClass());
-                Map<String, Object> additionalData = new HashMap<String, Object>();
-
-                for (Map.Entry<String, PropertyDescriptor> entry : mpd.entrySet()) {
-                    additionalData.put(entry.getKey(), entry.getValue().getReadMethod().invoke(throwable));
-                }
-                error.additionalData = serializer.encode(additionalData);
-            }
-            AbstractServicePacket resultPacket = error;
-            responseHandler.postMessageBack(conn, routerPacket, request, error, athenaFlag);
-        }
-    }
-
-    /**
-     * 处理OK类型调用
-     * @param endpoint
-     */
-    void handleResponseByOK(ResponseHandler responseHandler, Endpoint endpoint, Result result, boolean athenaFlag) throws Exception{
-        if (result.getErrorCode() == 0) {
-            OKPacket ok = new OKPacket();
-            AbstractServicePacket.copyHead(request, ok);
-            AbstractServicePacket resultPacket = ok;
-            responseHandler.postMessageBack(conn, routerPacket, request, ok, athenaFlag);
-        }else{
-            ErrorPacket error = new ErrorPacket();
-            AbstractServicePacket.copyHead(request, error);
-            error.errorCode = result.getErrorCode();
-            error.message = result.getErrorMessage();
-            Throwable throwable = result.getException();
-            if (throwable != null) {
-                Serializer serializer = SerializerFactory.getSerializer(serializeType);
-                Map<String, PropertyDescriptor> mpd = Utils.getBeanPropertyDescriptor(throwable.getClass());
-                Map<String, Object> additionalData = new HashMap<String, Object>();
-
-                for (Map.Entry<String, PropertyDescriptor> entry : mpd.entrySet()) {
-                    additionalData.put(entry.getKey(), entry.getValue().getReadMethod().invoke(throwable));
-                }
-                error.additionalData = serializer.encode(additionalData);
-            }
-            AbstractServicePacket resultPacket = error;
-            responseHandler.postMessageBack(conn, routerPacket, request, error, athenaFlag);
-        }
-    }
-
-    /**
-     * 处理listener调用
-     * @param responseHandler
-     * @param endpoint
-     * @param athenaFlag
-     * @throws Exception
-     */
-    void handleResponseByNotify(ResponseHandler responseHandler, Endpoint endpoint, Result result, boolean athenaFlag) throws Exception{
-        if (result.getErrorCode() == 0) {
-            Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
-            ServiceNofityPacket response = new SerializeServiceNofityPacket(serializer, null);
-            AbstractServicePacket.copyHead(request, response);
-            response.callbackObject = result.getResult();
-            response.apiName = request.apiName;
-            //TODO listener请求标识数据
-            //response.identityData = source.getIdentityData();
-
-            byte[] traceID = (byte[]) ThreadLocalMap.get(VenusTracerUtil.REQUEST_TRACE_ID);
-            if (traceID == null) {
-                traceID = VenusTracerUtil.randomUUID();
-                ThreadLocalMap.put(VenusTracerUtil.REQUEST_TRACE_ID, traceID);
-            }
-            response.traceId = traceID;
-            responseHandler.postMessageBack(conn, routerPacket, request, response, athenaFlag);
-        }else{
-            Exception e = null;
-            if (result.getException() == null) {
-                e = new DefaultVenusException(result.getErrorCode(), result.getErrorMessage());
-            } else {
-                e = result.getException();
-            }
-
-            Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
-            ServiceNofityPacket response = new SerializeServiceNofityPacket(serializer, null);
-            AbstractServicePacket.copyHead(request, response);
-            if (e instanceof CodedException) {
-                CodedException codedException = (CodedException) e;
-                response.errorCode = codedException.getErrorCode();
-            } else {
-                response.errorCode = VenusExceptionCodeConstant.UNKNOW_EXCEPTION;
-            }
-
-            if (e != null) {
-                Map<String, PropertyDescriptor> mpd = Utils.getBeanPropertyDescriptor(e.getClass());
-                Map<String, Object> additionalData = new HashMap<String, Object>();
-
-                for (Map.Entry<String, PropertyDescriptor> entry : mpd.entrySet()) {
-                    try {
-                        additionalData.put(entry.getKey(), entry.getValue().getReadMethod().invoke(e));
-                    } catch (Exception e1) {
-                        logger.error("read config properpty error", e1);
-                    }
-                }
-                response.additionalData = serializer.encode(additionalData);
-                response.errorMessage = e.getMessage();
-            }
-
-            //TODO listener请求标识数据
-            //response.identityData = source.getIdentityData();
-
-            response.apiName = request.apiName;
-            byte[] traceID = VenusTracerUtil.getTracerID();
-            if (traceID == null) {
-                traceID = VenusTracerUtil.randomTracerID();
-            }
-            response.traceId = traceID;
-
-            responseHandler.postMessageBack(conn, routerPacket, request, response, athenaFlag);
-        }
-    }
+//    /**
+//     * 处理response同步类型调用
+//     * @param endpoint
+//     * @param result
+//     */
+//    void handleResponseByResponse(ResponseHandler responseHandler, Endpoint endpoint, Result result, boolean athenaFlag) throws Exception{
+//        if (result.getErrorCode() == 0) {
+//            Serializer serializer = SerializerFactory.getSerializer(serializeType);
+//            ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, endpoint.getMethod()
+//                    .getGenericReturnType());
+//            AbstractServicePacket.copyHead(request, response);
+//            response.result = result.getResult();
+//            AbstractServicePacket resultPacket = response;
+//            responseHandler.postMessageBack(conn, routerPacket, request, response, athenaFlag);
+//        }else{
+//            ErrorPacket error = new ErrorPacket();
+//            AbstractServicePacket.copyHead(request, error);
+//            error.errorCode = result.getErrorCode();
+//            error.message = result.getErrorMessage();
+//            Throwable throwable = result.getException();
+//            if (throwable != null) {
+//                Serializer serializer = SerializerFactory.getSerializer(serializeType);
+//                Map<String, PropertyDescriptor> mpd = Utils.getBeanPropertyDescriptor(throwable.getClass());
+//                Map<String, Object> additionalData = new HashMap<String, Object>();
+//
+//                for (Map.Entry<String, PropertyDescriptor> entry : mpd.entrySet()) {
+//                    additionalData.put(entry.getKey(), entry.getValue().getReadMethod().invoke(throwable));
+//                }
+//                error.additionalData = serializer.encode(additionalData);
+//            }
+//            AbstractServicePacket resultPacket = error;
+//            responseHandler.postMessageBack(conn, routerPacket, request, error, athenaFlag);
+//        }
+//    }
+//
+//    /**
+//     * 处理OK类型调用
+//     * @param endpoint
+//     */
+//    void handleResponseByOK(ResponseHandler responseHandler, Endpoint endpoint, Result result, boolean athenaFlag) throws Exception{
+//        if (result.getErrorCode() == 0) {
+//            OKPacket ok = new OKPacket();
+//            AbstractServicePacket.copyHead(request, ok);
+//            AbstractServicePacket resultPacket = ok;
+//            responseHandler.postMessageBack(conn, routerPacket, request, ok, athenaFlag);
+//        }else{
+//            ErrorPacket error = new ErrorPacket();
+//            AbstractServicePacket.copyHead(request, error);
+//            error.errorCode = result.getErrorCode();
+//            error.message = result.getErrorMessage();
+//            Throwable throwable = result.getException();
+//            if (throwable != null) {
+//                Serializer serializer = SerializerFactory.getSerializer(serializeType);
+//                Map<String, PropertyDescriptor> mpd = Utils.getBeanPropertyDescriptor(throwable.getClass());
+//                Map<String, Object> additionalData = new HashMap<String, Object>();
+//
+//                for (Map.Entry<String, PropertyDescriptor> entry : mpd.entrySet()) {
+//                    additionalData.put(entry.getKey(), entry.getValue().getReadMethod().invoke(throwable));
+//                }
+//                error.additionalData = serializer.encode(additionalData);
+//            }
+//            AbstractServicePacket resultPacket = error;
+//            responseHandler.postMessageBack(conn, routerPacket, request, error, athenaFlag);
+//        }
+//    }
+//
+//    /**
+//     * 处理listener调用
+//     * @param responseHandler
+//     * @param endpoint
+//     * @param athenaFlag
+//     * @throws Exception
+//     */
+//    void handleResponseByNotify(ResponseHandler responseHandler, Endpoint endpoint, Result result, boolean athenaFlag) throws Exception{
+//        if (result.getErrorCode() == 0) {
+//            Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
+//            ServiceNofityPacket response = new SerializeServiceNofityPacket(serializer, null);
+//            AbstractServicePacket.copyHead(request, response);
+//            response.callbackObject = result.getResult();
+//            response.apiName = request.apiName;
+//            //TODO 处理版本兼容问题 listener请求标识数据
+//            //response.identityData = source.getIdentityData();
+//
+//            byte[] traceID = (byte[]) ThreadLocalMap.get(VenusTracerUtil.REQUEST_TRACE_ID);
+//            if (traceID == null) {
+//                traceID = VenusTracerUtil.randomUUID();
+//                ThreadLocalMap.put(VenusTracerUtil.REQUEST_TRACE_ID, traceID);
+//            }
+//            response.traceId = traceID;
+//            responseHandler.postMessageBack(conn, routerPacket, request, response, athenaFlag);
+//        }else{
+//            Exception e = null;
+//            if (result.getException() == null) {
+//                e = new DefaultVenusException(result.getErrorCode(), result.getErrorMessage());
+//            } else {
+//                e = result.getException();
+//            }
+//
+//            Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
+//            ServiceNofityPacket response = new SerializeServiceNofityPacket(serializer, null);
+//            AbstractServicePacket.copyHead(request, response);
+//            if (e instanceof CodedException) {
+//                CodedException codedException = (CodedException) e;
+//                response.errorCode = codedException.getErrorCode();
+//            } else {
+//                response.errorCode = VenusExceptionCodeConstant.UNKNOW_EXCEPTION;
+//            }
+//
+//            if (e != null) {
+//                Map<String, PropertyDescriptor> mpd = Utils.getBeanPropertyDescriptor(e.getClass());
+//                Map<String, Object> additionalData = new HashMap<String, Object>();
+//
+//                for (Map.Entry<String, PropertyDescriptor> entry : mpd.entrySet()) {
+//                    try {
+//                        additionalData.put(entry.getKey(), entry.getValue().getReadMethod().invoke(e));
+//                    } catch (Exception e1) {
+//                        logger.error("read config properpty error", e1);
+//                    }
+//                }
+//                response.additionalData = serializer.encode(additionalData);
+//                response.errorMessage = e.getMessage();
+//            }
+//
+//            //TODO listener请求标识数据
+//            //response.identityData = source.getIdentityData();
+//
+//            response.apiName = request.apiName;
+//            byte[] traceID = VenusTracerUtil.getTracerID();
+//            if (traceID == null) {
+//                traceID = VenusTracerUtil.randomTracerID();
+//            }
+//            response.traceId = traceID;
+//
+//            responseHandler.postMessageBack(conn, routerPacket, request, response, athenaFlag);
+//        }
+//    }
 
 
 //    void handleResponseByNotify(ResponseHandler responseHandler, Endpoint endpoint, Response result, boolean athenaFlag) throws Exception{
@@ -562,14 +560,14 @@ public class VenusServerInvokerTask implements Runnable{
 //        }
 //    }
 
-    public void postMessageBack(Connection conn, VenusRouterPacket routerPacket, AbstractServicePacket source, AbstractServicePacket result) {
-        if (routerPacket == null) {
-            conn.write(result.toByteBuffer());
-        } else {
-            routerPacket.data = result.toByteArray();
-            conn.write(routerPacket.toByteBuffer());
-        }
-    }
+//    public void postMessageBack(Connection conn, VenusRouterPacket routerPacket, AbstractServicePacket source, AbstractServicePacket result) {
+//        if (routerPacket == null) {
+//            conn.write(result.toByteBuffer());
+//        } else {
+//            routerPacket.data = result.toByteArray();
+//            conn.write(routerPacket.toByteBuffer());
+//        }
+//    }
 
     protected void logPerformance(Endpoint endpoint,String traceId,String apiName,long queuedTime,
                                   long executTime,String remoteIp,String sourceIP, long clientId,long requestId,

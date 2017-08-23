@@ -37,6 +37,7 @@ import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -75,40 +76,40 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     private ConnectionManager connManager;
 
     /**
-     * 调用监听容器
-     */
-    private InvocationListenerContainer container = new InvocationListenerContainer();
-
-
-
-    /**
      * bio连接池映射表
      */
+
+
+
     //private Map<String, ObjectPool> bioPoolMap = new HashMap<String, ObjectPool>(); // NOPMD
+    /**
+     * 连接池映射表
+     */
 
 
+    //private Map<String, Object> realPoolMap = new HashMap<String, Object>();
     /**
      * nio连接映射表
      */
     private Map<String, BackendConnectionPool> nioPoolMap = new HashMap<String, BackendConnectionPool>(); // NOPMD
 
-    /**
-     * 连接池映射表
-     */
-    private Map<String, Object> realPoolMap = new HashMap<String, Object>();
-
     //TODO 优化锁对象
     private Object lock = new Object();
 
     /**
-     * 消息标识-响应映射表
-     */
-    private Map<String,AbstractServicePacket> serviceResponseMap = new HashMap<String, AbstractServicePacket>();
-
-    /**
      * 消息标识-请求映射表
      */
-    private Map<String, Invocation> serviceInvocationMap = new HashMap<String, Invocation>();
+    private Map<String, Invocation> serviceInvocationMap = new ConcurrentHashMap<String, Invocation>();
+
+    /**
+     * 消息标识-响应映射表
+     */
+    private Map<String,AbstractServicePacket> serviceResponseMap = new ConcurrentHashMap<String, AbstractServicePacket>();
+
+    /**
+     * 调用监听容器
+     */
+    private InvocationListenerContainer container = new InvocationListenerContainer();
 
     /**
      * NIO消息响应处理
@@ -152,31 +153,83 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     @Override
     public Result doInvoke(Invocation invocation, URL url) throws RpcException {
         try {
-            //构造请求消息
-            SerializeServiceRequestPacket request = buildRequest(invocation);
-
-            //添加messageId -> invocation映射表
-            serviceInvocationMap.put(getMessageId(request),invocation);
-
-            //发送消息
-            sendRequest(url, invocation, request);
-
-            //阻塞等待并处理响应结果 TODO callback情况
-            synchronized (lock){
-                logger.info("lock wait begin...");
-                lock.wait(10000);
-                logger.info("lock wait end...");
+            if(!isCallbackInvocation(invocation)){
+                return doInvokeWithSync(invocation, url);
+            }else{
+                return doInvokeWithCallback(invocation, url);
             }
-
-            Result result = fetchResponse(getMessageId(request));
-            logger.info("result:{}.",result);
-            if(result == null){
-                throw new RpcException(String.format("invoke timeout:%s","3000ms"));
-            }
-            return result;
         } catch (Exception e) {
             throw new RpcException(e);
         }
+    }
+
+    /**
+     * 判断是否callback异步调用
+     * @param invocation
+     * @return
+     */
+    boolean isCallbackInvocation(Invocation invocation){
+        EndpointParameter[] params = invocation.getParams();
+        if (params != null) {
+            Object[] args = invocation.getArgs();
+            for (int i = 0; i < params.length; i++) {
+                if (args[i] instanceof InvocationListener) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * sync同步调用
+     * @param invocation
+     * @param url
+     * @return
+     * @throws Exception
+     */
+    public Result doInvokeWithSync(Invocation invocation, URL url) throws Exception {
+        //构造请求消息
+        SerializeServiceRequestPacket request = buildRequest(invocation);
+        //添加messageId -> invocation映射表
+        serviceInvocationMap.put(getMessageId(request),invocation);
+
+        //发送消息
+        sendRequest(url, invocation, request);
+
+        //阻塞等待并处理响应结果 TODO callback情况
+        synchronized (lock){
+            logger.info("lock wait begin...");
+            lock.wait(10000);//TODO 超时时间
+            logger.info("lock wait end...");
+        }
+
+        Result result = fetchResponse(getMessageId(request));
+        logger.info("result:{}.",result);
+        if(result == null){
+            throw new RpcException(String.format("invoke timeout:%s","3000ms"));
+        }
+        return result;
+    }
+
+    /**
+     * callback异步调用
+     * @param invocation
+     * @param url
+     * @return
+     * @throws Exception
+     */
+    public Result doInvokeWithCallback(Invocation invocation, URL url) throws Exception {
+        //构造请求消息
+        SerializeServiceRequestPacket request = buildRequest(invocation);
+        //添加messageId -> invocation映射表
+        serviceInvocationMap.put(getMessageId(request),invocation);
+
+        //发送消息
+        sendRequest(url, invocation, request);
+
+        //立即返回，响应由invocationListener处理
+        return new Result(null);
     }
 
     /**
@@ -231,7 +284,10 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                     Type type = method.getGenericParameterTypes()[i];
                     if (type instanceof ParameterizedType) {
                         ParameterizedType genericType = ((ParameterizedType) type);
-                        container.putInvocationListener((InvocationListener) args[i], genericType.getActualTypeArguments()[0]);
+                        //TODO 兼容旧版本方案 改由invocation保存回调信息 是否允许多个listener?
+                        //container.putInvocationListener((InvocationListener) args[i], genericType.getActualTypeArguments()[0]);
+                        invocation.setInvocationListener((InvocationListener)args[i]);
+                        invocation.setType(genericType.getActualTypeArguments()[0]);
                     } else {
                         throw new InvalidParameterException("invocationListener is not generic");
                     }
@@ -248,18 +304,19 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     }
 
     /**
-     * async异步调用
-     *
-     * @param url
+     * 发送远程调用消息
+     * @param url 目标地址
      * @param invocation
-     * @param serviceRequestPacket
+     * @param serviceRequestPacket TODO 想办法合并invocation/request
      * @return
      * @throws Exception
      */
     void sendRequest(URL url, Invocation invocation, SerializeServiceRequestPacket serviceRequestPacket) throws Exception{
+        /* TODO 确认此代码用途
         if (!this.isEnableAsync()) {
             throw new VenusConfigException("service callback call disabled");
         }
+        */
 
         byte[] traceID = invocation.getTraceID();
         Service service = invocation.getService();
@@ -307,6 +364,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             }
             */
 
+            //TODO 长连接，心跳处理，确认？
             if (conn != null && nioConnPool != null) {
                 nioConnPool.returnObject(conn);
             }
