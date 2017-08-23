@@ -33,6 +33,8 @@ import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.RegisterService;
 import com.meidusa.venus.registry.VenusRegisteException;
+import com.meidusa.venus.registry.domain.RouterRule;
+import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
 import com.meidusa.venus.service.registry.ServiceDefinition;
 
 /**
@@ -234,11 +236,13 @@ public class MysqlRegister implements Register {
 		String key = getKeyFromUrl(url);
 		ServiceDefinition serviceDefinition = subscribleServiceDefinitionMap.get(key);
 		if (null == serviceDefinition) {
-			List<String> readFile = readFile(subcribePath);
+			List<String> readFileJsons = readFile(subcribePath);
 			Map<String, ServiceDefinition> map = new HashMap<String, ServiceDefinition>();
-			for (String str : readFile) {
-				ServiceDefinition parseObject = JSON.parseObject(str, ServiceDefinition.class);
-				map.put(getKey(parseObject), parseObject);
+			if (CollectionUtils.isNotEmpty(readFileJsons)) {
+				for (String str : readFileJsons) {
+					ServiceDefinition parseObject = JSON.parseObject(str, ServiceDefinition.class);
+					map.put(getKey(parseObject), parseObject);
+				}
 			}
 			serviceDefinition = map.get(key);
 		}
@@ -270,7 +274,7 @@ public class MysqlRegister implements Register {
 					def = registerService.urlToServiceDefine(url);
 					logger.info("srvDef:{}", def);
 					subscribleServiceDefinitionMap.put(key, def);
-					jsons.add(JSON.toJSON(def).toString());
+					jsons.add(JSON.toJSONString(def));
 				} catch (Exception e) {
 					logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
 				}
@@ -457,6 +461,9 @@ public class MysqlRegister implements Register {
 		} else {
 			return;
 		}
+		if (CollectionUtils.isEmpty(jsons)) {
+			return;
+		}
 		List<String> readFiles = readFile(filePath);
 		List<String> need_write_list = get_write_list(readFiles, jsons);
 		if (CollectionUtils.isEmpty(need_write_list)) {
@@ -531,11 +538,35 @@ public class MysqlRegister implements Register {
 		return false;
 	}
 
-	/*
-	 * public static void main(String args[]) { List<String> jsons = new
-	 * ArrayList<String>(); jsons.add("hello1"); jsons.add("world1"); String
-	 * filePath = "D:\\soft\\b\\a.txt"; writeFile(filePath, jsons); List<String>
-	 * readFile = readFile(filePath); for (String str : readFile) {
-	 * System.out.println(str); } }
-	 */
+	public static void main(String args[]) {
+
+		ServiceDefinition def1 = new ServiceDefinition();
+		ServiceDefinition def2 = new ServiceDefinition();
+
+		RouterRule rr = new RouterRule();
+		VenusServiceConfigDO conf = new VenusServiceConfigDO();
+		conf.setRouterRule(rr);
+
+		List<VenusServiceConfigDO> serviceConfigs = new ArrayList<VenusServiceConfigDO>();
+		serviceConfigs.add(conf);
+		def1.setServiceConfigs(serviceConfigs);
+		def2.setServiceConfigs(serviceConfigs);
+		def1.setName("orderService");
+		def2.setName("userService");
+		def1.setVersionRange("1.0.0");
+		def2.setVersionRange("1.0.0");
+		def1.setInterfaceName("com.chexiang.Orderservice");
+		def2.setInterfaceName("com.chexiang.Userservice");
+
+		List<String> jsons = new ArrayList<String>();
+		jsons.add(JSON.toJSONString(def1));
+		jsons.add(JSON.toJSONString(def2));
+		String filePath = "D:\\soft\\b\\a.txt";
+		writeFile(filePath, jsons);
+		List<String> readFile = readFile(filePath);
+		for (String str : readFile) {
+			System.out.println(str);
+		}
+	}
+
 }
