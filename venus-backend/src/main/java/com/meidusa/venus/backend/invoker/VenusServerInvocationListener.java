@@ -17,9 +17,9 @@ import com.meidusa.venus.notify.ReferenceInvocationListener;
  * callback远程调用处理
  * @param <T>
  */
-public class RemotingInvocationListener<T> implements InvocationListener<T> {
+public class VenusServerInvocationListener<T> implements InvocationListener<T> {
 
-    private static Logger logger = LoggerFactory.getLogger(RemotingInvocationListener.class);
+    private static Logger logger = LoggerFactory.getLogger(VenusServerInvocationListener.class);
 
     private VenusFrontendConnection conn;
 
@@ -39,8 +39,8 @@ public class RemotingInvocationListener<T> implements InvocationListener<T> {
         return isResponsed;
     }
 
-    public RemotingInvocationListener(VenusFrontendConnection conn, ReferenceInvocationListener<T> source, SerializeServiceRequestPacket request,
-            VenusRouterPacket routerPacket,RpcInvocation invocation) {
+    public VenusServerInvocationListener(VenusFrontendConnection conn, ReferenceInvocationListener<T> source, SerializeServiceRequestPacket request,
+                                         VenusRouterPacket routerPacket, RpcInvocation invocation) {
         this.conn = conn;
         this.source = source;
         this.request = request;

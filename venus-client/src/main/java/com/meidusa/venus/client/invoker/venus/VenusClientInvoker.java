@@ -78,16 +78,13 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     /**
      * bio连接池映射表
      */
-
-
-
     //private Map<String, ObjectPool> bioPoolMap = new HashMap<String, ObjectPool>(); // NOPMD
+
     /**
      * 连接池映射表
      */
-
-
     //private Map<String, Object> realPoolMap = new HashMap<String, Object>();
+
     /**
      * nio连接映射表
      */
@@ -342,7 +339,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
             //发送请求消息，响应由handler类处理
             conn.write(buffer);
-            //TODO wait
             /* TODO tracer log
             VenusTracerUtil.logRequest(traceID, serviceRequestPacket.apiName, JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
             */
