@@ -156,8 +156,10 @@ public class VenusServerInvokerTask implements Runnable{
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
                 responseHandler.writeResponseForOk(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.NOTIFY) {
-                //TODO 里面/外围各种输出情况处理
-                responseHandler.writeResponseForNotify(responseEntityWrapper);
+                //callback回调异常情况
+                if(result.getErrorCode() != 0){
+                    responseHandler.writeResponseForNotify(responseEntityWrapper);
+                }
             }
         } catch (Exception e) {
             logger.error("write response error.",e);
@@ -171,6 +173,7 @@ public class VenusServerInvokerTask implements Runnable{
      */
     RpcInvocation buildInvocation(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
         RpcInvocation invocation = new RpcInvocation();
+        invocation.setConn(conn);
         invocation.setClientId(conn.getClientId());
         invocation.setHost(conn.getHost());
         invocation.setLocalHost(conn.getLocalHost());

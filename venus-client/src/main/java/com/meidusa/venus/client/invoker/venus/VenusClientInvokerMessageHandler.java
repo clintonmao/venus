@@ -117,19 +117,18 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 }
                 break;
             case PacketConstant.PACKET_TYPE_NOTIFY_PUBLISH:
-                ServicePacketBuffer buffer = new ServicePacketBuffer(message);
-                buffer.setPosition(PacketConstant.SERVICE_HEADER_SIZE + 4);
-
-                //TODO 优化，本地处理，统一改为根据msgId获取请求信息，同时为了避免不同实例问题，不与服务端耦合
-                /*
-                String listenerClass = buffer.readLengthCodedString("utf-8");
-                int identityHashCode = buffer.readInt();
-                Tuple<InvocationListener, Type> tuple = container.getInvocationListener(listenerClass, identityHashCode);
-                */
-
                 OKPacket tempRespEx = new OKPacket();
                 tempRespEx.init(message);
                 Invocation invocationEx = serviceInvocationMap.get(getMessageId(tempRespEx));
+
+                ServicePacketBuffer buffer = new ServicePacketBuffer(message);
+                buffer.setPosition(PacketConstant.SERVICE_HEADER_SIZE + 4);
+                String listenerClass = buffer.readLengthCodedString("utf-8");
+                int identityHashCode = buffer.readInt();
+                /*
+                Tuple<InvocationListener, Type> tuple = container.getInvocationListener(listenerClass, identityHashCode);
+                */
+                //TODO 优化，本地处理，统一改为根据msgId获取请求信息，同时为了避免不同实例问题，不与服务端耦合
 
                 SerializeServiceNofityPacket packet = new SerializeServiceNofityPacket(serializer, invocationEx.getType());
                 packet.init(message);

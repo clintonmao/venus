@@ -140,8 +140,8 @@ public class ResponseHandler {
             AbstractServicePacket.copyHead(request, response);
             response.callbackObject = result.getResult();
             response.apiName = request.apiName;
+            response.identityData = new byte[]{};
             //TODO 处理版本兼容问题 listener请求标识数据
-            //response.identityData = source.getIdentityData();
 
             byte[] traceID = (byte[]) ThreadLocalMap.get(VenusTracerUtil.REQUEST_TRACE_ID);
             if (traceID == null) {
@@ -184,9 +184,8 @@ public class ResponseHandler {
             }
 
             //TODO listener请求标识数据
-            //response.identityData = source.getIdentityData();
-
             response.apiName = request.apiName;
+            response.identityData = new byte[]{};
             byte[] traceID = VenusTracerUtil.getTracerID();
             if (traceID == null) {
                 traceID = VenusTracerUtil.randomTracerID();

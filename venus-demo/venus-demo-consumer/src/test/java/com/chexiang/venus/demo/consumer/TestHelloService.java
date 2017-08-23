@@ -58,6 +58,12 @@ public class TestHelloService {
                 System.out.println(e);
             }
         });
+
+        try {
+            Thread.sleep(1000*60*60);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
 
