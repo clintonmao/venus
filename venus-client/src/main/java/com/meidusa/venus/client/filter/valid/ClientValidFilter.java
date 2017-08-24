@@ -10,9 +10,9 @@ import java.lang.reflect.Method;
  * 校验处理
  * Created by Zhangzhihua on 2017/8/1.
  */
-public class ValidFilter implements Filter {
+public class ClientValidFilter implements Filter {
 
-    private static Logger logger = LoggerFactory.getLogger(ValidFilter.class);
+    private static Logger logger = LoggerFactory.getLogger(ClientValidFilter.class);
 
     @Override
     public void init() throws RpcException {
@@ -20,7 +20,7 @@ public class ValidFilter implements Filter {
     }
 
     @Override
-    public Result invoke(Invocation invocation,URL url) throws RpcException {
+    public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
         //endpoint定义校验
         if(invocation.getEndpoint() == null){
             Method method = invocation.getMethod();
@@ -31,6 +31,16 @@ public class ValidFilter implements Filter {
         }
 
         //TODO 其它校验
+        return null;
+    }
+
+    @Override
+    public Result throwInvoke(Invocation invocation, URL url) throws RpcException {
+        return null;
+    }
+
+    @Override
+    public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         return null;
     }
 

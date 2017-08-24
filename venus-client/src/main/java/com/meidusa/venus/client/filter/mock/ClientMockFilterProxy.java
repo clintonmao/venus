@@ -6,7 +6,7 @@ import com.meidusa.venus.*;
  * mock调用代理
  * Created by Zhangzhihua on 2017/8/1.
  */
-public class MockFilterProxy implements Filter {
+public class ClientMockFilterProxy implements Filter {
 
     @Override
     public void init() throws RpcException {
@@ -14,8 +14,18 @@ public class MockFilterProxy implements Filter {
     }
 
     @Override
-    public Result invoke(Invocation invocation,URL url) throws RpcException {
+    public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
         //TODO
+        return null;
+    }
+
+    @Override
+    public Result throwInvoke(Invocation invocation, URL url) throws RpcException {
+        return null;
+    }
+
+    @Override
+    public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         return null;
     }
 
@@ -41,7 +51,7 @@ public class MockFilterProxy implements Filter {
      */
     Filter getMockInvoker(Invocation invocation){
         //TODO 处理mock wrapper
-        return new ReturnMockFilter();
+        return new ClientReturnMockFilter();
     }
 
 }

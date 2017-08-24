@@ -1,6 +1,6 @@
 package com.meidusa.venus.client.factory.xml.support;
 
-import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
+import com.meidusa.venus.client.proxy.VenusClientInvokerProxy;
 
 /**
  * 服务定义实例
@@ -14,9 +14,9 @@ public class ServiceDefinedBean {
 
     private Object service;
 
-    private InvokerInvocationHandler handler;
+    private VenusClientInvokerProxy handler;
 
-    public ServiceDefinedBean(String beanName,Class<?> clazz, Object service,InvokerInvocationHandler handler){
+    public ServiceDefinedBean(String beanName,Class<?> clazz, Object service,VenusClientInvokerProxy handler){
         this.beanName = beanName;
         this.clazz = clazz;
         this.service = service;
@@ -47,11 +47,11 @@ public class ServiceDefinedBean {
         this.service = service;
     }
 
-    public InvokerInvocationHandler getHandler() {
+    public VenusClientInvokerProxy getHandler() {
         return handler;
     }
 
-    public void setHandler(InvokerInvocationHandler handler) {
+    public void setHandler(VenusClientInvokerProxy handler) {
         this.handler = handler;
     }
 }

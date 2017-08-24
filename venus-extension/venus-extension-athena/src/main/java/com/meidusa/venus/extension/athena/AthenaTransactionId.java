@@ -32,4 +32,13 @@ public class AthenaTransactionId {
     public void setMessageId(String messageId) {
         this.messageId = messageId;
     }
+
+    @Override
+    public String toString() {
+        return "AthenaTransactionId{" +
+                "rootId='" + rootId + '\'' +
+                ", parentId='" + parentId + '\'' +
+                ", messageId='" + messageId + '\'' +
+                '}';
+    }
 }

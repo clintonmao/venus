@@ -79,7 +79,7 @@ public class VenusServerInvokerTask implements Runnable{
 
     private VenusRouterPacket routerPacket;
 
-    //private RemotingInvocationListener<Serializable> invocationListener;
+    //private VenusServerInvocationListener<Serializable> invocationListener;
 
     private VenusExceptionFactory venusExceptionFactory;
 
@@ -96,7 +96,7 @@ public class VenusServerInvokerTask implements Runnable{
     /**
      * 服务调用代理
      */
-    private VenusServerInvokerProxy venusInvokerProxy = new VenusServerInvokerProxy();
+    private VenusServerInvoker venusServerInvoker = new VenusServerInvoker();
 
     static {
         Map<Class<?>,ExceptionCode>  map = ClasspathAnnotationScanner.find(Exception.class,ExceptionCode.class);
@@ -138,9 +138,8 @@ public class VenusServerInvokerTask implements Runnable{
             invocation = buildInvocation(conn, data);
 
             //调用服务
-            result = venusInvokerProxy.invoke(invocation, null);
+            result = venusServerInvoker.invoke(invocation, null);
         } catch (Exception e) {
-            //handleResponse(context,null,null,null,false,null);
             //TODO 异常信息包装
             result = new Result();
             result.setErrorCode(500);
@@ -378,7 +377,7 @@ public class VenusServerInvokerTask implements Runnable{
     void initParamsForInvocationListener(SerializeServiceRequestPacket request, VenusFrontendConnection conn, VenusRouterPacket routerPacket,RpcInvocation invocation){
         for (Map.Entry<String, Object> entry : request.parameterMap.entrySet()) {
             if (entry.getValue() instanceof ReferenceInvocationListener) {
-                RemotingInvocationListener<Serializable> invocationListener = new RemotingInvocationListener<Serializable>(conn, (ReferenceInvocationListener) entry.getValue(), request,
+                VenusServerInvocationListener<Serializable> invocationListener = new VenusServerInvocationListener<Serializable>(conn, (ReferenceInvocationListener) entry.getValue(), request,
                         routerPacket,invocation);
                 invocationListener.setResponseHandler(responseHandler);
                 request.parameterMap.put(entry.getKey(), invocationListener);

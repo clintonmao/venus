@@ -8,7 +8,7 @@ import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.ExceptionCode;
 import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
-import com.meidusa.venus.backend.filter.valid.ValidFilter;
+import com.meidusa.venus.backend.filter.valid.ServerValidFilter;
 import com.meidusa.venus.backend.invoker.support.*;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.bean.PerformanceLogger;
@@ -111,13 +111,13 @@ public class VenusServerInvoker implements Invoker {
         RpcInvocation rpcInvocation = (RpcInvocation)invocation;
         //前置操作，校验、认证、流控、降级
         for(Filter filter : getFilters()){
-            Result result = filter.invoke(rpcInvocation,null);
+            Result result = filter.beforeInvoke(rpcInvocation,null);
             if(result != null){
                 return result;
             }
         }
 
-        //处理调用请求 TODO 统一或适配result/response
+        //处理调用请求
         Result result = doInvoke(rpcInvocation);
         return result;
     }
@@ -134,7 +134,7 @@ public class VenusServerInvoker implements Invoker {
     Filter[] getFilters(){
         return new Filter[]{
                 //校验
-                new ValidFilter()
+                new ServerValidFilter()
         };
     }
 

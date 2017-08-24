@@ -8,10 +8,11 @@ import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.cluster.FailoverClusterInvoker;
 import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
-import com.meidusa.venus.client.filter.limit.ActivesLimitFilter;
-import com.meidusa.venus.client.filter.limit.TpsLimitFilter;
-import com.meidusa.venus.client.filter.mock.MockFilterProxy;
-import com.meidusa.venus.client.filter.valid.ValidFilter;
+import com.meidusa.venus.client.filter.athenamonitor.ClientAthenaMonitorFilter;
+import com.meidusa.venus.client.filter.limit.ClientActivesLimitFilter;
+import com.meidusa.venus.client.filter.limit.ClientTpsLimitFilter;
+import com.meidusa.venus.client.filter.mock.ClientMockFilterProxy;
+import com.meidusa.venus.client.filter.valid.ClientValidFilter;
 import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
@@ -37,13 +38,13 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * 服务调用代理，执行校验/认证/流控/降级/寻址/路由/调用/容错等逻辑
+ * 客户端服务调用代理，除调用外，还校验/认证/调用/容错/流控/降级等逻辑
  * @author Struct
  */
 
-public class InvokerInvocationHandler implements InvocationHandler {
+public class VenusClientInvokerProxy implements InvocationHandler {
 
-    private static Logger logger = LoggerFactory.getLogger(InvokerInvocationHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(VenusClientInvokerProxy.class);
 
     /**
      * 服务接口类型
@@ -86,7 +87,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
     private InjvmInvoker injvmInvoker;
 
 
-    public InvokerInvocationHandler(){
+    public VenusClientInvokerProxy(){
         init();
     }
 
@@ -148,13 +149,14 @@ public class InvokerInvocationHandler implements InvocationHandler {
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        Invocation invocation = null;
         try {
             //构造请求对象
-            Invocation invocation = buildInvocation(proxy,method,args);
+            invocation = buildInvocation(proxy,method,args);
 
-            //前置处理，校验、流控、降级等
-            for(Filter filter : getFilters()){
-                Result result = filter.invoke(invocation,null);
+            //调用前切面处理，校验、流控、降级等
+            for(Filter filter : getBeforeFilters()){
+                Result result = filter.beforeInvoke(invocation,null);
                 if(result != null){
                     return result;
                 }
@@ -185,8 +187,20 @@ public class InvokerInvocationHandler implements InvocationHandler {
                 throw new RpcException(String.format("%s-%s",String.valueOf(result.getErrorCode()),result.getErrorMessage()));
             }
         } catch (Throwable e) {
+            //调用异常切面处理
+            for(Filter filter : getThrowFilters()){
+                Result result = filter.throwInvoke(invocation,null);
+                if(result != null){
+                    return result;
+                }
+            }
             //TODO 本地异常情况
             throw  new RpcException(e);
+        }finally {
+            //调用结束切面处理
+            for(Filter filter : getAfterFilters()){
+                filter.afterInvoke(invocation,null);
+            }
         }
     }
 
@@ -217,19 +231,43 @@ public class InvokerInvocationHandler implements InvocationHandler {
     }
 
     /**
-     * 获取interceptors TODO 初始化处理
+     * 获取前置filters TODO 初始化处理
      * @return
      */
-    Filter[] getFilters(){
+    Filter[] getBeforeFilters(){
         return new Filter[]{
                 //校验
-                new ValidFilter(),
+                new ClientValidFilter(),
                 //并发数流控
-                new ActivesLimitFilter(),
-                //TPS控制
-                new TpsLimitFilter(),
+                new ClientActivesLimitFilter(),
+                //TPS流控
+                new ClientTpsLimitFilter(),
                 //降级
-                new MockFilterProxy()
+                new ClientMockFilterProxy(),
+                //client端athena监控采集
+                new ClientAthenaMonitorFilter()
+        };
+    }
+
+    /**
+     * 获取前置filters TODO 初始化处理
+     * @return
+     */
+    Filter[] getThrowFilters(){
+        return new Filter[]{
+                //client端athena监控采集
+                new ClientAthenaMonitorFilter()
+        };
+    }
+
+    /**
+     * 获取after filters TODO 初始化处理
+     * @return
+     */
+    Filter[] getAfterFilters(){
+        return new Filter[]{
+                //client端athena监控采集
+                new ClientAthenaMonitorFilter()
         };
     }
 
