@@ -1,21 +1,11 @@
 package com.meidusa.venus.client.invoker;
 
 import com.meidusa.venus.*;
-import com.meidusa.venus.annotations.Endpoint;
-import com.meidusa.venus.annotations.Service;
-import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.cluster.FailoverClusterInvoker;
 import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
-import com.meidusa.venus.monitor.athena.client.filter.ClientAthenaMonitorFilter;
-import com.meidusa.venus.client.filter.limit.ClientActivesLimitFilter;
-import com.meidusa.venus.client.filter.limit.ClientTpsLimitFilter;
-import com.meidusa.venus.client.filter.mock.ClientMockFilterProxy;
-import com.meidusa.venus.client.filter.valid.ClientValidFilter;
-import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
-import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.RegisterService;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
@@ -32,32 +22,12 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * client invoker调用代理类，附加处理校验、流控、降级相关切面操作
+ * client 集群调用
  * Created by Zhangzhihua on 2017/8/24.
  */
-public class ClientInvokerProxy implements Invoker {
+public class ClientClusterInvoker implements Invoker{
 
-    private static Logger logger = LoggerFactory.getLogger(ClientInvokerProxy.class);
-
-    /**
-     * 路由服务
-     */
-    private Router router = new ConditionRouter();
-
-    /**
-     * jvm内部调用
-     */
-    private InjvmInvoker injvmInvoker = new InjvmInvoker();
-
-    /**
-     * 异常处理
-     */
-    private VenusExceptionFactory venusExceptionFactory;
-
-    /**
-     * 认证配置
-     */
-    private DummyAuthenticator authenticator;
+    private static Logger logger = LoggerFactory.getLogger(ClientClusterInvoker.class);
 
     private RemoteConfig remoteConfig;
 
@@ -70,6 +40,11 @@ public class ClientInvokerProxy implements Invoker {
      * 注册中心
      */
     private Register register;
+
+    /**
+     * 路由服务
+     */
+    private Router router = new ConditionRouter();
 
     @Override
     public void init() throws RpcException {
@@ -88,66 +63,6 @@ public class ClientInvokerProxy implements Invoker {
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
-        try {
-            //调用前切面处理，校验、流控、降级等
-            for(Filter filter : getBeforeFilters()){
-                Result result = filter.beforeInvoke(invocation,null);
-                if(result != null){
-                    return result;
-                }
-            }
-
-            //根据配置选择jvm内部调用还是集群环境容错调用
-            Result result = null;
-            Service service = invocation.getService();
-            Endpoint endpoint = invocation.getEndpoint();
-            if (endpoint != null && service != null) {
-                if (StringUtils.isEmpty(service.implement())) {
-                    //集群容错调用
-                    result = doInvokeInCluster(invocation);
-                } else {
-                    //jvm内部调用
-                    result = doInvokeInJvm(invocation);
-                }
-            }else{
-                //TODO 确认endpoint为空情况
-                result = doInvokeInJvm(invocation);
-            }
-
-            return result;
-        } catch (Throwable e) {
-            //调用异常切面处理
-            for(Filter filter : getThrowFilters()){
-                Result result = filter.throwInvoke(invocation,null);
-                if(result != null){
-                    return result;
-                }
-            }
-            //TODO 本地异常情况
-            throw  new RpcException(e);
-        }finally {
-            //调用结束切面处理
-            for(Filter filter : getAfterFilters()){
-                filter.afterInvoke(invocation,null);
-            }
-        }
-    }
-
-    /**
-     * jvm内部调用
-     * @param invocation
-     * @return
-     */
-    Result doInvokeInJvm(Invocation invocation){
-        return injvmInvoker.invoke(invocation, null);
-    }
-
-    /**
-     * 集群容错调用
-     * @param invocation
-     * @return
-     */
-    Result doInvokeInCluster(Invocation invocation){
         //寻址，TODO 地址变化对连接池的影响
         List<URL> urlList = lookup(invocation);
 
@@ -159,45 +74,9 @@ public class ClientInvokerProxy implements Invoker {
         return result;
     }
 
-    /**
-     * 获取前置filters TODO 初始化处理
-     * @return
-     */
-    Filter[] getBeforeFilters(){
-        return new Filter[]{
-                //校验
-                new ClientValidFilter(),
-                //并发数流控
-                new ClientActivesLimitFilter(),
-                //TPS流控
-                new ClientTpsLimitFilter(),
-                //降级
-                new ClientMockFilterProxy(),
-                //client端athena监控采集
-                new ClientAthenaMonitorFilter()
-        };
-    }
+    @Override
+    public void destroy() throws RpcException {
 
-    /**
-     * 获取前置filters TODO 初始化处理
-     * @return
-     */
-    Filter[] getThrowFilters(){
-        return new Filter[]{
-                //client端athena监控采集
-                new ClientAthenaMonitorFilter()
-        };
-    }
-
-    /**
-     * 获取after filters TODO 初始化处理
-     * @return
-     */
-    Filter[] getAfterFilters(){
-        return new Filter[]{
-                //client端athena监控采集
-                new ClientAthenaMonitorFilter()
-        };
     }
 
     /**
@@ -304,42 +183,5 @@ public class ClientInvokerProxy implements Invoker {
      */
     ClusterInvoker getClusterInvoker(){
         return new FailoverClusterInvoker();
-    }
-
-    @Override
-    public void destroy() throws RpcException {
-
-    }
-
-    public VenusExceptionFactory getVenusExceptionFactory() {
-        return venusExceptionFactory;
-    }
-
-    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
-        this.venusExceptionFactory = venusExceptionFactory;
-    }
-
-    public DummyAuthenticator getAuthenticator() {
-        return authenticator;
-    }
-
-    public void setAuthenticator(DummyAuthenticator authenticator) {
-        this.authenticator = authenticator;
-    }
-
-    public RemoteConfig getRemoteConfig() {
-        return remoteConfig;
-    }
-
-    public void setRemoteConfig(RemoteConfig remoteConfig) {
-        this.remoteConfig = remoteConfig;
-    }
-
-    public String getRegisterUrl() {
-        return registerUrl;
-    }
-
-    public void setRegisterUrl(String registerUrl) {
-        this.registerUrl = registerUrl;
     }
 }
