@@ -23,12 +23,12 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RemoteException {
     
-	public enum Level {
+	enum Level {
 		ERROR(3), WARN(2), INFO(1), DEBUG(0);
 
 		private int level;
 		
-		private Level(int level){
+		Level(int level){
 			this.level = level;
 		}
 		public int toInt() {

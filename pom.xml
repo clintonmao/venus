@@ -18,7 +18,6 @@
 	</properties>
 	<modules>
 		<module>venus-commons</module>
-		<module>venus-annotations</module>
 		<module>venus-backend</module>
 		<module>venus-client</module>
 		<module>venus-remoting</module>
