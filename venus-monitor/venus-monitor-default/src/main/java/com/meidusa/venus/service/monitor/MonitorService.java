@@ -9,12 +9,12 @@ import com.meidusa.venus.annotations.Service;
 public interface MonitorService extends SystemService {
 
     @Endpoint(name = "getSerivces")
-    public List<ServiceBean> getSerivces();
+    List<ServiceBean> getSerivces();
 
     @Endpoint(name = "getServerStatus")
-    public ServerStatus getServerStatus();
+    ServerStatus getServerStatus();
 
     @Endpoint(name = "getVersion")
-    public String getVersion();
+    String getVersion();
 
 }

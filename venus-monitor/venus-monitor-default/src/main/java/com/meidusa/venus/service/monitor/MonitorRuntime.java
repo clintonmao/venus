@@ -22,7 +22,7 @@ public class MonitorRuntime {
     }
 
     private MonitorRuntime() {
-    };
+    }
 
     public void calculateAverage(String serviceName, String endpoint, long current,boolean isError) {
         getPerformanceBean(serviceName, endpoint).calculateAverage(current,isError);

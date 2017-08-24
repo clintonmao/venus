@@ -28,8 +28,8 @@ public class PerformanceBean {
 
     public synchronized void calculateAverage(long current ,boolean isError) {
         double j = (double) times / (double) (times + 1);
-        double x = (double) average * j + (double) current / (double) (times + 1);
-        double y = (double) basicAverage * j + (double) current / (double) (times + 1);
+        double x = average * j + (double) current / (double) (times + 1);
+        double y = basicAverage * j + (double) current / (double) (times + 1);
         basicAverage = y;
         average = x;
         times++;
