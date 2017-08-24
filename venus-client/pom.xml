@@ -44,7 +44,12 @@
 		</dependency>
 		<dependency>
 			<groupId>com.meidusa.venus</groupId>
-			<artifactId>venus-monitor</artifactId>
+			<artifactId>venus-monitor-default</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.meidusa.venus</groupId>
+			<artifactId>venus-monitor-athena</artifactId>
 			<version>${project.version}</version>
 		</dependency>
     </dependencies>

@@ -3,18 +3,19 @@ package com.meidusa.venus.client.invoker;
 import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
+import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.cluster.FailoverClusterInvoker;
 import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
-import com.meidusa.venus.client.filter.athenamonitor.ClientAthenaMonitorFilter;
+import com.meidusa.venus.monitor.athena.client.filter.ClientAthenaMonitorFilter;
 import com.meidusa.venus.client.filter.limit.ClientActivesLimitFilter;
 import com.meidusa.venus.client.filter.limit.ClientTpsLimitFilter;
 import com.meidusa.venus.client.filter.mock.ClientMockFilterProxy;
 import com.meidusa.venus.client.filter.valid.ClientValidFilter;
 import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
-import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
+import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.RegisterService;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
@@ -46,22 +47,29 @@ public class ClientInvokerProxy implements Invoker {
     /**
      * jvm内部调用
      */
-    private InjvmInvoker injvmInvoker;
+    private InjvmInvoker injvmInvoker = new InjvmInvoker();
+
+    /**
+     * 异常处理
+     */
+    private VenusExceptionFactory venusExceptionFactory;
+
+    /**
+     * 认证配置
+     */
+    private DummyAuthenticator authenticator;
+
+    private RemoteConfig remoteConfig;
 
     /**
      * 注册中心地址
      */
-    private String registerUrl = "192.168.1.1:9000";
+    private String registerUrl;
 
     /**
      * 注册中心
      */
     private Register register;
-
-    /**
-     * 静态连接配置
-     */
-    private RemoteConfig remoteConfig;
 
     @Override
     public void init() throws RpcException {
@@ -301,5 +309,37 @@ public class ClientInvokerProxy implements Invoker {
     @Override
     public void destroy() throws RpcException {
 
+    }
+
+    public VenusExceptionFactory getVenusExceptionFactory() {
+        return venusExceptionFactory;
+    }
+
+    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
+        this.venusExceptionFactory = venusExceptionFactory;
+    }
+
+    public DummyAuthenticator getAuthenticator() {
+        return authenticator;
+    }
+
+    public void setAuthenticator(DummyAuthenticator authenticator) {
+        this.authenticator = authenticator;
+    }
+
+    public RemoteConfig getRemoteConfig() {
+        return remoteConfig;
+    }
+
+    public void setRemoteConfig(RemoteConfig remoteConfig) {
+        this.remoteConfig = remoteConfig;
+    }
+
+    public String getRegisterUrl() {
+        return registerUrl;
+    }
+
+    public void setRegisterUrl(String registerUrl) {
+        this.registerUrl = registerUrl;
     }
 }

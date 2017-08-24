@@ -5,38 +5,17 @@ import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
-import com.meidusa.venus.client.cluster.FailoverClusterInvoker;
-import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
-import com.meidusa.venus.client.filter.athenamonitor.ClientAthenaMonitorFilter;
-import com.meidusa.venus.client.filter.limit.ClientActivesLimitFilter;
-import com.meidusa.venus.client.filter.limit.ClientTpsLimitFilter;
-import com.meidusa.venus.client.filter.mock.ClientMockFilterProxy;
-import com.meidusa.venus.client.filter.valid.ClientValidFilter;
 import com.meidusa.venus.client.invoker.ClientInvokerProxy;
-import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
-import com.meidusa.venus.client.router.Router;
-import com.meidusa.venus.client.router.condition.ConditionRouter;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.metainfo.EndpointParameterUtil;
-import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.RegisterService;
-import com.meidusa.venus.registry.mysql.MysqlRegister;
-import com.meidusa.venus.service.registry.HostPort;
-import com.meidusa.venus.service.registry.ServiceDefinition;
-import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusTracerUtil;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 /**
  * 客户端服务调用代理
@@ -80,7 +59,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
             Invocation invocation = buildInvocation(proxy, method, args);
 
             //通过代理调用服务
-            Result result = clientInvokerProxy.invoke(invocation,null);
+            Result result = getClientInvokerProxy().invoke(invocation,null);
 
             if(result.getErrorCode() == 0){//调用成功
                 return result.getResult();
@@ -92,6 +71,18 @@ public class InvokerInvocationHandler implements InvocationHandler {
             logger.error("invoke error.",e);
             throw e;
         }
+    }
+
+    public ClientInvokerProxy getClientInvokerProxy() {
+        if(clientInvokerProxy == null){
+            //TODO 初始化
+            clientInvokerProxy = new ClientInvokerProxy();
+            clientInvokerProxy.setAuthenticator(getAuthenticator());
+            clientInvokerProxy.setVenusExceptionFactory(getVenusExceptionFactory());
+            clientInvokerProxy.setRegisterUrl(getRegisterUrl());
+            clientInvokerProxy.setRemoteConfig(getRemoteConfig());
+        }
+        return clientInvokerProxy;
     }
 
     /**

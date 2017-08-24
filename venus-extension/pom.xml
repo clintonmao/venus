@@ -15,7 +15,5 @@
     <modules>
         <module>venus-extension-xmpp</module>
         <module>venus-extension-cache</module>
-        <module>venus-extension-monitor</module>
-        <module>venus-extension-athena</module>
     </modules>
 </project>

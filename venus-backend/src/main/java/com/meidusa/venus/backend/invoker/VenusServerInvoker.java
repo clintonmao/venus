@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 
 /**
- * venus服务调用代理，除调用服务实现，还负责校验、认证、流控、降级、监控相关处理
+ * venus服务调用，除调用服务实现，还负责校验、认证、流控、降级、监控相关处理
  * Created by Zhangzhihua on 2017/8/2.
  */
 public class VenusServerInvoker implements Invoker {
@@ -109,17 +109,34 @@ public class VenusServerInvoker implements Invoker {
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
         RpcInvocation rpcInvocation = (RpcInvocation)invocation;
-        //前置操作，校验、认证、流控、降级
-        for(Filter filter : getFilters()){
-            Result result = filter.beforeInvoke(rpcInvocation,null);
-            if(result != null){
-                return result;
+
+        try {
+            //前置操作，校验、认证、流控、降级
+            for(Filter filter : getBeforeFilters()){
+                Result result = filter.beforeInvoke(rpcInvocation,null);
+                if(result != null){
+                    return result;
+                }
+            }
+
+            //处理调用请求
+            Result result = doInvoke(rpcInvocation);
+            return result;
+        } catch (RpcException e) {
+            //调用异常切面
+            for(Filter filter : getBeforeFilters()){
+                Result result = filter.beforeInvoke(rpcInvocation,null);
+                if(result != null){
+                    return result;
+                }
+            }
+            throw e;
+        } finally {
+            //调用后切面
+            for(Filter filter : getBeforeFilters()){
+                filter.beforeInvoke(rpcInvocation,null);
             }
         }
-
-        //处理调用请求
-        Result result = doInvoke(rpcInvocation);
-        return result;
     }
 
     @Override
@@ -128,13 +145,31 @@ public class VenusServerInvoker implements Invoker {
     }
 
     /**
-     * 获取拦截器列表
+     * 获取调用前切面
      * @return
      */
-    Filter[] getFilters(){
+    Filter[] getBeforeFilters(){
         return new Filter[]{
                 //校验
                 new ServerValidFilter()
+        };
+    }
+
+    /**
+     * 获取调用异常切面
+     * @return
+     */
+    Filter[] getThrowFilters(){
+        return new Filter[]{
+        };
+    }
+
+    /**
+     * 获取调用后切面
+     * @return
+     */
+    Filter[] getAfterFilters(){
+        return new Filter[]{
         };
     }
 
