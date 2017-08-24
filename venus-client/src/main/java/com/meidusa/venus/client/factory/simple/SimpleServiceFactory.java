@@ -9,7 +9,7 @@ import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.client.factory.ServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
-import com.meidusa.venus.client.proxy.VenusClientInvokerProxy;
+import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.exception.XmlVenusExceptionFactory;
@@ -55,7 +55,7 @@ public class SimpleServiceFactory implements ServiceFactory {
 
     private Authenticator authenticator;
 
-    private Map<Class<?>, Tuple<Object, VenusClientInvokerProxy>> servicesMap = new HashMap<Class<?>, Tuple<Object, VenusClientInvokerProxy>>();
+    private Map<Class<?>, Tuple<Object, InvokerInvocationHandler>> servicesMap = new HashMap<Class<?>, Tuple<Object, InvokerInvocationHandler>>();
 
     public SimpleServiceFactory(String host, int port) {
         this.host = host;
@@ -96,7 +96,7 @@ public class SimpleServiceFactory implements ServiceFactory {
 
     @Override
     public <T> T getService(Class<T> t) {
-        Tuple<Object, VenusClientInvokerProxy> object = servicesMap.get(t);
+        Tuple<Object, InvokerInvocationHandler> object = servicesMap.get(t);
         if (object == null) {
             synchronized (servicesMap) {
                 object = servicesMap.get(t);
@@ -119,8 +119,8 @@ public class SimpleServiceFactory implements ServiceFactory {
      * @return
      */
     protected <T> T initService(Class<T> t, String host, int port) {
-        //VenusClientInvokerProxy invocationHandler = new VenusClientInvokerProxy(host, port, coTimeout, soTimeout);
-        VenusClientInvokerProxy invocationHandler = new VenusClientInvokerProxy();
+        //InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler(host, port, coTimeout, soTimeout);
+        InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
         invocationHandler.setRemoteConfig(getRemoteConfig());
 
         if(this.venusExceptionFactory == null){
@@ -151,7 +151,7 @@ public class SimpleServiceFactory implements ServiceFactory {
             }
         }
 
-        Tuple<Object, VenusClientInvokerProxy> serviceTuple = new Tuple<Object, VenusClientInvokerProxy>(object, invocationHandler);
+        Tuple<Object, InvokerInvocationHandler> serviceTuple = new Tuple<Object, InvokerInvocationHandler>(object, invocationHandler);
         servicesMap.put(t, serviceTuple);
         return object;
     }

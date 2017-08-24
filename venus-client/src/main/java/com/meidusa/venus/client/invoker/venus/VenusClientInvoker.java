@@ -9,11 +9,10 @@ import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.factory.xml.XmlServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.*;
 import com.meidusa.venus.client.invoker.AbstractClientInvoker;
-import com.meidusa.venus.client.proxy.VenusClientInvokerProxy;
+import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.exception.InvalidParameterException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.extension.athena.AthenaTransactionId;
-import com.meidusa.venus.extension.athena.delegate.AthenaTransactionDelegate;
 import com.meidusa.venus.io.network.AbstractBIOConnection;
 import com.meidusa.venus.io.network.VenusBackendConnectionFactory;
 import com.meidusa.venus.io.packet.*;
@@ -45,7 +44,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class VenusClientInvoker extends AbstractClientInvoker implements Invoker{
 
-    private static Logger logger = LoggerFactory.getLogger(VenusClientInvokerProxy.class);
+    private static Logger logger = LoggerFactory.getLogger(InvokerInvocationHandler.class);
 
     private static Logger performanceLogger = LoggerFactory.getLogger("venus.client.performance");
 
