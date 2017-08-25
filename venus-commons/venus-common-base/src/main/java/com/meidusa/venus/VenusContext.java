@@ -1,5 +1,6 @@
 package com.meidusa.venus;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -24,6 +25,9 @@ public class VenusContext {
      * @param value
      */
     public static void set(String key,Object value){
+        if(mapThreadLocal.get() == null){
+            mapThreadLocal.set(new HashMap<String,Object>());
+        }
         mapThreadLocal.get().put(key,value);
     }
 

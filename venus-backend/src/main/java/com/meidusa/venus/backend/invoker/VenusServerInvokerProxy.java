@@ -10,7 +10,8 @@ import com.meidusa.venus.backend.invoker.support.RpcInvocation;
  */
 public class VenusServerInvokerProxy implements Invoker {
 
-    private VenusServerInvoker venusServerInvoker;
+    //TODO 实例化
+    private VenusServerInvoker venusServerInvoker = new VenusServerInvoker();
 
     @Override
     public void init() throws RpcException {

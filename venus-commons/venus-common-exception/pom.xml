@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.meidusa.venus.commons</groupId>
+		<groupId>com.meidusa.venus</groupId>
 		<artifactId>venus-commons</artifactId>
 		<version>3.3.1</version>
 	</parent>
@@ -23,10 +23,11 @@
 		</dependency>
 		<dependency>
 			<groupId>com.meidusa.venus</groupId>
-			<artifactId>venus-annotations</artifactId>
+			<artifactId>venus-commons-annotation</artifactId>
+			<version>3.3.1</version>
 		</dependency>
 		<dependency>
-			<groupId>com.meidusa.venus.commons</groupId>
+			<groupId>com.meidusa.venus</groupId>
 			<artifactId>venus-common-base</artifactId>
 		</dependency>
 	</dependencies>

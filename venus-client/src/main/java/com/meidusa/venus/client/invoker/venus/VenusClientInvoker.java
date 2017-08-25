@@ -44,7 +44,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class VenusClientInvoker extends AbstractClientInvoker implements Invoker{
 
-    private static Logger logger = LoggerFactory.getLogger(InvokerInvocationHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(VenusClientInvoker.class);
 
     private static Logger performanceLogger = LoggerFactory.getLogger("venus.client.performance");
 

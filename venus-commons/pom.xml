@@ -8,7 +8,7 @@
 		<relativePath>..</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.meidusa.venus.commons</groupId>
+	<groupId>com.meidusa.venus</groupId>
 	<artifactId>venus-commons</artifactId>
 	<packaging>pom</packaging>
 	<name>${project.artifactId} v${project.version}</name>

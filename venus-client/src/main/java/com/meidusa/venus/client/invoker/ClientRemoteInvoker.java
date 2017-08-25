@@ -184,4 +184,20 @@ public class ClientRemoteInvoker implements Invoker{
     ClusterInvoker getClusterInvoker(){
         return new FailoverClusterInvoker();
     }
+
+    public RemoteConfig getRemoteConfig() {
+        return remoteConfig;
+    }
+
+    public void setRemoteConfig(RemoteConfig remoteConfig) {
+        this.remoteConfig = remoteConfig;
+    }
+
+    public String getRegisterUrl() {
+        return registerUrl;
+    }
+
+    public void setRegisterUrl(String registerUrl) {
+        this.registerUrl = registerUrl;
+    }
 }

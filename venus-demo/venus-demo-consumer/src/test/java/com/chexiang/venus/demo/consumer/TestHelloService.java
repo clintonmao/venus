@@ -29,7 +29,7 @@ public class TestHelloService {
     @Autowired
     HelloService helloService;
 
-    @Test
+    //@Test
     public void testSayHello(){
         logger.info("testSayHello begin...");
         helloService.sayHello("jack");
@@ -44,7 +44,7 @@ public class TestHelloService {
         */
     }
 
-    @Test
+    //@Test
     public void testSayHelloWithCallback(){
         helloService.sayHello("jack", new InvocationListener<Hello>() {
 
@@ -67,7 +67,7 @@ public class TestHelloService {
     }
 
 
-    //@Test
+    @Test
     public void testGetHello(){
         System.out.println("testGetHello begin...");
         Hello hello = helloService.getHello("jack");

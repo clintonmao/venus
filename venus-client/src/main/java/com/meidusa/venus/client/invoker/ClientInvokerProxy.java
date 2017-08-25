@@ -5,13 +5,13 @@ import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
-import com.meidusa.venus.monitor.athena.client.filter.ClientAthenaMonitorFilter;
 import com.meidusa.venus.client.filter.limit.ClientActivesLimitFilter;
 import com.meidusa.venus.client.filter.limit.ClientTpsLimitFilter;
 import com.meidusa.venus.client.filter.mock.ClientMockFilterProxy;
 import com.meidusa.venus.client.filter.valid.ClientValidFilter;
 import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
 import com.meidusa.venus.exception.VenusExceptionFactory;
+import com.meidusa.venus.monitor.athena.client.filter.ClientAthenaMonitorFilter;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,10 +68,10 @@ public class ClientInvokerProxy implements Invoker {
 
             //根据配置选择内部调用还是跨实例/远程调用
             if(isInjvmInvoke(invocation)){
-                Result result = injvmInvoker.invoke(invocation, url);
+                Result result = getInjvmInvoker().invoke(invocation, url);
                 return result;
             }else{
-                Result result = clientRemoteInvoker.invoke(invocation, url);
+                Result result = getClientRemoteInvoker().invoke(invocation, url);
                 return result;
             }
         } catch (Throwable e) {
@@ -107,6 +107,24 @@ public class ClientInvokerProxy implements Invoker {
             //TODO 确认endpoint为空情况
             return true;
         }
+    }
+
+    public InjvmInvoker getInjvmInvoker() {
+        return injvmInvoker;
+    }
+
+    /**
+     * 获取clientRemoteInvoker
+     * @return
+     */
+    public ClientRemoteInvoker getClientRemoteInvoker() {
+        if(registerUrl != null){
+            clientRemoteInvoker.setRegisterUrl(registerUrl);
+        }
+        if(remoteConfig != null){
+            clientRemoteInvoker.setRemoteConfig(remoteConfig);
+        }
+        return clientRemoteInvoker;
     }
 
     /**
@@ -150,6 +168,19 @@ public class ClientInvokerProxy implements Invoker {
         };
     }
 
+    /**
+     * 获取athena监控filter
+     * @return
+     */
+    Filter getAthenaMonitorFilter(){
+        try {
+            Filter filter = (Filter) Class.forName("com.meidusa.venus.monitor.athena.client.filter.ClientAthenaMonitorFilter").newInstance();
+            return filter;
+        } catch (Exception e) {
+            logger.error("new ClientAthenaMonitorFilter error.",e);
+            return null;
+        }
+    }
 
 
     @Override

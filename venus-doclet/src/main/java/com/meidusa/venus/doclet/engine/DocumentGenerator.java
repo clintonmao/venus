@@ -267,9 +267,9 @@ public class DocumentGenerator {
 		List jars = new ArrayList();
 		jars.add(jarFile);
 		jars.add(new File(
-				"/home/gaoyong/.m2/repository/com/meidusa/venus/commons/service-common-exception/1.0.0-SNAPSHOT/service-common-exception-1.0.0-SNAPSHOT.jar"));
+				"/home/gaoyong/.m2/repository/com.meidusa.venus/service-common-exception/1.0.0-SNAPSHOT/service-common-exception-1.0.0-SNAPSHOT.jar"));
 		jars.add(new File(
-				"/home/gaoyong/.m2/repository/com/meidusa/venus/commons/service-common-base/1.0.0-SNAPSHOT/service-common-base-1.0.0-SNAPSHOT.jar"));
+				"/home/gaoyong/.m2/repository/com.meidusa.venus/service-common-base/1.0.0-SNAPSHOT/service-common-base-1.0.0-SNAPSHOT.jar"));
 		ProjectInfo info = new ProjectInfo();
 		// info.setOutputTemlate("testTemplate.html");
 		info.setOutputDocument(document);

@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>venus-monitor-athena</artifactId>
+    <packaging>pom</packaging>
 
 
     <dependencies>
@@ -26,12 +27,12 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.meidusa.venus.commons</groupId>
+            <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-common-base</artifactId>
             <version>3.3.1</version>
         </dependency>
         <dependency>
-            <groupId>com.meidusa.venus.commons</groupId>
+            <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-common-api</artifactId>
             <version>3.3.1</version>
         </dependency>

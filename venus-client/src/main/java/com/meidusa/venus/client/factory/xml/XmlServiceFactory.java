@@ -19,17 +19,16 @@ import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.client.factory.ServiceFactory;
+import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
+import com.meidusa.venus.client.factory.xml.config.ServiceConfig;
+import com.meidusa.venus.client.factory.xml.config.VenusClientConfig;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanContext;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanUtilsBean;
 import com.meidusa.venus.client.factory.xml.support.ServiceDefinedBean;
 import com.meidusa.venus.client.factory.xml.support.ServiceFactoryBean;
 import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
-import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
-import com.meidusa.venus.client.factory.xml.config.ServiceConfig;
-import com.meidusa.venus.client.factory.xml.config.VenusClientConfig;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.*;
-import com.meidusa.venus.extension.athena.AthenaExtensionResolver;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.util.FileWatchdog;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
@@ -157,7 +156,6 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         beanContext = new ClientBeanContext(applicationContext!= null ?applicationContext.getAutowireCapableBeanFactory(): null);
         BeanContextBean.getInstance().setBeanContext(beanContext);
         VenusBeanUtilsBean.setInstance(new ClientBeanUtilsBean(new ConvertUtilsBean(), new PropertyUtilsBean(), beanContext));
-        AthenaExtensionResolver.getInstance().resolver();
 
         initConfiguration();
 

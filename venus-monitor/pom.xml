@@ -14,6 +14,7 @@
     <modules>
         <module>venus-monitor-default</module>
         <module>venus-monitor-athena</module>
+        <module>venus-monitor-reporter</module>
     </modules>
 
     <dependencies>
@@ -26,7 +27,7 @@
             <artifactId>commons-logging</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.meidusa.venus.commons</groupId>
+            <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-common-exception</artifactId>
         </dependency>
         <dependency>

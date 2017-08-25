@@ -31,15 +31,15 @@
             <artifactId>commons-lang</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.meidusa.venus.commons</groupId>
+            <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-common-base</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.meidusa.venus.commons</groupId>
+            <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-common-exception</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.meidusa.venus.commons</groupId>
+            <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-common-api</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -3,6 +3,7 @@ package com.meidusa.venus.monitor.athena.client.filter;
 import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
+import com.meidusa.venus.extension.athena.AthenaExtensionResolver;
 import com.meidusa.venus.extension.athena.AthenaTransactionId;
 import com.meidusa.venus.extension.athena.delegate.AthenaTransactionDelegate;
 import com.meidusa.venus.util.VenusAnnotationUtils;
@@ -15,9 +16,17 @@ import java.lang.reflect.Method;
  */
 public class ClientAthenaMonitorFilter implements Filter {
 
+    static boolean isRunning = false;
+
+    public ClientAthenaMonitorFilter(){
+        if(!isRunning){
+            init();
+        }
+    }
+
     @Override
     public void init() throws RpcException {
-
+        AthenaExtensionResolver.getInstance().resolver();
     }
 
     @Override
