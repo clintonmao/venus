@@ -22,12 +22,12 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * client 集群调用
+ * client 实例间/远程服务调用
  * Created by Zhangzhihua on 2017/8/24.
  */
-public class ClientClusterInvoker implements Invoker{
+public class ClientRemoteInvoker implements Invoker{
 
-    private static Logger logger = LoggerFactory.getLogger(ClientClusterInvoker.class);
+    private static Logger logger = LoggerFactory.getLogger(ClientRemoteInvoker.class);
 
     private RemoteConfig remoteConfig;
 

@@ -21,7 +21,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 /**
- * venus远程调用请求消息类型事件处理
+ * venus服务端服务调用消息处理
  * @author structchen
  *
  */

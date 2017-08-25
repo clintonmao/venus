@@ -14,13 +14,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 
 /**
- * 
+ * 服务端调用委托处理类，调用本地stub
  * @author Struct
- * TODO 统一invoker接口定义
  */
-public class VenusServerEndpointInvocation implements EndpointInvocation {
+public class VenusServerInvocationEndpoint implements EndpointInvocation {
 
-    private static Logger logger = LoggerFactory.getLogger(VenusServerEndpointInvocation.class);
+    private static Logger logger = LoggerFactory.getLogger(VenusServerInvocationEndpoint.class);
 
     private static String ENDPOINT_INVOKED = "handleRequest endpoint: ";
     
@@ -54,7 +53,7 @@ public class VenusServerEndpointInvocation implements EndpointInvocation {
      */
     private ResultType type = ResultType.RESPONSE;
 
-    public VenusServerEndpointInvocation(RequestContext context, Endpoint endpoint) {
+    public VenusServerInvocationEndpoint(RequestContext context, Endpoint endpoint) {
         this.endpoint = endpoint;
         if (endpoint.getInterceptorStack() != null) {
             interceptors = endpoint.getInterceptorStack().getInterceptors().iterator();
@@ -95,7 +94,7 @@ public class VenusServerEndpointInvocation implements EndpointInvocation {
             String interceptorMsg = "filte: " + interceptor.getName();
             UtilTimerStack.push(interceptorMsg);
             try {
-                result = interceptor.getInterceptor().intercept(VenusServerEndpointInvocation.this);
+                result = interceptor.getInterceptor().intercept(VenusServerInvocationEndpoint.this);
             } finally {
                 UtilTimerStack.pop(interceptorMsg);
             }

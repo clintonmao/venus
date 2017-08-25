@@ -8,7 +8,6 @@ import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.ExceptionCode;
 import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
-import com.meidusa.venus.backend.filter.valid.ServerValidFilter;
 import com.meidusa.venus.backend.invoker.support.*;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.bean.PerformanceLogger;
@@ -31,7 +30,7 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 
 /**
- * venus服务调用，除调用服务实现，还负责校验、认证、流控、降级、监控相关处理
+ * venus服务调用
  * Created by Zhangzhihua on 2017/8/2.
  */
 public class VenusServerInvoker implements Invoker {
@@ -109,86 +108,17 @@ public class VenusServerInvoker implements Invoker {
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
         RpcInvocation rpcInvocation = (RpcInvocation)invocation;
-
-        try {
-            //前置操作，校验、认证、流控、降级
-            for(Filter filter : getBeforeFilters()){
-                Result result = filter.beforeInvoke(rpcInvocation,null);
-                if(result != null){
-                    return result;
-                }
-            }
-
-            //处理调用请求
-            Result result = doInvoke(rpcInvocation);
-            return result;
-        } catch (RpcException e) {
-            //调用异常切面
-            for(Filter filter : getBeforeFilters()){
-                Result result = filter.beforeInvoke(rpcInvocation,null);
-                if(result != null){
-                    return result;
-                }
-            }
-            throw e;
-        } finally {
-            //调用后切面
-            for(Filter filter : getBeforeFilters()){
-                filter.beforeInvoke(rpcInvocation,null);
-            }
-        }
-    }
-
-    @Override
-    public void destroy() throws RpcException {
-
-    }
-
-    /**
-     * 获取调用前切面
-     * @return
-     */
-    Filter[] getBeforeFilters(){
-        return new Filter[]{
-                //校验
-                new ServerValidFilter()
-        };
-    }
-
-    /**
-     * 获取调用异常切面
-     * @return
-     */
-    Filter[] getThrowFilters(){
-        return new Filter[]{
-        };
-    }
-
-    /**
-     * 获取调用后切面
-     * @return
-     */
-    Filter[] getAfterFilters(){
-        return new Filter[]{
-        };
-    }
-
-    /**
-     * invoke
-     * @return
-     */
-    public Result doInvoke(RpcInvocation invocation) throws RpcException{
         //获取调用信息
-        Tuple<Long, byte[]> data = invocation.getData();
-        byte[] message = invocation.getMessage();
-        byte packetSerializeType = invocation.getPacketSerializeType();
-        long waitTime = invocation.getWaitTime();
-        String finalSourceIp = invocation.getFinalSourceIp();
-        VenusRouterPacket routerPacket = invocation.getRouterPacket();
-        byte serializeType = invocation.getSerializeType();
-        SerializeServiceRequestPacket request = invocation.getRequest();
+        Tuple<Long, byte[]> data = rpcInvocation.getData();
+        byte[] message = rpcInvocation.getMessage();
+        byte packetSerializeType = rpcInvocation.getPacketSerializeType();
+        long waitTime = rpcInvocation.getWaitTime();
+        String finalSourceIp = rpcInvocation.getFinalSourceIp();
+        VenusRouterPacket routerPacket = rpcInvocation.getRouterPacket();
+        byte serializeType = rpcInvocation.getSerializeType();
+        SerializeServiceRequestPacket request = rpcInvocation.getRequest();
         final String apiName = request.apiName;
-        final Endpoint endpoint = invocation.getEp();//getServiceManager().getEndpoint(serviceName, methodName, request.parameterMap.keySet().toArray(new String[] {}));
+        final Endpoint endpoint = rpcInvocation.getEp();//getServiceManager().getEndpoint(serviceName, methodName, request.parameterMap.keySet().toArray(new String[] {}));
         /*
         int index = apiName.lastIndexOf(".");
         String serviceName = request.apiName.substring(0, index);
@@ -196,11 +126,11 @@ public class VenusServerInvoker implements Invoker {
         RequestInfo info = getRequestInfo(conn, request);
         */
         //获取方法返回结果类型
-        EndpointInvocation.ResultType resultType = invocation.getResultType();
+        EndpointInvocation.ResultType resultType = rpcInvocation.getResultType();
 
         //构造请求上下文信息
         RequestHandler requestHandler = new RequestHandler();
-        RequestInfo requestInfo = requestHandler.getRequestInfo(packetSerializeType, routerPacket, invocation);
+        RequestInfo requestInfo = requestHandler.getRequestInfo(packetSerializeType, routerPacket, rpcInvocation);
         RequestContext requestContext = requestHandler.createContext(requestInfo, endpoint, request);
 
         //调用服务
@@ -331,14 +261,14 @@ public class VenusServerInvoker implements Invoker {
     }
 
     /**
-     * 执行调用
+     * 调用本地stub/存根
      * @param context
      * @param endpoint
      * @return
      */
     private Object doInvokeEndpoint(RequestContext context, Endpoint endpoint) throws Exception{
         //TODO 实例化
-        VenusServerEndpointInvocation invocation = new VenusServerEndpointInvocation(context, endpoint);
+        VenusServerInvocationEndpoint invocation = new VenusServerInvocationEndpoint(context, endpoint);
         //invocation.addObserver(ObserverScanner.getInvocationObservers());
         try {
             UtilTimerStack.push(ENDPOINT_INVOKED_TIME);
@@ -529,6 +459,11 @@ public class VenusServerInvoker implements Invoker {
             default:
                 break;
         }
+    }
+
+    @Override
+    public void destroy() throws RpcException {
+
     }
 
     public ServiceManager getServiceManager() {

@@ -6,6 +6,7 @@ import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
+import com.meidusa.venus.client.invoker.ClientInvokerProxy;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.metainfo.EndpointParameterUtil;

@@ -14,7 +14,7 @@ import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
 
 /**
- * callback远程调用处理
+ * 服务端调用回调监听处理，应用于callback类型调用
  * @param <T>
  */
 public class VenusServerInvocationListener<T> implements InvocationListener<T> {

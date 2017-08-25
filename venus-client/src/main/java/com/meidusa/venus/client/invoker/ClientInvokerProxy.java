@@ -1,11 +1,10 @@
-package com.meidusa.venus.client.proxy;
+package com.meidusa.venus.client.invoker;
 
 import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
-import com.meidusa.venus.client.invoker.ClientClusterInvoker;
 import com.meidusa.venus.monitor.athena.client.filter.ClientAthenaMonitorFilter;
 import com.meidusa.venus.client.filter.limit.ClientActivesLimitFilter;
 import com.meidusa.venus.client.filter.limit.ClientTpsLimitFilter;
@@ -42,10 +41,15 @@ public class ClientInvokerProxy implements Invoker {
      */
     private String registerUrl;
 
-    //TODO local/cluster实例化
+    /**
+     * injvm调用 TODO 初始化
+     */
     private InjvmInvoker injvmInvoker = new InjvmInvoker();
 
-    private ClientClusterInvoker clientClusterInvoker = new ClientClusterInvoker();
+    /**
+     * 实例间/远程调用
+     */
+    private ClientRemoteInvoker clientRemoteInvoker = new ClientRemoteInvoker();
 
     @Override
     public void init() throws RpcException {
@@ -62,24 +66,14 @@ public class ClientInvokerProxy implements Invoker {
                 }
             }
 
-            //根据配置选择内部调用还是集群环境调用
-            Result result = null;
-            Service service = invocation.getService();
-            Endpoint endpoint = invocation.getEndpoint();
-            if (endpoint != null && service != null) {
-                if (StringUtils.isEmpty(service.implement())) {
-                    //集群调用
-                    result = clientClusterInvoker.invoke(invocation,null);
-                } else {
-                    //本地调用
-                    result = injvmInvoker.invoke(invocation,null);
-                }
+            //根据配置选择内部调用还是跨实例/远程调用
+            if(isInjvmInvoke(invocation)){
+                Result result = injvmInvoker.invoke(invocation, url);
+                return result;
             }else{
-                //TODO 确认endpoint为空情况
-                result = injvmInvoker.invoke(invocation,null);
+                Result result = clientRemoteInvoker.invoke(invocation, url);
+                return result;
             }
-
-            return result;
         } catch (Throwable e) {
             //调用异常切面处理
             for(Filter filter : getThrowFilters()){
@@ -95,6 +89,23 @@ public class ClientInvokerProxy implements Invoker {
             for(Filter filter : getAfterFilters()){
                 filter.afterInvoke(invocation,null);
             }
+        }
+    }
+
+    /**
+     * 判断是否invjm内部调用
+     * @param invocation
+     * @return
+     */
+    boolean isInjvmInvoke(Invocation invocation){
+        Service service = invocation.getService();
+        Endpoint endpoint = invocation.getEndpoint();
+        if (endpoint != null && service != null) {
+            return !StringUtils.isEmpty(service.implement());
+        }else{
+            //本地调用
+            //TODO 确认endpoint为空情况
+            return true;
         }
     }
 

@@ -96,7 +96,7 @@ public class VenusServerInvokerTask implements Runnable{
     /**
      * 服务调用代理
      */
-    private VenusServerInvoker venusServerInvoker = new VenusServerInvoker();
+    private VenusServerInvokerProxy venusServerInvokerProxy = new VenusServerInvokerProxy();
 
     static {
         Map<Class<?>,ExceptionCode>  map = ClasspathAnnotationScanner.find(Exception.class,ExceptionCode.class);
@@ -137,8 +137,8 @@ public class VenusServerInvokerTask implements Runnable{
             //解析请求对象
             invocation = buildInvocation(conn, data);
 
-            //调用服务
-            result = venusServerInvoker.invoke(invocation, null);
+            //通过代理调用服务
+            result = venusServerInvokerProxy.invoke(invocation, null);
         } catch (Exception e) {
             //TODO 异常信息包装
             result = new Result();
