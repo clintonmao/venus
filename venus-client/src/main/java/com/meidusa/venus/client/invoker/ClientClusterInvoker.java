@@ -63,13 +63,13 @@ public class ClientClusterInvoker implements Invoker{
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
-        //寻址，TODO 地址变化对连接池的影响
+        //寻址，静态或动态 TODO 地址变化对连接池的影响
         List<URL> urlList = lookup(invocation);
 
         //路由规则过滤
         urlList = router.filte(urlList, invocation);
 
-        //集群调用
+        //集群容错调用
         Result result = getClusterFailoverInvoker().invoke(invocation, urlList);
         return result;
     }
@@ -179,10 +179,11 @@ public class ClientClusterInvoker implements Invoker{
     }
 
     /**
-     * 获取cluster invoker
+     * 获取集群容错invoker
      * @return
      */
     ClusterInvoker getClusterFailoverInvoker(){
+        //TODO 根据配置获取
         return new ClusterFailoverInvoker();
     }
 
