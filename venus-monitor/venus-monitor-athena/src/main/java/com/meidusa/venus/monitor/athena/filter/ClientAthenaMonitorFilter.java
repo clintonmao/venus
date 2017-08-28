@@ -27,6 +27,7 @@ public class ClientAthenaMonitorFilter implements Filter {
     @Override
     public void init() throws RpcException {
         AthenaExtensionResolver.getInstance().resolver();
+
     }
 
     @Override
@@ -40,7 +41,7 @@ public class ClientAthenaMonitorFilter implements Filter {
 
             AthenaTransactionId athenaTransactionId = AthenaTransactionDelegate.getDelegate().startClientTransaction(apiName);
             //保存athenaTransactionId上下文
-            VenusContext.set(VenusContext.ATHENA_TRANSACTION_ID,athenaTransactionId);
+            VenusThreadContext.set(VenusThreadContext.ATHENA_TRANSACTION_ID,athenaTransactionId);
         }
         return null;
     }
@@ -54,11 +55,11 @@ public class ClientAthenaMonitorFilter implements Filter {
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         if (invocation.getService().athenaFlag()) {
             //从上下文设置请求、接收报文长度
-            Integer clientOutputSize = (Integer) VenusContext.get(VenusContext.CLIENT_OUTPUT_SIZE);
+            Integer clientOutputSize = (Integer) VenusThreadContext.get(VenusThreadContext.CLIENT_OUTPUT_SIZE);
             if(clientOutputSize != null){
                 AthenaTransactionDelegate.getDelegate().setClientOutputSize(clientOutputSize.intValue());
             }
-            Integer clientInputSize = (Integer) VenusContext.get(VenusContext.CLIENT_INPUT_SIZE);
+            Integer clientInputSize = (Integer) VenusThreadContext.get(VenusThreadContext.CLIENT_INPUT_SIZE);
             if(clientInputSize != null){
                 AthenaTransactionDelegate.getDelegate().setClientInputSize(clientInputSize.intValue());
             }

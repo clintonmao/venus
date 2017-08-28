@@ -17,6 +17,7 @@ package com.meidusa.venus.client.factory.xml;
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
+import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.client.factory.ServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
@@ -153,10 +154,19 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             this.venusExceptionFactory = xmlVenusExceptionFactory;
         }
 
+        if(applicationContext != null){
+            VenusContext.getInstance().setApplicationContext(applicationContext);
+        }
+
         beanContext = new ClientBeanContext(applicationContext!= null ?applicationContext.getAutowireCapableBeanFactory(): null);
         BeanContextBean.getInstance().setBeanContext(beanContext);
+        if(beanContext != null){
+            VenusContext.getInstance().setBeanContext(beanContext);
+        }
+
         VenusBeanUtilsBean.setInstance(new ClientBeanUtilsBean(new ConvertUtilsBean(), new PropertyUtilsBean(), beanContext));
 
+        //初始化配置
         initConfiguration();
 
         /*__RELOAD:

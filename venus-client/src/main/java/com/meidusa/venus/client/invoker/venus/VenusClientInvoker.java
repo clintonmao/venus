@@ -239,7 +239,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         Object[] args = invocation.getArgs();
         String apiName = VenusAnnotationUtils.getApiname(method, service, endpoint);
 
-        AthenaTransactionId athenaTransactionId = (AthenaTransactionId)VenusContext.get(VenusContext.ATHENA_TRANSACTION_ID);
+        AthenaTransactionId athenaTransactionId = (AthenaTransactionId) VenusThreadContext.get(VenusThreadContext.ATHENA_TRANSACTION_ID);
         logger.info("athenaTransactionId:{}.",athenaTransactionId);
 
         Serializer serializer = SerializerFactory.getSerializer(serializeType);
@@ -308,7 +308,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             conn = nioConnPool.borrowObject();
             borrowed = TimeUtil.currentTimeMillis();
             ByteBuffer buffer = serviceRequestPacket.toByteBuffer();
-            VenusContext.set(VenusContext.CLIENT_OUTPUT_SIZE,Integer.valueOf(buffer.limit()));
+            VenusThreadContext.set(VenusThreadContext.CLIENT_OUTPUT_SIZE,Integer.valueOf(buffer.limit()));
 
             //发送请求消息，响应由handler类处理
             conn.write(buffer);

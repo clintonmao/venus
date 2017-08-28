@@ -39,5 +39,14 @@
 		<service type="com.saic.framework.message.UniMessageService" remote="UMSRemote"/>
 		-->
 		<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="192.168.1.1:9000"/>
+
+		<!--
+		<service type="com.athena.service.api.AthenaDataService" remote="monitor-remote"/>
+		-->
+		<service type="com.athena.service.api.AthenaDataService" ipAddressList="192.168.1.1:9000"/>
+
+
+
+
 	</services>
 </venus-client>
