@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * client 实例间/远程服务调用
+ * client 集群调用
  * Created by Zhangzhihua on 2017/8/24.
  */
 public class ClientClusterInvoker implements Invoker{

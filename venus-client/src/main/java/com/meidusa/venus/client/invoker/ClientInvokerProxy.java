@@ -47,7 +47,7 @@ public class ClientInvokerProxy implements Invoker {
     private InjvmInvoker injvmInvoker = new InjvmInvoker();
 
     /**
-     * 实例间/远程调用
+     * 集群调用
      */
     private ClientClusterInvoker clientClusterInvoker = new ClientClusterInvoker();
 
