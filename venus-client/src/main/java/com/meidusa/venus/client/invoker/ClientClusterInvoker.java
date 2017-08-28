@@ -1,7 +1,7 @@
 package com.meidusa.venus.client.invoker;
 
 import com.meidusa.venus.*;
-import com.meidusa.venus.client.cluster.FailoverClusterInvoker;
+import com.meidusa.venus.client.cluster.ClusterFailoverInvoker;
 import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.router.Router;
@@ -25,9 +25,9 @@ import java.util.Random;
  * client 实例间/远程服务调用
  * Created by Zhangzhihua on 2017/8/24.
  */
-public class ClientRemoteInvoker implements Invoker{
+public class ClientClusterInvoker implements Invoker{
 
-    private static Logger logger = LoggerFactory.getLogger(ClientRemoteInvoker.class);
+    private static Logger logger = LoggerFactory.getLogger(ClientClusterInvoker.class);
 
     private RemoteConfig remoteConfig;
 
@@ -70,7 +70,7 @@ public class ClientRemoteInvoker implements Invoker{
         urlList = router.filte(urlList, invocation);
 
         //集群调用
-        Result result = getClusterInvoker().invoke(invocation, urlList);
+        Result result = getClusterFailoverInvoker().invoke(invocation, urlList);
         return result;
     }
 
@@ -86,6 +86,7 @@ public class ClientRemoteInvoker implements Invoker{
      */
     List<URL> lookup(Invocation invocation){
         if(remoteConfig != null){
+            //TODO 静态地址
             return lookupByDynamic(invocation);
         }else if(StringUtils.isNotEmpty(registerUrl)){
             return lookupByDynamic(invocation);
@@ -181,8 +182,8 @@ public class ClientRemoteInvoker implements Invoker{
      * 获取cluster invoker
      * @return
      */
-    ClusterInvoker getClusterInvoker(){
-        return new FailoverClusterInvoker();
+    ClusterInvoker getClusterFailoverInvoker(){
+        return new ClusterFailoverInvoker();
     }
 
     public RemoteConfig getRemoteConfig() {

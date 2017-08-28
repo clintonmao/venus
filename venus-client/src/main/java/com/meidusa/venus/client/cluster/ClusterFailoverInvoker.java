@@ -13,9 +13,9 @@ import java.util.List;
  * failover集群容错invoker
  * Created by Zhangzhihua on 2017/7/31.
  */
-public class FailoverClusterInvoker implements ClusterInvoker {
+public class ClusterFailoverInvoker implements ClusterInvoker {
 
-    private static Logger logger = LoggerFactory.getLogger(FailoverClusterInvoker.class);
+    private static Logger logger = LoggerFactory.getLogger(ClusterFailoverInvoker.class);
 
     /**
      * retry次数 TODO 读取配置
