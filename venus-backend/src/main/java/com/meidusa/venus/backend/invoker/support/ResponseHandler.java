@@ -9,7 +9,7 @@ import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.DefaultVenusException;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
-import com.meidusa.venus.extension.athena.delegate.AthenaTransactionDelegate;
+import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionDelegate;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceNofityPacket;

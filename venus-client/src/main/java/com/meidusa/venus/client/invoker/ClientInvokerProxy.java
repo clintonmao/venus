@@ -11,7 +11,7 @@ import com.meidusa.venus.client.filter.mock.ClientMockFilterProxy;
 import com.meidusa.venus.client.filter.valid.ClientValidFilter;
 import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
 import com.meidusa.venus.exception.VenusExceptionFactory;
-import com.meidusa.venus.monitor.athena.client.filter.ClientAthenaMonitorFilter;
+import com.meidusa.venus.monitor.athena.filter.ClientAthenaMonitorFilter;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -174,7 +174,7 @@ public class ClientInvokerProxy implements Invoker {
      */
     Filter getAthenaMonitorFilter(){
         try {
-            Filter filter = (Filter) Class.forName("com.meidusa.venus.monitor.athena.client.filter.ClientAthenaMonitorFilter").newInstance();
+            Filter filter = (Filter) Class.forName("com.meidusa.venus.monitor.athena.filter.ClientAthenaMonitorFilter").newInstance();
             return filter;
         } catch (Exception e) {
             logger.error("new ClientAthenaMonitorFilter error.",e);

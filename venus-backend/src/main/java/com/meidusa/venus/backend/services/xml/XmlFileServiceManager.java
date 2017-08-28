@@ -20,7 +20,7 @@ import com.meidusa.venus.backend.services.xml.support.VenusServiceRegistry;
 import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.VenusConfigException;
-import com.meidusa.venus.extension.athena.AthenaExtensionResolver;
+import com.meidusa.venus.monitor.athena.reporter.AthenaExtensionResolver;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.RegisterService;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
