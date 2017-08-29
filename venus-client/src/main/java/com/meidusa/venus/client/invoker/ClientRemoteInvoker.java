@@ -22,12 +22,12 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * client 集群调用
+ * client 远程（包含实例间）调用
  * Created by Zhangzhihua on 2017/8/24.
  */
-public class ClientClusterInvoker implements Invoker{
+public class ClientRemoteInvoker implements Invoker{
 
-    private static Logger logger = LoggerFactory.getLogger(ClientClusterInvoker.class);
+    private static Logger logger = LoggerFactory.getLogger(ClientRemoteInvoker.class);
 
     private RemoteConfig remoteConfig;
 
@@ -48,6 +48,7 @@ public class ClientClusterInvoker implements Invoker{
 
     @Override
     public void init() throws RpcException {
+        //TODO 订阅时机
         subscrible();
     }
 
@@ -87,9 +88,17 @@ public class ClientClusterInvoker implements Invoker{
     List<URL> lookup(Invocation invocation){
         if(remoteConfig != null){
             //TODO 静态地址
-            return lookupByDynamic(invocation);
+            List<URL> urlList = lookupByDynamic(invocation);
+            if(CollectionUtils.isEmpty(urlList)){
+                throw new RpcException("not found avalid providers.");
+            }
+            return urlList;
         }else if(StringUtils.isNotEmpty(registerUrl)){
-            return lookupByDynamic(invocation);
+            List<URL> urlList = lookupByDynamic(invocation);
+            if(CollectionUtils.isEmpty(urlList)){
+                throw new RpcException("not found avalid providers.");
+            }
+            return urlList;
         }else{
             throw new RpcException("remoteConfig and registerUrl not allow empty.");
         }

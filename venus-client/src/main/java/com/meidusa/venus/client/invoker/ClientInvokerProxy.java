@@ -47,9 +47,9 @@ public class ClientInvokerProxy implements Invoker {
     private InjvmInvoker injvmInvoker = new InjvmInvoker();
 
     /**
-     * 集群调用
+     * 远程(包含同ip实例间)调用
      */
-    private ClientClusterInvoker clientClusterInvoker = new ClientClusterInvoker();
+    private ClientRemoteInvoker clientRemoteInvoker = new ClientRemoteInvoker();
 
     @Override
     public void init() throws RpcException {
@@ -71,7 +71,7 @@ public class ClientInvokerProxy implements Invoker {
                 Result result = getInjvmInvoker().invoke(invocation, url);
                 return result;
             }else{
-                Result result = getClusterInvoker().invoke(invocation, url);
+                Result result = getRemoteInvoker().invoke(invocation, url);
                 return result;
             }
         } catch (Throwable e) {
@@ -114,17 +114,17 @@ public class ClientInvokerProxy implements Invoker {
     }
 
     /**
-     * 获取clusterInvoker
+     * 获取remote Invoker
      * @return
      */
-    public ClientClusterInvoker getClusterInvoker() {
+    public ClientRemoteInvoker getRemoteInvoker() {
         if(registerUrl != null){
-            clientClusterInvoker.setRegisterUrl(registerUrl);
+            clientRemoteInvoker.setRegisterUrl(registerUrl);
         }
         if(remoteConfig != null){
-            clientClusterInvoker.setRemoteConfig(remoteConfig);
+            clientRemoteInvoker.setRemoteConfig(remoteConfig);
         }
-        return clientClusterInvoker;
+        return clientRemoteInvoker;
     }
 
     /**

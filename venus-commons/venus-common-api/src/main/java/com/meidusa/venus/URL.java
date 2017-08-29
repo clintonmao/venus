@@ -79,6 +79,18 @@ public class URL implements Serializable {
 	}
 
 	/**
+	 * 根据KEY获取属性值
+	 * @param key
+	 * @return
+	 */
+	public String getProperty(String key){
+		if(properties.get(key) == null){
+			return null;
+		}
+		return String.valueOf(properties.get(key));
+	}
+
+	/**
 	 * 解析url
 	 * 
 	 * @param url

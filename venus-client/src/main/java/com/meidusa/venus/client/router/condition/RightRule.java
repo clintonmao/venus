@@ -1,6 +1,7 @@
 package com.meidusa.venus.client.router.condition;
 
 import com.meidusa.venus.URL;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * 右侧规则定义，也即提供者规则
@@ -10,18 +11,43 @@ public class RightRule {
 
     private String appExp;
 
-    private String appValue;
+    private String appValues;
 
     private String hostExp;
 
-    private String[] hostValues;
+    private String hostValues;
 
     private String versionExp;
 
-    private String[] versionValues;
+    private String versionValues;
 
-    public boolean isMatch(URL url){
-        //TODO 解析url提供者信息，若匹配则返回true
+    public boolean isReject(URL url){
+        if(StringUtils.isNotBlank(appExp) && StringUtils.isNotBlank(appValues)){
+            //获取提供者APP TODO
+            String providerApp = "TODO";
+            boolean isReject = AppRule.isReject(appExp,providerApp,appValues);
+            if(isReject){
+                return true;
+            }
+        }
+
+        if(StringUtils.isNotBlank(hostExp) && StringUtils.isNotBlank(hostValues)){
+            //获取提供者HOST TODO
+            String providerHost = "10.47.16.40";
+            boolean isReject = HostRule.isReject(hostExp,providerHost,hostValues);
+            if(isReject){
+                return true;
+            }
+        }
+
+        if(StringUtils.isNotBlank(versionExp) && StringUtils.isNotBlank(versionValues)){
+            //获取提供者版本号 TODO
+            String providerVersion = "0.0.0";
+            boolean isReject = VersionRule.isReject(versionExp,providerVersion,versionValues);
+            if(isReject){
+                return true;
+            }
+        }
         return false;
     }
 
@@ -33,12 +59,12 @@ public class RightRule {
         this.appExp = appExp;
     }
 
-    public String getAppValue() {
-        return appValue;
+    public String getAppValues() {
+        return appValues;
     }
 
-    public void setAppValue(String appValue) {
-        this.appValue = appValue;
+    public void setAppValues(String appValues) {
+        this.appValues = appValues;
     }
 
     public String getHostExp() {
@@ -49,11 +75,11 @@ public class RightRule {
         this.hostExp = hostExp;
     }
 
-    public String[] getHostValues() {
+    public String getHostValues() {
         return hostValues;
     }
 
-    public void setHostValues(String[] hostValues) {
+    public void setHostValues(String hostValues) {
         this.hostValues = hostValues;
     }
 
@@ -65,11 +91,11 @@ public class RightRule {
         this.versionExp = versionExp;
     }
 
-    public String[] getVersionValues() {
+    public String getVersionValues() {
         return versionValues;
     }
 
-    public void setVersionValues(String[] versionValues) {
+    public void setVersionValues(String versionValues) {
         this.versionValues = versionValues;
     }
 }
