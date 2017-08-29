@@ -3,7 +3,7 @@ package com.meidusa.venus.client.filter.limit;
 import com.meidusa.venus.*;
 
 /**
- * tps流控处理
+ * client tps流控处理
  * Created by Zhangzhihua on 2017/8/1.
  */
 public class ClientTpsLimitFilter implements Filter {

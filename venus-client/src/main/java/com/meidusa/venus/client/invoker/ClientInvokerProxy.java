@@ -77,7 +77,7 @@ public class ClientInvokerProxy implements Invoker {
         } catch (Throwable e) {
             //调用异常切面处理
             for(Filter filter : getThrowFilters()){
-                Result result = filter.throwInvoke(invocation,null);
+                Result result = filter.throwInvoke(invocation,url);
                 if(result != null){
                     return result;
                 }
@@ -87,7 +87,7 @@ public class ClientInvokerProxy implements Invoker {
         }finally {
             //调用结束切面处理
             for(Filter filter : getAfterFilters()){
-                filter.afterInvoke(invocation,null);
+                filter.afterInvoke(invocation,url);
             }
         }
     }
@@ -163,6 +163,10 @@ public class ClientInvokerProxy implements Invoker {
      */
     Filter[] getAfterFilters(){
         return new Filter[]{
+                //并发数流控
+                new ClientActivesLimitFilter(),
+                //TPS流控
+                new ClientTpsLimitFilter(),
                 //client端athena监控采集
                 new ClientAthenaMonitorFilter()
         };
