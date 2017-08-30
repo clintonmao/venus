@@ -46,7 +46,7 @@ public class BaseMockFilter {
      */
     String getMockType(Invocation invocation,URL url){
         //TODO 获取流控类型
-        return MOCK_TYPE_RETURN;
+        return null;//MOCK_TYPE_RETURN;
     }
 
 }

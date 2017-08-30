@@ -14,6 +14,7 @@ import com.meidusa.venus.client.filter.valid.ClientValidFilter;
 import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.monitor.athena.filter.ClientAthenaMonitorFilter;
+import com.meidusa.venus.monitor.filter.ClientMonitorFilter;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,8 +148,10 @@ public class ClientInvokerProxy implements Invoker {
                 new ClientThrowMockFilter(),
                 //mock降级
                 new ClientCallbackMockFilter(),
-                //client端athena监控采集
-                new ClientAthenaMonitorFilter()
+                //athena监控
+                new ClientAthenaMonitorFilter(),
+                //venus监控
+                new ClientMonitorFilter()
         };
     }
 
@@ -158,8 +161,10 @@ public class ClientInvokerProxy implements Invoker {
      */
     Filter[] getThrowFilters(){
         return new Filter[]{
-                //client端athena监控采集
-                new ClientAthenaMonitorFilter()
+                //athena监控
+                new ClientAthenaMonitorFilter(),
+                //venus监控
+                new ClientMonitorFilter()
         };
     }
 
@@ -171,10 +176,10 @@ public class ClientInvokerProxy implements Invoker {
         return new Filter[]{
                 //并发数流控
                 new ClientActivesLimitFilter(),
-                //TPS流控
-                new ClientTpsLimitFilter(),
-                //client端athena监控采集
-                new ClientAthenaMonitorFilter()
+                //athena监控
+                new ClientAthenaMonitorFilter(),
+                //venus监控
+                new ClientMonitorFilter()
         };
     }
 
@@ -184,6 +189,7 @@ public class ClientInvokerProxy implements Invoker {
      */
     Filter getAthenaMonitorFilter(){
         try {
+            //TODO 实例化
             Filter filter = (Filter) Class.forName("com.meidusa.venus.monitor.athena.filter.ClientAthenaMonitorFilter").newInstance();
             return filter;
         } catch (Exception e) {
