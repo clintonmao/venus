@@ -7,7 +7,9 @@ import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.filter.limit.ClientActivesLimitFilter;
 import com.meidusa.venus.client.filter.limit.ClientTpsLimitFilter;
-import com.meidusa.venus.client.filter.mock.ClientMockFilterProxy;
+import com.meidusa.venus.client.filter.mock.ClientCallbackMockFilter;
+import com.meidusa.venus.client.filter.mock.ClientReturnMockFilter;
+import com.meidusa.venus.client.filter.mock.ClientThrowMockFilter;
 import com.meidusa.venus.client.filter.valid.ClientValidFilter;
 import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
 import com.meidusa.venus.exception.VenusExceptionFactory;
@@ -139,8 +141,12 @@ public class ClientInvokerProxy implements Invoker {
                 new ClientActivesLimitFilter(),
                 //TPS流控
                 new ClientTpsLimitFilter(),
-                //降级
-                new ClientMockFilterProxy(),
+                //return降级
+                new ClientReturnMockFilter(),
+                //throw降级
+                new ClientThrowMockFilter(),
+                //mock降级
+                new ClientCallbackMockFilter(),
                 //client端athena监控采集
                 new ClientAthenaMonitorFilter()
         };

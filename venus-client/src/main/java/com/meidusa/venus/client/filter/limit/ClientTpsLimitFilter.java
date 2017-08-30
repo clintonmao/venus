@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * client tps流控处理
  * Created by Zhangzhihua on 2017/8/1.
  */
-public class ClientTpsLimitFilter implements Filter {
+public class ClientTpsLimitFilter extends BaseLimitFilter implements Filter {
 
     private static Logger logger = LoggerFactory.getLogger(ClientTpsLimitFilter.class);
 
@@ -51,7 +51,7 @@ public class ClientTpsLimitFilter implements Filter {
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
-        if(!isEnableLimit(invocation, url)){
+        if(!isEnableTpsLimit(invocation, url)){
             return null;
         }
         //获取方法路径及当前并发数
@@ -84,32 +84,14 @@ public class ClientTpsLimitFilter implements Filter {
     }
 
     /**
-     * 获取方法标识路径
+     * 判断是否开启TPS流控
      * @param invocation
      * @param url
      * @return
      */
-    String getMethodPath(Invocation invocation, URL url){
-        String methodPath = String.format(
-                "%s/%s?version=%s&method=%s",
-                invocation.getMethod().getDeclaringClass().getName(),
-                invocation.getService().name(),
-                "0.0.0",
-                invocation.getMethod().getName()
-        );
-        logger.info("methodPath:{}.", methodPath);
-        return methodPath;
-    }
-
-    /**
-     * 判断是否开户流控
-     * @param invocation
-     * @param url
-     * @return
-     */
-    boolean isEnableLimit(Invocation invocation, URL url){
-        //TODO 从本地及注册中心获取流控开关
-        return true;
+    boolean isEnableTpsLimit(Invocation invocation, URL url){
+        String limitType = getLimitType(invocation, url);
+        return LIMIT_TYPE_TPS.equalsIgnoreCase(limitType);
     }
 
     @Override

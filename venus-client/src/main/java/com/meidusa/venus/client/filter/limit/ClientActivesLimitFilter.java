@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -13,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * client 并发数流控处理
  * Created by Zhangzhihua on 2017/8/1.
  */
-public class ClientActivesLimitFilter implements Filter {
+public class ClientActivesLimitFilter extends BaseLimitFilter implements Filter {
 
     private static Logger logger = LoggerFactory.getLogger(ClientActivesLimitFilter.class);
 
@@ -33,7 +32,7 @@ public class ClientActivesLimitFilter implements Filter {
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
-        if(!isEnableLimit(invocation, url)){
+        if(!isEnableActiveLimit(invocation, url)){
             return null;
         }
         //获取方法路径及当前并发数
@@ -62,7 +61,7 @@ public class ClientActivesLimitFilter implements Filter {
 
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
-        if(!isEnableLimit(invocation, url)){
+        if(!isEnableActiveLimit(invocation, url)){
             return null;
         }
         String methodPath = getMethodPath(invocation, url);
@@ -89,37 +88,18 @@ public class ClientActivesLimitFilter implements Filter {
     }
 
     /**
-     * 获取方法标识路径
+     * 判断是否开启并发流控
      * @param invocation
      * @param url
      * @return
      */
-    String getMethodPath(Invocation invocation, URL url){
-        String methodPath = String.format(
-                "%s/%s?version=%s&method=%s",
-                invocation.getMethod().getDeclaringClass().getName(),
-                invocation.getService().name(),
-                "0.0.0",
-                invocation.getMethod().getName()
-        );
-        logger.info("methodPath:{}.", methodPath);
-        return methodPath;
-    }
-
-    /**
-     * 判断是否开户流控
-     * @param invocation
-     * @param url
-     * @return
-     */
-    boolean isEnableLimit(Invocation invocation, URL url){
-        //TODO 从本地及注册中心获取流控开关
-        return true;
+    boolean isEnableActiveLimit(Invocation invocation, URL url){
+        String limitType = getLimitType(invocation, url);
+        return LIMIT_TYPE_ACTIVE.equalsIgnoreCase(limitType);
     }
 
     @Override
     public void destroy() throws RpcException {
-
     }
 
 }

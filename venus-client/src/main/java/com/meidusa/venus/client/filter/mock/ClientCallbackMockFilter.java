@@ -1,12 +1,20 @@
 package com.meidusa.venus.client.filter.mock;
 
 import com.meidusa.venus.*;
+import com.meidusa.venus.client.filter.limit.ClientActivesLimitFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * 回调放通处理
  * Created by Zhangzhihua on 2017/8/1.
  */
-public class ClientCallbackMockFilter implements Filter {
+public class ClientCallbackMockFilter extends BaseMockFilter implements Filter {
+
+    private static Logger logger = LoggerFactory.getLogger(ClientCallbackMockFilter.class);
 
     @Override
     public void init() throws RpcException {
@@ -15,7 +23,32 @@ public class ClientCallbackMockFilter implements Filter {
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
-        return null;
+        if(!isEnableCallbackMock(invocation, url)){
+            return null;
+        }
+        //获取mock callback TODO 注入instance及动态构造method并传参
+        Method callbackMethod = null;
+        Object instance = null;
+        Object[] args = null;
+        try {
+            Object retur = callbackMethod.invoke(instance,args);
+            return new Result(retur);
+        } catch (Exception e) {
+            Result result = new Result();
+            result.setException(e);
+            return result;
+        }
+    }
+
+    /**
+     * 判断是否开启callback放通
+     * @param invocation
+     * @param url
+     * @return
+     */
+    boolean isEnableCallbackMock(Invocation invocation, URL url){
+        String mockType = getMockType(invocation, url);
+        return MOCK_TYPE_CALLBACK.equalsIgnoreCase(mockType);
     }
 
     @Override
