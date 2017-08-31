@@ -27,6 +27,7 @@
 		<module>venus-http</module>
 		<module>venus-test</module>
 		<module>venus-demo</module>
+        <module>venus-bus</module>
     </modules>
 
 	<dependencies>
@@ -344,6 +345,7 @@
 				</plugin>
 			</plugins>
 		</pluginManagement>
+
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -372,8 +374,16 @@
 					<encoding>${project.build.sourceEncoding}</encoding>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
+
 	<distributionManagement>
 		<repository>
 			<id>release-open</id>
@@ -386,6 +396,7 @@
 			<url>http://maven.hexnova.com/nexus/content/repositories/snapshot-open</url>
 		</snapshotRepository>
 	</distributionManagement>
+
 	<repositories>
 		<repository>
 			<id>release-open</id>
@@ -400,6 +411,7 @@
 			</snapshots>
 		</repository>
 	</repositories>
+
 	<pluginRepositories>
 		<pluginRepository>
 			<id>hexnova-open</id>

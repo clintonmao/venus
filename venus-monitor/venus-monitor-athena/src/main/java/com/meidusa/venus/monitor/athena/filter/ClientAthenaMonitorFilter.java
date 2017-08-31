@@ -21,13 +21,13 @@ public class ClientAthenaMonitorFilter implements Filter {
     public ClientAthenaMonitorFilter(){
         if(!isRunning){
             init();
+            isRunning = true;
         }
     }
 
     @Override
     public void init() throws RpcException {
         AthenaExtensionResolver.getInstance().resolver();
-
     }
 
     @Override

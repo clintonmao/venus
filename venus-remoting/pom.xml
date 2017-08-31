@@ -11,7 +11,6 @@
 
     <artifactId>venus-remoting</artifactId>
 
-
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -29,19 +28,6 @@
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.meidusa.venus</groupId>
-            <artifactId>venus-common-base</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.meidusa.venus</groupId>
-            <artifactId>venus-common-exception</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.meidusa.venus</groupId>
-            <artifactId>venus-common-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.toolkit</groupId>
@@ -62,6 +48,21 @@
         <dependency>
             <groupId>org.codehaus.castor</groupId>
             <artifactId>castor-xml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.meidusa.venus.commons</groupId>
+            <artifactId>venus-common-base</artifactId>
+            <version>3.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.meidusa.venus.commons</groupId>
+            <artifactId>venus-common-exception</artifactId>
+            <version>3.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.meidusa.venus.commons</groupId>
+            <artifactId>venus-common-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

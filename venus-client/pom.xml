@@ -21,12 +21,14 @@
 			<groupId>com.meidusa.toolkit.net</groupId>
 		</dependency>
 		<dependency>
-			<groupId>com.meidusa.venus</groupId>
+			<groupId>com.meidusa.venus.commons</groupId>
 			<artifactId>venus-common-base</artifactId>
+			<version>3.3.1</version>
 		</dependency>
 		<dependency>
-			<groupId>com.meidusa.venus</groupId>
+			<groupId>com.meidusa.venus.commons</groupId>
 			<artifactId>venus-common-exception</artifactId>
+			<version>3.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.meidusa.venus</groupId>

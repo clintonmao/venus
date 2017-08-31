@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<artifactId>venus-commons</artifactId>
-		<groupId>com.meidusa.venus</groupId>
+		<groupId>com.meidusa.venus.commons</groupId>
 		<version>3.3.1</version>
 	</parent>
 	
@@ -55,8 +55,8 @@
 			<version>0.9.9-RC1</version>
 		</dependency>
 		<dependency>
-			<groupId>com.meidusa.venus</groupId>
-			<artifactId>venus-commons-annotation</artifactId>
+			<groupId>com.meidusa.venus.commons</groupId>
+			<artifactId>venus-common-annotation</artifactId>
 			<version>3.3.1</version>
 		</dependency>
     </dependencies>

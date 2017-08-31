@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>venus-commons</artifactId>
-        <groupId>com.meidusa.venus</groupId>
+        <groupId>com.meidusa.venus.commons</groupId>
         <version>3.3.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>venus-commons-annotation</artifactId>
+    <artifactId>venus-common-annotation</artifactId>
 
 
 </project>

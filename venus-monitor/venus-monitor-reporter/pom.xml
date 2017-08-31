@@ -21,6 +21,14 @@
             <groupId>com.saike.athena</groupId>
             <artifactId>athena-client</artifactId>
             <version>0.0.2-SNAPSHOT</version>
+            <!--
+            <exclusions>
+                <exclusion>
+                    <groupId>com.meidusa.venus.commons</groupId>
+                    <artifactId>venus-common-exception</artifactId>
+                </exclusion>
+            </exclusions>
+            -->
         </dependency>
     </dependencies>
 </project>

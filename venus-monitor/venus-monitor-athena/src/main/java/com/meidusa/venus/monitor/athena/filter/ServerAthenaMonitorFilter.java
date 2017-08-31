@@ -8,9 +8,18 @@ import com.meidusa.venus.*;
  */
 public class ServerAthenaMonitorFilter implements Filter {
 
+    static boolean isRunning = false;
+
+    public ServerAthenaMonitorFilter(){
+        if(!isRunning){
+            init();
+            isRunning = true;
+        }
+    }
+
     @Override
     public void init() throws RpcException {
-
+        //TODO
     }
 
     @Override
