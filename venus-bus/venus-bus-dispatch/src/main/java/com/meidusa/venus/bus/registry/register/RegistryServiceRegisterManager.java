@@ -1,4 +1,4 @@
-package com.meidusa.venus.bus.service.registry;
+package com.meidusa.venus.bus.registry.register;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.toolkit.util.StringUtil;
-import com.meidusa.venus.bus.service.AbstractRemoteServiceManager;
+import com.meidusa.venus.bus.registry.AbstractServiceRegisterManager;
 import com.meidusa.venus.bus.VenusConnectionAcceptor;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.authenticate.Authenticator;
@@ -28,14 +28,14 @@ import com.meidusa.venus.util.Range;
 import com.meidusa.venus.util.RangeUtil;
 
 /**
- * 通过注册中心进行登记的远程服务管理
+ * 基于服务注册中心服务注册管理
  * 
  * @author Structchen
  * 
  */
 @SuppressWarnings("rawtypes")
-public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
-    private static Logger logger = LoggerFactory.getLogger(RegistryRemoteServiceManager.class);
+public class RegistryServiceRegisterManager extends AbstractServiceRegisterManager {
+    private static Logger logger = LoggerFactory.getLogger(RegistryServiceRegisterManager.class);
     
     @Autowired
     private VenusConnectionAcceptor acceptor;

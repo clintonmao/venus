@@ -1,4 +1,4 @@
-package com.meidusa.venus.bus.service.xml.bean;
+package com.meidusa.venus.bus.registry.xml.bean;
 
 /**
  * 

@@ -1,4 +1,4 @@
-package com.meidusa.venus.bus.service.xml;
+package com.meidusa.venus.bus.registry.xml;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,12 +24,12 @@ import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.toolkit.net.MultipleLoadBalanceBackendConnectionPool;
 import com.meidusa.toolkit.net.PollingBackendConnectionPool;
 import com.meidusa.toolkit.util.StringUtil;
-import com.meidusa.venus.bus.service.AbstractRemoteServiceManager;
+import com.meidusa.venus.bus.registry.AbstractServiceRegisterManager;
 import com.meidusa.venus.bus.config.BusConfig;
 import com.meidusa.venus.bus.config.RemoteServiceConfig;
 import com.meidusa.venus.bus.network.BusBackendConnectionFactory;
-import com.meidusa.venus.bus.service.xml.bean.FactoryConfig;
-import com.meidusa.venus.bus.service.xml.bean.Remote;
+import com.meidusa.venus.bus.registry.xml.bean.FactoryConfig;
+import com.meidusa.venus.bus.registry.xml.bean.Remote;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.util.DefaultRange;
@@ -37,12 +37,12 @@ import com.meidusa.venus.util.Range;
 import com.meidusa.venus.util.RangeUtil;
 
 /**
- * 通过XML进行远程服务管理
+ * XML方式服务注册管理
  * 
  * @author structchen
  * 
  */
-public class XmlFileRemoteServiceManager extends AbstractRemoteServiceManager {
+public class XmlServiceRegisterManager extends AbstractServiceRegisterManager {
 
     private String[] configFiles;
 
@@ -106,7 +106,7 @@ public class XmlFileRemoteServiceManager extends AbstractRemoteServiceManager {
     protected Map<String, List<Tuple<Range, BackendConnectionPool>>> load() throws Exception {
         BusConfig all = getBusConfig();
 
-        Map<String, BackendConnectionPool> poolMap = initRemoteMap(all.getRemoteMap());
+        Map<String, BackendConnectionPool> poolMap = null;//TODO 确认此段代码 initRemoteMap(all.getRemoteMap());
 
         Map<String, List<Tuple<Range, BackendConnectionPool>>> serviceMap = new HashMap<String, List<Tuple<Range, BackendConnectionPool>>>();
 
@@ -116,7 +116,7 @@ public class XmlFileRemoteServiceManager extends AbstractRemoteServiceManager {
             if (!StringUtil.isEmpty(config.getRemote())) {
                 pool = poolMap.get(config.getRemote());
                 if (pool == null) {
-                    throw new ConfigurationException("service=" + config.getServiceName() + ",remote not found:" + config.getRemote());
+                    throw new ConfigurationException("register=" + config.getServiceName() + ",remote not found:" + config.getRemote());
                 }
             } else {
                 String ipAddress = config.getIpAddressList();
@@ -144,7 +144,7 @@ public class XmlFileRemoteServiceManager extends AbstractRemoteServiceManager {
                 list.add(tuple);
 
             } catch (Exception e) {
-                throw new ConfigurationException("init remote service config error:", e);
+                throw new ConfigurationException("init remote register config error:", e);
             }
         }
         return serviceMap;

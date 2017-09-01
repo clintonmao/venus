@@ -13,12 +13,13 @@
  */
 package com.meidusa.venus.bus.config;
 
+import com.meidusa.venus.bus.registry.xml.bean.Remote;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.meidusa.venus.bus.service.xml.bean.Remote;
 
 /**
  * 

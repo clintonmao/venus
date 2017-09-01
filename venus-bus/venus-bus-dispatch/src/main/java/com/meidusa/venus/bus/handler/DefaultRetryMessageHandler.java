@@ -1,27 +1,22 @@
 package com.meidusa.venus.bus.handler;
 
+import com.meidusa.toolkit.common.util.Tuple;
+import com.meidusa.toolkit.net.BackendConnectionPool;
+import com.meidusa.venus.bus.network.BusBackendConnection;
+import com.meidusa.venus.bus.network.BusFrontendConnection;
+import com.meidusa.venus.bus.registry.ServiceRegisterManager;
+import com.meidusa.venus.exception.VenusExceptionCodeConstant;
+import com.meidusa.venus.io.packet.*;
+import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
+import com.meidusa.venus.util.Range;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.meidusa.toolkit.common.util.Tuple;
-import com.meidusa.toolkit.net.BackendConnectionPool;
-import com.meidusa.venus.bus.service.ServiceRemoteManager;
-import com.meidusa.venus.bus.network.BusBackendConnection;
-import com.meidusa.venus.bus.network.BusFrontendConnection;
-import com.meidusa.venus.exception.VenusExceptionCodeConstant;
-import com.meidusa.venus.io.packet.AbstractServicePacket;
-import com.meidusa.venus.io.packet.ErrorPacket;
-import com.meidusa.venus.io.packet.ServiceAPIPacket;
-import com.meidusa.venus.io.packet.ServicePacketBuffer;
-import com.meidusa.venus.io.packet.VenusRouterPacket;
-import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
-import com.meidusa.venus.util.Range;
 
 /**
  * 消息重试处理,诸如:后端服务不可用的 时候,将有默认3次尝试请求.每次间隔1秒的机制,重新对虚拟连接池发起请求,如果都失败将返回异常数据包给客户端.
@@ -108,14 +103,14 @@ public class DefaultRetryMessageHandler implements RetryMessageHandler{
      */
     private BlockingQueue<DelayedRouterMessage> retryQueue = new DelayQueue<DelayedRouterMessage>();
 
-    private ServiceRemoteManager remoteManager;
+    ServiceRegisterManager serviceRegisterManager;
 
-    public ServiceRemoteManager getRemoteManager() {
-        return remoteManager;
+    public ServiceRegisterManager getServiceRegisterManager() {
+        return serviceRegisterManager;
     }
 
-    public void setRemoteManager(ServiceRemoteManager remoteManager) {
-        this.remoteManager = remoteManager;
+    public void setServiceRegisterManager(ServiceRegisterManager serviceRegisterManager) {
+        this.serviceRegisterManager = serviceRegisterManager;
     }
 
     public int getMaxRetryTimes() {
@@ -139,7 +134,7 @@ public class DefaultRetryMessageHandler implements RetryMessageHandler{
             int index = apiName.lastIndexOf(".");
             String serviceName = apiName.substring(0, index);
             // String methodName = apiName.substring(index + 1);
-            List<Tuple<Range, BackendConnectionPool>> list = remoteManager.getRemoteList(serviceName);
+            List<Tuple<Range, BackendConnectionPool>> list = serviceRegisterManager.getRemoteList(serviceName);
 
             // service not found
             if (list == null || list.size() == 0) {

@@ -6,12 +6,10 @@ import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.RpcException;
-import com.meidusa.venus.URL;
 import com.meidusa.venus.bus.BusInvocation;
-import com.meidusa.venus.bus.dispatch.BusMessageClusterFailoverDispatcher;
 import com.meidusa.venus.bus.dispatch.BusMessageDispatcherProxy;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
-import com.meidusa.venus.bus.service.ServiceRemoteManager;
+import com.meidusa.venus.bus.registry.ServiceRegisterManager;
 import com.meidusa.venus.bus.util.VenusTrafficCollector;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.io.packet.*;
@@ -19,8 +17,6 @@ import com.meidusa.venus.io.support.ShutdownListener;
 import com.meidusa.venus.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 /**
  * 接收客户端消息请求、向服务端分发消息处理
@@ -40,7 +36,7 @@ public class RecvAndDispatchMessageHandler extends BusFrontendMessageHandler imp
         Runtime.getRuntime().addShutdownHook(listener);
     }
 
-    private ServiceRemoteManager remoteManager;
+    private ServiceRegisterManager serviceRegisterManager;
 
     BusMessageDispatcherProxy busMessageDispatcherProxy;
 
@@ -177,12 +173,11 @@ public class RecvAndDispatchMessageHandler extends BusFrontendMessageHandler imp
         error.message = "Service version not match";
     }
 
-    public ServiceRemoteManager getRemoteManager() {
-        return remoteManager;
+    public ServiceRegisterManager getServiceRegisterManager() {
+        return serviceRegisterManager;
     }
 
-    public void setRemoteManager(ServiceRemoteManager remoteManager) {
-        this.remoteManager = remoteManager;
+    public void setServiceRegisterManager(ServiceRegisterManager serviceRegisterManager) {
+        this.serviceRegisterManager = serviceRegisterManager;
     }
-
 }

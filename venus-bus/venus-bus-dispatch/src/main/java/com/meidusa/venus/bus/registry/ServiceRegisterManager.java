@@ -1,4 +1,4 @@
-package com.meidusa.venus.bus.service;
+package com.meidusa.venus.bus.registry;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ import com.meidusa.venus.util.Range;
  * @author structchen
  * 
  */
-public interface ServiceRemoteManager {
+public interface ServiceRegisterManager {
 
     List<Tuple<Range, BackendConnectionPool>> getRemoteList(String serviceName);
 

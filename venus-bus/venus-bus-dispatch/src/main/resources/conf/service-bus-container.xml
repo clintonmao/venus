@@ -72,28 +72,22 @@
 	</bean>
 			
 	<!-- 
-		基于xml配置的服务加载方式
+		基于xml配置的服务注册管理
 	 -->
-	<!--
-	<bean id="remoteManager" clacom.meidusa.venus.bus.service.xml.bean.XmlFileRemoteServiceManagerager" init-method="init">
+	<bean id="xmlServiceRegisterManager" class="com.meidusa.venus.bus.registry.xml.XmlServiceRegisterManager" init-method="init">
 		<property name="configFiles">
 			<list>
 				<value>file:${project.home}/conf/venusRemoteConfig.xml</value>
 			</list>
 		</property>
-		<property name="messageHandler" ref="backendMessageHandler"/>
-		<property name="connector" ref="connector"/>
 	</bean>
-	-->
 
 	<!-- 
-		基于服务注册中心的服务加载方式
+		基于服务注册中心的服务注册管理
 	 -->
-	<bean id="remoteManager" class="com.meidusa.venus.bus.service.registry.RegistryRemoteServiceManager" init-method="init">
+	<bean id="serviceRegisterManager" class="com.meidusa.venus.bus.registry.register.RegistryServiceRegisterManager" init-method="init">
 		<property name="host" value="${venus.registry.host}"/>
 		<property name="port" value="${venus.registry.port}"/>
-		<property name="messageHandler" ref="backendMessageHandler"/>
-		<property name="connector" ref="connector"/>
 	</bean>
 
 	<!--认证、异常配置-->

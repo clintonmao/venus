@@ -13,7 +13,7 @@ import com.meidusa.venus.bus.BusInvocation;
 import com.meidusa.venus.bus.network.BusBackendConnection;
 import com.meidusa.venus.bus.network.BusBackendConnectionFactory;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
-import com.meidusa.venus.bus.service.xml.bean.Remote;
+import com.meidusa.venus.bus.registry.xml.bean.Remote;
 import com.meidusa.venus.io.authenticate.Authenticator;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.packet.ServicePacketBuffer;

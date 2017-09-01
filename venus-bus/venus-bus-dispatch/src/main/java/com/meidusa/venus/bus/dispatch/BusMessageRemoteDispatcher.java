@@ -6,7 +6,7 @@ import com.meidusa.venus.RpcException;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.bus.BusInvocation;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
-import com.meidusa.venus.bus.service.ServiceRemoteManager;
+import com.meidusa.venus.bus.registry.ServiceRegisterManager;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.io.packet.AbstractServicePacket;
 import com.meidusa.venus.io.packet.ErrorPacket;
@@ -27,7 +27,7 @@ public class BusMessageRemoteDispatcher implements Dispatcher{
 
     private BusMessageClusterFailoverDispatcher busMessageClusterFailoverDispatcher;
 
-    private ServiceRemoteManager remoteManager;
+    private ServiceRegisterManager serviceRegisterManager;
 
     @Override
     public Result dispatch(Invocation invocation, URL url) throws RpcException {
@@ -51,7 +51,7 @@ public class BusMessageRemoteDispatcher implements Dispatcher{
         ServicePacketBuffer packetBuffer = busInvocation.getPacketBuffer();
         String serviceName = busInvocation.getServiceName();
         try {
-            List<URL> list = remoteManager.lookup(serviceName);
+            List<URL> list = serviceRegisterManager.lookup(serviceName);
 
             // service not found
             if (list == null || list.size() == 0) {

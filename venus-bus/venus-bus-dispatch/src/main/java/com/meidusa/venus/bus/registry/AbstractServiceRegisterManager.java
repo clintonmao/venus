@@ -1,4 +1,4 @@
-package com.meidusa.venus.bus.service;
+package com.meidusa.venus.bus.registry;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
@@ -39,7 +39,7 @@ import com.meidusa.toolkit.net.PollingBackendConnectionPool;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.venus.bus.network.BusBackendConnectionFactory;
 import com.meidusa.venus.bus.util.NetworkInterfaceUtil;
-import com.meidusa.venus.bus.service.xml.bean.Remote;
+import com.meidusa.venus.bus.registry.xml.bean.Remote;
 import com.meidusa.venus.io.authenticate.Authenticator;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.util.Range;
@@ -51,7 +51,7 @@ import com.meidusa.venus.util.VenusBeanUtilsBean;
  * @author structchen
  * 
  */
-public abstract class AbstractRemoteServiceManager implements ServiceRemoteManager, Initialisable, BeanFactoryAware {
+public abstract class AbstractServiceRegisterManager implements ServiceRegisterManager, Initialisable, BeanFactoryAware {
 
     private static final int CLOSE_DELAY = 30 * 1000;
     /**
@@ -68,7 +68,7 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
     protected MessageHandler messageHandler;
 
     /**
-     * 存放 后端的服务连接池 key=service Name
+     * 存放 后端的服务连接池 key=register Name
      * 
      */
     protected Map<String, List<Tuple<Range, BackendConnectionPool>>> serviceMap = new HashMap<String, List<Tuple<Range, BackendConnectionPool>>>();
@@ -124,7 +124,7 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
     }
 
     /**
-     * 初始化 service manager
+     * 初始化 register manager
      */
     public void init() throws InitialisationException {
         localAddress = NetworkInterfaceUtil.lookupLocalInterface();
@@ -184,7 +184,7 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
         try {
             this.serviceMap = load();
         } catch (Exception e) {
-            throw new InitialisationException("init remote service Manager error", e);
+            throw new InitialisationException("init remote register Manager error", e);
         }
     }
 
