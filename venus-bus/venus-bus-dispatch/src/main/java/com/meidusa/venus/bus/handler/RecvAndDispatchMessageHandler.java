@@ -8,7 +8,8 @@ import com.meidusa.venus.Result;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.bus.BusInvocation;
-import com.meidusa.venus.bus.cluster.BusMessageClusterDispatcher;
+import com.meidusa.venus.bus.dispatch.BusMessageClusterFailoverDispatcher;
+import com.meidusa.venus.bus.dispatch.BusMessageDispatcherProxy;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.bus.service.ServiceRemoteManager;
 import com.meidusa.venus.bus.util.VenusTrafficCollector;
@@ -41,7 +42,7 @@ public class RecvAndDispatchMessageHandler extends BusFrontendMessageHandler imp
 
     private ServiceRemoteManager remoteManager;
 
-    BusMessageClusterDispatcher busMessageClusterDispatcher;
+    BusMessageDispatcherProxy busMessageDispatcherProxy;
 
     @Override
     public void handle(BusFrontendConnection srcConn, final byte[] message) {
@@ -86,64 +87,14 @@ public class RecvAndDispatchMessageHandler extends BusFrontendMessageHandler imp
             //解析请求
             invocation = buildInvocation(srcConn, message);
 
-            //寻址
-            List<URL> urlList = lookup(invocation);
-
-            //TODO 版本号校验
-
-            //分发
-            Result result = busMessageClusterDispatcher.dispatch(invocation,urlList);
+            //通过分发代理进行消息分发
+            Result result = busMessageDispatcherProxy.dispatch(invocation,null);
             //TODO 异常、正常返回处理
         } catch (Exception e) {
             //TODO
             //错误返回
         }
     }
-
-    /**
-     * 查找服务地址 TODO 静态查找、动态查找
-     * @return
-     */
-    List<URL> lookup(BusInvocation invocation){
-        BusFrontendConnection srcConn = invocation.getSrcConn();
-        ServicePacketBuffer packetBuffer = invocation.getPacketBuffer();
-        String serviceName = invocation.getServiceName();
-        try {
-            List<URL> list = remoteManager.lookup(serviceName);
-
-            // service not found
-            if (list == null || list.size() == 0) {
-                ServiceAPIPacket apiPacket = new ServiceAPIPacket();
-                packetBuffer.reset();
-                apiPacket.init(packetBuffer);
-                ErrorPacket error = new ErrorPacket();
-                AbstractServicePacket.copyHead(apiPacket, error);
-                error.errorCode = VenusExceptionCodeConstant.SERVICE_NOT_FOUND;
-                error.message = "service not found :" + serviceName;
-                //错误返回
-                srcConn.write(error.toByteBuffer());
-
-                throw new RpcException("service not found");
-            }
-            return list;
-        } catch (Exception e) {
-            ServiceAPIPacket apiPacket = new ServiceAPIPacket();
-            packetBuffer.reset();
-            apiPacket.init(packetBuffer);
-
-            ErrorPacket error = new ErrorPacket();
-            AbstractServicePacket.copyHead(apiPacket, error);
-            error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
-            error.message = e.getMessage();
-            //错误返回
-            srcConn.write(error.toByteBuffer());
-            logger.error("error when invoke", e);
-
-            throw new RpcException("error when invoke.",e);
-        }
-    }
-
-
 
     /**
      * 解析并构造请求对象

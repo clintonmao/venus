@@ -1,6 +1,5 @@
 package com.meidusa.venus.bus.dispatch;
 
-import com.meidusa.toolkit.common.poolable.InvalidVirtualPoolException;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.toolkit.net.MessageHandler;
@@ -10,16 +9,15 @@ import com.meidusa.venus.Invocation;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.URL;
-import com.meidusa.venus.backend.invoker.support.RpcInvocation;
 import com.meidusa.venus.bus.BusInvocation;
-import com.meidusa.venus.bus.handler.RecvAndDispatchMessageHandler;
 import com.meidusa.venus.bus.network.BusBackendConnection;
 import com.meidusa.venus.bus.network.BusBackendConnectionFactory;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.bus.service.xml.bean.Remote;
-import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.io.authenticate.Authenticator;
-import com.meidusa.venus.io.packet.*;
+import com.meidusa.venus.io.packet.PacketConstant;
+import com.meidusa.venus.io.packet.ServicePacketBuffer;
+import com.meidusa.venus.io.packet.VenusRouterPacket;
 import com.meidusa.venus.util.Range;
 import com.meidusa.venus.util.VenusTracerUtil;
 import org.slf4j.Logger;
@@ -31,14 +29,13 @@ import java.util.List;
  * bus消息分发处理
  * Created by Zhangzhihua on 2017/9/1.
  */
-public class BusMessageDispatcher {
+public class BusMessageDispatcher implements Dispatcher{
 
     private static Logger logger = LoggerFactory.getLogger(BusMessageDispatcher.class);
 
-    protected int defaultPoolSize = Remote.DEFAULT_POOL_SIZE;
+    protected int DEFAULT_POOL_SIZE = Remote.DEFAULT_POOL_SIZE;
 
     protected MessageHandler messageHandler;
-
 
     /**
      * 转发消息 TODO 监控上报
@@ -143,7 +140,7 @@ public class BusMessageDispatcher {
         //TODO 设置messageHandler
         //nioFactory.setMessageHandler(getMessageHandler());
 
-        pool = new PollingBackendConnectionPool(address, nioFactory, defaultPoolSize);
+        pool = new PollingBackendConnectionPool(address, nioFactory, DEFAULT_POOL_SIZE);
         pool.init();
         return pool;
     }
