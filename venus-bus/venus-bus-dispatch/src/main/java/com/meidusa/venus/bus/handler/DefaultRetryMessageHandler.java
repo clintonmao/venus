@@ -31,7 +31,7 @@ import com.meidusa.venus.util.Range;
  */
 public class DefaultRetryMessageHandler implements RetryMessageHandler{
 
-    private static Logger logger = LoggerFactory.getLogger(BusMessageDispatcherHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(RecvAndDispatchMessageHandler.class);
 
     private static final int MAX_RETRY_TIMES = 3;
 

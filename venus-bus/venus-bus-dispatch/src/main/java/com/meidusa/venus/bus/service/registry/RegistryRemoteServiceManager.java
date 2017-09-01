@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.meidusa.venus.URL;
 import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
@@ -57,48 +58,15 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
 
     private List<ServiceDefinition> current;
 
-    public VenusConnectionAcceptor getAcceptor() {
-        return acceptor;
+    @Override
+    public List<URL> lookup(String serviceName) {
+        return null;
     }
 
-    public void setAcceptor(VenusConnectionAcceptor acceptor) {
-        this.acceptor = acceptor;
-    }
-
-    public String getHost() {
-        return host;
-    }
-    
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public Authenticator getAuthenticator() {
-        return authenticator;
-    }
-
-    public void setAuthenticator(Authenticator authenticator) {
-        this.authenticator = authenticator;
-    }
-
-    public VenusExceptionFactory getVenusExceptionFactory() {
-        return venusExceptionFactory;
-    }
-
-    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
-        this.venusExceptionFactory = venusExceptionFactory;
-    }
-
+    //TODO 静态路由、动态路由情况,分离静态还是统一？
     @Override
     protected Map<String, List<Tuple<Range, BackendConnectionPool>>> load() throws Exception {
+        //从注册中心获取服务定义 TODO 提取、统一替换为register模块化接口
         SimpleServiceFactory factory = new SimpleServiceFactory(host, port);
         if (authenticator != null) {
             factory.setAuthenticator(authenticator);
@@ -107,6 +75,7 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
         final ServiceRegistry registry = factory.getService(ServiceRegistry.class);
         List<ServiceDefinition> list = registry.getServiceDefinitions();
 
+        //根据服务地址列表创建对应的连接池并设置消息处理类 TODO 提取、抽象
         final Map<String, List<Tuple<Range, BackendConnectionPool>>> serviceMap = new HashMap<String, List<Tuple<Range, BackendConnectionPool>>>();
 
         for (ServiceDefinition definition : list) {
@@ -129,6 +98,8 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
         }
         factory.destroy();
         this.current = list;
+
+        //处理服务定义更新
         new Thread() {
             {
                 this.setDaemon(true);
@@ -281,6 +252,46 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
             }
         }
         fixPools();
+    }
+
+    public VenusConnectionAcceptor getAcceptor() {
+        return acceptor;
+    }
+
+    public void setAcceptor(VenusConnectionAcceptor acceptor) {
+        this.acceptor = acceptor;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public Authenticator getAuthenticator() {
+        return authenticator;
+    }
+
+    public void setAuthenticator(Authenticator authenticator) {
+        this.authenticator = authenticator;
+    }
+
+    public VenusExceptionFactory getVenusExceptionFactory() {
+        return venusExceptionFactory;
+    }
+
+    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
+        this.venusExceptionFactory = venusExceptionFactory;
     }
 
 }

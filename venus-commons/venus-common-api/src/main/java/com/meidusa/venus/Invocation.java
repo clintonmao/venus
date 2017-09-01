@@ -36,8 +36,6 @@ public class Invocation {
 
     boolean async;
 
-    //private List<Address> addressList;
-
     public Method getMethod() {
         return method;
     }

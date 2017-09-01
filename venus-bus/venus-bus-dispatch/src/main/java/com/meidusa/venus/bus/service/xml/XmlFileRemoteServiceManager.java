@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.meidusa.venus.URL;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.digester.Digester;
 import org.apache.commons.digester.RuleSet;
@@ -44,14 +45,6 @@ import com.meidusa.venus.util.RangeUtil;
 public class XmlFileRemoteServiceManager extends AbstractRemoteServiceManager {
 
     private String[] configFiles;
-
-    public String[] getConfigFiles() {
-        return configFiles;
-    }
-
-    public void setConfigFiles(String[] configFiles) {
-        this.configFiles = configFiles;
-    }
 
     private Map<String, BackendConnectionPool> initRemoteMap(Map<String, Remote> remots) throws Exception {
         Map<String, BackendConnectionPool> poolMap = new HashMap<String, BackendConnectionPool>();
@@ -204,5 +197,18 @@ public class XmlFileRemoteServiceManager extends AbstractRemoteServiceManager {
         }
 
         return all;
+    }
+
+    @Override
+    public List<URL> lookup(String serviceName) {
+        return null;
+    }
+
+    public String[] getConfigFiles() {
+        return configFiles;
+    }
+
+    public void setConfigFiles(String[] configFiles) {
+        this.configFiles = configFiles;
     }
 }
