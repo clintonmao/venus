@@ -3,6 +3,7 @@ package com.meidusa.venus.client.invoker.injvm;
 import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
+import com.meidusa.venus.client.invoker.AbstractClientInvoker;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -56,6 +57,7 @@ public class InjvmInvoker implements Invoker {
             throw new RpcException(e);
         }
     }
+
 
     @Override
     public void destroy() throws RpcException {

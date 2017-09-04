@@ -80,7 +80,7 @@ public class ClientInvokerProxy implements Invoker {
         } catch (Throwable e) {
             //调用异常切面处理
             for(Filter filter : getThrowFilters()){
-                Result result = filter.throwInvoke(invocation,url, );
+                Result result = filter.throwInvoke(invocation,url,e );
                 if(result != null){
                     return result;
                 }

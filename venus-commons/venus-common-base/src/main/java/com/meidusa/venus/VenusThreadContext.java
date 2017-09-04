@@ -18,6 +18,13 @@ public class VenusThreadContext {
     //client接收报文长度
     public final static String CLIENT_INPUT_SIZE = "clientInputSize";
 
+    //请求url
+    public final static String REQUEST_URL = "requestUrl";
+    //响应异常
+    public final static String RESPONSE_EXCEPTION = "responseException";
+    //响应结果
+    public final static String RESPONSE_RESULT = "responseResult";
+
 
     /**
      * 设置上下文属性

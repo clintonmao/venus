@@ -41,6 +41,9 @@ public class InvokerInvocationHandler implements InvocationHandler {
      */
     private DummyAuthenticator authenticator;
 
+    /**
+     * 静态配置地址
+     */
     private RemoteConfig remoteConfig;
 
     /**

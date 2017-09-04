@@ -7,12 +7,24 @@ import com.meidusa.venus.notify.InvocationListener;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.Date;
 
 /**
  * 请求对象
  * Created by Zhangzhihua on 2017/7/31.
  */
 public class Invocation {
+
+    //id
+    private String id;
+    //rpcId
+    private String rpcId;
+    //traceId
+    private String traceId;
+    //请求时间
+    private Date requestTime;
+    //clientIp
+    private String clientIp;
 
     private byte[] traceID;
 
@@ -35,6 +47,46 @@ public class Invocation {
     private Type type;
 
     boolean async;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getRpcId() {
+        return rpcId;
+    }
+
+    public void setRpcId(String rpcId) {
+        this.rpcId = rpcId;
+    }
+
+    public String getTraceId() {
+        return traceId;
+    }
+
+    public void setTraceId(String traceId) {
+        this.traceId = traceId;
+    }
+
+    public Date getRequestTime() {
+        return requestTime;
+    }
+
+    public void setRequestTime(Date requestTime) {
+        this.requestTime = requestTime;
+    }
+
+    public String getClientIp() {
+        return clientIp;
+    }
+
+    public void setClientIp(String clientIp) {
+        this.clientIp = clientIp;
+    }
 
     public Method getMethod() {
         return method;
