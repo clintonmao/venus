@@ -55,7 +55,7 @@ public class ClientActivesLimitFilter extends BaseLimitFilter implements Filter 
     }
 
     @Override
-    public Result throwInvoke(Invocation invocation, URL url) throws RpcException {
+    public Result throwInvoke(Invocation invocation, URL url, Throwable e) throws RpcException {
         return null;
     }
 

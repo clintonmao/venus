@@ -25,10 +25,11 @@ public interface Filter{
      * 调用异常
      * @param invocation
      * @param url
+     * @param e
      * @return
      * @throws RpcException
      */
-    Result throwInvoke(Invocation invocation, URL url) throws RpcException;
+    Result throwInvoke(Invocation invocation, URL url, Throwable e) throws RpcException;
 
     /**
      * 调用后处理

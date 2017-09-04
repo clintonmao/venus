@@ -1,11 +1,9 @@
 package com.meidusa.venus.client.filter.mock;
 
 import com.meidusa.venus.*;
-import com.meidusa.venus.client.filter.limit.ClientActivesLimitFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -52,7 +50,7 @@ public class ClientCallbackMockFilter extends BaseMockFilter implements Filter {
     }
 
     @Override
-    public Result throwInvoke(Invocation invocation, URL url) throws RpcException {
+    public Result throwInvoke(Invocation invocation, URL url, Throwable e) throws RpcException {
         return null;
     }
 
