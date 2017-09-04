@@ -384,19 +384,7 @@
 		</plugins>
 	</build>
 
-	<distributionManagement>
-		<repository>
-			<id>release-open</id>
-			<name>Internal Releases</name>
-			<url>http://maven.hexnova.com/nexus/content/repositories/release-open</url>
-		</repository>
-		<snapshotRepository>
-			<id>release-open</id>
-			<name>Internal snapshots</name>
-			<url>http://maven.hexnova.com/nexus/content/repositories/snapshot-open</url>
-		</snapshotRepository>
-	</distributionManagement>
-
+	<!--
 	<repositories>
 		<repository>
 			<id>release-open</id>
@@ -411,6 +399,21 @@
 			</snapshots>
 		</repository>
 	</repositories>
+	-->
+
+	<!--
+	<distributionManagement>
+		<repository>
+			<id>release-open</id>
+			<name>Internal Releases</name>
+			<url>http://maven.hexnova.com/nexus/content/repositories/release-open</url>
+		</repository>
+		<snapshotRepository>
+			<id>release-open</id>
+			<name>Internal snapshots</name>
+			<url>http://maven.hexnova.com/nexus/content/repositories/snapshot-open</url>
+		</snapshotRepository>
+	</distributionManagement>
 
 	<pluginRepositories>
 		<pluginRepository>
@@ -426,4 +429,5 @@
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
+	-->
 </project>

@@ -19,8 +19,8 @@ public class Invocation {
     private String id;
     //rpcId
     private String rpcId;
-    //traceId
-    private String traceId;
+    //athenaId
+    private String athenaId;
     //请求时间
     private Date requestTime;
     //clientIp
@@ -64,12 +64,12 @@ public class Invocation {
         this.rpcId = rpcId;
     }
 
-    public String getTraceId() {
-        return traceId;
+    public String getAthenaId() {
+        return athenaId;
     }
 
-    public void setTraceId(String traceId) {
-        this.traceId = traceId;
+    public void setAthenaId(String athenaId) {
+        this.athenaId = athenaId;
     }
 
     public Date getRequestTime() {

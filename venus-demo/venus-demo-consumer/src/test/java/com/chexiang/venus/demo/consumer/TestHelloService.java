@@ -1,5 +1,6 @@
 package com.chexiang.venus.demo.consumer;
 
+import com.athena.service.api.AthenaDataService;
 import com.chexiang.venus.demo.provider.HelloService;
 import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.venus.annotations.Endpoint;
@@ -28,6 +29,9 @@ public class TestHelloService {
 
     @Autowired
     HelloService helloService;
+
+    @Autowired
+    AthenaDataService athenaDataService;
 
     //@Test
     public void testSayHello(){
@@ -69,9 +73,18 @@ public class TestHelloService {
 
     @Test
     public void testGetHello(){
-        System.out.println("testGetHello begin...");
-        Hello hello = helloService.getHello("jack");
-        System.out.println("testGetHello end,result:" + hello);
+        while(true){
+            //System.out.println("athenaDataService:" + athenaDataService);
+            System.out.println("testGetHello begin...");
+            Hello hello = helloService.getHello("jack");
+            System.out.println("testGetHello end,result:" + hello);
+
+            try {
+                Thread.sleep(1000*5);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 

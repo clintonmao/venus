@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+        <project xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>venus-monitor</artifactId>
         <groupId>com.meidusa.venus</groupId>
         <version>3.3.1</version>
     </parent>
+
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>venus-monitor-reporter</artifactId>
@@ -18,17 +19,15 @@
             <version>3.3.1</version>
         </dependency>
         <dependency>
-            <groupId>com.saike.athena</groupId>
-            <artifactId>athena-client</artifactId>
-            <version>0.0.2-SNAPSHOT</version>
-            <!--
-            <exclusions>
-                <exclusion>
-                    <groupId>com.meidusa.venus.commons</groupId>
-                    <artifactId>venus-common-exception</artifactId>
-                </exclusion>
-            </exclusions>
-            -->
+            <groupId>com.meidusa.venus</groupId>
+            <artifactId>venus-monitor-default</artifactId>
+            <version>3.3.1</version>
         </dependency>
+        <dependency>
+           <groupId>com.saike.athena</groupId>
+           <artifactId>athena-client</artifactId>
+           <version>2.0-SNAPSHOT</version>
+       </dependency>
     </dependencies>
+
 </project>

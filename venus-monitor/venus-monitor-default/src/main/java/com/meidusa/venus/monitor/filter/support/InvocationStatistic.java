@@ -8,16 +8,33 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class InvocationStatistic {
 
-    private String servicePath;
+    private String methodPath;
 
-    private AtomicInteger count;
+    private AtomicInteger count = new AtomicInteger(0);
 
-    public String getServicePath() {
-        return servicePath;
+    /**
+     * 添加明细并累加统计
+     * @param detail
+     */
+    public void append(InvocationDetail detail){
+        //TODO 处理相关计数及时间统计
+        count.incrementAndGet();
     }
 
-    public void setServicePath(String servicePath) {
-        this.servicePath = servicePath;
+    /**
+     * 重置计数及相关信息
+     */
+    public void reset(){
+        //TODO 重置计数及时间相关
+        count = new AtomicInteger(0);
+    }
+
+    public String getMethodPath() {
+        return methodPath;
+    }
+
+    public void setMethodPath(String methodPath) {
+        this.methodPath = methodPath;
     }
 
     public AtomicInteger getCount() {
@@ -26,9 +43,5 @@ public class InvocationStatistic {
 
     public void setCount(AtomicInteger count) {
         this.count = count;
-    }
-
-    public void reset(){
-        //TODO 重置计数
     }
 }

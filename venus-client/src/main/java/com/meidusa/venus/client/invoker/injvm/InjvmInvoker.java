@@ -14,7 +14,7 @@ import java.util.Map;
  * injvm协议调用invoker，jvm内部调用
  * Created by Zhangzhihua on 2017/8/1.
  */
-public class InjvmInvoker implements Invoker {
+public class InjvmInvoker extends AbstractClientInvoker implements Invoker {
 
     private Map<String, Object> singletonServiceMap = new HashMap<String, Object>();
 
@@ -23,7 +23,7 @@ public class InjvmInvoker implements Invoker {
     }
 
     @Override
-    public Result invoke(Invocation invocation, URL url) throws RpcException {
+    public Result doInvoke(Invocation invocation, URL url) throws RpcException {
         Method method = invocation.getMethod();
         Object[] args = invocation.getArgs();
         Service service = invocation.getService();
@@ -57,7 +57,6 @@ public class InjvmInvoker implements Invoker {
             throw new RpcException(e);
         }
     }
-
 
     @Override
     public void destroy() throws RpcException {

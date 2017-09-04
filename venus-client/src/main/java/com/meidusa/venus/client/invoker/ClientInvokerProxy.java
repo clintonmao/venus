@@ -1,9 +1,11 @@
 package com.meidusa.venus.client.invoker;
 
+import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
+import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.filter.limit.ClientActivesLimitFilter;
 import com.meidusa.venus.client.filter.limit.ClientTpsLimitFilter;
@@ -53,6 +55,8 @@ public class ClientInvokerProxy implements Invoker {
      * 远程(包含同ip实例间)调用
      */
     private ClientRemoteInvoker clientRemoteInvoker = new ClientRemoteInvoker();
+
+    private AthenaDataService athenaService = null;
 
     @Override
     public void init() throws RpcException {
@@ -151,7 +155,7 @@ public class ClientInvokerProxy implements Invoker {
                 //athena监控
                 new ClientAthenaMonitorFilter(),
                 //venus监控
-                new ClientMonitorFilter()
+                new ClientMonitorFilter(getAthenaService())
         };
     }
 
@@ -164,7 +168,7 @@ public class ClientInvokerProxy implements Invoker {
                 //athena监控
                 new ClientAthenaMonitorFilter(),
                 //venus监控
-                new ClientMonitorFilter()
+                new ClientMonitorFilter(getAthenaService())
         };
     }
 
@@ -179,8 +183,23 @@ public class ClientInvokerProxy implements Invoker {
                 //athena监控
                 new ClientAthenaMonitorFilter(),
                 //venus监控
-                new ClientMonitorFilter()
+                new ClientMonitorFilter(getAthenaService())
         };
+    }
+
+    /**
+     * 获取athena远程接口
+     * @return
+     */
+    AthenaDataService getAthenaService(){
+        if(athenaService == null){
+            SimpleServiceFactory factory = new SimpleServiceFactory("10.32.174.22",16800);
+            factory.setSoTimeout(16 * 1000);//可选,默认 15秒
+            factory.setCoTimeout(5 * 1000);//可选,默认5秒
+            athenaService = factory.getService(AthenaDataService.class);
+            logger.info("athenaService:{}.",athenaService);
+        }
+        return athenaService;
     }
 
     /**

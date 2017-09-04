@@ -22,6 +22,7 @@ public abstract class AbstractClientInvoker implements Invoker {
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
+        VenusThreadContext.set(VenusThreadContext.REQUEST_URL,url);
         Method method = invocation.getMethod();
         Service service = invocation.getService();
         Endpoint endpoint = invocation.getEndpoint();
@@ -31,7 +32,9 @@ public abstract class AbstractClientInvoker implements Invoker {
             init();
 
             //调用相应协议实现
-            return doInvoke(invocation, url);
+            Result result = doInvoke(invocation, url);
+            VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
+            return result;
         } catch (Throwable e) {
             if (!(e instanceof CodedException)) {
                 if (exceptionLogger.isInfoEnabled()) {

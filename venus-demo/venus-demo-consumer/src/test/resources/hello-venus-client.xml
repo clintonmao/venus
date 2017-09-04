@@ -44,9 +44,5 @@
 		<service type="com.athena.service.api.AthenaDataService" remote="monitor-remote"/>
 		-->
 		<service type="com.athena.service.api.AthenaDataService" ipAddressList="192.168.1.1:9000"/>
-
-
-
-
 	</services>
 </venus-client>

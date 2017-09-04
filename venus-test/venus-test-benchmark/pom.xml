@@ -58,6 +58,8 @@
             <version>1.7.5</version>
         </dependency>
     </dependencies>
+
+    <!--
     <repositories>
         <repository>
             <id>hexnova-open</id>
@@ -86,4 +88,5 @@
             </snapshots>
         </pluginRepository>
     </pluginRepositories>
+    -->
 </project>
