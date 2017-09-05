@@ -6,6 +6,7 @@ import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.Invocation;
 import com.meidusa.venus.monitor.filter.support.InvocationDetail;
 import com.meidusa.venus.monitor.filter.support.InvocationStatistic;
+import com.meidusa.venus.monitor.reporter.MonitorReporteDelegate;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,9 +40,9 @@ public class BaseMonitorFilter {
 
     static Executor reporterExecutor = Executors.newFixedThreadPool(1);
 
-    MonitorReporteDelegate monitorReporteDelegate = new MonitorReporteDelegate();
+    MonitorReporteDelegate monitorReporteDelegate = null;
 
-    private AthenaDataService athenaDataService;
+    private AthenaDataService athenaDataService = null;
 
     public BaseMonitorFilter(){
     }
@@ -151,6 +152,11 @@ public class BaseMonitorFilter {
         public void run() {
             while(true){
                 try {
+                    MonitorReporteDelegate reporteDelegate = getMonitorReporteDelegate();
+                    if(reporteDelegate == null){
+                        logger.error("get reporteDelegate is null.");
+                        continue;
+                    }
                     //上报异常、慢操作数据 TODO 改为批量拿 锁必要性？
                     logger.info("total exceptionDetail queue size:{}.",exceptionDetailQueue.size());
                     List<InvocationDetail> exceptionDetailList = new ArrayList<InvocationDetail>();
@@ -158,12 +164,12 @@ public class BaseMonitorFilter {
                     if(exceptionDetail != null){
                         exceptionDetailList.add(exceptionDetail);
                     }
-                    monitorReporteDelegate.reportExceptionDetailList(exceptionDetailList);
+                    reporteDelegate.reportExceptionDetailList(exceptionDetailList);
 
                     //上报服务调用汇总数据 TODO 要不要锁？
                     logger.info("total statistic map size:{}.",statisticMap.size());
                     Collection<InvocationStatistic> statistics = statisticMap.values();
-                    monitorReporteDelegate.reportStatisticList(statistics);
+                    reporteDelegate.reportStatisticList(statistics);
                     //重置统计信息
                     for(Map.Entry<String,InvocationStatistic> entry:statisticMap.entrySet()){
                         entry.getValue().reset();
@@ -183,51 +189,16 @@ public class BaseMonitorFilter {
         }
     }
 
-    class MonitorReporteDelegate {
-
-        /**
-         * 上报异常明细 TODO 上报放到reporter模块，可选择依赖
-         * @param exceptionDetailList
-         */
-        public void reportExceptionDetailList(Collection<InvocationDetail> exceptionDetailList){
-            logger.info("report exceptionDetailList size:{}.",exceptionDetailList.size());
-            //TODO 上报异常明细
-            AthenaDataService athenaDataService = getAthenaDataService();
-            //logger.info("athenaDataService:{}.",athenaDataService);
-            if(CollectionUtils.isEmpty(exceptionDetailList)){
-                return;
-            }
-            List<MethodCallDetailDO> detailDOList = new ArrayList<MethodCallDetailDO>();
-            for(InvocationDetail detail:exceptionDetailList){
-                MethodCallDetailDO detailDO = new MethodCallDetailDO();
-                //TODO
-                detailDOList.add(detailDO);
-            }
-            athenaDataService.reportMethodCallDetail(detailDOList);
+    /**
+     * 获取监控上报代理
+     * @return
+     */
+    MonitorReporteDelegate getMonitorReporteDelegate(){
+        if(monitorReporteDelegate == null){
+            monitorReporteDelegate = new MonitorReporteDelegate();
+            monitorReporteDelegate.setAthenaDataService(this.getAthenaDataService());
         }
-
-        /**
-         * 上报统计数据 TODO 上报放到reporter模块，可选择依赖
-         * @param statisticList
-         */
-        public void reportStatisticList(Collection<InvocationStatistic> statisticList){
-            logger.info("report statisticList size:{}.",statisticList.size());
-
-            //TODO 上报方法调用统计
-            AthenaDataService athenaDataService = getAthenaDataService();
-            //logger.info("athenaDataService:{}.",athenaDataService);
-            if(CollectionUtils.isEmpty(statisticList)){
-                return;
-            }
-
-            List<MethodStaticDO> staticDOList = new ArrayList<MethodStaticDO>();
-            for(InvocationStatistic statistic:statisticList){
-                MethodStaticDO staticDO = new MethodStaticDO();
-                staticDOList.add(staticDO);
-            }
-            athenaDataService.reportMethodStatic(staticDOList);
-        }
-
+        return monitorReporteDelegate;
     }
 
     public AthenaDataService getAthenaDataService() {

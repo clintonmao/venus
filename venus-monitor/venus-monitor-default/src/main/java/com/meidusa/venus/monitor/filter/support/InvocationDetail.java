@@ -14,21 +14,6 @@ import java.util.Date;
 public class InvocationDetail {
 
     /**
-     * 请求id
-     */
-    String id;
-
-    /**
-     * 请求rpcId
-     */
-    String rpcId;
-
-    /**
-     * 请求traceId
-     */
-    String traceId;
-
-    /**
      * 请求来源
      */
     int from;
@@ -62,30 +47,6 @@ public class InvocationDetail {
      * 响应异常
      */
     Throwable exception;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getRpcId() {
-        return rpcId;
-    }
-
-    public void setRpcId(String rpcId) {
-        this.rpcId = rpcId;
-    }
-
-    public String getTraceId() {
-        return traceId;
-    }
-
-    public void setTraceId(String traceId) {
-        this.traceId = traceId;
-    }
 
     public int getFrom() {
         return from;

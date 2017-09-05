@@ -21,8 +21,6 @@ public class Invocation {
     private String rpcId;
     //athenaId
     private String athenaId;
-    //请求时间
-    private Date requestTime;
     //clientIp
     private String clientIp;
 
@@ -70,14 +68,6 @@ public class Invocation {
 
     public void setAthenaId(String athenaId) {
         this.athenaId = athenaId;
-    }
-
-    public Date getRequestTime() {
-        return requestTime;
-    }
-
-    public void setRequestTime(Date requestTime) {
-        this.requestTime = requestTime;
     }
 
     public String getClientIp() {

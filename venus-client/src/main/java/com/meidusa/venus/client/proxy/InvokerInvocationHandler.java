@@ -11,6 +11,7 @@ import com.meidusa.venus.client.invoker.ClientInvokerProxy;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.metainfo.EndpointParameterUtil;
+import com.meidusa.venus.util.UUID;
 import com.meidusa.venus.util.VenusTracerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,6 +102,8 @@ public class InvokerInvocationHandler implements InvocationHandler {
      */
     Invocation buildInvocation(Object proxy, Method method, Object[] args){
         Invocation invocation = new Invocation();
+        //TODO id大小及生成机制
+        invocation.setId(UUID.toString(new byte[16]));
         invocation.setServiceType(serviceType);
         invocation.setMethod(method);
         invocation.setArgs(args);
