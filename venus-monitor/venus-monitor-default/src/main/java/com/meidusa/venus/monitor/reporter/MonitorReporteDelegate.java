@@ -6,6 +6,7 @@ import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.Invocation;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.URL;
+import com.meidusa.venus.backend.serializer.JSONSerializer;
 import com.meidusa.venus.monitor.filter.BaseMonitorFilter;
 import com.meidusa.venus.monitor.filter.support.InvocationDetail;
 import com.meidusa.venus.monitor.filter.support.InvocationStatistic;
@@ -28,6 +29,9 @@ public class MonitorReporteDelegate {
     private static Logger logger = LoggerFactory.getLogger(MonitorReporteDelegate.class);
 
     private AthenaDataService athenaDataService;
+
+    //TODO 将序列化传输协议无关移到common包中
+    private JSONSerializer jsonSerializer = new JSONSerializer();
 
     /**
      * 上报异常明细 TODO 上报放到reporter模块，可选择依赖
@@ -66,16 +70,43 @@ public class MonitorReporteDelegate {
         detailDO.setTraceId(invocation.getAthenaId());
         detailDO.setSourceType(detail.getFrom());
         //请求信息
-        detailDO.setRequestTime(detail.getRequestTime());
         detailDO.setServiceName(invocation.getService().name());
-        detailDO.setInterfaceName(invocation.getService().name());
+        detailDO.setInterfaceName(invocation.getServiceInterface().getName());
         detailDO.setMethodName(invocation.getEndpoint().name());
-        detailDO.setConsumerIp(url.getHost());
+        if(invocation.getArgs() != null){
+            detailDO.setRequestJson(serialize(invocation.getArgs()));
+        }
+        detailDO.setRequestTime(invocation.getRequestTime());
+        detailDO.setConsumerIp(invocation.getConsumerIp());
+        detailDO.setProviderIp(url.getHost());
         //响应信息
         detailDO.setResponseTime(detail.getResponseTime());
+        //响应结果
+        if(result != null){
+            detailDO.setReponseJson(serialize(result));
+            detailDO.setStatus(1);
+        } else{
+            //响应异常
+            detailDO.setErrorInfo(serialize(exception));
+            detailDO.setStatus(0);
+        }
+        //TODO 响应地址
         //状态相关
-
         return detailDO;
+    }
+
+    /**
+     * 序列化对象
+     * @param object
+     * @return
+     */
+    String serialize(Object object){
+        try {
+            return jsonSerializer.serialize(object);
+        } catch (Exception e) {
+            logger.error("serialize error.",e);
+            return "";
+        }
     }
 
     /**

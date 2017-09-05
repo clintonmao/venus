@@ -11,13 +11,16 @@ import com.meidusa.venus.client.invoker.ClientInvokerProxy;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.metainfo.EndpointParameterUtil;
+import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.UUID;
+import com.meidusa.venus.util.UUIDUtil;
 import com.meidusa.venus.util.VenusTracerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.Date;
 
 /**
  * 客户端服务调用代理
@@ -31,13 +34,16 @@ public class InvokerInvocationHandler implements InvocationHandler {
     /**
      * 服务接口类型
      */
-    private Class<?> serviceType;
+    private Class<?> serviceInterface;
 
     /**
      * 异常处理
      */
     private VenusExceptionFactory venusExceptionFactory;
 
+    /**
+     * service工厂
+     */
     private ServiceFactory serviceFactory;
 
     /**
@@ -102,9 +108,17 @@ public class InvokerInvocationHandler implements InvocationHandler {
      */
     Invocation buildInvocation(Object proxy, Method method, Object[] args){
         Invocation invocation = new Invocation();
-        //TODO id大小及生成机制
-        invocation.setId(UUID.toString(new byte[16]));
-        invocation.setServiceType(serviceType);
+        invocation.setId(UUIDUtil.create().toString());
+        //设置traceId
+        /*
+        byte[] traceID = VenusTracerUtil.getTracerID();
+        if (traceID == null) {
+            traceID = VenusTracerUtil.randomTracerID();
+        }
+        */
+        //TODO 多条记录情况
+        invocation.setRpcId(UUIDUtil.create().toString());
+        invocation.setServiceInterface(serviceInterface);
         invocation.setMethod(method);
         invocation.setArgs(args);
         Endpoint endpoint =  AnnotationUtil.getAnnotation(method.getAnnotations(), Endpoint.class);
@@ -117,26 +131,23 @@ public class InvokerInvocationHandler implements InvocationHandler {
                 invocation.setParams(params);
             }
         }
-
-        //设置traceId
-        byte[] traceID = VenusTracerUtil.getTracerID();
-        if (traceID == null) {
-            traceID = VenusTracerUtil.randomTracerID();
-        }
-        //设置调用方式
+        invocation.setRequestTime(new Date());
+        invocation.setConsumerIp(NetUtil.getLocalIp());
+        //是否async
         boolean async = false;
         if (endpoint != null && endpoint.async()) {
             async = true;
         }
+        invocation.setAsync(async);
         return invocation;
     }
 
-    public Class<?> getServiceType() {
-        return serviceType;
+    public Class<?> getServiceInterface() {
+        return serviceInterface;
     }
 
-    public void setServiceType(Class<?> serviceType) {
-        this.serviceType = serviceType;
+    public void setServiceInterface(Class<?> serviceInterface) {
+        this.serviceInterface = serviceInterface;
     }
 
     public RemoteConfig getRemoteConfig() {

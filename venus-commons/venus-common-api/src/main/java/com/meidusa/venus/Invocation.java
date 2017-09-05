@@ -17,32 +17,37 @@ public class Invocation {
 
     //id
     private String id;
+
     //rpcId
     private String rpcId;
+
     //athenaId
     private String athenaId;
-    //clientIp
-    private String clientIp;
 
     private byte[] traceID;
 
     private byte[] messageId;
 
-    private Class<?> serviceType;
-
-    private Method method;
-
-    private Object[] args;
+    private Class<?> serviceInterface;
 
     private Service service;
 
     private Endpoint endpoint;
 
+    private Method method;
+
     private EndpointParameter[] params;
+
+    private Object[] args;
 
     private InvocationListener invocationListener;
 
     private Type type;
+
+    private Date requestTime;
+
+    //consumerIp
+    private String consumerIp;
 
     boolean async;
 
@@ -70,12 +75,12 @@ public class Invocation {
         this.athenaId = athenaId;
     }
 
-    public String getClientIp() {
-        return clientIp;
+    public String getConsumerIp() {
+        return consumerIp;
     }
 
-    public void setClientIp(String clientIp) {
-        this.clientIp = clientIp;
+    public void setConsumerIp(String consumerIp) {
+        this.consumerIp = consumerIp;
     }
 
     public Method getMethod() {
@@ -94,12 +99,12 @@ public class Invocation {
         this.args = args;
     }
 
-    public Class<?> getServiceType() {
-        return serviceType;
+    public Class<?> getServiceInterface() {
+        return serviceInterface;
     }
 
-    public void setServiceType(Class<?> serviceType) {
-        this.serviceType = serviceType;
+    public void setServiceInterface(Class<?> serviceInterface) {
+        this.serviceInterface = serviceInterface;
     }
 
     public Service getService() {
@@ -164,5 +169,13 @@ public class Invocation {
 
     public void setType(Type type) {
         this.type = type;
+    }
+
+    public Date getRequestTime() {
+        return requestTime;
+    }
+
+    public void setRequestTime(Date requestTime) {
+        this.requestTime = requestTime;
     }
 }

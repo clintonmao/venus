@@ -286,11 +286,11 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             //创建InvocationHandler
             //连接管理功能放到InvocationHandler，由外围serviceFacotry传递url、remoteConfig或者不传地址信息（若不传，则即为动态寻址）
             InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
+            invocationHandler.setServiceInterface(serviceConfig.getType());
             if(StringUtils.isNotEmpty(serviceConfig.getRemote()) || StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
                 RemoteConfig remoteConfig = getRemoteConfig(serviceConfig,venusClientConfig);
                 invocationHandler.setRemoteConfig(remoteConfig);
             }
-            //TODO 处理走注册中心场景
             if(StringUtils.isNotEmpty(serviceConfig.getRegisterUrl())){
                 invocationHandler.setRegisterUrl(serviceConfig.getRegisterUrl());
             }
@@ -300,9 +300,8 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             /*
             invocationHandler.setNioConnPool(tuple.right);
             invocationHandler.setBioConnPool(tuple.left);
-            invocationHandler.setMessageHandler(this.handler);
             invocationHandler.setConnector(this.connector);
-            invocationHandler.setServiceFactory(this);
+            invocationHandler.setMessageHandler(this.handler);
             invocationHandler.setContainer(this.container);
             if (remoteConfig != null && remoteConfig.getAuthenticator() != null) {
                 invocationHandler.setSerializeType(remoteConfig.getAuthenticator().getSerializeType());
@@ -336,6 +335,12 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         }
     }
 
+    /**
+     * 获取静态地址配置信息
+     * @param serviceConfig
+     * @param venusClientConfig
+     * @return
+     */
     RemoteConfig getRemoteConfig(ServiceConfig serviceConfig,VenusClientConfig venusClientConfig){
         if(StringUtils.isNotEmpty(serviceConfig.getRemote())){
             RemoteConfig remoteConfig = venusClientConfig.getRemoteConfigMap().get(serviceConfig.getRemote());

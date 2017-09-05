@@ -157,12 +157,19 @@ public class BaseMonitorFilter {
                         logger.error("get reporteDelegate is null.");
                         continue;
                     }
-                    //上报异常、慢操作数据 TODO 改为批量拿 锁必要性？
+                    //上报异常、慢操作数据
                     logger.info("total exceptionDetail queue size:{}.",exceptionDetailQueue.size());
+                    //TODO 改为批量拿 锁必要性？
                     List<InvocationDetail> exceptionDetailList = new ArrayList<InvocationDetail>();
-                    InvocationDetail exceptionDetail = exceptionDetailQueue.poll();
-                    if(exceptionDetail != null){
-                        exceptionDetailList.add(exceptionDetail);
+                    int fetchNum = 50;
+                    if(exceptionDetailQueue.size() < fetchNum){
+                        fetchNum = exceptionDetailQueue.size();
+                    }
+                    for(int i=0;i<fetchNum;i++){
+                        InvocationDetail exceptionDetail = exceptionDetailQueue.poll();
+                        if(exceptionDetail != null){
+                            exceptionDetailList.add(exceptionDetail);
+                        }
                     }
                     reporteDelegate.reportExceptionDetailList(exceptionDetailList);
 

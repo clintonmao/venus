@@ -42,6 +42,10 @@ public class ClientAthenaMonitorFilter implements Filter {
             AthenaTransactionId athenaTransactionId = AthenaTransactionDelegate.getDelegate().startClientTransaction(apiName);
             //保存athenaTransactionId上下文
             VenusThreadContext.set(VenusThreadContext.ATHENA_TRANSACTION_ID,athenaTransactionId);
+            if(athenaTransactionId != null){
+                VenusThreadContext.set(VenusThreadContext.ATHENA_ROOT_ID,athenaTransactionId.getRootId());
+                VenusThreadContext.set(VenusThreadContext.ATHENA_MESSAGE_ID,athenaTransactionId.getMessageId());
+            }
         }
         return null;
     }

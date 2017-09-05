@@ -13,15 +13,15 @@ import java.util.Date;
  */
 public class InvocationDetail {
 
+    //上报数据来源定义
+    public static final int FROM_CLIENT = 0;
+    public static final int FROM_BUS = 1;
+    public static final int FROM_SERVER = 2;
+
     /**
      * 请求来源
      */
     int from;
-
-    /**
-     * 请求时间
-     */
-    Date requestTime;
 
     /**
      * 请求对象
@@ -54,14 +54,6 @@ public class InvocationDetail {
 
     public void setFrom(int from) {
         this.from = from;
-    }
-
-    public Date getRequestTime() {
-        return requestTime;
-    }
-
-    public void setRequestTime(Date requestTime) {
-        this.requestTime = requestTime;
     }
 
     public Invocation getInvocation() {

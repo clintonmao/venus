@@ -39,21 +39,22 @@ public class ClientMonitorFilter extends BaseMonitorFilter implements Filter {
 
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
-        //获取请求/响应相关数据
-        //请求url 上下文获取
+        //athenaId
+        String athenaId = (String)VenusThreadContext.get(VenusThreadContext.ATHENA_ROOT_ID);
+        invocation.setAthenaId(athenaId);
+        //请求url
         url = (URL)VenusThreadContext.get(VenusThreadContext.REQUEST_URL);
-        //响应时间
-        Date responseTime = new Date();
-        //响应结果 上下文获取
+        //响应结果
         Result result = (Result) VenusThreadContext.get(VenusThreadContext.RESPONSE_RESULT);
-        //响应异常 上下文获取
+        //响应异常
         Throwable e = (Throwable)VenusThreadContext.get(VenusThreadContext.RESPONSE_EXCEPTION);
 
         //组装并添加到明细队列
         InvocationDetail invocationDetail = new InvocationDetail();
+        invocationDetail.setFrom(InvocationDetail.FROM_CLIENT);
         invocationDetail.setInvocation(invocation);
         invocationDetail.setUrl(url);
-        invocationDetail.setResponseTime(responseTime);
+        invocationDetail.setResponseTime(new Date());
         invocationDetail.setResult(result);
         invocationDetail.setException(e);
 
