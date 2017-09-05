@@ -86,14 +86,13 @@ public class ClientRemoteInvoker implements Invoker{
      * @return
      */
     List<URL> lookup(Invocation invocation){
-        if(remoteConfig != null){
-            //TODO 静态地址
-            List<URL> urlList = lookupByDynamic(invocation);
+        if(remoteConfig != null){//静态地址
+            List<URL> urlList = lookupByStatic(invocation);
             if(CollectionUtils.isEmpty(urlList)){
                 throw new RpcException("not found avalid providers.");
             }
             return urlList;
-        }else if(StringUtils.isNotEmpty(registerUrl)){
+        }else if(StringUtils.isNotEmpty(registerUrl)){//动态注册中心查找
             List<URL> urlList = lookupByDynamic(invocation);
             if(CollectionUtils.isEmpty(urlList)){
                 throw new RpcException("not found avalid providers.");
@@ -129,8 +128,11 @@ public class ClientRemoteInvoker implements Invoker{
     List<URL> lookupByDynamic(Invocation invocation){
         List<URL> urlList = new ArrayList<URL>();
 
+        //TODO url动态拼装
         String path = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
         URL serviceUrl = URL.parse(path);
+
+        //TODO 本地或远程接口调用
         ServiceDefinition serviceDefinition = getRegister().lookup(serviceUrl);
         if(serviceDefinition == null || CollectionUtils.isEmpty(serviceDefinition.getIpAddress())){
             throw new RpcException("service not found available providers.");

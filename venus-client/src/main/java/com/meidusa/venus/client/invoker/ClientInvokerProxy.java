@@ -5,6 +5,7 @@ import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
+import com.meidusa.venus.client.factory.ServiceFactory;
 import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.filter.limit.ClientActivesLimitFilter;
@@ -39,6 +40,8 @@ public class ClientInvokerProxy implements Invoker {
      */
     private DummyAuthenticator authenticator;
 
+    private ServiceFactory serviceFactory;
+
     private RemoteConfig remoteConfig;
 
     /**
@@ -56,7 +59,7 @@ public class ClientInvokerProxy implements Invoker {
      */
     private ClientRemoteInvoker clientRemoteInvoker = new ClientRemoteInvoker();
 
-    private AthenaDataService athenaService = null;
+    private ClientMonitorFilter clientMonitorFilter;
 
     @Override
     public void init() throws RpcException {
@@ -155,7 +158,7 @@ public class ClientInvokerProxy implements Invoker {
                 //athena监控
                 new ClientAthenaMonitorFilter(),
                 //venus监控
-                new ClientMonitorFilter(getAthenaService())
+                getClientMonitorFilter()
         };
     }
 
@@ -168,7 +171,7 @@ public class ClientInvokerProxy implements Invoker {
                 //athena监控
                 new ClientAthenaMonitorFilter(),
                 //venus监控
-                new ClientMonitorFilter(getAthenaService())
+                getClientMonitorFilter()
         };
     }
 
@@ -183,23 +186,30 @@ public class ClientInvokerProxy implements Invoker {
                 //athena监控
                 new ClientAthenaMonitorFilter(),
                 //venus监控
-                new ClientMonitorFilter(getAthenaService())
+                getClientMonitorFilter()
         };
     }
 
     /**
-     * 获取athena远程接口
+     * getClientMonitorFilter
      * @return
      */
-    AthenaDataService getAthenaService(){
-        if(athenaService == null){
-            SimpleServiceFactory factory = new SimpleServiceFactory("10.32.174.22",16800);
-            factory.setSoTimeout(16 * 1000);//可选,默认 15秒
-            factory.setCoTimeout(5 * 1000);//可选,默认5秒
-            athenaService = factory.getService(AthenaDataService.class);
-            logger.info("athenaService:{}.",athenaService);
-        }
-        return athenaService;
+    ClientMonitorFilter getClientMonitorFilter(){
+         if(clientMonitorFilter != null){
+             return clientMonitorFilter;
+         }
+        //String host = "10.32.174.22";
+        //String host = "10.47.16.58";
+//        String host = "10.47.58.63";
+//        SimpleServiceFactory factory = new SimpleServiceFactory(host,16800);
+//        factory.setSoTimeout(16 * 1000);//可选,默认 15秒
+//        factory.setCoTimeout(5 * 1000);//可选,默认5秒
+//        AthenaDataService athenaService = factory.getService(AthenaDataService.class);
+
+        AthenaDataService athenaService = this.getServiceFactory().getService(AthenaDataService.class);
+        logger.info("athenaService:{}.",athenaService);
+        clientMonitorFilter = new ClientMonitorFilter(athenaService);
+        return clientMonitorFilter;
     }
 
     /**
@@ -253,5 +263,13 @@ public class ClientInvokerProxy implements Invoker {
 
     public void setRegisterUrl(String registerUrl) {
         this.registerUrl = registerUrl;
+    }
+
+    public ServiceFactory getServiceFactory() {
+        return serviceFactory;
+    }
+
+    public void setServiceFactory(ServiceFactory serviceFactory) {
+        this.serviceFactory = serviceFactory;
     }
 }

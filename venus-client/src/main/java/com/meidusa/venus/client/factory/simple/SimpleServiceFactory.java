@@ -121,7 +121,7 @@ public class SimpleServiceFactory implements ServiceFactory {
     protected <T> T initService(Class<T> t, String host, int port) {
         //InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler(host, port, coTimeout, soTimeout);
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
-        invocationHandler.setRemoteConfig(getRemoteConfig());
+        invocationHandler.setRemoteConfig(getRemoteConfig(host, port));
 
         if(this.venusExceptionFactory == null){
         	XmlVenusExceptionFactory venusExceptionFactory = new XmlVenusExceptionFactory();
@@ -160,9 +160,9 @@ public class SimpleServiceFactory implements ServiceFactory {
      * 获取远程配置
      * @return
      */
-    RemoteConfig getRemoteConfig(){
-        RemoteConfig remoteConfig = new RemoteConfig();
-        //TODO 初始化remoteConfig
+    RemoteConfig getRemoteConfig(String host, int port){
+        String ipAddress = String.format("%s:%d",host,port);
+        RemoteConfig remoteConfig = RemoteConfig.newInstace(ipAddress);
         return remoteConfig;
     }
 

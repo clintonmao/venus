@@ -38,11 +38,16 @@
 		<!--
 		<service type="com.saic.framework.message.UniMessageService" remote="UMSRemote"/>
 		-->
-		<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="192.168.1.1:9000"/>
+		<service type="com.chexiang.venus.demo.provider.HelloService" registerUrl="injvm://localhost"/>
 
 		<!--
 		<service type="com.athena.service.api.AthenaDataService" remote="monitor-remote"/>
 		-->
-		<service type="com.athena.service.api.AthenaDataService" ipAddressList="192.168.1.1:9000"/>
+		<!--
+		String host = "10.32.174.22";
+        String host = "10.47.16.58";
+        String host = "10.47.58.63";
+        -->
+		<service type="com.athena.service.api.AthenaDataService" ipAddressList="10.47.58.63:16800"/>
 	</services>
 </venus-client>

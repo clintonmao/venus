@@ -129,10 +129,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @return
      */
     Register getRegister(){
-        /*
-        String registerUrl = "192.168.1.1:9000;192.168.1.2:9000";
-        RegisterService registerService = getRegisterService(registerUrl);
-        */
         if(register != null){
             return register;
         }

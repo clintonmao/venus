@@ -1,9 +1,12 @@
 package com.meidusa.venus.monitor.filter;
 
+import com.athena.domain.MethodCallDetailDO;
+import com.athena.domain.MethodStaticDO;
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.Invocation;
 import com.meidusa.venus.monitor.filter.support.InvocationDetail;
 import com.meidusa.venus.monitor.filter.support.InvocationStatistic;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +41,7 @@ public class BaseMonitorFilter {
 
     MonitorReporteDelegate monitorReporteDelegate = new MonitorReporteDelegate();
 
-    private static AthenaDataService athenaDataService;
+    private AthenaDataService athenaDataService;
 
     public BaseMonitorFilter(){
     }
@@ -108,22 +111,26 @@ public class BaseMonitorFilter {
         @Override
         public void run() {
             while(true){
-                logger.info("detailQueue:{}.",detailQueue);
-                //处理异常、慢操作数据
-                InvocationDetail detail = detailQueue.poll();
-                if(detail != null){
-                    if(isExceptionOperation(detail) || isSlowOperation(detail)){
-                        exceptionDetailQueue.add(detail);
-                    }
+                try {
+                    logger.info("detailQueue size:{}.",detailQueue.size());
+                    //处理异常、慢操作数据
+                    InvocationDetail detail = detailQueue.poll();
+                    if(detail != null){
+                        if(isExceptionOperation(detail) || isSlowOperation(detail)){
+                            exceptionDetailQueue.add(detail);
+                        }
 
-                    //统计方法数据
-                    String methodPath = getMethodPath(detail);
-                    if(statisticMap.get(methodPath) == null){
-                        statisticMap.put(methodPath,new InvocationStatistic());
+                        //统计方法数据
+                        String methodPath = getMethodPath(detail);
+                        if(statisticMap.get(methodPath) == null){
+                            statisticMap.put(methodPath,new InvocationStatistic());
+                        }
+                        InvocationStatistic invocationStatistic = statisticMap.get(methodPath);
+                        //累加统计
+                        invocationStatistic.append(detail);
                     }
-                    InvocationStatistic invocationStatistic = statisticMap.get(methodPath);
-                    //累加统计
-                    invocationStatistic.append(detail);
+                } catch (Exception e) {
+                    logger.error("process invocation detail error.",e);
                 }
 
                 //TODO 改调度方式
@@ -143,31 +150,31 @@ public class BaseMonitorFilter {
         @Override
         public void run() {
             while(true){
-                //上报异常、慢操作数据 TODO 改为批量拿 锁必要性？
-                logger.info("exceptionDetailQueue:{}.",exceptionDetailQueue);
-                synchronized (exceptionDetailQueue){
+                try {
+                    //上报异常、慢操作数据 TODO 改为批量拿 锁必要性？
+                    logger.info("total exceptionDetail queue size:{}.",exceptionDetailQueue.size());
                     List<InvocationDetail> exceptionDetailList = new ArrayList<InvocationDetail>();
                     InvocationDetail exceptionDetail = exceptionDetailQueue.poll();
                     if(exceptionDetail != null){
                         exceptionDetailList.add(exceptionDetail);
                     }
                     monitorReporteDelegate.reportExceptionDetailList(exceptionDetailList);
-                }
 
-                //上报服务调用汇总数据 TODO 要不要锁？
-                logger.info("statisticMap:{}.",statisticMap);
-                synchronized (statisticMap){
+                    //上报服务调用汇总数据 TODO 要不要锁？
+                    logger.info("total statistic map size:{}.",statisticMap.size());
                     Collection<InvocationStatistic> statistics = statisticMap.values();
                     monitorReporteDelegate.reportStatisticList(statistics);
                     //重置统计信息
                     for(Map.Entry<String,InvocationStatistic> entry:statisticMap.entrySet()){
                         entry.getValue().reset();
                     }
+                } catch (Exception e) {
+                    logger.error("report error.",e);
                 }
 
                 //TODO 改调度方式
                 try {
-                    Thread.sleep(1000*10);
+                    Thread.sleep(1000*30);
                 } catch (InterruptedException e) {
                 }
             }
@@ -183,11 +190,20 @@ public class BaseMonitorFilter {
          * @param exceptionDetailList
          */
         public void reportExceptionDetailList(Collection<InvocationDetail> exceptionDetailList){
-            logger.info("report exceptionDetailList:{}.",exceptionDetailList);
-
+            logger.info("report exceptionDetailList size:{}.",exceptionDetailList.size());
             //TODO 上报异常明细
             AthenaDataService athenaDataService = getAthenaDataService();
-            logger.info("athenaDataService:{}.",athenaDataService);
+            //logger.info("athenaDataService:{}.",athenaDataService);
+            if(CollectionUtils.isEmpty(exceptionDetailList)){
+                return;
+            }
+            List<MethodCallDetailDO> detailDOList = new ArrayList<MethodCallDetailDO>();
+            for(InvocationDetail detail:exceptionDetailList){
+                MethodCallDetailDO detailDO = new MethodCallDetailDO();
+                //TODO
+                detailDOList.add(detailDO);
+            }
+            athenaDataService.reportMethodCallDetail(detailDOList);
         }
 
         /**
@@ -195,11 +211,21 @@ public class BaseMonitorFilter {
          * @param statisticList
          */
         public void reportStatisticList(Collection<InvocationStatistic> statisticList){
-            logger.info("report statisticList:{}.",statisticList);
+            logger.info("report statisticList size:{}.",statisticList.size());
 
             //TODO 上报方法调用统计
             AthenaDataService athenaDataService = getAthenaDataService();
-            logger.info("athenaDataService:{}.",athenaDataService);
+            //logger.info("athenaDataService:{}.",athenaDataService);
+            if(CollectionUtils.isEmpty(statisticList)){
+                return;
+            }
+
+            List<MethodStaticDO> staticDOList = new ArrayList<MethodStaticDO>();
+            for(InvocationStatistic statistic:statisticList){
+                MethodStaticDO staticDO = new MethodStaticDO();
+                staticDOList.add(staticDO);
+            }
+            athenaDataService.reportMethodStatic(staticDOList);
         }
 
     }
@@ -209,6 +235,6 @@ public class BaseMonitorFilter {
     }
 
     public void setAthenaDataService(AthenaDataService athenaDataService) {
-        athenaDataService = athenaDataService;
+        this.athenaDataService = athenaDataService;
     }
 }

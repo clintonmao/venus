@@ -5,6 +5,7 @@ import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
+import com.meidusa.venus.client.factory.ServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.invoker.ClientInvokerProxy;
 import com.meidusa.venus.exception.VenusExceptionFactory;
@@ -36,6 +37,8 @@ public class InvokerInvocationHandler implements InvocationHandler {
      */
     private VenusExceptionFactory venusExceptionFactory;
 
+    private ServiceFactory serviceFactory;
+
     /**
      * 认证配置
      */
@@ -49,7 +52,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
     /**
      * 注册中心地址
      */
-    private String registerUrl = "192.168.1.1:9000";
+    private String registerUrl;
 
     private ClientInvokerProxy clientInvokerProxy;
 
@@ -82,6 +85,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
             clientInvokerProxy = new ClientInvokerProxy();
             clientInvokerProxy.setAuthenticator(getAuthenticator());
             clientInvokerProxy.setVenusExceptionFactory(getVenusExceptionFactory());
+            clientInvokerProxy.setServiceFactory(getServiceFactory());
             clientInvokerProxy.setRegisterUrl(getRegisterUrl());
             clientInvokerProxy.setRemoteConfig(getRemoteConfig());
         }
@@ -100,7 +104,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
         invocation.setServiceType(serviceType);
         invocation.setMethod(method);
         invocation.setArgs(args);
-        //invocation.setRemoteConfig(remoteConfig);
         Endpoint endpoint =  AnnotationUtil.getAnnotation(method.getAnnotations(), Endpoint.class);
         invocation.setEndpoint(endpoint);
         if (endpoint != null) {
@@ -119,7 +122,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
         }
         //设置调用方式
         boolean async = false;
-        if (endpoint.async()) {
+        if (endpoint != null && endpoint.async()) {
             async = true;
         }
         return invocation;
@@ -165,4 +168,11 @@ public class InvokerInvocationHandler implements InvocationHandler {
         this.registerUrl = registerUrl;
     }
 
+    public ServiceFactory getServiceFactory() {
+        return serviceFactory;
+    }
+
+    public void setServiceFactory(ServiceFactory serviceFactory) {
+        this.serviceFactory = serviceFactory;
+    }
 }
