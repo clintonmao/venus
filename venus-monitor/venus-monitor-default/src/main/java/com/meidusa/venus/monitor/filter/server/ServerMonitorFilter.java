@@ -1,4 +1,4 @@
-package com.meidusa.venus.monitor.filter;
+package com.meidusa.venus.monitor.filter.server;
 
 import com.meidusa.venus.*;
 

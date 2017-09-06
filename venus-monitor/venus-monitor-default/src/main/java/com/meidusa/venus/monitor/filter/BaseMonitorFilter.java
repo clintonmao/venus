@@ -1,16 +1,14 @@
 package com.meidusa.venus.monitor.filter;
 
-import com.athena.domain.MethodCallDetailDO;
-import com.athena.domain.MethodStaticDO;
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.Invocation;
-import com.meidusa.venus.monitor.filter.support.InvocationDetail;
-import com.meidusa.venus.monitor.filter.support.InvocationStatistic;
-import com.meidusa.venus.monitor.reporter.MonitorReporteDelegate;
-import org.apache.commons.collections.CollectionUtils;
+import com.meidusa.venus.monitor.filter.client.ClientInvocationDetail;
+import com.meidusa.venus.monitor.filter.client.ClientInvocationStatistic;
+import com.meidusa.venus.monitor.reporter.ClientMonitorReporterDelegate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
@@ -26,13 +24,13 @@ public class BaseMonitorFilter {
     private static Logger logger = LoggerFactory.getLogger(BaseMonitorFilter.class);
 
     //明细队列 TODO static处理
-    static Queue<InvocationDetail> detailQueue = new LinkedBlockingQueue<InvocationDetail>();
+    static Queue<ClientInvocationDetail> detailQueue = new LinkedBlockingQueue<ClientInvocationDetail>();
 
     //异常及慢操作明细队列
-    static Queue<InvocationDetail> exceptionDetailQueue = new LinkedBlockingQueue<InvocationDetail>();
+    static Queue<ClientInvocationDetail> exceptionDetailQueue = new LinkedBlockingQueue<ClientInvocationDetail>();
 
     //方法调用汇总映射表
-    static Map<String,InvocationStatistic> statisticMap = new ConcurrentHashMap<String,InvocationStatistic>();
+    static Map<String,ClientInvocationStatistic> statisticMap = new ConcurrentHashMap<String,ClientInvocationStatistic>();
 
     static boolean isRunningRunnable = false;
 
@@ -40,7 +38,7 @@ public class BaseMonitorFilter {
 
     static Executor reporterExecutor = Executors.newFixedThreadPool(1);
 
-    MonitorReporteDelegate monitorReporteDelegate = null;
+    ClientMonitorReporterDelegate monitorReporteDelegate = null;
 
     private AthenaDataService athenaDataService = null;
 
@@ -51,7 +49,7 @@ public class BaseMonitorFilter {
      * 添加到明细队列
      * @param invocationDetail
      */
-    public void pubInvocationDetailQueue(InvocationDetail invocationDetail){
+    public void pubInvocationDetailQueue(ClientInvocationDetail invocationDetail){
         //TODO 改初始化时机
         if(!isRunningRunnable){
             processExecutor.execute(new InvocationDetailProcessRunnable());
@@ -69,20 +67,38 @@ public class BaseMonitorFilter {
     }
 
     /**
-     * 获取方法标识路径
+     * 获取调用方法及调用环境标识路径
      * @return
      */
-    String getMethodPath(InvocationDetail detail){
+    String getMethodAndEnvPath(ClientInvocationDetail detail){
         Invocation invocation = detail.getInvocation();
-        String methodPath = String.format(
-                "%s/%s?version=%s&method=%s",
+        //请求时间，精确为分钟
+        String requestTimeOfMinutes = getTimeOfMinutes(invocation.getRequestTime());
+        //方法路径信息
+        String methodAndEnvPath = String.format(
+                "%s/%s?version=%s&method=%s&startTime=%s",
                 invocation.getMethod().getDeclaringClass().getName(),
                 invocation.getService().name(),
                 "0.0.0",
-                invocation.getMethod().getName()
+                invocation.getMethod().getName(),
+                requestTimeOfMinutes
         );
-        logger.info("methodPath:{}.", methodPath);
-        return methodPath;
+        logger.info("methodAndEnvPath:{}.", methodAndEnvPath);
+        return methodAndEnvPath;
+    }
+
+    /**
+     * 获取时间，精确到分钟
+     * @param date
+     * @return
+     */
+    String getTimeOfMinutes(Date date){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.set(Calendar.SECOND,0);
+        SimpleDateFormat format = new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss");
+        String sTime = format.format(calendar.getTime());
+        return sTime;
     }
 
     /**
@@ -90,7 +106,7 @@ public class BaseMonitorFilter {
      * @param detail
      * @return
      */
-    boolean isExceptionOperation(InvocationDetail detail){
+    boolean isExceptionOperation(ClientInvocationDetail detail){
         return detail.getException() == null;
     }
 
@@ -99,14 +115,14 @@ public class BaseMonitorFilter {
      * @param detail
      * @return
      */
-    boolean isSlowOperation(InvocationDetail detail){
+    boolean isSlowOperation(ClientInvocationDetail detail){
         //TODO 根据配置判断是否为慢操作
         return true;
     }
 
 
     /**
-     * 明细处理，统计异常明细、统计服务调用数据
+     * 明细数据处理，过滤异常/慢操作记录，汇总统计数据
      */
     class InvocationDetailProcessRunnable implements Runnable{
         @Override
@@ -114,29 +130,29 @@ public class BaseMonitorFilter {
             while(true){
                 try {
                     logger.info("detailQueue size:{}.",detailQueue.size());
-                    //处理异常、慢操作数据
-                    InvocationDetail detail = detailQueue.poll();
+                    ClientInvocationDetail detail = detailQueue.poll();
+                    //TODO 批量处理
                     if(detail != null){
+                        //过滤异常、慢操作数据
                         if(isExceptionOperation(detail) || isSlowOperation(detail)){
                             exceptionDetailQueue.add(detail);
                         }
 
-                        //统计方法数据
-                        String methodPath = getMethodPath(detail);
-                        if(statisticMap.get(methodPath) == null){
-                            statisticMap.put(methodPath,new InvocationStatistic());
+                        //汇总调用统计，查1m内汇总记录，若不存在则新建
+                        String methodAndEnvPath = getMethodAndEnvPath(detail);
+                        if(statisticMap.get(methodAndEnvPath) == null){
+                            statisticMap.put(methodAndEnvPath,new ClientInvocationStatistic(detail));
                         }
-                        InvocationStatistic invocationStatistic = statisticMap.get(methodPath);
-                        //累加统计
+                        ClientInvocationStatistic invocationStatistic = statisticMap.get(methodAndEnvPath);
                         invocationStatistic.append(detail);
                     }
                 } catch (Exception e) {
                     logger.error("process invocation detail error.",e);
                 }
 
-                //TODO 改调度方式
                 try {
-                    Thread.sleep(1000*5);
+                    //1s计算一次
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                 }
             }
@@ -152,7 +168,7 @@ public class BaseMonitorFilter {
         public void run() {
             while(true){
                 try {
-                    MonitorReporteDelegate reporteDelegate = getMonitorReporteDelegate();
+                    ClientMonitorReporterDelegate reporteDelegate = getMonitorReporteDelegate();
                     if(reporteDelegate == null){
                         logger.error("get reporteDelegate is null.");
                         continue;
@@ -160,13 +176,13 @@ public class BaseMonitorFilter {
                     //上报异常、慢操作数据
                     logger.info("total exceptionDetail queue size:{}.",exceptionDetailQueue.size());
                     //TODO 改为批量拿 锁必要性？
-                    List<InvocationDetail> exceptionDetailList = new ArrayList<InvocationDetail>();
+                    List<ClientInvocationDetail> exceptionDetailList = new ArrayList<ClientInvocationDetail>();
                     int fetchNum = 50;
                     if(exceptionDetailQueue.size() < fetchNum){
                         fetchNum = exceptionDetailQueue.size();
                     }
                     for(int i=0;i<fetchNum;i++){
-                        InvocationDetail exceptionDetail = exceptionDetailQueue.poll();
+                        ClientInvocationDetail exceptionDetail = exceptionDetailQueue.poll();
                         if(exceptionDetail != null){
                             exceptionDetailList.add(exceptionDetail);
                         }
@@ -175,19 +191,19 @@ public class BaseMonitorFilter {
 
                     //上报服务调用汇总数据 TODO 要不要锁？
                     logger.info("total statistic map size:{}.",statisticMap.size());
-                    Collection<InvocationStatistic> statistics = statisticMap.values();
+                    Collection<ClientInvocationStatistic> statistics = statisticMap.values();
                     reporteDelegate.reportStatisticList(statistics);
                     //重置统计信息
-                    for(Map.Entry<String,InvocationStatistic> entry:statisticMap.entrySet()){
+                    for(Map.Entry<String,ClientInvocationStatistic> entry:statisticMap.entrySet()){
                         entry.getValue().reset();
                     }
                 } catch (Exception e) {
                     logger.error("report error.",e);
                 }
 
-                //TODO 改调度方式
                 try {
-                    Thread.sleep(1000*30);
+                    //1m上报一次
+                    Thread.sleep(1000*10);
                 } catch (InterruptedException e) {
                 }
             }
@@ -200,9 +216,9 @@ public class BaseMonitorFilter {
      * 获取监控上报代理
      * @return
      */
-    MonitorReporteDelegate getMonitorReporteDelegate(){
+    ClientMonitorReporterDelegate getMonitorReporteDelegate(){
         if(monitorReporteDelegate == null){
-            monitorReporteDelegate = new MonitorReporteDelegate();
+            monitorReporteDelegate = new ClientMonitorReporterDelegate();
             monitorReporteDelegate.setAthenaDataService(this.getAthenaDataService());
         }
         return monitorReporteDelegate;
