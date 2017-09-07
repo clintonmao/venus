@@ -74,7 +74,7 @@ public class TestHelloService {
             System.out.println("testGetHello end,result:" + hello);
 
             try {
-                Thread.sleep(1000);
+                Thread.sleep(50);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

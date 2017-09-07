@@ -46,6 +46,8 @@ public class ClientRemoteInvoker implements Invoker{
      */
     private Router router = new ConditionRouter();
 
+    private ClusterFailoverInvoker clusterFailoverInvoker = new ClusterFailoverInvoker();
+
     @Override
     public void init() throws RpcException {
         //TODO 订阅时机
@@ -195,7 +197,7 @@ public class ClientRemoteInvoker implements Invoker{
      */
     ClusterInvoker getClusterFailoverInvoker(){
         //TODO 根据配置获取
-        return new ClusterFailoverInvoker();
+        return clusterFailoverInvoker;
     }
 
     public RemoteConfig getRemoteConfig() {

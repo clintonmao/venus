@@ -36,7 +36,7 @@ public class ClientMonitorReporterDelegate {
      */
     public void reportExceptionDetailList(Collection<ClientInvocationDetail> exceptionDetailList){
         AthenaDataService athenaDataService = getAthenaDataService();
-        logger.info("report exceptionDetailList size:{}.",exceptionDetailList.size());
+        logger.info("report exception detail size:{}.",exceptionDetailList.size());
         if(CollectionUtils.isEmpty(exceptionDetailList)){
             return;
         }
@@ -87,6 +87,9 @@ public class ClientMonitorReporterDelegate {
             detailDO.setErrorInfo(serialize(exception));
             detailDO.setStatus(0);
         }
+        //耗时
+        long costTime = detail.getResponseTime().getTime()-invocation.getRequestTime().getTime();
+        detailDO.setDurationMillisecond(Integer.parseInt(String.valueOf(costTime)));
         //TODO 响应地址
         //状态相关
         return detailDO;
@@ -111,17 +114,20 @@ public class ClientMonitorReporterDelegate {
      * @param statisticList
      */
     public void reportStatisticList(Collection<ClientInvocationStatistic> statisticList){
-        AthenaDataService athenaDataService = getAthenaDataService();
-        logger.info("report statisticList size:{}.",statisticList.size());
         if(CollectionUtils.isEmpty(statisticList)){
             return;
         }
+        AthenaDataService athenaDataService = getAthenaDataService();
 
         List<MethodStaticDO> staticDOList = new ArrayList<MethodStaticDO>();
         for(ClientInvocationStatistic statistic:statisticList){
+            if(statistic.getTotalNum().intValue() < 1){
+                continue;
+            }
             MethodStaticDO staticDO = convertStatistic(statistic);
             staticDOList.add(staticDO);
         }
+        logger.info("report statistic size:{}.",staticDOList.size());
         try {
             String statisticDOListOfJson = new JSONSerializer().serialize(staticDOList);
             logger.info("statisticDOListOfJson:{}.",statisticDOListOfJson);
@@ -140,11 +146,11 @@ public class ClientMonitorReporterDelegate {
         staticDO.setServiceName(statistic.getServiceName());
         staticDO.setVersion(statistic.getVersion());
         staticDO.setMethodName(statistic.getMethod());
-        staticDO.setSuccessCount((statistic.getTotalNum().intValue()-statistic.getFailNum().intValue()));
+        staticDO.setTotalCount((statistic.getTotalNum().intValue()));
         staticDO.setFailCount(statistic.getFailNum().intValue());
-        staticDO.setAvgDurationMillisecond(statistic.getAvgCostTime().intValue());
-        staticDO.setMaxDurationMillisecond(statistic.getMaxCostTime().intValue());
-        staticDO.setMaxTps(statistic.getTotalNum().intValue());
+        staticDO.setSlowCount(statistic.getSlowNum().intValue());
+        staticDO.setAvgDuration(statistic.getAvgCostTime().intValue());
+        staticDO.setMaxDuration(statistic.getMaxCostTime().intValue());
 
         staticDO.setDomain(statistic.getApplication());
         staticDO.setSourceIp(statistic.getHost());

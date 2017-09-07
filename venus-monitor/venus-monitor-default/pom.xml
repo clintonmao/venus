@@ -40,7 +40,7 @@
         <dependency>
             <groupId>com.saike.athena</groupId>
             <artifactId>athena-models-spring</artifactId>
-            <version>2.0.2-SNAPSHOT</version>
+            <version>2.0.4-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus</groupId>

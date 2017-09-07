@@ -83,7 +83,9 @@ public class BaseMonitorFilter {
                 invocation.getMethod().getName(),
                 requestTimeOfMinutes
         );
-        logger.info("methodAndEnvPath:{}.", methodAndEnvPath);
+        if(logger.isDebugEnabled()){
+            logger.debug("methodAndEnvPath:{}.", methodAndEnvPath);
+        }
         return methodAndEnvPath;
     }
 
@@ -129,10 +131,13 @@ public class BaseMonitorFilter {
         public void run() {
             while(true){
                 try {
-                    logger.info("detailQueue size:{}.",detailQueue.size());
-                    ClientInvocationDetail detail = detailQueue.poll();
                     //TODO 批量处理
-                    if(detail != null){
+                    int fetchNum = 10;
+                    if(detailQueue.size() < fetchNum){
+                        fetchNum = detailQueue.size();
+                    }
+                    for(int i=0;i<fetchNum;i++){
+                        ClientInvocationDetail detail = detailQueue.poll();
                         //过滤异常、慢操作数据
                         if(isExceptionOperation(detail) || isSlowOperation(detail)){
                             exceptionDetailQueue.add(detail);
@@ -173,8 +178,9 @@ public class BaseMonitorFilter {
                         logger.error("get reporteDelegate is null.");
                         continue;
                     }
+
                     //上报异常、慢操作数据
-                    logger.info("total exceptionDetail queue size:{}.",exceptionDetailQueue.size());
+                    logger.info("total exception detail size:{}.",exceptionDetailQueue.size());
                     //TODO 改为批量拿 锁必要性？
                     List<ClientInvocationDetail> exceptionDetailList = new ArrayList<ClientInvocationDetail>();
                     int fetchNum = 50;
@@ -183,16 +189,22 @@ public class BaseMonitorFilter {
                     }
                     for(int i=0;i<fetchNum;i++){
                         ClientInvocationDetail exceptionDetail = exceptionDetailQueue.poll();
-                        if(exceptionDetail != null){
-                            exceptionDetailList.add(exceptionDetail);
-                        }
+                        exceptionDetailList.add(exceptionDetail);
                     }
-                    reporteDelegate.reportExceptionDetailList(exceptionDetailList);
+                    try {
+                        reporteDelegate.reportExceptionDetailList(exceptionDetailList);
+                    } catch (Exception e) {
+                        logger.error("report exception detail error.",e);
+                    }
 
                     //上报服务调用汇总数据 TODO 要不要锁？
-                    logger.info("total statistic map size:{}.",statisticMap.size());
+                    logger.info("total statistic size:{}.",statisticMap.size());
                     Collection<ClientInvocationStatistic> statistics = statisticMap.values();
-                    reporteDelegate.reportStatisticList(statistics);
+                    try {
+                        reporteDelegate.reportStatisticList(statistics);
+                    } catch (Exception e) {
+                        logger.error("report statistic error.",e);
+                    }
                     //重置统计信息
                     for(Map.Entry<String,ClientInvocationStatistic> entry:statisticMap.entrySet()){
                         entry.getValue().reset();
@@ -203,7 +215,7 @@ public class BaseMonitorFilter {
 
                 try {
                     //1m上报一次
-                    Thread.sleep(1000*10);
+                    Thread.sleep(1000*30);
                 } catch (InterruptedException e) {
                 }
             }

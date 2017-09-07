@@ -206,7 +206,9 @@ public class ClientInvokerProxy implements Invoker {
 //        AthenaDataService athenaService = factory.getService(AthenaDataService.class);
 
         AthenaDataService athenaService = this.getServiceFactory().getService(AthenaDataService.class);
-        logger.info("athenaService:{}.",athenaService);
+         if(athenaService == null){
+             throw new RpcException("init athenaDataService failed.");
+         }
         clientMonitorFilter = new ClientMonitorFilter(athenaService);
         return clientMonitorFilter;
     }

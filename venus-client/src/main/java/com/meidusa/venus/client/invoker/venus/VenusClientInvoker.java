@@ -68,9 +68,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     private int asyncExecutorSize = 10;
 
-    private ConnectionConnector connector;
+    private static ConnectionConnector connector;
 
-    private ConnectionManager connManager;
+    private static ConnectionManager connManager;
 
     /**
      * nio连接映射表
@@ -100,38 +100,45 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      */
     private VenusClientInvokerMessageHandler messageHandler = new VenusClientInvokerMessageHandler();
 
+    private static boolean isInitConnector = false;
+
     @Override
     public void init() throws RpcException {
-        if (enableAsync) {
-            if (connector == null) {
-                try {
-                    this.connector = new ConnectionConnector("connection Connector");
-                } catch (IOException e) {
-                    throw new RpcException(e);
-                }
-                connector.setDaemon(true);
+        if(!isInitConnector){
+            if (enableAsync) {
+                if (connector == null) {
+                    try {
+                        connector = new ConnectionConnector("connection Connector");
+                    } catch (IOException e) {
+                        throw new RpcException(e);
+                    }
+                    connector.setDaemon(true);
 
+                }
+
+                if (connManager == null) {
+                    try {
+                        connManager = new ConnectionManager("Connection Manager", this.getAsyncExecutorSize());
+                    } catch (IOException e) {
+                        throw new RpcException(e);
+                    }
+                    connManager.setDaemon(true);
+                    connManager.start();
+                }
+
+                connector.setProcessors(new ConnectionManager[]{connManager});
+                connector.start();
             }
 
-            if (connManager == null) {
-                try {
-                    connManager = new ConnectionManager("Connection Manager", this.getAsyncExecutorSize());
-                } catch (IOException e) {
-                    throw new RpcException(e);
-                }
-                connManager.setDaemon(true);
-                connManager.start();
-            }
+            messageHandler.setVenusExceptionFactory(venusExceptionFactory);
+            messageHandler.setContainer(this.container);
+            messageHandler.setLock(lock);
+            messageHandler.setServiceInvocationMap(serviceInvocationMap);
+            messageHandler.setServiceResponseMap(serviceResponseMap);
 
-            connector.setProcessors(new ConnectionManager[]{connManager});
-            connector.start();
+            isInitConnector = true;
         }
 
-        messageHandler.setVenusExceptionFactory(venusExceptionFactory);
-        messageHandler.setContainer(this.container);
-        messageHandler.setLock(lock);
-        messageHandler.setServiceInvocationMap(serviceInvocationMap);
-        messageHandler.setServiceResponseMap(serviceResponseMap);
     }
 
     @Override
@@ -368,7 +375,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     }
 
     /**
-     * 创建连接池
+     * 创建连接池 TODO 验证，存在重复初始化问题
      * @param url
      * @param remoteConfig
      * @return
@@ -386,7 +393,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         if (factoryConfig != null) {
             BeanUtils.copyProperties(nioFactory, factoryConfig);
         }
-        nioFactory.setConnector(this.connector);
+        nioFactory.setConnector(connector);
         nioFactory.setMessageHandler(messageHandler);
 
         //初始化连接池
@@ -546,7 +553,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     }
 
     public void setConnector(ConnectionConnector connector) {
-        this.connector = connector;
+        VenusClientInvoker.connector = connector;
     }
 
     @Override

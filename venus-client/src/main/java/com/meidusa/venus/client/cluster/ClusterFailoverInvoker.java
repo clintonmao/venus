@@ -22,6 +22,10 @@ public class ClusterFailoverInvoker implements ClusterInvoker {
      */
     private int retry = 1;
 
+    private VenusClientInvoker venusClientInvoker = new VenusClientInvoker();
+
+    private RandomLoadbanlance randomLoadbanlance = new RandomLoadbanlance();
+
     @Override
     public void init() throws RpcException {
     }
@@ -48,7 +52,7 @@ public class ClusterFailoverInvoker implements ClusterInvoker {
      * @return
      */
     Invoker getInvoker(){
-        return new VenusClientInvoker();
+        return venusClientInvoker;
     }
 
     /**
@@ -56,7 +60,7 @@ public class ClusterFailoverInvoker implements ClusterInvoker {
      * @return
      */
     Loadbanlance getLoadbanlance(){
-        return new RandomLoadbanlance();
+        return randomLoadbanlance;
     }
 
     @Override
