@@ -3,7 +3,7 @@ package com.meidusa.venus.backend.filter.valid;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.venus.*;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
-import com.meidusa.venus.backend.invoker.support.RpcInvocation;
+import com.meidusa.venus.RpcInvocation;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.services.Service;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;

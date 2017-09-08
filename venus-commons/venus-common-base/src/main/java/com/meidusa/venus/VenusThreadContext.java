@@ -25,6 +25,9 @@ public class VenusThreadContext {
     //响应结果
     public final static String RESPONSE_RESULT = "responseResult";
 
+    //server开始处理时间
+    public final static String SERVER_BEGIN_TIME = "serverBeginTime";
+
 
     /**
      * 设置上下文属性

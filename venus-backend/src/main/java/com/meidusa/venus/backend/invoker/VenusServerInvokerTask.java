@@ -10,13 +10,11 @@ import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.annotations.ExceptionCode;
 import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
+import com.meidusa.venus.backend.invoker.support.RequestHandler;
 import com.meidusa.venus.backend.invoker.support.ResponseEntityWrapper;
 import com.meidusa.venus.backend.invoker.support.ResponseHandler;
-import com.meidusa.venus.backend.invoker.support.RpcInvocation;
-import com.meidusa.venus.backend.services.Endpoint;
-import com.meidusa.venus.backend.services.EndpointInvocation;
-import com.meidusa.venus.backend.services.RequestContext;
-import com.meidusa.venus.backend.services.ServiceManager;
+import com.meidusa.venus.RpcInvocation;
+import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.bean.PerformanceLogger;
 import com.meidusa.venus.backend.support.Response;
 import com.meidusa.venus.exception.*;
@@ -187,8 +185,27 @@ public class VenusServerInvokerTask implements Runnable{
         invocation.setResultType(getResultType(endpoint));
         //设置参数
         initParamsForInvocationListener(request,invocation.getConn(),routerPacket,invocation);
+        //获取上下文信息
+        RequestContext requestContext = getRequestContext(invocation);
+        if(requestContext != null){
+            requestContext.setEndPointer(endpoint);
+        }
+        invocation.setRequestContext(requestContext);
+        ThreadLocalMap.put(VenusTracerUtil.REQUEST_TRACE_ID, traceID);
+        ThreadLocalMap.put(ThreadLocalConstant.REQUEST_CONTEXT, requestContext);
+        if(requestContext.getRootId() != null){
+            invocation.setAthenaId(requestContext.getRootId().getBytes());
+        }
+        if(requestContext.getParentId() != null){
+            invocation.setParentId(requestContext.getParentId().getBytes());
+        }
+        if(requestContext.getMessageId() != null){
+            invocation.setMessageId(requestContext.getMessageId().getBytes());
+        }
         return invocation;
     }
+
+
 
     /**
      * 解析请求消息
@@ -388,6 +405,20 @@ public class VenusServerInvokerTask implements Runnable{
             }
         }
         return resultType;
+    }
+
+    /**
+     * 获取上下文信息
+     * @param rpcInvocation
+     * @return
+     */
+    RequestContext getRequestContext(RpcInvocation rpcInvocation){
+        byte packetSerializeType = rpcInvocation.getPacketSerializeType();
+        //构造请求上下文信息
+        RequestHandler requestHandler = new RequestHandler();
+        RequestInfo requestInfo = requestHandler.getRequestInfo(packetSerializeType, routerPacket, rpcInvocation);
+        RequestContext requestContext = requestHandler.createContext(requestInfo, endpoint, request);
+        return requestContext;
     }
 
     protected void logPerformance(Endpoint endpoint,String traceId,String apiName,long queuedTime,

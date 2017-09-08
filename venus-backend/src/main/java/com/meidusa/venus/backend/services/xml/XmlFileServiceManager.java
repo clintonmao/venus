@@ -7,6 +7,7 @@ import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.toolkit.common.util.StringUtil;
 import com.meidusa.venus.URL;
+import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.annotations.PerformanceLevel;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.backend.interceptor.Configurable;
@@ -44,6 +45,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 
 import java.io.InputStream;
@@ -63,6 +65,8 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
     private BeanContext beanContext;
 
+    private ApplicationContext applicationContext;
+
     private Register register;
 
     public Resource[] getConfigFiles() {
@@ -75,11 +79,19 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        if(applicationContext != null){
+            VenusContext.getInstance().setApplicationContext(applicationContext);
+        }
+
         beanContext = new BackendBeanContext(beanFactory);
         BeanContextBean.getInstance().setBeanContext(beanContext);
         VenusBeanUtilsBean.setInstance(new BackendBeanUtilsBean(new ConvertUtilsBean(), new PropertyUtilsBean(), beanContext));
-        AthenaExtensionResolver.getInstance().resolver();
+        if(beanContext != null){
+            VenusContext.getInstance().setBeanContext(beanContext);
+        }
+
         CodeMapScanner.getCodeMap();
+        //AthenaExtensionResolver.getInstance().resolver();
 
         //解析配置文件
         VenusServerConfig venusServerConfig = parseConfig();

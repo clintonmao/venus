@@ -1,8 +1,9 @@
-package com.meidusa.venus.backend.invoker.support;
+package com.meidusa.venus;
 
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.services.EndpointInvocation;
+import com.meidusa.venus.backend.services.RequestContext;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
@@ -40,9 +41,9 @@ public class RpcInvocation extends Invocation{
 
     String host;
 
-    int clientId;
-
     EndpointInvocation.ResultType resultType;
+
+    RequestContext requestContext;
 
     public VenusFrontendConnection getConn() {
         return conn;
@@ -140,19 +141,19 @@ public class RpcInvocation extends Invocation{
         this.host = host;
     }
 
-    public int getClientId() {
-        return clientId;
-    }
-
-    public void setClientId(int clientId) {
-        this.clientId = clientId;
-    }
-
     public EndpointInvocation.ResultType getResultType() {
         return resultType;
     }
 
     public void setResultType(EndpointInvocation.ResultType resultType) {
         this.resultType = resultType;
+    }
+
+    public RequestContext getRequestContext() {
+        return requestContext;
+    }
+
+    public void setRequestContext(RequestContext requestContext) {
+        this.requestContext = requestContext;
     }
 }

@@ -3,7 +3,7 @@ package com.meidusa.venus.backend.invoker;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.backend.invoker.support.ResponseEntityWrapper;
 import com.meidusa.venus.backend.invoker.support.ResponseHandler;
-import com.meidusa.venus.backend.invoker.support.RpcInvocation;
+import com.meidusa.venus.RpcInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

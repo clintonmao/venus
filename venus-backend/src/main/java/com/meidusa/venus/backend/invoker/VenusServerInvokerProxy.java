@@ -2,7 +2,7 @@ package com.meidusa.venus.backend.invoker;
 
 import com.meidusa.venus.*;
 import com.meidusa.venus.backend.filter.valid.ServerValidFilter;
-import com.meidusa.venus.backend.invoker.support.RpcInvocation;
+import com.meidusa.venus.monitor.athena.filter.ServerAthenaMonitorFilter;
 
 /**
  * 服务端调用代理类，除调用外，负责认证、流控、降级相关切面操作
@@ -57,6 +57,7 @@ public class VenusServerInvokerProxy implements Invoker {
         return new Filter[]{
                 //校验
                 new ServerValidFilter()
+                //new ServerAthenaMonitorFilter()
         };
     }
 
@@ -66,6 +67,7 @@ public class VenusServerInvokerProxy implements Invoker {
      */
     Filter[] getThrowFilters(){
         return new Filter[]{
+                //new ServerAthenaMonitorFilter()
         };
     }
 
@@ -75,6 +77,7 @@ public class VenusServerInvokerProxy implements Invoker {
      */
     Filter[] getAfterFilters(){
         return new Filter[]{
+                //new ServerAthenaMonitorFilter()
         };
     }
 
