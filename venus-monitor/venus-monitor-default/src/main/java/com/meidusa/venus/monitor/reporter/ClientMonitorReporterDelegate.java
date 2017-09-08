@@ -70,7 +70,9 @@ public class ClientMonitorReporterDelegate {
         //基本信息
         detailDO.setId(UUIDUtil.create().toString());
         detailDO.setRpcId(invocation.getRpcId());
-        detailDO.setTraceId(invocation.getAthenaId().toString());
+        if(invocation.getAthenaId() != null){
+            detailDO.setTraceId(new String(invocation.getAthenaId()));
+        }
         detailDO.setSourceType(detail.getFrom());
         //请求信息
         detailDO.setServiceName(invocation.getService().name());

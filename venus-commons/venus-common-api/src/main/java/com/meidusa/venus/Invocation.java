@@ -15,6 +15,10 @@ import java.util.Date;
  */
 public class Invocation {
 
+    private int clientId;
+
+    private long clientRequestId;
+
     //venus相关id
     private String rpcId;
 
@@ -49,6 +53,22 @@ public class Invocation {
     private String consumerIp;
 
     boolean async;
+
+    public int getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(int clientId) {
+        this.clientId = clientId;
+    }
+
+    public long getClientRequestId() {
+        return clientRequestId;
+    }
+
+    public void setClientRequestId(long clientRequestId) {
+        this.clientRequestId = clientRequestId;
+    }
 
     public String getRpcId() {
         return rpcId;

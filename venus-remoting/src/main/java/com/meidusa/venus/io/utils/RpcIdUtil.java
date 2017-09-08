@@ -10,6 +10,16 @@ public class RpcIdUtil {
 
     /**
      * 获取rpc请求标识
+     * @param clientId
+     * @param clientRequestId
+     * @return
+     */
+    public static String getRpcId(int clientId,long clientRequestId){
+        return String.format("%s-%s",String.valueOf(clientId),String.valueOf(clientRequestId));
+    }
+
+    /**
+     * 获取rpc请求标识
      * @param servicePacket
      * @return
      */

@@ -3,6 +3,7 @@ package com.meidusa.venus.monitor.filter.client;
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
 import com.meidusa.venus.monitor.filter.BaseMonitorFilter;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.Date;
 
@@ -39,9 +40,6 @@ public class ClientMonitorFilter extends BaseMonitorFilter implements Filter {
 
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
-        //athenaId
-        byte[] athenaId = (byte[]) VenusThreadContext.get(VenusThreadContext.ATHENA_ROOT_ID);
-        invocation.setAthenaId(athenaId);
         //请求url
         url = (URL)VenusThreadContext.get(VenusThreadContext.REQUEST_URL);
         //响应结果

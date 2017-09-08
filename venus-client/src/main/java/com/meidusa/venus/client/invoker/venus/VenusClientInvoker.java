@@ -240,19 +240,20 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         //构造请求报文
         Serializer serializer = SerializerFactory.getSerializer(serializeType);
         SerializeServiceRequestPacket serviceRequestPacket = new SerializeServiceRequestPacket(serializer, null);
-        serviceRequestPacket.clientId = PacketConstant.VENUS_CLIENT_ID;
-        serviceRequestPacket.clientRequestId = sequenceId.getAndIncrement();
-        //设置rpcId
-        invocation.setRpcId(RpcIdUtil.getRpcId(serviceRequestPacket));
+        serviceRequestPacket.clientId = invocation.getClientId();
+        serviceRequestPacket.clientRequestId = invocation.getClientRequestId();
         //设置traceId
-        byte[] traceID = VenusTracerUtil.getTracerID();
-        if (traceID == null) {
-            traceID = VenusTracerUtil.randomTracerID();
-        }
-        serviceRequestPacket.traceId = traceID;
+        serviceRequestPacket.traceId = invocation.getTraceID();
         //设置athenaId
-        AthenaTransactionId athenaTransactionId = (AthenaTransactionId) VenusThreadContext.get(VenusThreadContext.ATHENA_TRANSACTION_ID);
-        setTransactionId(serviceRequestPacket, athenaTransactionId);
+        if (invocation.getAthenaId() != null) {
+            serviceRequestPacket.rootId = invocation.getAthenaId();
+        }
+        if (invocation.getParentId() != null) {
+            serviceRequestPacket.parentId = invocation.getParentId();
+        }
+        if (invocation.getMessageId() != null) {
+            serviceRequestPacket.messageId = invocation.getMessageId();
+        }
         serviceRequestPacket.apiName = VenusAnnotationUtils.getApiname(method, service, endpoint);
         serviceRequestPacket.serviceVersion = service.version();
         serviceRequestPacket.parameterMap = new HashMap<String, Object>();
@@ -470,21 +471,28 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     /**
      * 设置transactionId
-     * @param serviceRequestPacket
      * @param athenaTransactionId
+     * @param serviceRequestPacket
+     * @param invocation
      */
-    private void setTransactionId(SerializeServiceRequestPacket serviceRequestPacket, AthenaTransactionId athenaTransactionId) {
+    private void setTransactionId(AthenaTransactionId athenaTransactionId, SerializeServiceRequestPacket serviceRequestPacket, Invocation invocation) {
         if (athenaTransactionId != null) {
             if (athenaTransactionId.getRootId() != null) {
-                serviceRequestPacket.rootId = athenaTransactionId.getRootId().getBytes();
+                byte[] athenaId = athenaTransactionId.getRootId().getBytes();
+                serviceRequestPacket.rootId = athenaId;
+                invocation.setAthenaId(athenaId);
             }
 
             if (athenaTransactionId.getParentId() != null) {
-                serviceRequestPacket.parentId = athenaTransactionId.getParentId().getBytes();
+                byte[] parentId = athenaTransactionId.getParentId().getBytes();
+                serviceRequestPacket.parentId = parentId;
+                invocation.setParentId(parentId);
             }
 
             if (athenaTransactionId.getMessageId() != null) {
-                serviceRequestPacket.messageId = athenaTransactionId.getMessageId().getBytes();
+                byte[] messageId = athenaTransactionId.getMessageId().getBytes();
+                serviceRequestPacket.messageId = messageId;
+                invocation.setMessageId(messageId);
             }
         }
     }

@@ -16,36 +16,31 @@ import java.lang.reflect.Method;
  */
 public class ClientAthenaMonitorFilter implements Filter {
 
-    static boolean isRunning = false;
+    //static boolean isRunning = false;
 
     public ClientAthenaMonitorFilter(){
-        if(!isRunning){
-            init();
-            isRunning = true;
-        }
     }
 
     @Override
     public void init() throws RpcException {
-        AthenaExtensionResolver.getInstance().resolver();
     }
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
         if(invocation.getService().athenaFlag()){
+            /*
             Method method = invocation.getMethod();
             Service service = invocation.getService();
             Endpoint endpoint = invocation.getEndpoint();
-
             String apiName = VenusAnnotationUtils.getApiname(method, service, endpoint);
-
             AthenaTransactionId athenaTransactionId = AthenaTransactionDelegate.getDelegate().startClientTransaction(apiName);
-            //保存athenaTransactionId上下文
             VenusThreadContext.set(VenusThreadContext.ATHENA_TRANSACTION_ID,athenaTransactionId);
             if(athenaTransactionId != null){
                 VenusThreadContext.set(VenusThreadContext.ATHENA_ROOT_ID,athenaTransactionId.getRootId());
+                VenusThreadContext.set(VenusThreadContext.ATHENA_PARENT_ID,athenaTransactionId.getParentId());
                 VenusThreadContext.set(VenusThreadContext.ATHENA_MESSAGE_ID,athenaTransactionId.getMessageId());
             }
+            */
         }
         return null;
     }

@@ -9,18 +9,22 @@ import com.meidusa.venus.client.factory.ServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.invoker.ClientInvokerProxy;
 import com.meidusa.venus.exception.VenusExceptionFactory;
+import com.meidusa.venus.io.packet.PacketConstant;
+import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.metainfo.EndpointParameterUtil;
-import com.meidusa.venus.util.NetUtil;
-import com.meidusa.venus.util.UUID;
-import com.meidusa.venus.util.UUIDUtil;
-import com.meidusa.venus.util.VenusTracerUtil;
+import com.meidusa.venus.monitor.athena.reporter.AthenaExtensionResolver;
+import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionDelegate;
+import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionId;
+import com.meidusa.venus.util.*;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 客户端服务调用代理
@@ -63,7 +67,22 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
     private ClientInvokerProxy clientInvokerProxy;
 
+    private static AtomicLong sequenceId = new AtomicLong(1);
+
+    static boolean isInited;
+
     public InvokerInvocationHandler(){
+        if(!isInited){
+            init();
+            isInited = true;
+        }
+    }
+
+    /**
+     * 初始化操作
+     */
+    void init(){
+        AthenaExtensionResolver.getInstance().resolver();
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -113,10 +132,11 @@ public class InvokerInvocationHandler implements InvocationHandler {
         invocation.setArgs(args);
         Endpoint endpoint =  AnnotationUtil.getAnnotation(method.getAnnotations(), Endpoint.class);
         invocation.setEndpoint(endpoint);
+        Service service = null;
         if (endpoint != null) {
-            Service service = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
+            service = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
             invocation.setService(service);
-            if (service != null && com.meidusa.toolkit.common.util.StringUtil.isEmpty(service.implement())) {
+            if (service != null && StringUtils.isEmpty(service.implement())) {
                 EndpointParameter[] params = EndpointParameterUtil.getPrameters(method);
                 invocation.setParams(params);
             }
@@ -129,6 +149,39 @@ public class InvokerInvocationHandler implements InvocationHandler {
             async = true;
         }
         invocation.setAsync(async);
+        //clientId
+        invocation.setClientId(PacketConstant.VENUS_CLIENT_ID);
+        invocation.setClientRequestId(sequenceId.getAndIncrement());
+        //设置rpcId
+        invocation.setRpcId(RpcIdUtil.getRpcId(invocation.getClientId(),invocation.getClientRequestId()));
+        //设置traceId
+        byte[] traceID = VenusTracerUtil.getTracerID();
+        if (traceID == null) {
+            traceID = VenusTracerUtil.randomTracerID();
+        }
+        invocation.setTraceID(traceID);
+        //athena相关
+        if(service != null && service.athenaFlag()){
+            //athenaId
+            String apiName = VenusAnnotationUtils.getApiname(method, service, endpoint);
+            AthenaTransactionId athenaTransactionId = AthenaTransactionDelegate.getDelegate().startClientTransaction(apiName);
+            VenusThreadContext.set(VenusThreadContext.ATHENA_TRANSACTION_ID,athenaTransactionId);
+            if (athenaTransactionId != null) {
+                //保存athena信息到上下文
+                if (athenaTransactionId.getRootId() != null) {
+                    byte[] athenaId = athenaTransactionId.getRootId().getBytes();
+                    invocation.setAthenaId(athenaId);
+                }
+                if (athenaTransactionId.getParentId() != null) {
+                    byte[] parentId = athenaTransactionId.getParentId().getBytes();
+                    invocation.setParentId(parentId);
+                }
+                if (athenaTransactionId.getMessageId() != null) {
+                    byte[] messageId = athenaTransactionId.getMessageId().getBytes();
+                    invocation.setMessageId(messageId);
+                }
+            }
+        }
         return invocation;
     }
 
@@ -179,4 +232,5 @@ public class InvokerInvocationHandler implements InvocationHandler {
     public void setServiceFactory(ServiceFactory serviceFactory) {
         this.serviceFactory = serviceFactory;
     }
+
 }

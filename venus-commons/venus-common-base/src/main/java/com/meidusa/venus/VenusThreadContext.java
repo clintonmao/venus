@@ -13,8 +13,6 @@ public class VenusThreadContext {
 
     //athena事务id
     public final static String ATHENA_TRANSACTION_ID = "athenaTransactionId";
-    public final static String ATHENA_ROOT_ID = "athenaRootId";
-    public final static String ATHENA_MESSAGE_ID = "athenaMessageId";
     //client请求报文长度
     public final static String CLIENT_OUTPUT_SIZE = "clientOutputSize";
     //client接收报文长度

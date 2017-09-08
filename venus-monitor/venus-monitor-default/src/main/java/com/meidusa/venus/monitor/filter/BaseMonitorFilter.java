@@ -215,7 +215,7 @@ public class BaseMonitorFilter {
 
                 try {
                     //1m上报一次
-                    Thread.sleep(1000*30);
+                    Thread.sleep(1000*10);
                 } catch (InterruptedException e) {
                 }
             }
