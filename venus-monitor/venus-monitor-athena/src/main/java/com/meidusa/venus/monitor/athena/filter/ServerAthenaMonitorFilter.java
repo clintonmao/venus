@@ -1,6 +1,7 @@
 package com.meidusa.venus.monitor.athena.filter;
 
 import com.meidusa.venus.*;
+import com.meidusa.venus.monitor.athena.reporter.AthenaExtensionResolver;
 
 /**
  * server athena监控filter
@@ -19,7 +20,7 @@ public class ServerAthenaMonitorFilter implements Filter {
 
     @Override
     public void init() throws RpcException {
-        //TODO
+        AthenaExtensionResolver.getInstance().resolver();
     }
 
     @Override

@@ -40,7 +40,7 @@ public class ClientMonitorFilter extends BaseMonitorFilter implements Filter {
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         //athenaId
-        String athenaId = (String)VenusThreadContext.get(VenusThreadContext.ATHENA_ROOT_ID);
+        byte[] athenaId = (byte[]) VenusThreadContext.get(VenusThreadContext.ATHENA_ROOT_ID);
         invocation.setAthenaId(athenaId);
         //请求url
         url = (URL)VenusThreadContext.get(VenusThreadContext.REQUEST_URL);

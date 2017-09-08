@@ -9,6 +9,7 @@ import com.meidusa.venus.URL;
 import com.meidusa.venus.backend.serializer.JSONSerializer;
 import com.meidusa.venus.monitor.filter.client.ClientInvocationDetail;
 import com.meidusa.venus.monitor.filter.client.ClientInvocationStatistic;
+import com.meidusa.venus.util.UUIDUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,8 @@ public class ClientMonitorReporterDelegate {
     //TODO 将序列化传输协议无关移到common包中
     private JSONSerializer jsonSerializer = new JSONSerializer();
 
+    private boolean isEnableReporte = true;
+
     /**
      * 上报异常明细 TODO 上报放到reporter模块，可选择依赖
      * @param exceptionDetailList
@@ -46,7 +49,10 @@ public class ClientMonitorReporterDelegate {
             MethodCallDetailDO detailDO = convertDetail(detail);
             detailDOList.add(detailDO);
         }
-        athenaDataService.reportMethodCallDetail(detailDOList);
+
+        if(isEnableReporte){
+            athenaDataService.reportMethodCallDetail(detailDOList);
+        }
     }
 
     /**
@@ -62,9 +68,9 @@ public class ClientMonitorReporterDelegate {
 
         MethodCallDetailDO detailDO = new MethodCallDetailDO();
         //基本信息
-        detailDO.setId(invocation.getId());
+        detailDO.setId(UUIDUtil.create().toString());
         detailDO.setRpcId(invocation.getRpcId());
-        detailDO.setTraceId(invocation.getAthenaId());
+        detailDO.setTraceId(invocation.getAthenaId().toString());
         detailDO.setSourceType(detail.getFrom());
         //请求信息
         detailDO.setServiceName(invocation.getService().name());
@@ -132,7 +138,10 @@ public class ClientMonitorReporterDelegate {
             String statisticDOListOfJson = new JSONSerializer().serialize(staticDOList);
             logger.info("statisticDOListOfJson:{}.",statisticDOListOfJson);
         } catch (Exception e) {}
-        athenaDataService.reportMethodStatic(staticDOList);
+
+        if(isEnableReporte){
+            athenaDataService.reportMethodStatic(staticDOList);
+        }
     }
 
     /**

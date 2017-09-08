@@ -108,16 +108,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
      */
     Invocation buildInvocation(Object proxy, Method method, Object[] args){
         Invocation invocation = new Invocation();
-        invocation.setId(UUIDUtil.create().toString());
-        //设置traceId
-        /*
-        byte[] traceID = VenusTracerUtil.getTracerID();
-        if (traceID == null) {
-            traceID = VenusTracerUtil.randomTracerID();
-        }
-        */
-        //TODO 多条记录情况
-        invocation.setRpcId(UUIDUtil.create().toString());
         invocation.setServiceInterface(serviceInterface);
         invocation.setMethod(method);
         invocation.setArgs(args);

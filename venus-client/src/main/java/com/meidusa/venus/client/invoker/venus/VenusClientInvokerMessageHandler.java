@@ -13,11 +13,9 @@
  */
 package com.meidusa.venus.client.invoker.venus;
 
-import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.venus.Invocation;
 import com.meidusa.venus.RpcException;
-import com.meidusa.venus.exception.DefaultVenusException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.handler.VenusClientMessageHandler;
 import com.meidusa.venus.io.network.VenusBackendConnection;
@@ -26,15 +24,11 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceNofityPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceResponsePacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
-import com.meidusa.venus.notify.InvocationListener;
-import com.meidusa.venus.util.Utils;
-import com.meidusa.venus.util.VenusTracerUtil;
-import org.apache.commons.beanutils.BeanUtils;
+import com.meidusa.venus.io.utils.RpcIdUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.Map;
 
 /**
@@ -52,12 +46,12 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
     private Object lock;
 
     /**
-     * 消息标识-请求映射表
+     * rpcId-请求映射表 TODO 完成、异常清理问题；及监控大小问题
      */
     private Map<String, Invocation> serviceInvocationMap;
 
     /**
-     * 消息标识-响应映射表
+     * rpcId-响应映射表
      */
     private Map<String,AbstractServicePacket> serviceResponseMap;
 
@@ -87,7 +81,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 }
                 */
                 logger.info("recv error response, clientId:{},messageId:{},response:{}.",error.clientId,error.clientRequestId,error);
-                serviceResponseMap.put(getMessageId(error),error);
+                serviceResponseMap.put(RpcIdUtil.getRpcId(error),error);
                 synchronized (lock){
                     lock.notify();
                 }
@@ -97,32 +91,29 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 OKPacket ok = new OKPacket();
                 ok.init(message);
                 logger.info("recv ok response, clientId:{},messageId:{},response:{}.",ok.clientId,ok.clientRequestId,ok);
-                serviceResponseMap.put(getMessageId(ok),ok);
+                serviceResponseMap.put(RpcIdUtil.getRpcId(ok),ok);
                 synchronized (lock){
                     lock.notify();
                 }
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_RESPONSE:
                 //获取clientId/clientRequestId，用于获取invocation请求信息
-                OKPacket tempResp = new OKPacket();
-                tempResp.init(message);
-                Invocation invocation = serviceInvocationMap.get(getMessageId(tempResp));
+                Invocation syncInvocation = serviceInvocationMap.get(RpcIdUtil.getRpcId(parseServicePacket(message)));
 
-                ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, invocation.getMethod().getGenericReturnType());
+                ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, syncInvocation.getMethod().getGenericReturnType());
                 response.init(message);
                 logger.info("recv resp response,clientId:{},messageId:{},response:{}.",response.clientId,response.clientRequestId,response);
-                serviceResponseMap.put(getMessageId(response),response);
+                serviceResponseMap.put(RpcIdUtil.getRpcId(response),response);
                 synchronized (lock){
                     lock.notify();
                 }
                 break;
             case PacketConstant.PACKET_TYPE_NOTIFY_PUBLISH:
-                OKPacket tempRespEx = new OKPacket();
-                tempRespEx.init(message);
-                Invocation invocationEx = serviceInvocationMap.get(getMessageId(tempRespEx));
+                Invocation asyncInvocation = serviceInvocationMap.get(RpcIdUtil.getRpcId(parseServicePacket(message)));
 
                 ServicePacketBuffer buffer = new ServicePacketBuffer(message);
                 buffer.setPosition(PacketConstant.SERVICE_HEADER_SIZE + 4);
+                //原来用于标识callback请求的listenerClass与identityHashCode统一改为根据rpcId来处理
                 String listenerClass = buffer.readLengthCodedString("utf-8");
                 int identityHashCode = buffer.readInt();
                 /*
@@ -130,13 +121,13 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 */
                 //TODO 优化，本地处理，统一改为根据msgId获取请求信息，同时为了避免不同实例问题，不与服务端耦合
 
-                SerializeServiceNofityPacket packet = new SerializeServiceNofityPacket(serializer, invocationEx.getType());
-                packet.init(message);
+                SerializeServiceNofityPacket notify = new SerializeServiceNofityPacket(serializer, asyncInvocation.getType());
+                notify.init(message);
 
                 /* TODO 确认代码功能
                 VenusTracerUtil.logRequest(packet.traceId, packet.apiName);
                 */
-                if (packet.errorCode != 0) {
+                if (notify.errorCode != 0) {
                     /* TODO 异常处理方式及additionalData信息
                     Exception exception = venusExceptionFactory.getException(packet.errorCode, packet.errorMessage);
                     if (exception == null) {
@@ -153,13 +144,13 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                     }
                     */
                     //TODO 确认异常构造方式
-                    RpcException exception = new RpcException(String.format("%s-%s",String.valueOf(packet.errorCode),packet.errorMessage));
+                    RpcException exception = new RpcException(String.format("%s-%s",String.valueOf(notify.errorCode),notify.errorMessage));
                     //TODO 改获取listener方式
                     //tuple.left.onException(exception);
-                    invocationEx.getInvocationListener().onException(exception);
+                    asyncInvocation.getInvocationListener().onException(exception);
                 } else {
                     //tuple.left.callback(packet.callbackObject);
-                    invocationEx.getInvocationListener().callback(packet.callbackObject);
+                    asyncInvocation.getInvocationListener().callback(notify.callbackObject);
                 }
                 break;
             case PacketConstant.PACKET_TYPE_PONG:
@@ -173,8 +164,15 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         }
     }
 
-    String getMessageId(AbstractServicePacket response){
-        return String.format("%s-%s",String.valueOf(response.clientId),String.valueOf(response.clientRequestId));
+    /**
+     * 解析基本报文信息
+     * @param message
+     * @return
+     */
+    AbstractServicePacket parseServicePacket(byte[] message){
+        OKPacket okPacket = new OKPacket();
+        okPacket.init(message);
+        return okPacket;
     }
 
     public VenusExceptionFactory getVenusExceptionFactory() {

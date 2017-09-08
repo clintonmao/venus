@@ -47,7 +47,8 @@
 		String host = "10.32.174.22";
         String host = "10.47.16.58";
         String host = "10.47.58.63";
+        10.47.58.63:16800
         -->
-		<service type="com.athena.service.api.AthenaDataService" ipAddressList="10.47.58.63:16800"/>
+		<service type="com.athena.service.api.AthenaDataService" ipAddressList="10.32.174.23:16800"/>
 	</services>
 </venus-client>

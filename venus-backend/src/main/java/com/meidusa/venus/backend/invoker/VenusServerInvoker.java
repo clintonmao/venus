@@ -162,13 +162,6 @@ public class VenusServerInvoker implements Invoker {
             ThreadLocalMap.put(VenusTracerUtil.REQUEST_TRACE_ID, traceID);
             ThreadLocalMap.put(ThreadLocalConstant.REQUEST_CONTEXT, requestContext);
 
-            //无任何实现 delete by zhangzh 2017.8.8
-            /*
-            if (filte != null) {
-                filte.before(request);
-            }
-            */
-
             //调用服务实例
             Object object = doInvokeEndpoint(requestContext,endpoint);
 
@@ -248,12 +241,6 @@ public class VenusServerInvoker implements Invoker {
             }
             MonitorRuntime.getInstance().calculateAverage(endpoint.getService().getName(), endpoint.getName(), executeTime, false);
             PerformanceHandler.logPerformance(endpoint, request, queuedTime, executeTime, invocation.getHost(), sourceIp, result);
-            */
-            //无任何实现 delete by zhangzh 2017.8.8
-            /*
-            if (filte != null) {
-                filte.after(resultPacket);
-            }
             */
             ThreadLocalMap.remove(ThreadLocalConstant.REQUEST_CONTEXT);
             ThreadLocalMap.remove(VenusTracerUtil.REQUEST_TRACE_ID);

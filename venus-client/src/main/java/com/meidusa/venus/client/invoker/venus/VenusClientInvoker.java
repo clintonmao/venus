@@ -11,6 +11,7 @@ import com.meidusa.venus.client.factory.xml.config.*;
 import com.meidusa.venus.client.invoker.AbstractClientInvoker;
 import com.meidusa.venus.exception.InvalidParameterException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
+import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionId;
 import com.meidusa.venus.io.network.AbstractBIOConnection;
 import com.meidusa.venus.io.network.VenusBackendConnectionFactory;
@@ -22,6 +23,7 @@ import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.util.VenusAnnotationUtils;
+import com.meidusa.venus.util.VenusTracerUtil;
 import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,12 +83,12 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     private Object lock = new Object();
 
     /**
-     * 消息标识-请求映射表
+     * rpcId-请求映射表 TODO 完成、异常清理问题；及监控大小问题
      */
     private Map<String, Invocation> serviceInvocationMap = new ConcurrentHashMap<String, Invocation>();
 
     /**
-     * 消息标识-响应映射表
+     * rpcId-响应映射表 TODO 完成、异常清理问题；及监控大小问题
      */
     private Map<String,AbstractServicePacket> serviceResponseMap = new ConcurrentHashMap<String, AbstractServicePacket>();
 
@@ -130,14 +132,15 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                 connector.start();
             }
 
-            messageHandler.setVenusExceptionFactory(venusExceptionFactory);
-            messageHandler.setContainer(this.container);
-            messageHandler.setLock(lock);
-            messageHandler.setServiceInvocationMap(serviceInvocationMap);
-            messageHandler.setServiceResponseMap(serviceResponseMap);
-
             isInitConnector = true;
         }
+
+        //TODO 实例化对应关系
+        messageHandler.setVenusExceptionFactory(venusExceptionFactory);
+        messageHandler.setContainer(this.container);
+        messageHandler.setLock(lock);
+        messageHandler.setServiceInvocationMap(serviceInvocationMap);
+        messageHandler.setServiceResponseMap(serviceResponseMap);
 
     }
 
@@ -183,19 +186,18 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         //构造请求消息
         SerializeServiceRequestPacket request = buildRequest(invocation);
         //添加messageId -> invocation映射表
-        serviceInvocationMap.put(getMessageId(request),invocation);
+        serviceInvocationMap.put(RpcIdUtil.getRpcId(request),invocation);
 
         //发送消息
-        sendRequest(url, invocation, request);
+        sendRequest(invocation, request, url);
 
-        //阻塞等待并处理响应结果 TODO callback情况
+        //阻塞等待并处理响应结果
         synchronized (lock){
             logger.info("lock wait begin...");
             lock.wait(10000);//TODO 超时时间
             logger.info("lock wait end...");
         }
-
-        Result result = fetchResponse(getMessageId(request));
+        Result result = fetchResponse(RpcIdUtil.getRpcId(request));
         logger.info("result:{}.",result);
         if(result == null){
             throw new RpcException(String.format("invoke timeout:%s","3000ms"));
@@ -214,22 +216,13 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         //构造请求消息
         SerializeServiceRequestPacket request = buildRequest(invocation);
         //添加messageId -> invocation映射表
-        serviceInvocationMap.put(getMessageId(request),invocation);
+        serviceInvocationMap.put(RpcIdUtil.getRpcId(request),invocation);
 
         //发送消息
-        sendRequest(url, invocation, request);
+        sendRequest(invocation, request, url);
 
         //立即返回，响应由invocationListener处理
         return new Result(null);
-    }
-
-    /**
-     * 获取消息标识
-     * @param request
-     * @return
-     */
-    String getMessageId(SerializeServiceRequestPacket request){
-        return String.format("%s-%s",String.valueOf(request.clientId),String.valueOf(request.clientRequestId));
     }
 
     /**
@@ -238,29 +231,31 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @return
      */
     SerializeServiceRequestPacket buildRequest(Invocation invocation){
-        byte[] traceID = invocation.getTraceID();
         Method method = invocation.getMethod();
         Service service = invocation.getService();
         Endpoint endpoint = invocation.getEndpoint();
         EndpointParameter[] params = invocation.getParams();
         Object[] args = invocation.getArgs();
-        String apiName = VenusAnnotationUtils.getApiname(method, service, endpoint);
 
-        AthenaTransactionId athenaTransactionId = (AthenaTransactionId) VenusThreadContext.get(VenusThreadContext.ATHENA_TRANSACTION_ID);
-        logger.info("athenaTransactionId:{}.",athenaTransactionId);
-
+        //构造请求报文
         Serializer serializer = SerializerFactory.getSerializer(serializeType);
         SerializeServiceRequestPacket serviceRequestPacket = new SerializeServiceRequestPacket(serializer, null);
-
         serviceRequestPacket.clientId = PacketConstant.VENUS_CLIENT_ID;
         serviceRequestPacket.clientRequestId = sequenceId.getAndIncrement();
+        //设置rpcId
+        invocation.setRpcId(RpcIdUtil.getRpcId(serviceRequestPacket));
+        //设置traceId
+        byte[] traceID = VenusTracerUtil.getTracerID();
+        if (traceID == null) {
+            traceID = VenusTracerUtil.randomTracerID();
+        }
         serviceRequestPacket.traceId = traceID;
-        serviceRequestPacket.apiName = apiName;
+        //设置athenaId
+        AthenaTransactionId athenaTransactionId = (AthenaTransactionId) VenusThreadContext.get(VenusThreadContext.ATHENA_TRANSACTION_ID);
+        setTransactionId(serviceRequestPacket, athenaTransactionId);
+        serviceRequestPacket.apiName = VenusAnnotationUtils.getApiname(method, service, endpoint);
         serviceRequestPacket.serviceVersion = service.version();
         serviceRequestPacket.parameterMap = new HashMap<String, Object>();
-
-        logger.info("send request,clientId:{},clientRequestId:{}.",serviceRequestPacket.clientId,serviceRequestPacket.clientRequestId);
-
         if (params != null) {
             for (int i = 0; i < params.length; i++) {
                 if (args[i] instanceof InvocationListener) {
@@ -279,7 +274,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                     } else {
                         throw new InvalidParameterException("invocationListener is not generic");
                     }
-
                     serviceRequestPacket.parameterMap.put(params[i].getParamName(), listener);
                 } else {
                     serviceRequestPacket.parameterMap.put(params[i].getParamName(), args[i]);
@@ -287,19 +281,19 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
             }
         }
-        setTransactionId(serviceRequestPacket, athenaTransactionId);
+        logger.info("send request,clientId:{},clientRequestId:{}.",serviceRequestPacket.clientId,serviceRequestPacket.clientRequestId);
         return serviceRequestPacket;
     }
 
     /**
      * 发送远程调用消息
-     * @param url 目标地址
      * @param invocation
      * @param serviceRequestPacket TODO 想办法合并invocation/request
+     * @param url 目标地址
      * @return
      * @throws Exception
      */
-    void sendRequest(URL url, Invocation invocation, SerializeServiceRequestPacket serviceRequestPacket) throws Exception{
+    void sendRequest(Invocation invocation, SerializeServiceRequestPacket serviceRequestPacket, URL url) throws Exception{
         byte[] traceID = invocation.getTraceID();
         Service service = invocation.getService();
         Endpoint endpoint = invocation.getEndpoint();

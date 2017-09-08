@@ -135,7 +135,7 @@ public class VenusServerInvokerTask implements Runnable{
         Result result = null;
         try {
             //解析请求对象
-            invocation = buildInvocation(conn, data);
+            invocation = parseInvocation(conn, data);
 
             //通过代理调用服务
             result = venusServerInvokerProxy.invoke(invocation, null);
@@ -167,10 +167,10 @@ public class VenusServerInvokerTask implements Runnable{
 
 
     /**
-     * 构造请求对象 TODO 统一接口invocation定义
+     * 解析并构造请求对象 TODO 统一接口invocation定义
      * @return
      */
-    RpcInvocation buildInvocation(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
+    RpcInvocation parseInvocation(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
         RpcInvocation invocation = new RpcInvocation();
         invocation.setConn(conn);
         invocation.setClientId(conn.getClientId());
@@ -252,15 +252,6 @@ public class VenusServerInvokerTask implements Runnable{
                 }
             }
             error.message = e.getMessage();
-            //无任何实现 delete by zhangzh 2017.8.8
-            /*
-            if(filte != null){
-                filte.before(request);
-            }
-            if(filte != null){
-                filte.after(error);
-            }
-            */
 
             if(request != null){
                 logPerformance(ep,request.traceId == null ? UUID.toString(PacketConstant.EMPTY_TRACE_ID) : UUID.toString(request.traceId),apiPacket.apiName,waitTime,0,conn.getHost(),finalSourceIp,request.clientId,request.clientRequestId,request.parameterMap, error);
@@ -337,15 +328,6 @@ public class VenusServerInvokerTask implements Runnable{
                 }
             }
             error.message = e.getMessage();
-            //无任何实现 delete by zhangzh 2017.8.8
-            /*
-            if(filte != null){
-                filte.before(request);
-            }
-            if(filte != null){
-                filte.after(error);
-            }
-            */
 
             if(request != null){
                 logPerformance(ep,request.traceId == null ? UUID.toString(PacketConstant.EMPTY_TRACE_ID) : UUID.toString(request.traceId),apiPacket.apiName,waitTime,0,conn.getHost(),finalSourceIp,request.clientId,request.clientRequestId,request.parameterMap, error);

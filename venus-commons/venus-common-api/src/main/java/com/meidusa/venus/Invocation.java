@@ -15,16 +15,15 @@ import java.util.Date;
  */
 public class Invocation {
 
-    //id
-    private String id;
-
-    //rpcId
+    //venus相关id
     private String rpcId;
 
-    //athenaId
-    private String athenaId;
-
     private byte[] traceID;
+
+    //athena相关id
+    private byte[] athenaId;
+
+    private byte[] parentId;
 
     private byte[] messageId;
 
@@ -51,14 +50,6 @@ public class Invocation {
 
     boolean async;
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getRpcId() {
         return rpcId;
     }
@@ -67,13 +58,6 @@ public class Invocation {
         this.rpcId = rpcId;
     }
 
-    public String getAthenaId() {
-        return athenaId;
-    }
-
-    public void setAthenaId(String athenaId) {
-        this.athenaId = athenaId;
-    }
 
     public String getConsumerIp() {
         return consumerIp;
@@ -177,5 +161,21 @@ public class Invocation {
 
     public void setRequestTime(Date requestTime) {
         this.requestTime = requestTime;
+    }
+
+    public byte[] getAthenaId() {
+        return athenaId;
+    }
+
+    public void setAthenaId(byte[] athenaId) {
+        this.athenaId = athenaId;
+    }
+
+    public byte[] getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(byte[] parentId) {
+        this.parentId = parentId;
     }
 }
