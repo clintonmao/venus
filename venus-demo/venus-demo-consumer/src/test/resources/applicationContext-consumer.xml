@@ -14,11 +14,6 @@
 	<context:component-scan base-package="com.saic.framework.*" />
 	<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" />
 
-	<bean name="configManager" class="com.saic.framework.athena.configuration.DefaultClientConfigManager">
-		<property name="appName" value="athena-server"/>
-		<property name="monitorEnabled"  value="yes" />
-	</bean>
-
 	<bean id="serviceFactory" class="com.meidusa.venus.client.VenusServiceFactory" destroy-method="destroy">
 		<property name="configFiles">
 			<list>
@@ -28,13 +23,32 @@
 		<property name="needPing" value="false"/>
 		<property name="venusExceptionFactory" ref="venusExceptionFactory"/>
 	</bean>
-	
+
 	<bean id="venusExceptionFactory" class="com.meidusa.venus.exception.XmlVenusExceptionFactory" init-method="init">
 		<property name="configFiles">
 			<list>
 				<value>classpath:com/meidusa/venus/exception/VenusSystemException.xml</value>
 			</list>
 		</property>
+	</bean>
+
+	<!--
+	String host = "10.32.174.22";
+    String host = "10.47.16.58";
+    String host = "10.47.58.63";
+    10.47.58.63:16800
+	<service type="com.athena.service.api.AthenaDataService" remote="monitor-remote"/>
+    <service type="com.athena.service.api.AthenaDataService" ipAddressList="10.32.174.23:16800"/>
+    -->
+
+	<!--监控配置-->
+	<bean id="venusMonitorFactory" class="com.meidusa.venus.client.VenusMonitorFactory">
+		<property name="url" value="10.32.174.23:16800"/>
+	</bean>
+
+	<bean name="configManager" class="com.saic.framework.athena.configuration.DefaultClientConfigManager">
+		<property name="appName" value="athena-client"/>
+		<property name="monitorEnabled"  value="yes" />
 	</bean>
 	
 </beans>

@@ -12,6 +12,7 @@
 	
 	<!-- import server side spring context file -->
 	<context:component-scan base-package="com.chexiang.*" />
+	<context:component-scan base-package="com.saic.framework.*" />
 
 	<bean id="helloService" class="com.chexiang.venus.demo.provider.impl.DefaultHelloService"/>
 
@@ -41,5 +42,10 @@
 				<value>classpath:com/meidusa/venus/exception/VenusSystemException.xml</value>
 			</list>
 		</property>
+	</bean>
+
+	<!--监控配置-->
+	<bean id="venusMonitorFactory" class="com.meidusa.venus.client.VenusMonitorFactory">
+		<property name="url" value="10.32.174.23:16800"/>
 	</bean>
 </beans>

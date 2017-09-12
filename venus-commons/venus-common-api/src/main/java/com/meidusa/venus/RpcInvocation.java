@@ -7,7 +7,6 @@ import com.meidusa.venus.backend.services.RequestContext;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
-import com.meidusa.venus.Invocation;
 
 /**
  * rpc调用对象，TODO 统一invocation
@@ -33,7 +32,10 @@ public class RpcInvocation extends Invocation{
 
     SerializeServiceRequestPacket request;
 
-    Endpoint ep;
+    /**
+     * 服务端端点配置，非注释配置 TODO 统一
+     */
+    Endpoint endpointEx;
 
     //extra
 
@@ -117,12 +119,12 @@ public class RpcInvocation extends Invocation{
         this.request = request;
     }
 
-    public Endpoint getEp() {
-        return ep;
+    public Endpoint getEndpointEx() {
+        return endpointEx;
     }
 
-    public void setEp(Endpoint ep) {
-        this.ep = ep;
+    public void setEndpointEx(Endpoint endpointEx) {
+        this.endpointEx = endpointEx;
     }
 
     public String getLocalHost() {

@@ -1,4 +1,4 @@
-package com.meidusa.venus.monitor.filter.client;
+package com.meidusa.venus.monitor.filter;
 
 import com.meidusa.venus.Invocation;
 import com.meidusa.venus.Result;
@@ -11,7 +11,7 @@ import java.util.Date;
  * 调用明细信息
  * Created by Zhangzhihua on 2017/9/4.
  */
-public class ClientInvocationDetail {
+public class InvocationDetail {
 
     //上报数据来源定义
     public static final int FROM_CLIENT = 0;

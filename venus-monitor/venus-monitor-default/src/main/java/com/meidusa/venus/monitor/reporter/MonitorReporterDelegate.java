@@ -7,8 +7,8 @@ import com.meidusa.venus.Invocation;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.backend.serializer.JSONSerializer;
-import com.meidusa.venus.monitor.filter.client.ClientInvocationDetail;
-import com.meidusa.venus.monitor.filter.client.ClientInvocationStatistic;
+import com.meidusa.venus.monitor.filter.InvocationDetail;
+import com.meidusa.venus.monitor.filter.InvocationStatistic;
 import com.meidusa.venus.util.UUIDUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -22,9 +22,9 @@ import java.util.List;
  * 监控上报代理，目的让接入方避免直接依赖athena-api
  * Created by Zhangzhihua on 2017/9/5.
  */
-public class ClientMonitorReporterDelegate {
+public class MonitorReporterDelegate {
 
-    private static Logger logger = LoggerFactory.getLogger(ClientMonitorReporterDelegate.class);
+    private static Logger logger = LoggerFactory.getLogger(MonitorReporterDelegate.class);
 
     private AthenaDataService athenaDataService;
 
@@ -37,7 +37,7 @@ public class ClientMonitorReporterDelegate {
      * 上报异常明细 TODO 上报放到reporter模块，可选择依赖
      * @param exceptionDetailList
      */
-    public void reportExceptionDetailList(Collection<ClientInvocationDetail> exceptionDetailList){
+    public void reportExceptionDetailList(Collection<InvocationDetail> exceptionDetailList){
         AthenaDataService athenaDataService = getAthenaDataService();
         logger.info("report exception detail size:{}.",exceptionDetailList.size());
         if(CollectionUtils.isEmpty(exceptionDetailList)){
@@ -45,7 +45,7 @@ public class ClientMonitorReporterDelegate {
         }
 
         List<MethodCallDetailDO> detailDOList = new ArrayList<MethodCallDetailDO>();
-        for(ClientInvocationDetail detail:exceptionDetailList){
+        for(InvocationDetail detail:exceptionDetailList){
             MethodCallDetailDO detailDO = convertDetail(detail);
             detailDOList.add(detailDO);
         }
@@ -60,7 +60,7 @@ public class ClientMonitorReporterDelegate {
      * @param detail
      * @return
      */
-    MethodCallDetailDO convertDetail(ClientInvocationDetail detail){
+    MethodCallDetailDO convertDetail(InvocationDetail detail){
         Invocation invocation = detail.getInvocation();
         URL url = detail.getUrl();
         Result result = detail.getResult();
@@ -75,15 +75,21 @@ public class ClientMonitorReporterDelegate {
         }
         detailDO.setSourceType(detail.getFrom());
         //请求信息
-        detailDO.setServiceName(invocation.getService().name());
+        detailDO.setServiceName(invocation.getServiceName());
         detailDO.setInterfaceName(invocation.getServiceInterface().getName());
-        detailDO.setMethodName(invocation.getEndpoint().name());
+        if(invocation.getEndpoint() != null){
+            detailDO.setMethodName(invocation.getEndpoint().name());
+        }else if(invocation.getMethod() != null){
+            detailDO.setMethodName(invocation.getMethod().getName());
+        }
         if(invocation.getArgs() != null){
             detailDO.setRequestJson(serialize(invocation.getArgs()));
         }
         detailDO.setRequestTime(invocation.getRequestTime());
         detailDO.setConsumerIp(invocation.getConsumerIp());
-        detailDO.setProviderIp(url.getHost());
+        if(url != null){
+            detailDO.setProviderIp(url.getHost());
+        }
         //响应信息
         detailDO.setResponseTime(detail.getResponseTime());
         //响应结果
@@ -121,14 +127,14 @@ public class ClientMonitorReporterDelegate {
      * 上报统计数据 TODO 上报放到reporter模块，可选择依赖
      * @param statisticList
      */
-    public void reportStatisticList(Collection<ClientInvocationStatistic> statisticList){
+    public void reportStatisticList(Collection<InvocationStatistic> statisticList){
         if(CollectionUtils.isEmpty(statisticList)){
             return;
         }
         AthenaDataService athenaDataService = getAthenaDataService();
 
         List<MethodStaticDO> staticDOList = new ArrayList<MethodStaticDO>();
-        for(ClientInvocationStatistic statistic:statisticList){
+        for(InvocationStatistic statistic:statisticList){
             if(statistic.getTotalNum().intValue() < 1){
                 continue;
             }
@@ -151,7 +157,7 @@ public class ClientMonitorReporterDelegate {
      * @param statistic
      * @return
      */
-    MethodStaticDO convertStatistic(ClientInvocationStatistic statistic){
+    MethodStaticDO convertStatistic(InvocationStatistic statistic){
         MethodStaticDO staticDO = new MethodStaticDO();
         staticDO.setInterfaceName(statistic.getServiceInterfaceName());
         staticDO.setServiceName(statistic.getServiceName());

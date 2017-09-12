@@ -27,45 +27,39 @@ public class DefaultClientTransactionReporter extends AbstractTransactionReporte
         AthenaTransactionId  transactionId = new AthenaTransactionId();
         try{
             RemoteContext context = new RemoteContextInstance();
-            getAthena().logRemoteCallClient(context);
+            AthenaUtils.getInstance().logRemoteCallClient(context);
             transactionId.setRootId(context.getProperty(RemoteContext.ROOT));
             transactionId.setParentId(context.getProperty(RemoteContext.PARENT));
             transactionId.setMessageId(context.getProperty(RemoteContext.CHILD));
             Stack<Transaction> transactionStack = TransactionThreadLocal.getInstance().get();
             transactionStack.add(AthenaUtils.getInstance().newTransaction(Constants.TRANSACTION_TYPE_RPC, itemName));
         }catch (Exception e) {
+            logger.error("client startTransaction error.",e);
             return null;
         }
         return transactionId;
     }
 
     /**
-     * 获取Athena实例
-     * @return
+     * 初始化athena
      */
-    Athena getAthena(){
+    void initAthena(){
         ApplicationContext context = VenusContext.getInstance().getApplicationContext();
-        //TODO
-
-        //设置applicationContext
-        AthenaUtils athenaUtils = new AthenaUtils();
-        athenaUtils.setApplicationContext(context);
-        //添加AthenaImpl到上下文
-        try {
-            if(context.getBean(Athena.class) == null){
-                VenusContext.getInstance().getBeanContext().createBean(com.saic.framework.athena.client.AthenaImpl.class);
-            }
-        } catch (Exception e) {
+        if(context != null){
+            //初始化AthenaUtils
+            AthenaUtils athenaUtils = new AthenaUtils();
+            athenaUtils.setApplicationContext(context);
+            //初始化AthenaImpl
             try {
-                VenusContext.getInstance().getBeanContext().createBean(com.saic.framework.athena.client.AthenaImpl.class);
-            } catch (Exception ex) {
-                logger.error("create athena bean failed.",ex);
-                return null;
+                if(context.getBean(Athena.class) == null){
+                    VenusContext.getInstance().getBeanContext().createBean(com.saic.framework.athena.client.AthenaImpl.class);
+                }
+            } catch (Exception e) {
+                logger.error("init AthenaClient failed on consumer.",e);
             }
         }
 
-        Athena athena = AthenaUtils.getInstance();
-        return athena;
+
     }
 
 }

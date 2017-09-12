@@ -1,10 +1,10 @@
-package com.meidusa.venus.monitor.filter.client;
+package com.meidusa.venus.monitor.filter;
 
 import com.meidusa.venus.Invocation;
 import com.meidusa.venus.Result;
+import com.meidusa.venus.monitor.filter.InvocationDetail;
 import com.meidusa.venus.util.NetUtil;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * 调用汇总
  * Created by Zhangzhihua on 2017/9/4.
  */
-public class ClientInvocationStatistic {
+public class InvocationStatistic {
 
     //接口名
     private String serviceInterfaceName;
@@ -55,13 +55,13 @@ public class ClientInvocationStatistic {
     //最大耗时
     private AtomicLong maxCostTime = new AtomicLong(0);
 
-    public ClientInvocationStatistic(){
+    public InvocationStatistic(){
     }
 
-    public ClientInvocationStatistic(ClientInvocationDetail detail){
+    public InvocationStatistic(InvocationDetail detail){
         Invocation invocation = detail.getInvocation();
         String serviceInterfaceName = invocation.getMethod().getDeclaringClass().getName();
-        String serviceName = invocation.getService().name();
+        String serviceName = invocation.getServiceName();
         String version = "0.0.0";
         String methodName = invocation.getMethod().getName();
         Date beginTime = getBeginTimeOfMinutes(invocation.getRequestTime());
@@ -106,7 +106,7 @@ public class ClientInvocationStatistic {
      * 添加明细并累加统计
      * @param detail
      */
-    public void append(ClientInvocationDetail detail){
+    public void append(InvocationDetail detail){
         totalNum.incrementAndGet();
         if(isFailedOperation(detail)){
             failNum.incrementAndGet();
@@ -128,7 +128,7 @@ public class ClientInvocationStatistic {
      * @param detail
      * @return
      */
-    boolean isFailedOperation(ClientInvocationDetail detail){
+    boolean isFailedOperation(InvocationDetail detail){
         Result result = detail.getResult();
         if(result != null && result.getErrorCode() != 0){
             return true;
@@ -141,7 +141,7 @@ public class ClientInvocationStatistic {
      * @param detail
      * @return
      */
-    long getCostTime(ClientInvocationDetail detail){
+    long getCostTime(InvocationDetail detail){
         Invocation invocation = detail.getInvocation();
         Date requestTime = invocation.getRequestTime();
         Date responseTime = detail.getResponseTime();

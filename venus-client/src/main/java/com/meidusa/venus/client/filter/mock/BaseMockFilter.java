@@ -30,7 +30,7 @@ public class BaseMockFilter {
         String methodPath = String.format(
                 "%s/%s?version=%s&method=%s",
                 invocation.getMethod().getDeclaringClass().getName(),
-                invocation.getService().name(),
+                invocation.getServiceName(),
                 "0.0.0",
                 invocation.getMethod().getName()
         );

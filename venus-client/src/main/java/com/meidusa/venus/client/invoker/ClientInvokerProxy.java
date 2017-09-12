@@ -5,7 +5,6 @@ import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
-import com.meidusa.venus.client.factory.ServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.filter.limit.ClientActivesLimitFilter;
 import com.meidusa.venus.client.filter.limit.ClientTpsLimitFilter;
@@ -16,7 +15,7 @@ import com.meidusa.venus.client.filter.valid.ClientValidFilter;
 import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.monitor.athena.filter.ClientAthenaMonitorFilter;
-import com.meidusa.venus.monitor.filter.client.ClientMonitorFilter;
+import com.meidusa.venus.monitor.filter.ClientMonitorFilter;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +38,14 @@ public class ClientInvokerProxy implements Invoker {
      */
     private DummyAuthenticator authenticator;
 
-    private ServiceFactory serviceFactory;
+    /**
+     * Athena上报服务
+     */
+    private AthenaDataService athenaDataService;
 
+    /**
+     * 静态配置地址
+     */
     private RemoteConfig remoteConfig;
 
     /**
@@ -71,6 +76,7 @@ public class ClientInvokerProxy implements Invoker {
             for(Filter filter : getBeforeFilters()){
                 Result result = filter.beforeInvoke(invocation,null);
                 if(result != null){
+                    VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
                     return result;
                 }
             }
@@ -78,16 +84,20 @@ public class ClientInvokerProxy implements Invoker {
             //根据配置选择内部调用还是跨实例/远程调用
             if(isInjvmInvoke(invocation)){
                 Result result = getInjvmInvoker().invoke(invocation, url);
+                VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
                 return result;
             }else{
                 Result result = getRemoteInvoker().invoke(invocation, url);
+                VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
                 return result;
             }
         } catch (Throwable e) {
+            VenusThreadContext.set(VenusThreadContext.RESPONSE_EXCEPTION,e);
             //调用异常切面处理
             for(Filter filter : getThrowFilters()){
                 Result result = filter.throwInvoke(invocation,url,e );
                 if(result != null){
+                    VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
                     return result;
                 }
             }
@@ -197,19 +207,7 @@ public class ClientInvokerProxy implements Invoker {
          if(clientMonitorFilter != null){
              return clientMonitorFilter;
          }
-        //String host = "10.32.174.22";
-        //String host = "10.47.16.58";
-//        String host = "10.47.58.63";
-//        SimpleServiceFactory factory = new SimpleServiceFactory(host,16800);
-//        factory.setSoTimeout(16 * 1000);//可选,默认 15秒
-//        factory.setCoTimeout(5 * 1000);//可选,默认5秒
-//        AthenaDataService athenaService = factory.getService(AthenaDataService.class);
-
-        AthenaDataService athenaService = this.getServiceFactory().getService(AthenaDataService.class);
-         if(athenaService == null){
-             throw new RpcException("init athenaDataService failed.");
-         }
-        clientMonitorFilter = new ClientMonitorFilter(athenaService);
+        clientMonitorFilter = new ClientMonitorFilter(getAthenaDataService());
         return clientMonitorFilter;
     }
 
@@ -266,11 +264,11 @@ public class ClientInvokerProxy implements Invoker {
         this.registerUrl = registerUrl;
     }
 
-    public ServiceFactory getServiceFactory() {
-        return serviceFactory;
+    public AthenaDataService getAthenaDataService() {
+        return athenaDataService;
     }
 
-    public void setServiceFactory(ServiceFactory serviceFactory) {
-        this.serviceFactory = serviceFactory;
+    public void setAthenaDataService(AthenaDataService athenaDataService) {
+        this.athenaDataService = athenaDataService;
     }
 }

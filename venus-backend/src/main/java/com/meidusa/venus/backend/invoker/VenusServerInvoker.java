@@ -118,7 +118,7 @@ public class VenusServerInvoker implements Invoker {
         final String apiName = request.apiName;
         String finalSourceIp = rpcInvocation.getFinalSourceIp();
         long waitTime = rpcInvocation.getWaitTime();
-        final Endpoint endpoint = rpcInvocation.getEp();//getServiceManager().getEndpoint(serviceName, methodName, request.parameterMap.keySet().toArray(new String[] {}));
+        final Endpoint endpoint = rpcInvocation.getEndpointEx();//getServiceManager().getEndpoint(serviceName, methodName, request.parameterMap.keySet().toArray(new String[] {}));
         //构造请求上下文信息
         RequestContext requestContext = rpcInvocation.getRequestContext();
         /*
@@ -137,7 +137,8 @@ public class VenusServerInvoker implements Invoker {
             */
             //调用服务实例
             Object object = doInvokeEndpoint(requestContext,endpoint);
-            return new Result(object);
+            Result result = new Result(object);
+            return result;
         } catch (Exception e) {
             ErrorPacket error = new ErrorPacket();
             AbstractServicePacket.copyHead(request, error);

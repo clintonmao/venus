@@ -1,19 +1,22 @@
-package com.meidusa.venus.monitor.filter.server;
+package com.meidusa.venus.monitor.filter;
 
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
 import com.meidusa.venus.monitor.filter.BaseMonitorFilter;
-import com.meidusa.venus.monitor.filter.client.ClientInvocationDetail;
+import com.meidusa.venus.monitor.filter.InvocationDetail;
 
 import java.util.Date;
 
 /**
- * server监控filter
+ * client监控filter
  * Created by Zhangzhihua on 2017/8/28.
  */
-public class ServerMonitorFilter extends BaseMonitorFilter implements Filter{
+public class ClientMonitorFilter extends BaseMonitorFilter implements Filter {
 
-    public ServerMonitorFilter(AthenaDataService athenaDataService){
+    public ClientMonitorFilter(){
+    }
+
+    public ClientMonitorFilter(AthenaDataService athenaDataService){
         this.setAthenaDataService(athenaDataService);
     }
 
@@ -28,24 +31,21 @@ public class ServerMonitorFilter extends BaseMonitorFilter implements Filter{
 
     @Override
     public Result throwInvoke(Invocation invocation, URL url, Throwable e) throws RpcException {
-        //异常信息
-        if(e != null){
-            VenusThreadContext.set(VenusThreadContext.RESPONSE_EXCEPTION,e);
-        }
         return null;
     }
 
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
-        /*
-        String athenaId = (String)VenusThreadContext.get(VenusThreadContext.ATHENA_ROOT_ID);
-        invocation.setAthenaId(athenaId);
+        //请求url
         url = (URL)VenusThreadContext.get(VenusThreadContext.REQUEST_URL);
+        //响应结果
         Result result = (Result) VenusThreadContext.get(VenusThreadContext.RESPONSE_RESULT);
+        //响应异常
         Throwable e = (Throwable)VenusThreadContext.get(VenusThreadContext.RESPONSE_EXCEPTION);
 
-        ClientInvocationDetail invocationDetail = new ClientInvocationDetail();
-        invocationDetail.setFrom(ClientInvocationDetail.FROM_CLIENT);
+        //组装并添加到明细队列
+        InvocationDetail invocationDetail = new InvocationDetail();
+        invocationDetail.setFrom(InvocationDetail.FROM_CLIENT);
         invocationDetail.setInvocation(invocation);
         invocationDetail.setUrl(url);
         invocationDetail.setResponseTime(new Date());
@@ -53,7 +53,6 @@ public class ServerMonitorFilter extends BaseMonitorFilter implements Filter{
         invocationDetail.setException(e);
 
         pubInvocationDetailQueue(invocationDetail);
-        */
         return null;
     }
 

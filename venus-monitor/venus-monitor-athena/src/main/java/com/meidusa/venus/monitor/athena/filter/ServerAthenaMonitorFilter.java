@@ -4,8 +4,6 @@ import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.*;
 import com.meidusa.venus.backend.services.Endpoint;
-import com.meidusa.venus.backend.services.RequestContext;
-import com.meidusa.venus.backend.services.RequestInfo;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.monitor.athena.reporter.AthenaExtensionResolver;
 import com.meidusa.venus.monitor.athena.reporter.AthenaReporterDelegate;
@@ -38,7 +36,7 @@ public class ServerAthenaMonitorFilter implements Filter {
         Tuple<Long, byte[]> data = rpcInvocation.getData();
         SerializeServiceRequestPacket request = rpcInvocation.getRequest();
         String apiName = request.apiName;
-        Endpoint endpoint = rpcInvocation.getEp();
+        Endpoint endpoint = rpcInvocation.getEndpointEx();
         long startTime = TimeUtil.currentTimeMillis();
         VenusThreadContext.set(VenusThreadContext.SERVER_BEGIN_TIME,Long.valueOf(startTime));
 
@@ -61,7 +59,7 @@ public class ServerAthenaMonitorFilter implements Filter {
         RpcInvocation rpcInvocation = (RpcInvocation)invocation;
         SerializeServiceRequestPacket request = rpcInvocation.getRequest();
         String apiName = request.apiName;
-        Endpoint endpoint = rpcInvocation.getEp();
+        Endpoint endpoint = rpcInvocation.getEndpointEx();
         boolean athenaFlag = endpoint.getService().getAthenaFlag();
         if (athenaFlag) {
             AthenaReporterDelegate.getDelegate().metric(apiName + ".error");
@@ -74,7 +72,7 @@ public class ServerAthenaMonitorFilter implements Filter {
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         RpcInvocation rpcInvocation = (RpcInvocation)invocation;
-        Endpoint endpoint = rpcInvocation.getEp();
+        Endpoint endpoint = rpcInvocation.getEndpointEx();
         Tuple<Long, byte[]> data = rpcInvocation.getData();
         SerializeServiceRequestPacket request = rpcInvocation.getRequest();
         String apiName = request.apiName;

@@ -22,45 +22,43 @@ public class DefaultServerTransactionReporter extends AbstractTransactionReporte
     private static Logger logger = LoggerFactory.getLogger(DefaultServerTransactionReporter.class);
 
     public void startTransaction(AthenaTransactionId transactionId, String itemName) {
-        RemoteContext context = new RemoteContextInstance();
-        context.addProperty(RemoteContext.ROOT, transactionId.getRootId());
-        context.addProperty(RemoteContext.PARENT, transactionId.getParentId());
-        context.addProperty(RemoteContext.CHILD, transactionId.getMessageId());
+        try {
+            RemoteContext context = new RemoteContextInstance();
+            context.addProperty(RemoteContext.ROOT, transactionId.getRootId());
+            context.addProperty(RemoteContext.PARENT, transactionId.getParentId());
+            context.addProperty(RemoteContext.CHILD, transactionId.getMessageId());
 
-        getAthena().logRemoteCallServer(context);
+            AthenaUtils.getInstance().logRemoteCallServer(context);
 
-        Stack<Transaction> transactionStack = TransactionThreadLocal.getInstance().get();
+            Stack<Transaction> transactionStack = TransactionThreadLocal.getInstance().get();
 
-        transactionStack.add(AthenaUtils.getInstance().newTransaction(Constants.TRANSACTION_TYPE_LOCAL, itemName));
+            transactionStack.add(AthenaUtils.getInstance().newTransaction(Constants.TRANSACTION_TYPE_LOCAL, itemName));
+        } catch (Exception e) {
+            logger.error("server startTransaction error.",e);
+        }
     }
 
     /**
-     * 获取Athena实例
-     * @return
+     * 初始化athena
      */
-    Athena getAthena(){
+    void initAthena(){
         ApplicationContext context = VenusContext.getInstance().getApplicationContext();
-        //TODO
-
-        //设置applicationContext
-        AthenaUtils athenaUtils = new AthenaUtils();
-        athenaUtils.setApplicationContext(context);
-        //添加AthenaImpl到上下文
-        try {
-            if(context.getBean(Athena.class) == null){
-                VenusContext.getInstance().getBeanContext().createBean(com.saic.framework.athena.client.AthenaImpl.class);
-            }
-        } catch (Exception e) {
+        if(context != null){
+            //初始化AthenaUtils
+            AthenaUtils athenaUtils = new AthenaUtils();
+            athenaUtils.setApplicationContext(context);
+            //初始化AthenaImpl
             try {
-                VenusContext.getInstance().getBeanContext().createBean(com.saic.framework.athena.client.AthenaImpl.class);
-            } catch (Exception ex) {
-                logger.error("create athena bean failed.",ex);
-                return null;
+                if(context.getBean(Athena.class) == null){
+                    VenusContext.getInstance().getBeanContext().createBean(com.saic.framework.athena.client.AthenaImpl.class);
+                }
+            } catch (Exception e) {
+                logger.error("init AthenaClient failed on consumer.",e);
             }
         }
 
-        Athena athena = AthenaUtils.getInstance();
-        return athena;
+
     }
+
 
 }

@@ -1,22 +1,19 @@
-package com.meidusa.venus.monitor.filter.client;
+package com.meidusa.venus.monitor.filter;
 
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
 import com.meidusa.venus.monitor.filter.BaseMonitorFilter;
-import org.apache.commons.lang.StringUtils;
+import com.meidusa.venus.monitor.filter.InvocationDetail;
 
 import java.util.Date;
 
 /**
- * client监控filter
+ * server监控filter
  * Created by Zhangzhihua on 2017/8/28.
  */
-public class ClientMonitorFilter extends BaseMonitorFilter implements Filter {
+public class ServerMonitorFilter extends BaseMonitorFilter implements Filter{
 
-    public ClientMonitorFilter(){
-    }
-
-    public ClientMonitorFilter(AthenaDataService athenaDataService){
+    public ServerMonitorFilter(AthenaDataService athenaDataService){
         this.setAthenaDataService(athenaDataService);
     }
 
@@ -31,27 +28,17 @@ public class ClientMonitorFilter extends BaseMonitorFilter implements Filter {
 
     @Override
     public Result throwInvoke(Invocation invocation, URL url, Throwable e) throws RpcException {
-        //异常信息
-        if(e != null){
-            VenusThreadContext.set(VenusThreadContext.RESPONSE_EXCEPTION,e);
-        }
         return null;
     }
 
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
-        //请求url
-        url = (URL)VenusThreadContext.get(VenusThreadContext.REQUEST_URL);
-        //响应结果
         Result result = (Result) VenusThreadContext.get(VenusThreadContext.RESPONSE_RESULT);
-        //响应异常
         Throwable e = (Throwable)VenusThreadContext.get(VenusThreadContext.RESPONSE_EXCEPTION);
 
-        //组装并添加到明细队列
-        ClientInvocationDetail invocationDetail = new ClientInvocationDetail();
-        invocationDetail.setFrom(ClientInvocationDetail.FROM_CLIENT);
+        InvocationDetail invocationDetail = new InvocationDetail();
+        invocationDetail.setFrom(InvocationDetail.FROM_SERVER);
         invocationDetail.setInvocation(invocation);
-        invocationDetail.setUrl(url);
         invocationDetail.setResponseTime(new Date());
         invocationDetail.setResult(result);
         invocationDetail.setException(e);

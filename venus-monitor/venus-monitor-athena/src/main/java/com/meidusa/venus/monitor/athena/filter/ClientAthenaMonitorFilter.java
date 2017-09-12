@@ -16,31 +16,47 @@ import java.lang.reflect.Method;
  */
 public class ClientAthenaMonitorFilter implements Filter {
 
-    //static boolean isRunning = false;
+    static boolean isInited;
 
     public ClientAthenaMonitorFilter(){
+        if(!isInited){
+            init();
+            isInited = true;
+        }
     }
 
     @Override
     public void init() throws RpcException {
+        //初始化athena
+        AthenaExtensionResolver.getInstance().resolver();
     }
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
-        if(invocation.getService().athenaFlag()){
-            /*
-            Method method = invocation.getMethod();
-            Service service = invocation.getService();
-            Endpoint endpoint = invocation.getEndpoint();
+        Service service = invocation.getService();
+        Endpoint endpoint = invocation.getEndpoint();
+        Method method = invocation.getMethod();
+        //athena相关
+        if(service != null && service.athenaFlag()){
+            //athenaId
             String apiName = VenusAnnotationUtils.getApiname(method, service, endpoint);
             AthenaTransactionId athenaTransactionId = AthenaTransactionDelegate.getDelegate().startClientTransaction(apiName);
             VenusThreadContext.set(VenusThreadContext.ATHENA_TRANSACTION_ID,athenaTransactionId);
-            if(athenaTransactionId != null){
-                VenusThreadContext.set(VenusThreadContext.ATHENA_ROOT_ID,athenaTransactionId.getRootId());
-                VenusThreadContext.set(VenusThreadContext.ATHENA_PARENT_ID,athenaTransactionId.getParentId());
-                VenusThreadContext.set(VenusThreadContext.ATHENA_MESSAGE_ID,athenaTransactionId.getMessageId());
+            if (athenaTransactionId != null) {
+                //保存athena信息到上下文
+                if (athenaTransactionId.getRootId() != null) {
+                    byte[] athenaId = athenaTransactionId.getRootId().getBytes();
+                    invocation.setAthenaId(athenaId);
+                }
+                if (athenaTransactionId.getParentId() != null) {
+                    byte[] parentId = athenaTransactionId.getParentId().getBytes();
+                    invocation.setParentId(parentId);
+                }
+                if (athenaTransactionId.getMessageId() != null) {
+                    byte[] messageId = athenaTransactionId.getMessageId().getBytes();
+                    invocation.setMessageId(messageId);
+                }
             }
-            */
         }
         return null;
     }

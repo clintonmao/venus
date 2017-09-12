@@ -64,7 +64,7 @@ public class ServerValidFilter implements Filter {
         byte serializeType = invocation.getSerializeType();
         SerializeServiceRequestPacket request = invocation.getRequest();
         final String apiName = request.apiName;
-        final Endpoint endpoint = invocation.getEp();
+        final Endpoint endpoint = invocation.getEndpointEx();
 
         checkVersion(endpoint, request);
         checkActive(endpoint, request);

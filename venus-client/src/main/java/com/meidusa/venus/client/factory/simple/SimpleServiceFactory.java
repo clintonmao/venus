@@ -119,7 +119,6 @@ public class SimpleServiceFactory implements ServiceFactory {
      * @return
      */
     protected <T> T initService(Class<T> t, String host, int port) {
-        //InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler(host, port, coTimeout, soTimeout);
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
         invocationHandler.setRemoteConfig(getRemoteConfig(host, port));
 
@@ -130,11 +129,11 @@ public class SimpleServiceFactory implements ServiceFactory {
         	this.venusExceptionFactory = venusExceptionFactory;
         }
         invocationHandler.setVenusExceptionFactory(this.getVenusExceptionFactory());
-        
-        if(this.getAuthenticator() == null){
-        	this.authenticator = new DummyAuthenticator<DummyAuthenPacket>();
-        }
+
         //TODO 确认认证功能
+        if(this.getAuthenticator() == null){
+            this.authenticator = new DummyAuthenticator<DummyAuthenPacket>();
+        }
         //invocationHandler.setAuthenticator(getAuthenticator());
 
         T object = (T) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[] { t }, invocationHandler);

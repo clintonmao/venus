@@ -1,11 +1,15 @@
 package com.meidusa.venus.client.proxy;
 
+import com.athena.service.api.AthenaDataService;
+import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
+import com.meidusa.venus.client.AthenaContext;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.ServiceFactory;
+import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.invoker.ClientInvokerProxy;
 import com.meidusa.venus.exception.VenusExceptionFactory;
@@ -65,6 +69,8 @@ public class InvokerInvocationHandler implements InvocationHandler {
      */
     private String registerUrl;
 
+    private static AthenaDataService athenaDataService;
+
     private ClientInvokerProxy clientInvokerProxy;
 
     private static AtomicLong sequenceId = new AtomicLong(1);
@@ -82,7 +88,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * 初始化操作
      */
     void init(){
-        AthenaExtensionResolver.getInstance().resolver();
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -107,16 +112,29 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
     public ClientInvokerProxy getClientInvokerProxy() {
         if(clientInvokerProxy == null){
-            //TODO 初始化
             clientInvokerProxy = new ClientInvokerProxy();
             clientInvokerProxy.setAuthenticator(getAuthenticator());
             clientInvokerProxy.setVenusExceptionFactory(getVenusExceptionFactory());
-            clientInvokerProxy.setServiceFactory(getServiceFactory());
             clientInvokerProxy.setRegisterUrl(getRegisterUrl());
             clientInvokerProxy.setRemoteConfig(getRemoteConfig());
+            clientInvokerProxy.setAthenaDataService(getAthenaDataService());
         }
         return clientInvokerProxy;
     }
+
+    /**
+     * 初始化athenaDataService
+     * @return
+     */
+    AthenaDataService getAthenaDataService(){
+        if(athenaDataService != null){
+            return athenaDataService;
+        }
+        athenaDataService = AthenaContext.getInstance().getAthenaDataService();
+        return athenaDataService;
+    }
+
+
 
     /**
      * 构造请求
@@ -160,28 +178,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
             traceID = VenusTracerUtil.randomTracerID();
         }
         invocation.setTraceID(traceID);
-        //athena相关
-        if(service != null && service.athenaFlag()){
-            //athenaId
-            String apiName = VenusAnnotationUtils.getApiname(method, service, endpoint);
-            AthenaTransactionId athenaTransactionId = AthenaTransactionDelegate.getDelegate().startClientTransaction(apiName);
-            VenusThreadContext.set(VenusThreadContext.ATHENA_TRANSACTION_ID,athenaTransactionId);
-            if (athenaTransactionId != null) {
-                //保存athena信息到上下文
-                if (athenaTransactionId.getRootId() != null) {
-                    byte[] athenaId = athenaTransactionId.getRootId().getBytes();
-                    invocation.setAthenaId(athenaId);
-                }
-                if (athenaTransactionId.getParentId() != null) {
-                    byte[] parentId = athenaTransactionId.getParentId().getBytes();
-                    invocation.setParentId(parentId);
-                }
-                if (athenaTransactionId.getMessageId() != null) {
-                    byte[] messageId = athenaTransactionId.getMessageId().getBytes();
-                    invocation.setMessageId(messageId);
-                }
-            }
-        }
         return invocation;
     }
 
@@ -233,4 +229,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
         this.serviceFactory = serviceFactory;
     }
 
+    public void setAthenaDataService(AthenaDataService athenaDataService) {
+        InvokerInvocationHandler.athenaDataService = athenaDataService;
+    }
 }

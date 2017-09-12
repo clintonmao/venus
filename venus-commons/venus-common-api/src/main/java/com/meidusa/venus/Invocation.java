@@ -198,4 +198,20 @@ public class Invocation {
     public void setParentId(byte[] parentId) {
         this.parentId = parentId;
     }
+
+    public String getServiceName() {
+        if(service != null){
+            return service.name();
+        }else if(this instanceof RpcInvocation){
+            RpcInvocation rpcInvocation = (RpcInvocation)this;
+            if(rpcInvocation.getEndpointEx() != null && rpcInvocation.getEndpointEx().getService() != null){
+                return rpcInvocation.getEndpointEx().getService().getName();
+            }else{
+                throw new RpcException("get serviceName error.");
+            }
+        }else{
+            throw new RpcException("get serviceName error.");
+        }
+    }
+
 }

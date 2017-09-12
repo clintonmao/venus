@@ -1,5 +1,6 @@
 package com.meidusa.venus.backend.invoker;
 
+import com.athena.service.api.AthenaDataService;
 import com.meidusa.fastbson.exception.SerializeException;
 import com.meidusa.fastjson.JSON;
 import com.meidusa.fastjson.JSONException;
@@ -17,6 +18,7 @@ import com.meidusa.venus.RpcInvocation;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.bean.PerformanceLogger;
 import com.meidusa.venus.backend.support.Response;
+import com.meidusa.venus.client.AthenaContext;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.*;
@@ -31,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -91,10 +94,12 @@ public class VenusServerInvokerTask implements Runnable{
 
     private ResponseHandler responseHandler = new ResponseHandler();
 
+    private static AthenaDataService athenaDataService;
+
     /**
      * 服务调用代理
      */
-    private VenusServerInvokerProxy venusServerInvokerProxy = new VenusServerInvokerProxy();
+    private static VenusServerInvokerProxy venusServerInvokerProxy;
 
     static {
         Map<Class<?>,ExceptionCode>  map = ClasspathAnnotationScanner.find(Exception.class,ExceptionCode.class);
@@ -136,6 +141,7 @@ public class VenusServerInvokerTask implements Runnable{
             invocation = parseInvocation(conn, data);
 
             //通过代理调用服务
+            VenusServerInvokerProxy venusServerInvokerProxy = getVenusServerInvokerProxy();
             result = venusServerInvokerProxy.invoke(invocation, null);
         } catch (Exception e) {
             //TODO 异常信息包装
@@ -163,6 +169,30 @@ public class VenusServerInvokerTask implements Runnable{
         }
     }
 
+    /**
+     * 获取VenusServerInvokerProxy
+     * @return
+     */
+    VenusServerInvokerProxy getVenusServerInvokerProxy(){
+        if(venusServerInvokerProxy == null){
+            venusServerInvokerProxy = new VenusServerInvokerProxy();
+            venusServerInvokerProxy.setAthenaDataService(getAthenaDataService());
+        }
+        return venusServerInvokerProxy;
+    }
+
+    /**
+     * 初始化athenaDataService
+     * @return
+     */
+    AthenaDataService getAthenaDataService(){
+        if(athenaDataService != null){
+            return athenaDataService;
+        }
+        athenaDataService = AthenaContext.getInstance().getAthenaDataService();
+        return athenaDataService;
+    }
+
 
     /**
      * 解析并构造请求对象 TODO 统一接口invocation定义
@@ -171,24 +201,31 @@ public class VenusServerInvokerTask implements Runnable{
     RpcInvocation parseInvocation(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
         RpcInvocation invocation = new RpcInvocation();
         invocation.setConn(conn);
+        invocation.setData(data);
         invocation.setClientId(conn.getClientId());
         invocation.setHost(conn.getHost());
         invocation.setLocalHost(conn.getLocalHost());
+        invocation.setRequestTime(new Date());
         //设置请求报文
         SerializeServiceRequestPacket request = parseRequest(conn, data);
         invocation.setRequest(request);
         this.request = request;
         this.routerPacket = invocation.getRouterPacket();
         //设置调用端点
-        Endpoint endpoint = parseEndpoint(conn, data);
-        invocation.setEp(endpoint);
-        invocation.setResultType(getResultType(endpoint));
+        Endpoint endpointEx = parseEndpoint(conn, data);
+        invocation.setEndpointEx(endpointEx);
+        //TODO 补全接口服务相关信息
+        if(endpointEx != null){
+            invocation.setServiceInterface(endpointEx.getMethod().getDeclaringClass().getClass());
+            invocation.setMethod(endpointEx.getMethod());
+        }
+        invocation.setResultType(getResultType(endpointEx));
         //设置参数
         initParamsForInvocationListener(request,invocation.getConn(),routerPacket,invocation);
         //获取上下文信息
         RequestContext requestContext = getRequestContext(invocation);
         if(requestContext != null){
-            requestContext.setEndPointer(endpoint);
+            requestContext.setEndPointer(endpointEx);
         }
         invocation.setRequestContext(requestContext);
         ThreadLocalMap.put(VenusTracerUtil.REQUEST_TRACE_ID, traceID);

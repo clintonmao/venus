@@ -33,7 +33,6 @@ public abstract class AbstractClientInvoker implements Invoker {
 
             //调用相应协议实现
             Result result = doInvoke(invocation, url);
-            VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
             return result;
         } catch (Throwable e) {
             if (!(e instanceof CodedException)) {

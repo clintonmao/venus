@@ -1,8 +1,6 @@
 package com.meidusa.venus.client.filter.limit;
 
-import com.meidusa.venus.Invocation;
-import com.meidusa.venus.Invoker;
-import com.meidusa.venus.URL;
+import com.meidusa.venus.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,10 +24,11 @@ public class BaseLimitFilter {
      * @return
      */
     String getMethodPath(Invocation invocation, URL url){
+        //TODO client/server分别处理
         String methodPath = String.format(
                 "%s/%s?version=%s&method=%s",
                 invocation.getMethod().getDeclaringClass().getName(),
-                invocation.getService().name(),
+                invocation.getServiceName(),
                 "0.0.0",
                 invocation.getMethod().getName()
         );
