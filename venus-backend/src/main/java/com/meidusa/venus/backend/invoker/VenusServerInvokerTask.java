@@ -29,10 +29,12 @@ import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.util.*;
+import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -209,14 +211,21 @@ public class VenusServerInvokerTask implements Runnable{
         //设置请求报文
         SerializeServiceRequestPacket request = parseRequest(conn, data);
         invocation.setRequest(request);
+        if(MapUtils.isNotEmpty(request.parameterMap)){
+            Object[] args = request.parameterMap.values().toArray();
+            invocation.setArgs(args);
+        }
         this.request = request;
         this.routerPacket = invocation.getRouterPacket();
-        //设置调用端点
+        //设置端点定义
         Endpoint endpointEx = parseEndpoint(conn, data);
         invocation.setEndpointEx(endpointEx);
         //TODO 补全接口服务相关信息
         if(endpointEx != null){
-            invocation.setServiceInterface(endpointEx.getMethod().getDeclaringClass().getClass());
+            Service service = endpointEx.getService();
+            if(service != null){
+                invocation.setServiceInterface(service.getType());
+            }
             invocation.setMethod(endpointEx.getMethod());
         }
         invocation.setResultType(getResultType(endpointEx));

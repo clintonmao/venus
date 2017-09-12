@@ -16,11 +16,11 @@ public abstract class Service {
 
     private String name;
 
-    private boolean active = true;
+    private Class<?> type;
 
     private Range versionRange;
 
-    private Class<?> type;
+    private boolean active = true;
 
     private Multimap<String, Endpoint> endpoints;
 

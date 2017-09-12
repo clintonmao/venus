@@ -73,10 +73,15 @@ public class MonitorReporterDelegate {
         if(invocation.getAthenaId() != null){
             detailDO.setTraceId(new String(invocation.getAthenaId()));
         }
+        if(invocation.getMessageId() != null){
+            detailDO.setMessageId(new String(invocation.getMessageId()));
+        }
         detailDO.setSourceType(detail.getFrom());
         //请求信息
         detailDO.setServiceName(invocation.getServiceName());
-        detailDO.setInterfaceName(invocation.getServiceInterface().getName());
+        if(invocation.getServiceInterface() != null){
+            detailDO.setInterfaceName(invocation.getServiceInterface().getName());
+        }
         if(invocation.getEndpoint() != null){
             detailDO.setMethodName(invocation.getEndpoint().name());
         }else if(invocation.getMethod() != null){
@@ -94,8 +99,13 @@ public class MonitorReporterDelegate {
         detailDO.setResponseTime(detail.getResponseTime());
         //响应结果
         if(result != null){
-            detailDO.setReponseJson(serialize(result));
-            detailDO.setStatus(1);
+            if(result.getErrorCode() == 0){
+                detailDO.setReponseJson(serialize(result.getResult()));
+                detailDO.setStatus(1);
+            }else{
+                detailDO.setReponseJson(serialize(result.getErrorCode()));
+                detailDO.setStatus(1);
+            }
         } else{
             //响应异常
             detailDO.setErrorInfo(serialize(exception));

@@ -46,6 +46,7 @@
 		<property name="url" value="10.32.174.23:16800"/>
 	</bean>
 
+	<!--将此配置提取整合到venusMonitorFactory.athena中-->
 	<bean name="configManager" class="com.saic.framework.athena.configuration.DefaultClientConfigManager">
 		<property name="appName" value="athena-client"/>
 		<property name="monitorEnabled"  value="yes" />

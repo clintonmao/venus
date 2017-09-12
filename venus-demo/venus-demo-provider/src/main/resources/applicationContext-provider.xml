@@ -48,4 +48,10 @@
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.client.VenusMonitorFactory">
 		<property name="url" value="10.32.174.23:16800"/>
 	</bean>
+
+	<!--将此配置提取整合到venusMonitorFactory.anthena中-->
+	<bean name="configManager" class="com.saic.framework.athena.configuration.DefaultClientConfigManager">
+		<property name="appName" value="athena-server"/>
+		<property name="monitorEnabled"  value="yes" />
+	</bean>
 </beans>
