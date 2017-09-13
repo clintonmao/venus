@@ -79,7 +79,6 @@ public class ServerAthenaMonitorFilter implements Filter {
         boolean athenaFlag = endpoint.getService().getAthenaFlag();
         if (athenaFlag) {
             AthenaReporterDelegate.getDelegate().metric(apiName + ".complete");
-            AthenaTransactionDelegate.getDelegate().completeServerTransaction();
             Long startTime = (Long) VenusThreadContext.get(VenusThreadContext.SERVER_BEGIN_TIME);
             long endRunTime = TimeUtil.currentTimeMillis();
             long queuedTime = startTime.longValue() - data.left;
@@ -88,6 +87,11 @@ public class ServerAthenaMonitorFilter implements Filter {
             if ((endpoint.getTimeWait() < (queuedTime + executeTime)) && athenaFlag) {
                 AthenaReporterDelegate.getDelegate().metric(apiName + ".timeout");
             }
+
+            Integer serverOutputSize = (Integer) VenusThreadContext.get(VenusThreadContext.SERVER_OUTPUT_SIZE);
+            AthenaTransactionDelegate.getDelegate().setServerOutputSize(serverOutputSize.intValue());
+
+            AthenaTransactionDelegate.getDelegate().completeServerTransaction();
         }
         return null;
     }

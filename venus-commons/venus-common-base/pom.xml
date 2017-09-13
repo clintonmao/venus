@@ -9,8 +9,7 @@
 	</parent>
 	
 	<artifactId>venus-common-base</artifactId>
-	<packaging>jar</packaging>
-	<name>${project.artifactId} v${project.version}</name>
+
 	<properties>
           <timestamp>${maven.build.timestamp}</timestamp>
           <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>

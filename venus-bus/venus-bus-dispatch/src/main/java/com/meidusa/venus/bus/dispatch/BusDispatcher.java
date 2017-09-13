@@ -29,9 +29,9 @@ import java.util.List;
  * bus消息分发处理
  * Created by Zhangzhihua on 2017/9/1.
  */
-public class BusMessageDispatcher implements Dispatcher{
+public class BusDispatcher implements Dispatcher{
 
-    private static Logger logger = LoggerFactory.getLogger(BusMessageDispatcher.class);
+    private static Logger logger = LoggerFactory.getLogger(BusDispatcher.class);
 
     protected int DEFAULT_POOL_SIZE = Remote.DEFAULT_POOL_SIZE;
 

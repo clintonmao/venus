@@ -4,6 +4,7 @@ import com.meidusa.venus.Invocation;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.URL;
+import com.meidusa.venus.backend.ErrorPacketWrapperException;
 import com.meidusa.venus.bus.BusInvocation;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.bus.registry.ServiceRegisterManager;
@@ -12,20 +13,22 @@ import com.meidusa.venus.io.packet.AbstractServicePacket;
 import com.meidusa.venus.io.packet.ErrorPacket;
 import com.meidusa.venus.io.packet.ServiceAPIPacket;
 import com.meidusa.venus.io.packet.ServicePacketBuffer;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
  * 消息远程分发处理
  * Created by Zhangzhihua on 2017/9/1.
  */
-public class BusMessageRemoteDispatcher implements Dispatcher{
+public class BusRemoteDispatcher implements Dispatcher{
 
-    private static Logger logger = LoggerFactory.getLogger(BusMessageRemoteDispatcher.class);
+    private static Logger logger = LoggerFactory.getLogger(BusRemoteDispatcher.class);
 
-    private BusMessageClusterFailoverDispatcher busMessageClusterFailoverDispatcher;
+    private BusClusterFailoverDispatcher busClusterFailoverDispatcher;
 
     private ServiceRegisterManager serviceRegisterManager;
 
@@ -34,18 +37,49 @@ public class BusMessageRemoteDispatcher implements Dispatcher{
         //寻址
         List<URL> urlList = lookup(invocation);
 
-        //TODO 路由规则过滤 router.filte
+        //TODO 路由规则过滤/版本号校验 router.filte
 
         //分发
-        Result result = busMessageClusterFailoverDispatcher.dispatch(invocation,urlList);
+        Result result = busClusterFailoverDispatcher.dispatch(invocation,urlList);
         return result;
+    }
+
+    /**
+     * 寻址
+     * @param invocation
+     * @return
+     */
+    List<URL> lookup(Invocation invocation){
+        if(!isDynamicLookup()){
+            return this.lookupByStatic(invocation);
+        }else{
+            return this.lookupByDynamic(invocation);
+        }
+    }
+
+    /**
+     * 判断是本地静态还是注册中心动态寻址
+     * @return
+     */
+    boolean isDynamicLookup(){
+        //TODO
+        return true;
+    }
+
+    /**
+     *
+     * @param invocation
+     * @return
+     */
+    List<URL> lookupByStatic(Invocation invocation){
+        return Collections.emptyList();
     }
 
     /**
      * 查找服务地址 TODO 静态查找、动态查找
      * @return
      */
-    List<URL> lookup(Invocation invocation){
+    List<URL> lookupByDynamic(Invocation invocation){
         BusInvocation busInvocation = (BusInvocation)invocation;
         BusFrontendConnection srcConn = busInvocation.getSrcConn();
         ServicePacketBuffer packetBuffer = busInvocation.getPacketBuffer();
@@ -77,11 +111,10 @@ public class BusMessageRemoteDispatcher implements Dispatcher{
             AbstractServicePacket.copyHead(apiPacket, error);
             error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
             error.message = e.getMessage();
-            //错误返回
-            srcConn.write(error.toByteBuffer());
+            //错误返回，统一返回，fixed
+            //srcConn.write(error.toByteBuffer());
             logger.error("error when invoke", e);
-
-            throw new RpcException("error when invoke.",e);
+            throw new ErrorPacketWrapperException(error);
         }
     }
 }

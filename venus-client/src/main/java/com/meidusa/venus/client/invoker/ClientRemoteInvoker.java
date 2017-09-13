@@ -137,7 +137,7 @@ public class ClientRemoteInvoker implements Invoker{
         //TODO 本地或远程接口调用
         ServiceDefinition serviceDefinition = getRegister().lookup(serviceUrl);
         if(serviceDefinition == null || CollectionUtils.isEmpty(serviceDefinition.getIpAddress())){
-            throw new RpcException("service not found available providers.");
+            throw new RpcException("not found available service providers.");
         }
         logger.info("serviceDefinition:{}",serviceDefinition);
 

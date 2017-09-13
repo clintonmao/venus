@@ -111,7 +111,7 @@
                 <version>2.2.1</version>
                 <configuration>
                     <descriptors>
-                        <descriptor>src/assembly/distribution.xml</descriptor>
+                        <descriptor>assembly/distribution.xml</descriptor>
                     </descriptors>
                 </configuration>
             </plugin>

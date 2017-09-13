@@ -5,9 +5,9 @@ import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.Result;
-import com.meidusa.venus.RpcException;
+import com.meidusa.venus.backend.ErrorPacketWrapperException;
 import com.meidusa.venus.bus.BusInvocation;
-import com.meidusa.venus.bus.dispatch.BusMessageDispatcherProxy;
+import com.meidusa.venus.bus.dispatch.BusDispatcherProxy;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.bus.registry.ServiceRegisterManager;
 import com.meidusa.venus.bus.util.VenusTrafficCollector;
@@ -38,7 +38,7 @@ public class RecvAndDispatchMessageHandler extends BusFrontendMessageHandler imp
 
     private ServiceRegisterManager serviceRegisterManager;
 
-    BusMessageDispatcherProxy busMessageDispatcherProxy;
+    BusDispatcherProxy busMessageDispatcherProxy;
 
     @Override
     public void handle(BusFrontendConnection srcConn, final byte[] message) {
@@ -79,16 +79,25 @@ public class RecvAndDispatchMessageHandler extends BusFrontendMessageHandler imp
      */
     public void doHandle(BusFrontendConnection srcConn, final byte[] message) {
         BusInvocation invocation = null;
+        Result result = null;
         try {
             //解析请求
-            invocation = buildInvocation(srcConn, message);
+            invocation = parseInvocation(srcConn, message);
 
-            //通过分发代理进行消息分发
-            Result result = busMessageDispatcherProxy.dispatch(invocation,null);
+            //通过分发代理分发消息
+            result = busMessageDispatcherProxy.dispatch(invocation,null);
             //TODO 异常、正常返回处理
         } catch (Exception e) {
-            //TODO
-            //错误返回
+            //TODO 异常信息包装
+            result = new Result();
+            result.setErrorCode(500);
+            result.setErrorMessage(e.getMessage());
+            result.setException(e);
+        }
+
+        //若分发异常或者被流控等，则直接返回
+        if(result != null){
+            //TODO 输出响应
         }
     }
 
@@ -98,7 +107,7 @@ public class RecvAndDispatchMessageHandler extends BusFrontendMessageHandler imp
      * @param message
      * @return
      */
-    BusInvocation buildInvocation(BusFrontendConnection srcConn, final byte[] message){
+    BusInvocation parseInvocation(BusFrontendConnection srcConn, final byte[] message){
         VenusTrafficCollector.getInstance().increaseRequest();
 
         BusInvocation busInvocation = new BusInvocation();
@@ -151,14 +160,14 @@ public class RecvAndDispatchMessageHandler extends BusFrontendMessageHandler imp
             AbstractServicePacket.copyHead(apiPacket, error);
             error.errorCode = VenusExceptionCodeConstant.PACKET_DECODE_EXCEPTION;
             error.message = "decode packet exception:" + e.getMessage();
-            srcConn.write(error.toByteBuffer());
-            //TODO throw
-            throw new RpcException("decode error.",e);
+            //最后统一响应 fixed
+            //srcConn.write(error.toByteBuffer());
+            throw new ErrorPacketWrapperException(error);
         }
     }
 
     /**
-     * 校验版本号是否可用
+     * 校验版本号是否可用 TODO 放到寻址中实现，尽量与client复用
      * @param invocation
      */
     void validVersion(BusInvocation invocation){

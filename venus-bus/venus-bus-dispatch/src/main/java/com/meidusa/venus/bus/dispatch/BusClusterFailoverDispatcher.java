@@ -12,11 +12,11 @@ import java.util.List;
  * 集群模式分发，除分发操作，还会进行集群容错重试
  * Created by Zhangzhihua on 2017/9/1.
  */
-public class BusMessageClusterFailoverDispatcher {
+public class BusClusterFailoverDispatcher {
 
-    private static Logger logger = LoggerFactory.getLogger(BusMessageClusterFailoverDispatcher.class);
+    private static Logger logger = LoggerFactory.getLogger(BusClusterFailoverDispatcher.class);
 
-    BusMessageDispatcher busMessageDispatcher;
+    BusDispatcher busMessageDispatcher;
 
     public Result dispatch(Invocation invocation, List<URL> urlList){
         //TODO 容错策略

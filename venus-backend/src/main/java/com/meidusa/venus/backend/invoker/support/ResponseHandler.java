@@ -5,6 +5,7 @@ package com.meidusa.venus.backend.invoker.support;
  */
 import com.meidusa.toolkit.net.Connection;
 import com.meidusa.venus.Result;
+import com.meidusa.venus.VenusThreadContext;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.DefaultVenusException;
@@ -196,6 +197,14 @@ public class ResponseHandler {
         }
     }
 
+    /**
+     * 响应消息
+     * @param conn
+     * @param routerPacket
+     * @param source
+     * @param result
+     * @param athenaFlag
+     */
     void postMessageBack(Connection conn, VenusRouterPacket routerPacket, AbstractServicePacket source, AbstractServicePacket result, boolean athenaFlag) {
         ByteBuffer byteBuffer;
         if (routerPacket == null) {
@@ -207,9 +216,8 @@ public class ResponseHandler {
             conn.write(byteBuffer);
         }
 
-        if (athenaFlag) {
-            AthenaTransactionDelegate.getDelegate().setServerOutputSize(byteBuffer.limit());
-        }
+        //保存输出报文长度
+        VenusThreadContext.set(VenusThreadContext.SERVER_OUTPUT_SIZE,Integer.valueOf(byteBuffer.limit()));
     }
 
 }

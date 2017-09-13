@@ -25,6 +25,11 @@ public class VenusThreadContext {
     //响应结果
     public final static String RESPONSE_RESULT = "responseResult";
 
+    //server接收报文长度
+    public final static String SERVER_INPUT_SIZE = "serverInputSize";
+    //server输出报文长度
+    public final static String SERVER_OUTPUT_SIZE = "serverOutputSize";
+
     //server开始处理时间
     public final static String SERVER_BEGIN_TIME = "serverBeginTime";
 
