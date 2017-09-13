@@ -38,7 +38,7 @@ public class RecvAndDispatchMessageHandler extends BusFrontendMessageHandler imp
 
     private ServiceRegisterManager serviceRegisterManager;
 
-    BusDispatcherProxy busMessageDispatcherProxy;
+    private BusDispatcherProxy busDispatcherProxy = new BusDispatcherProxy();
 
     @Override
     public void handle(BusFrontendConnection srcConn, final byte[] message) {
@@ -84,8 +84,8 @@ public class RecvAndDispatchMessageHandler extends BusFrontendMessageHandler imp
             //解析请求
             invocation = parseInvocation(srcConn, message);
 
-            //通过分发代理分发消息
-            result = busMessageDispatcherProxy.invoke(invocation,null);
+            //通过分发代理分发消息 TODO 通过线程池处理
+            result = busDispatcherProxy.invoke(invocation,null);
             //TODO 异常、正常返回处理
         } catch (Exception e) {
             //TODO 异常信息包装
@@ -95,7 +95,7 @@ public class RecvAndDispatchMessageHandler extends BusFrontendMessageHandler imp
             result.setException(e);
         }
 
-        //若分发异常或者被流控等，则直接返回
+        //若寻址路由出错或者分发异常等，则直接返回
         if(result != null){
             //TODO 输出响应
         }

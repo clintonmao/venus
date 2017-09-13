@@ -2,14 +2,9 @@ package com.meidusa.venus.bus.registry;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.beanutils.BeanUtilsBean;
@@ -38,7 +33,6 @@ import com.meidusa.toolkit.net.MultipleLoadBalanceBackendConnectionPool;
 import com.meidusa.toolkit.net.PollingBackendConnectionPool;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.venus.bus.network.BusBackendConnectionFactory;
-import com.meidusa.venus.bus.util.NetworkInterfaceUtil;
 import com.meidusa.venus.bus.registry.xml.bean.Remote;
 import com.meidusa.venus.io.authenticate.Authenticator;
 import com.meidusa.venus.io.packet.PacketConstant;
@@ -127,7 +121,7 @@ public abstract class AbstractServiceRegisterManager implements ServiceRegisterM
      * 初始化 register manager
      */
     public void init() throws InitialisationException {
-        localAddress = NetworkInterfaceUtil.lookupLocalInterface();
+        localAddress = lookupLocalInterface();
         beanContext = new BeanContext() {
             public Object getBean(String beanName) {
                 if (beanFactory != null) {
@@ -378,6 +372,32 @@ public abstract class AbstractServiceRegisterManager implements ServiceRegisterM
             }
         }
 
+    }
+
+    public static List<String> lookupLocalInterface(){
+        List<String> list = new ArrayList<String>();
+
+        Enumeration<NetworkInterface> netInterfaces = null;
+        try {
+            netInterfaces = NetworkInterface.getNetworkInterfaces();
+            while (netInterfaces.hasMoreElements()) {
+                NetworkInterface ni = netInterfaces.nextElement();
+                Enumeration<InetAddress> ips = ni.getInetAddresses();
+                while (ips.hasMoreElements()) {
+                    String ip = ips.nextElement().getHostAddress();
+                    if(ip == null || ip.indexOf(":")>=0){
+                        continue;
+                    }else{
+                        InetAddress[] address = InetAddress.getAllByName(ip);
+                        if(address != null && address.length >0){
+                            list.add(ip);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+        }
+        return list;
     }
 
 }

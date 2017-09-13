@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+//TODO 提到filter切面中去
 public class VenusTrafficCollector {
 	private static Logger logger = LoggerFactory.getLogger("venus.bus.traffic");
 	

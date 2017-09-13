@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * bus消息分发处理
+ * 消息分发处理
  * Created by Zhangzhihua on 2017/9/1.
  */
 public class BusDispatcher implements Dispatcher{
@@ -44,7 +44,7 @@ public class BusDispatcher implements Dispatcher{
 
 
     /**
-     * 转发消息 TODO 监控上报
+     * 转发消息
      * @param invocation
      */
     @Override
@@ -58,51 +58,36 @@ public class BusDispatcher implements Dispatcher{
         int serviceVersion = busInvocation.getServiceVersion();
         byte[] traceId = busInvocation.getTraceId();
 
-        //分发消息 TODO 版本号校验
-        /*
-        if (tuple.left.contains(serviceVersion)) {
-        }
-        */
+        //转发
+        BackendConnectionPool connectionPool = null;
         BusBackendConnection remoteConn = null;
         try {
-            remoteConn = getBackendConnection(url);//TODO 更改连接获取方式 tuple.right.borrowObject();
+            connectionPool = getConnectionPool(url);
+            //TODO 确认BusBackendConnection与backendConnection差异性
+            remoteConn = (BusBackendConnection)connectionPool.borrowObject();
+            //remoteConn = getConnectionPool(url);//TODO 更改连接获取方式 tuple.right.borrowObject();
             routerPacket.backendRequestID = remoteConn.getNextRequestID();
             remoteConn.addRequest(routerPacket.backendRequestID, routerPacket.frontendConnectionID, routerPacket.frontendRequestID);
             srcConn.addUnCompleted(routerPacket.frontendRequestID, routerPacket);
-            //分发
+            //转发消息
             remoteConn.write(VenusRouterPacket.toByteBuffer(routerPacket));
             VenusTracerUtil.logRouter(traceId, apiName, srcConn.getInetAddress().getHostAddress(), remoteConn.getHost()+":"+remoteConn.getPort());
 
-            return null;//TODO 返回值
+            //若未出现异常，则直接返回Null,响应结果由response线程处理
+            return null;
         } catch (Exception e) {
+            /* TODO 此段代码功能确认？
             srcConn.addUnCompleted(routerPacket.frontendRequestID, routerPacket);
             srcConn.getRetryHandler().addRetry(srcConn, routerPacket);
-            return null;//TODO 返回值
-        }
-        /* TODO 创建连接时异常情况
-        catch(InvalidVirtualPoolException e){
-            ServiceAPIPacket apiPacket = new ServiceAPIPacket();
-            packetBuffer.reset();
-            apiPacket.init(packetBuffer);
-            ErrorPacket error = new ErrorPacket();
-            AbstractServicePacket.copyHead(apiPacket, error);
-            error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
-            error.message = e.getMessage();
-            //错误返回
-            srcConn.write(error.toByteBuffer());
-            return null;//TODO 返回值
-        }
-        */
-        finally {
-            if (remoteConn != null) {
-                //TODO 连接释放
+            */
+            throw new RpcException(e);
+        } finally {
+            if (connectionPool != null && remoteConn != null) {
+                //TODO 连接释放，要释放？
                 //tuple.right.returnObject(remoteConn);
+                connectionPool.returnObject(remoteConn);
             }
         }
-
-        //错误返回
-        // srcConn.write(error.toByteBuffer());
-        //return null;//TODO 返回值
     }
 
     @Override
@@ -112,28 +97,31 @@ public class BusDispatcher implements Dispatcher{
 
 
     /**
-     * 获取连接
+     * 获取连接池
      * @param url
      * @return
      */
-    BusBackendConnection getBackendConnection(URL url){
+    BackendConnectionPool getConnectionPool(URL url){
         try {
             //TODO 若不存在，则创建，要保证连接复用
+            //查找 URL->pool对应关系
             String address = String.format("%s:%s",url.getHost(),String.valueOf(url.getPort()));
-            BackendConnectionPool connectionPool =  createRealPool(address,null);
-            return (BusBackendConnection)connectionPool.borrowObject();
+            BackendConnectionPool connectionPool =  createConnPool(address,null);
+            // TODO 释放连接 connectionPool.returnObject();
+            return connectionPool;
+            //return (BusBackendConnection)connectionPool.borrowObject();
         } catch (Exception e) {
             throw new RpcException("get backend connection failed.",e);
         }
     }
 
     /**
-     * 创建连接 TODO 地址失效及相关情况处理
+     * 创建连接池 TODO 地址失效及相关情况处理
      * @param address
      * @param authenticator
      * @return
      */
-    BackendConnectionPool createRealPool(String address, @SuppressWarnings("rawtypes") Authenticator authenticator) {
+    BackendConnectionPool createConnPool(String address, @SuppressWarnings("rawtypes") Authenticator authenticator) {
         BusBackendConnectionFactory nioFactory = new BusBackendConnectionFactory();
         if (authenticator != null) {
             nioFactory.setAuthenticator(authenticator);

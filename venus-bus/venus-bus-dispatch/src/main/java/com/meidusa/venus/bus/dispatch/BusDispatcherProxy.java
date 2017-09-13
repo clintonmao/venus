@@ -5,14 +5,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 消息分发代理类，除进行分发，另处理校验、监控等处理
+ * 消息分发代理类，除进行分发，另处理校验、监控等切面操作
  * Created by Zhangzhihua on 2017/9/1.
  */
 public class BusDispatcherProxy implements Dispatcher {
 
     private static Logger logger = LoggerFactory.getLogger(BusDispatcherProxy.class);
 
-    BusRemoteDispatcher busRemoteDispatcher;
+    BusRemoteDispatcher busRemoteDispatcher = new BusRemoteDispatcher();
 
     @Override
     public void init() throws RpcException {

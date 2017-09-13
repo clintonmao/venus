@@ -22,7 +22,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 消息远程分发处理
+ * 消息远程分发处理，负责寻址、过滤、集群容错分发调用等
  * Created by Zhangzhihua on 2017/9/1.
  */
 public class BusRemoteDispatcher implements Dispatcher{
