@@ -37,11 +37,18 @@ public class BusDispatcher implements Dispatcher{
 
     protected MessageHandler messageHandler;
 
+    @Override
+    public void init() throws RpcException {
+
+    }
+
+
     /**
      * 转发消息 TODO 监控上报
      * @param invocation
      */
-    public Result dispatch(Invocation invocation,URL url) throws RpcException{
+    @Override
+    public Result invoke(Invocation invocation,URL url) throws RpcException{
         BusInvocation busInvocation = (BusInvocation)invocation;
         List<Tuple<Range, BackendConnectionPool>> list = busInvocation.getList();
         BusFrontendConnection srcConn = busInvocation.getSrcConn();
@@ -97,6 +104,12 @@ public class BusDispatcher implements Dispatcher{
         // srcConn.write(error.toByteBuffer());
         //return null;//TODO 返回值
     }
+
+    @Override
+    public void destroy() throws RpcException {
+
+    }
+
 
     /**
      * 获取连接

@@ -9,7 +9,7 @@ import java.util.List;
  * fastfail集群容错invoker
  * Created by Zhangzhihua on 2017/7/31.
  */
-public class ClusterFastfailInvoker implements ClusterInvoker {
+public class ClusterFastfailInvoker extends AbstractClusterInvoker implements ClusterInvoker {
 
     @Override
     public void init() throws RpcException {

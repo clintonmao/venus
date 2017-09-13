@@ -1,13 +1,14 @@
 package com.meidusa.venus.bus.dispatch;
 
-import com.meidusa.venus.Invocation;
-import com.meidusa.venus.Result;
-import com.meidusa.venus.RpcException;
-import com.meidusa.venus.URL;
+import com.meidusa.venus.*;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
 import com.meidusa.venus.bus.BusInvocation;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.bus.registry.ServiceRegisterManager;
+import com.meidusa.venus.client.cluster.ClusterInvokerFactory;
+import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
+import com.meidusa.venus.client.router.Router;
+import com.meidusa.venus.client.router.condition.ConditionRouter;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.io.packet.AbstractServicePacket;
 import com.meidusa.venus.io.packet.ErrorPacket;
@@ -28,20 +29,35 @@ public class BusRemoteDispatcher implements Dispatcher{
 
     private static Logger logger = LoggerFactory.getLogger(BusRemoteDispatcher.class);
 
-    private BusClusterFailoverDispatcher busClusterFailoverDispatcher;
-
     private ServiceRegisterManager serviceRegisterManager;
 
+    private ClusterInvoker clusterInvoker;
+
+    //TODO 构造条件
+    private Router router = new ConditionRouter();
+
     @Override
-    public Result dispatch(Invocation invocation, URL url) throws RpcException {
+    public void init() throws RpcException {
+
+    }
+
+    @Override
+    public Result invoke(Invocation invocation, URL url) throws RpcException {
         //寻址
         List<URL> urlList = lookup(invocation);
 
         //TODO 路由规则过滤/版本号校验 router.filte
+        //路由规则过滤
+        urlList = router.filte(urlList, invocation);
 
-        //分发
-        Result result = busClusterFailoverDispatcher.dispatch(invocation,urlList);
+        //集群容错分发调用
+        Result result = getClusterInvoker().invoke(invocation,urlList);
         return result;
+    }
+
+    @Override
+    public void destroy() throws RpcException {
+
     }
 
     /**
@@ -117,4 +133,19 @@ public class BusRemoteDispatcher implements Dispatcher{
             throw new ErrorPacketWrapperException(error);
         }
     }
+
+    /**
+     * 获取集群容错invoker
+     * @return
+     */
+    ClusterInvoker getClusterInvoker(){
+        //TODO 根据配置获取clusterInvoker
+        if(clusterInvoker == null){
+            clusterInvoker =  ClusterInvokerFactory.getClusterInvoker();
+            //TODO 根据配置加载invoker
+            clusterInvoker.setInvoker(new VenusClientInvoker());
+        }
+        return clusterInvoker;
+    }
+
 }

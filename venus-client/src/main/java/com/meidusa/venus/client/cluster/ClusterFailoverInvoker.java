@@ -13,7 +13,7 @@ import java.util.List;
  * failover集群容错invoker
  * Created by Zhangzhihua on 2017/7/31.
  */
-public class ClusterFailoverInvoker implements ClusterInvoker {
+public class ClusterFailoverInvoker extends AbstractClusterInvoker implements ClusterInvoker {
 
     private static Logger logger = LoggerFactory.getLogger(ClusterFailoverInvoker.class);
 
@@ -22,8 +22,7 @@ public class ClusterFailoverInvoker implements ClusterInvoker {
      */
     private int retry = 1;
 
-    private VenusClientInvoker venusClientInvoker = new VenusClientInvoker();
-
+    //TODO 根据配置加载
     private RandomLoadbanlance randomLoadbanlance = new RandomLoadbanlance();
 
     @Override
@@ -45,14 +44,6 @@ public class ClusterFailoverInvoker implements ClusterInvoker {
             }
         }
         throw new RpcException(String.format("invoke serivce %s,method %s failed with %d tries.",invocation.getService().name(),invocation.getMethod().getName(),retry));
-    }
-
-    /**
-     * 获取invoker
-     * @return
-     */
-    Invoker getInvoker(){
-        return venusClientInvoker;
     }
 
     /**

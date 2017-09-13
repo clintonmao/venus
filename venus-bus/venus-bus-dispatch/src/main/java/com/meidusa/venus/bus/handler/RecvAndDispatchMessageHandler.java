@@ -85,7 +85,7 @@ public class RecvAndDispatchMessageHandler extends BusFrontendMessageHandler imp
             invocation = parseInvocation(srcConn, message);
 
             //通过分发代理分发消息
-            result = busMessageDispatcherProxy.dispatch(invocation,null);
+            result = busMessageDispatcherProxy.invoke(invocation,null);
             //TODO 异常、正常返回处理
         } catch (Exception e) {
             //TODO 异常信息包装

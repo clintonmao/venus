@@ -2,8 +2,10 @@ package com.meidusa.venus.client.invoker;
 
 import com.meidusa.venus.*;
 import com.meidusa.venus.client.cluster.ClusterFailoverInvoker;
+import com.meidusa.venus.client.cluster.ClusterInvokerFactory;
 import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
+import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
 import com.meidusa.venus.registry.Register;
@@ -46,7 +48,7 @@ public class ClientRemoteInvoker implements Invoker{
      */
     private Router router = new ConditionRouter();
 
-    private ClusterFailoverInvoker clusterFailoverInvoker = new ClusterFailoverInvoker();
+    private ClusterInvoker clusterInvoker;
 
     @Override
     public void init() throws RpcException {
@@ -73,7 +75,7 @@ public class ClientRemoteInvoker implements Invoker{
         urlList = router.filte(urlList, invocation);
 
         //集群容错调用
-        Result result = getClusterFailoverInvoker().invoke(invocation, urlList);
+        Result result = getClusterInvoker().invoke(invocation, urlList);
         return result;
     }
 
@@ -174,10 +176,10 @@ public class ClientRemoteInvoker implements Invoker{
         List<HostPort> hosts = new ArrayList<HostPort>();
         for (int i = 0; i < split.length; i++) {
             String str = split[i];
-            String[] split2 = str.split(":");
-            if (split2.length > 1) {
-                String host = split2[0];
-                String port = split2[1];
+            String[] arr = str.split(":");
+            if (arr.length > 1) {
+                String host = arr[0];
+                String port = arr[1];
                 HostPort hp = new HostPort(host, Integer.parseInt(port));
                 hosts.add(hp);
             }
@@ -195,9 +197,14 @@ public class ClientRemoteInvoker implements Invoker{
      * 获取集群容错invoker
      * @return
      */
-    ClusterInvoker getClusterFailoverInvoker(){
-        //TODO 根据配置获取
-        return clusterFailoverInvoker;
+    ClusterInvoker getClusterInvoker(){
+        //TODO 根据配置获取clusterInvoker
+        if(clusterInvoker == null){
+            clusterInvoker =  ClusterInvokerFactory.getClusterInvoker();
+            //TODO 根据配置加载invoker
+            clusterInvoker.setInvoker(new VenusClientInvoker());
+        }
+        return clusterInvoker;
     }
 
     public RemoteConfig getRemoteConfig() {

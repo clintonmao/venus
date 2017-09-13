@@ -15,7 +15,12 @@ public class BusDispatcherProxy implements Dispatcher {
     BusRemoteDispatcher busRemoteDispatcher;
 
     @Override
-    public Result dispatch(Invocation invocation, URL url) throws RpcException {
+    public void init() throws RpcException {
+
+    }
+
+    @Override
+    public Result invoke(Invocation invocation, URL url) throws RpcException {
         try {
             //调用前切面处理，校验、流控、降级等
             for(Filter filter : getBeforeFilters()){
@@ -26,7 +31,7 @@ public class BusDispatcherProxy implements Dispatcher {
                 }
             }
 
-            Result result = busRemoteDispatcher.dispatch(invocation,null);
+            Result result = busRemoteDispatcher.invoke(invocation,null);
             return result;
         } catch (RpcException e) {
             //调用异常切面处理
@@ -45,6 +50,11 @@ public class BusDispatcherProxy implements Dispatcher {
                 filter.afterInvoke(invocation,url);
             }
         }
+    }
+
+    @Override
+    public void destroy() throws RpcException {
+
     }
 
     /**

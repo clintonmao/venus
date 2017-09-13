@@ -27,4 +27,13 @@ public interface ClusterInvoker {
      * 销毁
      */
     void destroy() throws RpcException;
+
+
+    Invoker getInvoker();
+
+    /**
+     * 设置invoker
+     * @param invoker
+     */
+    void setInvoker(Invoker invoker);
 }
