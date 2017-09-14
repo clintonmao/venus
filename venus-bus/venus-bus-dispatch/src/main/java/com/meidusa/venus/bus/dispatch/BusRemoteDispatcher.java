@@ -55,11 +55,6 @@ public class BusRemoteDispatcher implements Dispatcher{
         return result;
     }
 
-    @Override
-    public void destroy() throws RpcException {
-
-    }
-
     /**
      * 寻址
      * @param invocation
@@ -143,9 +138,15 @@ public class BusRemoteDispatcher implements Dispatcher{
         if(clusterInvoker == null){
             clusterInvoker =  ClusterInvokerFactory.getClusterInvoker();
             //TODO 根据配置加载invoker
-            clusterInvoker.setInvoker(new VenusClientInvoker());
+            clusterInvoker.setInvoker(new BusDispatcher());
         }
         return clusterInvoker;
     }
+
+    @Override
+    public void destroy() throws RpcException {
+
+    }
+
 
 }

@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 接收客户端消息处理
+ * 接收客户端请求消息处理
  * 
  * @author structchen
  * 
@@ -40,6 +40,7 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
 
     private BusDispatcherProxy busDispatcherProxy = new BusDispatcherProxy();
 
+    //TODO 将连接统一为VenusFrontendConnection
     @Override
     public void handle(BusFrontendConnection srcConn, final byte[] message) {
     	VenusTrafficCollector.getInstance().addInput(message.length);
@@ -86,7 +87,6 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
 
             //通过分发代理分发消息 TODO 通过线程池处理
             result = busDispatcherProxy.invoke(invocation,null);
-            //TODO 异常、正常返回处理
         } catch (Exception e) {
             //TODO 异常信息包装
             result = new Result();
