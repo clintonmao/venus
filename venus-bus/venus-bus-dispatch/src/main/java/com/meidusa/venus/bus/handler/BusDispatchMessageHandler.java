@@ -14,12 +14,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 接收服务端响应消息、向客户端返回消息处理
+ * 向服务端分发消息响应处理
  * 
  * @author structchen
  * 
  */
-public class RecvAndResponseMessageHandler extends BusBackendMessageHandler implements MessageHandler<BusBackendConnection, byte[]> {
+public class BusDispatchMessageHandler extends BusBackendMessageHandler implements MessageHandler<BusBackendConnection, byte[]> {
 
 	final static Logger logger = LoggerFactory.getLogger("venus.backend.performance");
 

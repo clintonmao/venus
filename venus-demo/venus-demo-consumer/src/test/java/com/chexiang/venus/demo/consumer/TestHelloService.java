@@ -67,18 +67,18 @@ public class TestHelloService {
 
     @Test
     public void testGetHello(){
-        while(true){
-            //System.out.println("athenaDataService:" + athenaDataService);
-            System.out.println("testGetHello begin...");
-            Hello hello = helloService.getHello("jack");
-            System.out.println("testGetHello end,result:" + hello);
-
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        System.out.println("testGetHello begin...");
+        Hello hello = helloService.getHello("jack");
+        System.out.println("testGetHello end,result:" + hello);
+        try {
+            Thread.sleep(1000*10*10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+//        while(true){
+//
+//        }
+        //System.out.println("athenaDataService:" + athenaDataService);
     }
 
 

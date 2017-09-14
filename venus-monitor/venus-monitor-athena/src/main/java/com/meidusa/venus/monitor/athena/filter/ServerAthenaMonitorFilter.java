@@ -88,8 +88,14 @@ public class ServerAthenaMonitorFilter implements Filter {
                 AthenaReporterDelegate.getDelegate().metric(apiName + ".timeout");
             }
 
+            //保存输出报文长度
+            //VenusThreadContext.set(VenusThreadContext.SERVER_OUTPUT_SIZE,Integer.valueOf(byteBuffer.limit()));
+
+            //TODO 处理未执行到finally语句中情况，参见VenusServerInvokerTask.handle方法
             Integer serverOutputSize = (Integer) VenusThreadContext.get(VenusThreadContext.SERVER_OUTPUT_SIZE);
-            AthenaTransactionDelegate.getDelegate().setServerOutputSize(serverOutputSize.intValue());
+            if(serverOutputSize != null){
+                AthenaTransactionDelegate.getDelegate().setServerOutputSize(serverOutputSize.intValue());
+            }
 
             AthenaTransactionDelegate.getDelegate().completeServerTransaction();
         }

@@ -80,7 +80,8 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                     logger.error("receive error packet", e);
                 }
                 */
-                logger.info("recv error response, clientId:{},messageId:{},response:{}.",error.clientId,error.clientRequestId,error);
+                logger.info("recv error response,conn:{}.",conn);
+                logger.info("recv error response,clientId:{},clientRequestId:{},response:{}.",error.clientId,error.clientRequestId,error);
                 serviceResponseMap.put(RpcIdUtil.getRpcId(error),error);
                 synchronized (lock){
                     lock.notify();
@@ -90,7 +91,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             case PacketConstant.PACKET_TYPE_OK:
                 OKPacket ok = new OKPacket();
                 ok.init(message);
-                logger.info("recv ok response, clientId:{},messageId:{},response:{}.",ok.clientId,ok.clientRequestId,ok);
+                logger.info("recv ok response,clientId:{},clientRequestId:{},response:{}.",ok.clientId,ok.clientRequestId,ok);
                 serviceResponseMap.put(RpcIdUtil.getRpcId(ok),ok);
                 synchronized (lock){
                     lock.notify();
@@ -102,7 +103,10 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
 
                 ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, syncInvocation.getMethod().getGenericReturnType());
                 response.init(message);
-                logger.info("recv resp response,clientId:{},messageId:{},response:{}.",response.clientId,response.clientRequestId,response);
+                logger.info("recv resp response,conn:{}.",conn);
+                logger.info("recv resp response,clientId:{},clientRequestId:{},response:{}.",response.clientId,response.clientRequestId,response);
+                //添加rpcId->response映射表
+                //TODO 处理已经超时的记录
                 serviceResponseMap.put(RpcIdUtil.getRpcId(response),response);
                 synchronized (lock){
                     lock.notify();

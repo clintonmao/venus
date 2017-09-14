@@ -19,14 +19,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 接收客户端消息请求、向服务端分发消息处理
+ * 接收客户端消息处理
  * 
  * @author structchen
  * 
  */
-public class RecvAndDispatchMessageHandler extends BusFrontendMessageHandler implements MessageHandler<BusFrontendConnection, byte[]> {
+public class BusReceiveMessageHandler extends BusFrontendMessageHandler implements MessageHandler<BusFrontendConnection, byte[]> {
 
-    private static Logger logger = LoggerFactory.getLogger(RecvAndDispatchMessageHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(BusReceiveMessageHandler.class);
 
     private static ShutdownListener listener = new ShutdownListener();
 

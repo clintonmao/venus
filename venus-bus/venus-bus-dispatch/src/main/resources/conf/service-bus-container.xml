@@ -25,7 +25,7 @@
 
 	<bean id="busFrontendConnectionFactory" class="com.meidusa.venus.bus.network.BusFrontendConnectionFactory">
 		<property name="messageHandler">
-			<bean id="messageHandler" class="com.meidusa.venus.bus.handler.RecvAndDispatchMessageHandler"/>
+			<bean id="messageHandler" class="com.meidusa.venus.bus.handler.BusReceiveMessageHandler"/>
 		</property>
 		<property name="retry">
 			<bean class="com.meidusa.venus.bus.handler.DefaultRetryMessageHandler" init-method="init"/>
@@ -62,7 +62,7 @@
 	-->
 
 	<!--接收服务端响应相关配置-->
-	<bean id="backendMessageHandler" class="com.meidusa.venus.bus.handler.RecvAndResponseMessageHandler">
+	<bean id="backendMessageHandler" class="com.meidusa.venus.bus.handler.BusDispatchMessageHandler">
 		<property name="clientConnectionObserver" ref="clientConnectionObserver"/>
 	</bean>
 

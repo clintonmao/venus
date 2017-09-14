@@ -145,10 +145,10 @@ public class VenusServerInvokerTask implements Runnable{
             VenusServerInvokerProxy venusServerInvokerProxy = getVenusServerInvokerProxy();
             result = venusServerInvokerProxy.invoke(invocation, null);
         } catch (Exception e) {
-            //TODO 异常信息包装
+            //TODO 处理异常信息丢失、异常信息包装
             result = new Result();
             result.setErrorCode(500);
-            result.setErrorMessage(e.getMessage());
+            result.setErrorMessage(e.getLocalizedMessage());
         }
 
         //输出响应

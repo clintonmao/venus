@@ -23,7 +23,6 @@ import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.util.VenusAnnotationUtils;
-import com.meidusa.venus.util.VenusTracerUtil;
 import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,7 +106,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     @Override
     public void init() throws RpcException {
         if(!isInitConnector){
-            if (enableAsync) {
+            if (enableAsync) {//TODO 开启async意义？
                 if (connector == null) {
                     try {
                         connector = new ConnectionConnector("connection Connector");
@@ -185,7 +184,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     public Result doInvokeWithSync(Invocation invocation, URL url) throws Exception {
         //构造请求消息
         SerializeServiceRequestPacket request = buildRequest(invocation);
-        //添加messageId -> invocation映射表
+        //添加rpcId -> invocation映射表
         serviceInvocationMap.put(RpcIdUtil.getRpcId(request),invocation);
 
         //发送消息
@@ -194,11 +193,12 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         //阻塞等待并处理响应结果
         synchronized (lock){
             logger.info("lock wait begin...");
-            lock.wait(10000);//TODO 超时时间
+            lock.wait(15000);//TODO 超时时间
             logger.info("lock wait end...");
         }
+
         Result result = fetchResponse(RpcIdUtil.getRpcId(request));
-        logger.info("result:{}.",result);
+        logger.info("fecth response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(request),result);
         if(result == null){
             throw new RpcException(String.format("invoke timeout:%s","3000ms"));
         }
@@ -215,7 +215,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     public Result doInvokeWithCallback(Invocation invocation, URL url) throws Exception {
         //构造请求消息
         SerializeServiceRequestPacket request = buildRequest(invocation);
-        //添加messageId -> invocation映射表
+        //添加rpcId-> invocation映射表
         serviceInvocationMap.put(RpcIdUtil.getRpcId(request),invocation);
 
         //发送消息
@@ -314,11 +314,12 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
             //发送请求消息，响应由handler类处理
             conn.write(buffer);
+            logger.info("send request,conn:{}.",conn);
             /* TODO tracer log
             VenusTracerUtil.logRequest(traceID, serviceRequestPacket.apiName, JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
             */
         } catch (Exception e){
-            logger.error("sendRequest error.",e);
+            logger.error("send request error.",e);
             throw e;
         }finally {
             /* TODO logger
@@ -334,7 +335,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
             //TODO 长连接，心跳处理，确认？
             if (conn != null && nioConnPool != null) {
+                logger.info("conn pool active:{}.",nioConnPool.getActive());
                 nioConnPool.returnObject(conn);
+                logger.info("conn pool active:{}.",nioConnPool.getActive());
             }
         }
     }
@@ -442,12 +445,11 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     /**
      * 获取对应请求的响应结果
-     * @param messageId
+     * @param rpcId
      * @return
      */
-    Result fetchResponse(String messageId){
-        AbstractServicePacket response = serviceResponseMap.get(messageId);
-        logger.info("serviceResponsePacket:{}.",response);
+    Result fetchResponse(String rpcId){
+        AbstractServicePacket response = serviceResponseMap.get(rpcId);
         if(response == null){
             return null;
         }

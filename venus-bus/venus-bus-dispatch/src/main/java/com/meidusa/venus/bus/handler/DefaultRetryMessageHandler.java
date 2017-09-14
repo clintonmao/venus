@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class DefaultRetryMessageHandler implements RetryMessageHandler{
 
-    private static Logger logger = LoggerFactory.getLogger(RecvAndDispatchMessageHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(BusReceiveMessageHandler.class);
 
     private static final int MAX_RETRY_TIMES = 3;
 

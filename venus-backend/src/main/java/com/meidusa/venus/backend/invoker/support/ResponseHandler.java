@@ -215,9 +215,6 @@ public class ResponseHandler {
             byteBuffer = routerPacket.toByteBuffer();
             conn.write(byteBuffer);
         }
-
-        //保存输出报文长度
-        VenusThreadContext.set(VenusThreadContext.SERVER_OUTPUT_SIZE,Integer.valueOf(byteBuffer.limit()));
     }
 
 }
