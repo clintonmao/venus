@@ -9,7 +9,7 @@ import com.meidusa.venus.backend.ErrorPacketWrapperException;
 import com.meidusa.venus.bus.BusInvocation;
 import com.meidusa.venus.bus.dispatch.BusDispatcherProxy;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
-import com.meidusa.venus.bus.registry.ServiceRegisterManager;
+import com.meidusa.venus.bus.registry.ServiceManager;
 import com.meidusa.venus.bus.util.VenusTrafficCollector;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.io.packet.*;
@@ -36,11 +36,11 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
         Runtime.getRuntime().addShutdownHook(listener);
     }
 
-    private ServiceRegisterManager serviceRegisterManager;
+    private ServiceManager serviceRegisterManager;
 
     private BusDispatcherProxy busDispatcherProxy = new BusDispatcherProxy();
 
-    //TODO 将连接统一为VenusFrontendConnection
+    //TODO 将连接统一为VenusFrontendConnection，可能出现不兼容问题?
     @Override
     public void handle(BusFrontendConnection srcConn, final byte[] message) {
     	VenusTrafficCollector.getInstance().addInput(message.length);
@@ -182,11 +182,11 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
         error.message = "Service version not match";
     }
 
-    public ServiceRegisterManager getServiceRegisterManager() {
+    public ServiceManager getServiceRegisterManager() {
         return serviceRegisterManager;
     }
 
-    public void setServiceRegisterManager(ServiceRegisterManager serviceRegisterManager) {
+    public void setServiceRegisterManager(ServiceManager serviceRegisterManager) {
         this.serviceRegisterManager = serviceRegisterManager;
     }
 }

@@ -4,9 +4,8 @@ import com.meidusa.venus.*;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
 import com.meidusa.venus.bus.BusInvocation;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
-import com.meidusa.venus.bus.registry.ServiceRegisterManager;
+import com.meidusa.venus.bus.registry.ServiceManager;
 import com.meidusa.venus.client.cluster.ClusterInvokerFactory;
-import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
@@ -14,7 +13,6 @@ import com.meidusa.venus.io.packet.AbstractServicePacket;
 import com.meidusa.venus.io.packet.ErrorPacket;
 import com.meidusa.venus.io.packet.ServiceAPIPacket;
 import com.meidusa.venus.io.packet.ServicePacketBuffer;
-import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +27,7 @@ public class BusRemoteDispatcher implements Dispatcher{
 
     private static Logger logger = LoggerFactory.getLogger(BusRemoteDispatcher.class);
 
-    private ServiceRegisterManager serviceRegisterManager;
+    private ServiceManager serviceRegisterManager;
 
     private ClusterInvoker clusterInvoker;
 
@@ -73,7 +71,7 @@ public class BusRemoteDispatcher implements Dispatcher{
      * @return
      */
     boolean isDynamicLookup(){
-        //TODO
+        //TODO 根据容器寻址配置方式判断
         return true;
     }
 
@@ -87,7 +85,7 @@ public class BusRemoteDispatcher implements Dispatcher{
     }
 
     /**
-     * 查找服务地址 TODO 静态查找、动态查找
+     * 查找服务地址
      * @return
      */
     List<URL> lookupByDynamic(Invocation invocation){

@@ -33,7 +33,7 @@ public class BusDispatchMessageHandler extends BusBackendMessageHandler implemen
         this.clientConnectionObserver = clientConnectionObserver;
     }
 
-    //TODO 将连接统一为VenusBackendConnection
+    //TODO 将连接统一为VenusBackendConnection，可能出现不兼容问题？
     @Override
     public void handle(BusBackendConnection conn,final byte[] message) {
     	VenusTrafficCollector.getInstance().addInput(message.length);

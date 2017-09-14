@@ -74,7 +74,7 @@
 	<!-- 
 		基于xml配置的服务注册管理
 	 -->
-	<bean id="xmlServiceRegisterManager" class="com.meidusa.venus.bus.registry.xml.XmlServiceRegisterManager" init-method="init">
+	<bean id="xmlServiceRegisterManager" class="com.meidusa.venus.bus.registry.xml.XmlServiceManager" init-method="init">
 		<property name="configFiles">
 			<list>
 				<value>file:${project.home}/conf/venusRemoteConfig.xml</value>
@@ -85,7 +85,7 @@
 	<!-- 
 		基于服务注册中心的服务注册管理
 	 -->
-	<bean id="serviceRegisterManager" class="com.meidusa.venus.bus.registry.register.RegistryServiceRegisterManager" init-method="init">
+	<bean id="serviceRegisterManager" class="com.meidusa.venus.bus.registry.register.RegistryServiceManager" init-method="init">
 		<property name="host" value="${venus.registry.host}"/>
 		<property name="port" value="${venus.registry.port}"/>
 	</bean>

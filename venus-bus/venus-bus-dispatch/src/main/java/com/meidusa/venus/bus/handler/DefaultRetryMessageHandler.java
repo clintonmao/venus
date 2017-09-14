@@ -4,7 +4,7 @@ import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.venus.bus.network.BusBackendConnection;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
-import com.meidusa.venus.bus.registry.ServiceRegisterManager;
+import com.meidusa.venus.bus.registry.ServiceManager;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
@@ -103,13 +103,13 @@ public class DefaultRetryMessageHandler implements RetryMessageHandler{
      */
     private BlockingQueue<DelayedRouterMessage> retryQueue = new DelayQueue<DelayedRouterMessage>();
 
-    ServiceRegisterManager serviceRegisterManager;
+    ServiceManager serviceRegisterManager;
 
-    public ServiceRegisterManager getServiceRegisterManager() {
+    public ServiceManager getServiceRegisterManager() {
         return serviceRegisterManager;
     }
 
-    public void setServiceRegisterManager(ServiceRegisterManager serviceRegisterManager) {
+    public void setServiceRegisterManager(ServiceManager serviceRegisterManager) {
         this.serviceRegisterManager = serviceRegisterManager;
     }
 

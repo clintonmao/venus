@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.toolkit.util.StringUtil;
-import com.meidusa.venus.bus.registry.AbstractServiceRegisterManager;
+import com.meidusa.venus.bus.registry.AbstractServiceManager;
 import com.meidusa.venus.bus.VenusConnectionAcceptor;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.authenticate.Authenticator;
@@ -34,8 +34,8 @@ import com.meidusa.venus.util.RangeUtil;
  * 
  */
 @SuppressWarnings("rawtypes")
-public class RegistryServiceRegisterManager extends AbstractServiceRegisterManager {
-    private static Logger logger = LoggerFactory.getLogger(RegistryServiceRegisterManager.class);
+public class RegistryServiceManager extends AbstractServiceManager {
+    private static Logger logger = LoggerFactory.getLogger(RegistryServiceManager.class);
     
     @Autowired
     private VenusConnectionAcceptor acceptor;
@@ -60,6 +60,7 @@ public class RegistryServiceRegisterManager extends AbstractServiceRegisterManag
 
     @Override
     public List<URL> lookup(String serviceName) {
+        //TODO 若是动态注册服务，则订阅服务
         return null;
     }
 

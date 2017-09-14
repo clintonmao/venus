@@ -13,7 +13,7 @@ import com.meidusa.venus.util.Range;
  * @author structchen
  * 
  */
-public interface ServiceRegisterManager {
+public interface ServiceManager {
 
     List<Tuple<Range, BackendConnectionPool>> getRemoteList(String serviceName);
 

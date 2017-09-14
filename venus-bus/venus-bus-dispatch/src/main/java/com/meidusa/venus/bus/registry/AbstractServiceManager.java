@@ -45,7 +45,7 @@ import com.meidusa.venus.util.VenusBeanUtilsBean;
  * @author structchen
  * 
  */
-public abstract class AbstractServiceRegisterManager implements ServiceRegisterManager, Initialisable, BeanFactoryAware {
+public abstract class AbstractServiceManager implements ServiceManager, Initialisable, BeanFactoryAware {
 
     private static final int CLOSE_DELAY = 30 * 1000;
     /**

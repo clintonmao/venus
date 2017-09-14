@@ -24,7 +24,7 @@ import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.toolkit.net.MultipleLoadBalanceBackendConnectionPool;
 import com.meidusa.toolkit.net.PollingBackendConnectionPool;
 import com.meidusa.toolkit.util.StringUtil;
-import com.meidusa.venus.bus.registry.AbstractServiceRegisterManager;
+import com.meidusa.venus.bus.registry.AbstractServiceManager;
 import com.meidusa.venus.bus.config.BusConfig;
 import com.meidusa.venus.bus.config.RemoteServiceConfig;
 import com.meidusa.venus.bus.network.BusBackendConnectionFactory;
@@ -42,7 +42,7 @@ import com.meidusa.venus.util.RangeUtil;
  * @author structchen
  * 
  */
-public class XmlServiceRegisterManager extends AbstractServiceRegisterManager {
+public class XmlServiceManager extends AbstractServiceManager {
 
     private String[] configFiles;
 
@@ -103,6 +103,7 @@ public class XmlServiceRegisterManager extends AbstractServiceRegisterManager {
         return poolMap;
     }
 
+    //TODO 初始化装载服务配置
     protected Map<String, List<Tuple<Range, BackendConnectionPool>>> load() throws Exception {
         BusConfig all = getBusConfig();
 
