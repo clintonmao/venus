@@ -1,25 +1,5 @@
 package com.meidusa.venus.frontend.http;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.web.context.WebApplicationContext;
-
 import com.meidusa.fastjson.JSON;
 import com.meidusa.fastjson.JSONException;
 import com.meidusa.fastmark.feature.SerializerFeature;
@@ -28,10 +8,10 @@ import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
+import com.meidusa.venus.backend.serializer.MediaTypes;
 import com.meidusa.venus.backend.services.RequestInfo;
 import com.meidusa.venus.backend.support.Response;
 import com.meidusa.venus.backend.support.UtilTimerStack;
-import com.meidusa.venus.backend.serializer.MediaTypes;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.ExceptionLevel;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
@@ -42,9 +22,26 @@ import com.meidusa.venus.io.packet.AbstractVenusPacket;
 import com.meidusa.venus.io.packet.ErrorPacket;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.serializer.json.JsonSerializer;
-import com.meidusa.venus.service.monitor.MonitorRuntime;
 import com.meidusa.venus.util.UUID;
 import com.meidusa.venus.util.VenusTracerUtil;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.WebApplicationContext;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class VenusHttpServlet extends HttpServlet {
 	
@@ -215,7 +212,8 @@ public class VenusHttpServlet extends HttpServlet {
             long endTime = TimeUtil.currentTimeMillis();
             VenusTracerUtil.logResult(endTime-startTime, traceId, apiName, JSON.toJSONString(parameterMap,JSON_FEATURE), JSON.toJSONString(result,JSON_FEATURE));
             writeResponse(req, resp, result);
-            MonitorRuntime.getInstance().calculateAverage(service, method, endTime - startTime,isError);
+            //TODO 处理monitorRuntime依赖
+            //MonitorRuntime.getInstance().calculateAverage(service, method, endTime - startTime,isError);
         }
 
     }

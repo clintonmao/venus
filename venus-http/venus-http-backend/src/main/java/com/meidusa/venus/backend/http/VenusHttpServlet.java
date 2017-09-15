@@ -3,18 +3,17 @@ package com.meidusa.venus.backend.http;
 import com.meidusa.fastjson.JSONException;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.backend.invoker.VenusServerInvocationEndpoint;
+import com.meidusa.venus.backend.invoker.support.LogHandler;
+import com.meidusa.venus.backend.serializer.MediaTypes;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.support.Response;
-import com.meidusa.venus.backend.invoker.support.LogHandler;
 import com.meidusa.venus.backend.support.UtilTimerStack;
-import com.meidusa.venus.backend.serializer.MediaTypes;
-import com.meidusa.venus.io.support.convert.ConvertService;
-import com.meidusa.venus.io.support.convert.DefaultConvertService;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
-import com.meidusa.venus.service.monitor.MonitorRuntime;
+import com.meidusa.venus.io.support.convert.ConvertService;
+import com.meidusa.venus.io.support.convert.DefaultConvertService;
 import com.meidusa.venus.util.Range;
 import com.meidusa.venus.util.Utils;
 import org.apache.commons.lang.StringUtils;
@@ -229,7 +228,8 @@ public class VenusHttpServlet extends HttpServlet {
             long endTime = TimeUtil.currentTimeMillis();
 
             writeResponse(req, resp, result);
-            MonitorRuntime.getInstance().calculateAverage(service, method, endTime - startTime,isError);
+            //TODO 处理monitorRuntime依赖
+            //MonitorRuntime.getInstance().calculateAverage(service, method, endTime - startTime,isError);
         }
 
     }

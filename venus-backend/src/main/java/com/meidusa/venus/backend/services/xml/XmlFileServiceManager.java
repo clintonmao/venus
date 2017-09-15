@@ -17,19 +17,13 @@ import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.bean.*;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanContext;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanUtilsBean;
-import com.meidusa.venus.backend.services.xml.support.VenusServiceRegistry;
 import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.VenusConfigException;
-import com.meidusa.venus.monitor.athena.reporter.AthenaExtensionResolver;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.RegisterService;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
-import com.meidusa.venus.service.monitor.MonitorRuntime;
-import com.meidusa.venus.service.monitor.MonitorService;
-import com.meidusa.venus.service.monitor.VenusMonitorService;
 import com.meidusa.venus.service.registry.HostPort;
-import com.meidusa.venus.service.registry.ServiceRegistry;
 import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
@@ -228,9 +222,10 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     void addMonitorServiceConfig(List<ServiceConfig> serviceConfigList){
         ServiceConfig monitorServiceConfig = new ServiceConfig();
         monitorServiceConfig.setActive(true);
-        monitorServiceConfig.setType(MonitorService.class);
-        monitorServiceConfig.setInstance(new VenusMonitorService());
-        serviceConfigList.add(monitorServiceConfig);
+        //TODO 提取接口到公共部门，实例动态生成或注入
+        //monitorServiceConfig.setType(MonitorService.class);
+        //monitorServiceConfig.setInstance(new VenusMonitorService());
+        //serviceConfigList.add(monitorServiceConfig);
     }
 
     /**
@@ -240,9 +235,10 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     void addRegistryServiceConfig(List<ServiceConfig> serviceConfigList) {
         ServiceConfig registerServiceConfig = new ServiceConfig();
         registerServiceConfig.setActive(true);
-        registerServiceConfig.setType(ServiceRegistry.class);
-        registerServiceConfig.setInstance(new VenusServiceRegistry(getServiceMappings()));
-        serviceConfigList.add(registerServiceConfig);
+        //TODO 提取接口到公共部门，实例动态生成或注入
+        //registerServiceConfig.setType(ServiceRegistry.class);
+        //registerServiceConfig.setInstance(new VenusServiceRegistry(getServiceMappings()));
+        //serviceConfigList.add(registerServiceConfig);
     }
 
     /**
@@ -259,7 +255,8 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
             Map<String, Collection<Endpoint>> ends = service.getEndpoints().asMap();
             for (Map.Entry<String, Collection<Endpoint>> entry : ends.entrySet()) {
                 if (entry.getValue() != null && !entry.getValue().isEmpty()) {
-                    MonitorRuntime.getInstance().initEndPoint(service.getName(), entry.getValue().iterator().next().getName());
+                    //TODO 初始化monitorService
+                    //MonitorRuntime.getInstance().initEndPoint(service.getName(), entry.getValue().iterator().next().getName());
                 }
             }
         }

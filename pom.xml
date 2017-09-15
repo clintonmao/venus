@@ -23,11 +23,11 @@
 		<module>venus-remoting</module>
 		<module>venus-registry</module>
 		<module>venus-monitor</module>
-		<module>venus-extension</module>
+		<module>venus-bus</module>
+		<module>venus-support</module>
 		<module>venus-http</module>
 		<module>venus-test</module>
 		<module>venus-demo</module>
-        <module>venus-bus</module>
     </modules>
 
 	<dependencies>
@@ -258,7 +258,6 @@
 				<artifactId>toolkit-net-nio</artifactId>
 				<version>1.0.15</version>
 			</dependency>
-
 			<dependency>
 				<groupId>javassist</groupId>
 				<artifactId>javassist</artifactId>

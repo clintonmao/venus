@@ -33,6 +33,10 @@
 			<artifactId>commons-beanutils</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>commons-cli</groupId>
+			<artifactId>commons-cli</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context-support</artifactId>
 		</dependency>
@@ -58,10 +62,6 @@
 			<groupId>com.meidusa.venus.commons</groupId>
 			<artifactId>venus-common-validator</artifactId>
 			<version>3.3.1</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-cli</groupId>
-			<artifactId>commons-cli</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.meidusa.venus</groupId>

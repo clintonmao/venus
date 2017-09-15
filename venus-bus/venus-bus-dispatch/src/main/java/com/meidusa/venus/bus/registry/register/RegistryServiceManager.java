@@ -1,31 +1,24 @@
 package com.meidusa.venus.bus.registry.register;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import com.meidusa.toolkit.common.util.Tuple;
+import com.meidusa.toolkit.net.BackendConnectionPool;
+import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.venus.URL;
+import com.meidusa.venus.bus.VenusConnectionAcceptor;
+import com.meidusa.venus.bus.registry.AbstractServiceManager;
 import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
+import com.meidusa.venus.exception.VenusExceptionFactory;
+import com.meidusa.venus.io.authenticate.Authenticator;
+import com.meidusa.venus.service.registry.ServiceDefinition;
+import com.meidusa.venus.util.DefaultRange;
+import com.meidusa.venus.util.Range;
+import com.meidusa.venus.util.RangeUtil;
 import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.meidusa.toolkit.common.util.Tuple;
-import com.meidusa.toolkit.net.BackendConnectionPool;
-import com.meidusa.toolkit.util.StringUtil;
-import com.meidusa.venus.bus.registry.AbstractServiceManager;
-import com.meidusa.venus.bus.VenusConnectionAcceptor;
-import com.meidusa.venus.exception.VenusExceptionFactory;
-import com.meidusa.venus.io.authenticate.Authenticator;
-import com.meidusa.venus.service.registry.ServiceDefinition;
-import com.meidusa.venus.service.registry.ServiceRegistry;
-import com.meidusa.venus.util.DefaultRange;
-import com.meidusa.venus.util.Range;
-import com.meidusa.venus.util.RangeUtil;
+import java.util.*;
 
 /**
  * 基于服务注册中心服务注册管理
@@ -73,8 +66,11 @@ public class RegistryServiceManager extends AbstractServiceManager {
             factory.setAuthenticator(authenticator);
         }
         factory.setVenusExceptionFactory(venusExceptionFactory);
-        final ServiceRegistry registry = factory.getService(ServiceRegistry.class);
-        List<ServiceDefinition> list = registry.getServiceDefinitions();
+        //TODO 处理serviceRegistery依赖
+        //final ServiceRegistry registry = factory.getService(ServiceRegistry.class);
+        //List<ServiceDefinition> list = registry.getServiceDefinitions();
+
+        List<ServiceDefinition> list = null;
 
         //根据服务地址列表创建对应的连接池并设置消息处理类 TODO 提取、抽象
         final Map<String, List<Tuple<Range, BackendConnectionPool>>> serviceMap = new HashMap<String, List<Tuple<Range, BackendConnectionPool>>>();
@@ -119,8 +115,10 @@ public class RegistryServiceManager extends AbstractServiceManager {
                             factory.setAuthenticator(authenticator);
                         }
                         factory.setVenusExceptionFactory(venusExceptionFactory);
-                        final ServiceRegistry registry = factory.getService(ServiceRegistry.class);
-                        List<ServiceDefinition> list = registry.getServiceDefinitions();
+                        //TODO 处理serviceRegistery依赖
+                        //final ServiceRegistry registry = factory.getService(ServiceRegistry.class);
+                        //List<ServiceDefinition> list = registry.getServiceDefinitions();
+                        List<ServiceDefinition> list = null;
                         modifier(list, current);
                         current = list;
                         factory.destroy();

@@ -181,7 +181,7 @@ import com.meidusa.toolkit.common.runtime.Shutdowner;
  * 
  * <dd>Method {@link MultiBlockingQueueExecutor#getQueue} allows access to the work queue for purposes of monitoring and
  * debugging. Use of this method for any other purpose is strongly discouraged. Two supplied methods,
- * {@link MultiBlockingQueueExecutor#remove} and {@link MultiBlockingQueueExecutor#purge} are available to assist in
+ * {@link MultiBlockingQueueExecutor#remove} and {@link MultiBlockingQueueExecutor#purge} are available to manager in
  * storage reclamation when large numbers of queued tasks become cancelled.</dd>
  * 
  * <dt>Finalization</dt>

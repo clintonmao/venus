@@ -1,29 +1,5 @@
 package com.meidusa.venus.frontend.http;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import com.meidusa.venus.backend.invoker.support.LogHandler;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.meidusa.fastjson.JSON;
 import com.meidusa.fastjson.JSONException;
 import com.meidusa.fastmark.feature.SerializerFeature;
@@ -33,26 +9,33 @@ import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
+import com.meidusa.venus.backend.invoker.support.LogHandler;
+import com.meidusa.venus.backend.serializer.MediaTypes;
 import com.meidusa.venus.backend.services.RequestInfo;
 import com.meidusa.venus.backend.support.Response;
 import com.meidusa.venus.backend.support.UtilTimerStack;
-import com.meidusa.venus.backend.serializer.MediaTypes;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.exception.VenusExceptionLevel;
 import com.meidusa.venus.io.network.VenusBIOConnection;
-import com.meidusa.venus.io.packet.AbstractServicePacket;
-import com.meidusa.venus.io.packet.AbstractVenusPacket;
-import com.meidusa.venus.io.packet.DummyAuthenPacket;
-import com.meidusa.venus.io.packet.ErrorPacket;
-import com.meidusa.venus.io.packet.HandshakePacket;
-import com.meidusa.venus.io.packet.OKPacket;
-import com.meidusa.venus.io.packet.PacketConstant;
-import com.meidusa.venus.io.packet.VenusStatusRequestPacket;
-import com.meidusa.venus.io.packet.VenusStatusResponsePacket;
-import com.meidusa.venus.service.monitor.MonitorRuntime;
+import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.util.UUID;
 import com.meidusa.venus.util.VenusTracerUtil;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class VenusHttpServlet2 extends HttpServlet {
 	
@@ -325,7 +308,8 @@ public class VenusHttpServlet2 extends HttpServlet {
             long endTime = TimeUtil.currentTimeMillis();
             VenusTracerUtil.logResult(endTime-startTime, traceId, apiName, JSON.toJSONString(parameterMap,JSON_FEATURE), JSON.toJSONString(result,JSON_FEATURE));
             writeResponse(req, resp, result);
-            MonitorRuntime.getInstance().calculateAverage(service, method, endTime - startTime,isError);
+            //TODO 处理monitorRuntime依赖
+            //MonitorRuntime.getInstance().calculateAverage(service, method, endTime - startTime,isError);
         }
 
     }
@@ -402,8 +386,6 @@ public class VenusHttpServlet2 extends HttpServlet {
     /**
      * extract request info from connection and packet
      * 
-     * @param conn
-     * @param packet
      * @return
      */
     private RequestInfo getRequestInfo(final HttpServletRequest req) {
