@@ -34,11 +34,6 @@ public class ServiceConfig {
      */
     private String ipAddressList;
 
-    /**
-     * 注册中心地址
-     */
-    private String registerUrl;
-
     private Map<String, EndpointConfig> endPointMap = new HashMap<String, EndpointConfig>();
 
     private int timeWait;
@@ -109,11 +104,4 @@ public class ServiceConfig {
 		this.enabled = enabled;
 	}
 
-    public String getRegisterUrl() {
-        return registerUrl;
-    }
-
-    public void setRegisterUrl(String registerUrl) {
-        this.registerUrl = registerUrl;
-    }
 }

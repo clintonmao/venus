@@ -1,41 +1,25 @@
 package com.meidusa.venus.registry.mysql;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
-
+import com.meidusa.fastjson.JSON;
+import com.meidusa.toolkit.common.runtime.GlobalScheduler;
+import com.meidusa.venus.RpcException;
+import com.meidusa.venus.URL;
+import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.registry.RegisterService;
+import com.meidusa.venus.registry.VenusRegisteException;
+import com.meidusa.venus.service.registry.ServiceDefinition;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.meidusa.fastjson.JSON;
-import com.meidusa.toolkit.common.runtime.GlobalScheduler;
-import com.meidusa.venus.URL;
-import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.RegisterService;
-import com.meidusa.venus.registry.VenusRegisteException;
-import com.meidusa.venus.registry.domain.RouterRule;
-import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
-import com.meidusa.venus.service.registry.ServiceDefinition;
+import java.io.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * mysql服务注册中心类 Created by Zhangzhihua on 2017/7/27.
@@ -65,77 +49,32 @@ public class MysqlRegister implements Register {
 
 	private int heartBeatSecond = 10;
 
-	private static RegisterService registerService = null;
-
-	private static MysqlRegister mysqlRegister = null;
+	private RegisterService registerService = null;
 
 	private String subcribePath = "/data/application/venusLocalSubcribe.txt";
 
-	private MysqlRegister() {
-		if (isWindows()) {
-			subcribePath = "D:\\data\\application\\venusLocalSubcribe.txt";
-		}
+	public MysqlRegister() {
 		try {
 			init();
 		} catch (Exception e) {
-			logger.error("init mysql register error.", e);
+			throw new RpcException(e);
 		}
 	}
 
 	/**
-	 * 获取MysqlRegister
-	 * 
-	 * @param isInjvm
-	 *            是否本地引用
-	 * @param remoteRegisterService
-	 *            远程引用实例
-	 * @return
+	 * 初始化
+	 * @throws Exception
 	 */
-	public final static MysqlRegister getInstance(boolean isInjvm, RegisterService remoteRegisterService) {
-		if (registerService == null) {
-			registerService = initRegisterService(isInjvm, remoteRegisterService);
-		}
-
-		if (mysqlRegister == null) {
-			mysqlRegister = new MysqlRegister();
-		}
-		return mysqlRegister;
-	}
-
 	void init() throws Exception {
+		if (isWindows()) {
+			subcribePath = "D:\\data\\application\\venusLocalSubcribe.txt";
+		}
 		if (!loadRunning) {
 			clearInvalid();// TODO 注册中心单独跑这个就可以
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 5, 10, TimeUnit.SECONDS);
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 5, 60, TimeUnit.SECONDS); // 清理线程
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefineRunnable(), 10, 60, TimeUnit.SECONDS);
 			loadRunning = true;
-		}
-	}
-
-	/**
-	 * 初始化register service
-	 * 
-	 * @param isInjvm
-	 * @param remoteRegisterService
-	 * @return
-	 */
-	static RegisterService initRegisterService(boolean isInjvm, RegisterService remoteRegisterService) {
-		if (!isInjvm && remoteRegisterService == null) {
-			throw new IllegalArgumentException("isInjvm and registerService not allow empty.");
-		}
-
-		if (isInjvm) {
-			RegisterService localRegisterService = null;
-			try {
-				localRegisterService = (RegisterService) Class
-						.forName("com.meidusa.venus.registry.service.MysqlRegisterService").newInstance();
-			} catch (Exception e) {
-				logger.error("new MysqlRegisterService failed.", e);
-				return null;
-			}
-			return localRegisterService;
-		} else {
-			return remoteRegisterService;
 		}
 	}
 
@@ -388,7 +327,7 @@ public class MysqlRegister implements Register {
 	}
 
 	public void setRegisterService(RegisterService registerService) {
-		MysqlRegister.registerService = registerService;
+		this.registerService = registerService;
 	}
 
 	/**
@@ -451,7 +390,6 @@ public class MysqlRegister implements Register {
 	 * 写文件(文件目录必须存在)
 	 * 
 	 * @param filePath
-	 * @param json
 	 */
 	public static void writeFile(String filePath, List<String> jsons) {
 		if (filePath.endsWith(".txt")) {
@@ -534,11 +472,10 @@ public class MysqlRegister implements Register {
 
 	public static boolean isWindows() {
 		String os = System.getProperty("os.name");
-		if (os.toLowerCase().startsWith("win")) {
-			return true;
-		}
-		return false;
+		return os.toLowerCase().startsWith("win");
 	}
+
+
 
 	/*
 	 * public static void main(String args[]) {

@@ -6,6 +6,7 @@ import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.toolkit.common.util.StringUtil;
+import com.meidusa.venus.RpcException;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.annotations.PerformanceLevel;
@@ -17,13 +18,10 @@ import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.bean.*;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanContext;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanUtilsBean;
-import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.RegisterService;
-import com.meidusa.venus.registry.mysql.MysqlRegister;
-import com.meidusa.venus.service.registry.HostPort;
+import com.meidusa.venus.registry.RegisterContext;
 import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
@@ -138,35 +136,11 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         if(register != null){
             return register;
         }
-        register = MysqlRegister.getInstance(true,null);
-        return register;
-    }
-
-    /**
-     * 获取注册中心远程服务
-     * @param registerUrl
-     * @return
-     */
-    RegisterService getRegisterService(String registerUrl){
-        String[] split = registerUrl.split(";");
-        List<HostPort> hosts = new ArrayList<HostPort>();
-        for (int i = 0; i < split.length; i++) {
-            String str = split[i];
-            String[] split2 = str.split(":");
-            if (split2.length > 1) {
-                String host = split2[0];
-                String port = split2[1];
-                HostPort hp = new HostPort(host, Integer.parseInt(port));
-                hosts.add(hp);
-            }
+        register = RegisterContext.getInstance().getRegister();
+        if(register == null){
+            throw new RpcException("init register failed.");
         }
-
-        HostPort hp = hosts.get(new Random().nextInt(hosts.size()));
-        SimpleServiceFactory ssf = new SimpleServiceFactory(hp.getHost(), hp.getPort());
-        ssf.setCoTimeout(60000);
-        ssf.setSoTimeout(60000);
-        RegisterService registerService = ssf.getService(RegisterService.class);
-        return registerService;
+        return register;
     }
 
     /**

@@ -4,6 +4,8 @@ import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.client.factory.xml.support.ServiceFactoryBean;
+import com.meidusa.venus.exception.VenusConfigException;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -26,8 +28,9 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
 
     private static Logger logger = LoggerFactory.getLogger(VenusMonitorFactory.class);
 
-    private String application;
-
+    /**
+     * 注册中心url地址，injvm或者远程注册中心服务地址
+     */
     private String url;
 
     private boolean enable;
@@ -36,8 +39,18 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        valid();
         //初始化athena
         initAthenaDataService(url);
+    }
+
+    /**
+     * 校验
+     */
+    void valid(){
+        if(StringUtils.isEmpty(url)){
+            throw new VenusConfigException("url not allow empty.");
+        }
     }
 
     /**
@@ -74,14 +87,6 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
 
         beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
         reg.registerBeanDefinition(beanName, beanDefinition);
-    }
-
-    public String getApplication() {
-        return application;
-    }
-
-    public void setApplication(String application) {
-        this.application = application;
     }
 
     public String getUrl() {

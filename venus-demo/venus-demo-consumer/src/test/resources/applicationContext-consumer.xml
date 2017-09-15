@@ -14,6 +14,21 @@
 	<context:component-scan base-package="com.saic.framework.*" />
 	<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" />
 
+	<!--应用配置-->
+	<bean id="name" class="com.meidusa.venus.client.Application">
+		<property name="name" value="demo-consumer"/>
+	</bean>
+
+	<!--注册配置-->
+	<bean id="venusRegistryFactory" class="com.meidusa.venus.client.VenusRegistryFactory">
+		<property name="url" value="injvm://localhost"/>
+	</bean>
+
+	<!--监控配置-->
+	<bean id="venusMonitorFactory" class="com.meidusa.venus.client.VenusMonitorFactory">
+		<property name="url" value="10.32.174.23:16800"/>
+	</bean>
+
 	<bean id="serviceFactory" class="com.meidusa.venus.client.VenusServiceFactory" destroy-method="destroy">
 		<property name="configFiles">
 			<list>
@@ -40,11 +55,6 @@
 	<service type="com.athena.service.api.AthenaDataService" remote="monitor-remote"/>
     <service type="com.athena.service.api.AthenaDataService" ipAddressList="10.32.174.23:16800"/>
     -->
-
-	<!--监控配置-->
-	<bean id="venusMonitorFactory" class="com.meidusa.venus.client.VenusMonitorFactory">
-		<property name="url" value="10.32.174.23:16800"/>
-	</bean>
 
 	<!--将此配置提取整合到venusMonitorFactory.athena中-->
 	<bean name="configManager" class="com.saic.framework.athena.configuration.DefaultClientConfigManager">

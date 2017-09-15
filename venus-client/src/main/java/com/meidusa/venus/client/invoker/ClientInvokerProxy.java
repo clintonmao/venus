@@ -16,6 +16,7 @@ import com.meidusa.venus.client.invoker.injvm.InjvmClientInvoker;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.monitor.athena.filter.ClientAthenaMonitorFilter;
 import com.meidusa.venus.monitor.filter.ClientMonitorFilter;
+import com.meidusa.venus.registry.Register;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,9 +50,9 @@ public class ClientInvokerProxy implements Invoker {
     private RemoteConfig remoteConfig;
 
     /**
-     * 注册中心地址
+     * 注册中心
      */
-    private String registerUrl;
+    private Register register;
 
     /**
      * injvm调用 TODO 初始化
@@ -137,11 +138,11 @@ public class ClientInvokerProxy implements Invoker {
      * @return
      */
     public ClientRemoteInvoker getRemoteInvoker() {
-        if(registerUrl != null){
-            clientRemoteInvoker.setRegisterUrl(registerUrl);
-        }
         if(remoteConfig != null){
             clientRemoteInvoker.setRemoteConfig(remoteConfig);
+        }
+        if(register != null){
+            clientRemoteInvoker.setRegister(register);
         }
         return clientRemoteInvoker;
     }
@@ -256,12 +257,12 @@ public class ClientInvokerProxy implements Invoker {
         this.remoteConfig = remoteConfig;
     }
 
-    public String getRegisterUrl() {
-        return registerUrl;
+    public Register getRegister() {
+        return register;
     }
 
-    public void setRegisterUrl(String registerUrl) {
-        this.registerUrl = registerUrl;
+    public void setRegister(Register register) {
+        this.register = register;
     }
 
     public AthenaDataService getAthenaDataService() {

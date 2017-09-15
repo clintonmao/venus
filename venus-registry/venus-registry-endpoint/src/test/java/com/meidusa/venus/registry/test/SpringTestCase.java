@@ -17,7 +17,7 @@ import com.meidusa.venus.service.registry.ServiceDefinition;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class SpringTestCase extends AbstractJUnit4SpringContextTests {
 
-	private Register mysqlRegister = MysqlRegister.getInstance(true,null);
+	private Register mysqlRegister = null;//MysqlRegister.getInstance(true,null);
 
 	@Before // 在每个测试用例方法之前都会执行
 	public void init() {

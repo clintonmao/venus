@@ -58,7 +58,7 @@
 			<artifactId>venus-common-annotation</artifactId>
 			<version>3.3.1</version>
 		</dependency>
-    </dependencies>
+	</dependencies>
 
 	<build>
 		<resources>

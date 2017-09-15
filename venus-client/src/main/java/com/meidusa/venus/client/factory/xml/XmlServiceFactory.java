@@ -31,6 +31,8 @@ import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.io.packet.PacketConstant;
+import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.registry.RegisterContext;
 import com.meidusa.venus.util.FileWatchdog;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
@@ -243,10 +245,11 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      * @param serviceConfig
      */
     void initService(ServiceConfig serviceConfig,VenusClientConfig venusClientConfig) {
-        if(StringUtils.isEmpty(serviceConfig.getRemote()) && StringUtils.isEmpty(serviceConfig.getIpAddressList()) && StringUtils.isEmpty(serviceConfig.getRegisterUrl())){
-            throw new ConfigurationException("remote or ipAddressList or registerUrl can not be null:" + serviceConfig.getType());
+        /*
+        if(StringUtils.isEmpty(serviceConfig.getRemote()) && StringUtils.isEmpty(serviceConfig.getIpAddressList()) && register == null){
+            throw new ConfigurationException("remote or ipAddressList or register can not be null:" + serviceConfig.getType());
         }
-
+        */
         /*
         if (serviceConfig.getInstance() != null) {
             ServiceDefinedBean defined = new ServiceDefinedBean(serviceConfig.getBeanName(),serviceConfig.getType(),serviceConfig.getInstance(), null);
@@ -263,13 +266,16 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         //连接管理功能放到InvocationHandler，由外围serviceFacotry传递url、remoteConfig或者不传地址信息（若不传，则即为动态寻址）
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
         invocationHandler.setServiceInterface(serviceConfig.getType());
+        //若配置静态地址，以静态为先
         if(StringUtils.isNotEmpty(serviceConfig.getRemote()) || StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
             RemoteConfig remoteConfig = getRemoteConfig(serviceConfig,venusClientConfig);
             invocationHandler.setRemoteConfig(remoteConfig);
+        }else{
+            //要保证先初始化VenusRegisterFactory
+            Register register = RegisterContext.getInstance().getRegister();
+            invocationHandler.setRegister(register);
         }
-        if(StringUtils.isNotEmpty(serviceConfig.getRegisterUrl())){
-            invocationHandler.setRegisterUrl(serviceConfig.getRegisterUrl());
-        }
+
         invocationHandler.setVenusExceptionFactory(this.getVenusExceptionFactory());
         invocationHandler.setServiceFactory(this);
         //TODO 确认相关属性功能

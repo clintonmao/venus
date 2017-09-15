@@ -38,7 +38,7 @@
 		<!--
 		<service type="com.saic.framework.message.UniMessageService" remote="UMSRemote"/>
 		-->
-		<service type="com.chexiang.venus.demo.provider.HelloService" registerUrl="injvm://localhost"/>
+		<service type="com.chexiang.venus.demo.provider.HelloService"/>
 
 	</services>
 </venus-client>

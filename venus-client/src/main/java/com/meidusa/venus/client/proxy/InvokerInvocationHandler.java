@@ -1,15 +1,15 @@
 package com.meidusa.venus.client.proxy;
 
 import com.athena.service.api.AthenaDataService;
-import com.meidusa.toolkit.common.bean.BeanContext;
-import com.meidusa.venus.*;
+import com.meidusa.venus.Invocation;
+import com.meidusa.venus.Result;
+import com.meidusa.venus.RpcException;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.client.AthenaContext;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.ServiceFactory;
-import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.invoker.ClientInvokerProxy;
 import com.meidusa.venus.exception.VenusExceptionFactory;
@@ -17,10 +17,9 @@ import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.metainfo.EndpointParameterUtil;
-import com.meidusa.venus.monitor.athena.reporter.AthenaExtensionResolver;
-import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionDelegate;
-import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionId;
-import com.meidusa.venus.util.*;
+import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.util.NetUtil;
+import com.meidusa.venus.util.VenusTracerUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,9 +64,9 @@ public class InvokerInvocationHandler implements InvocationHandler {
     private RemoteConfig remoteConfig;
 
     /**
-     * 注册中心地址
+     * 注册中心
      */
-    private String registerUrl;
+    private Register register;
 
     private static AthenaDataService athenaDataService;
 
@@ -115,7 +114,8 @@ public class InvokerInvocationHandler implements InvocationHandler {
             clientInvokerProxy = new ClientInvokerProxy();
             clientInvokerProxy.setAuthenticator(getAuthenticator());
             clientInvokerProxy.setVenusExceptionFactory(getVenusExceptionFactory());
-            clientInvokerProxy.setRegisterUrl(getRegisterUrl());
+            //TODO 传递要优化
+            clientInvokerProxy.setRegister(register);
             clientInvokerProxy.setRemoteConfig(getRemoteConfig());
             clientInvokerProxy.setAthenaDataService(getAthenaDataService());
         }
@@ -213,12 +213,12 @@ public class InvokerInvocationHandler implements InvocationHandler {
         this.authenticator = authenticator;
     }
 
-    public String getRegisterUrl() {
-        return registerUrl;
+    public Register getRegister() {
+        return register;
     }
 
-    public void setRegisterUrl(String registerUrl) {
-        this.registerUrl = registerUrl;
+    public void setRegister(Register register) {
+        this.register = register;
     }
 
     public ServiceFactory getServiceFactory() {

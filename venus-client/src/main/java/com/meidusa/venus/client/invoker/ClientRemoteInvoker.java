@@ -1,7 +1,6 @@
 package com.meidusa.venus.client.invoker;
 
 import com.meidusa.venus.*;
-import com.meidusa.venus.client.cluster.ClusterFailoverInvoker;
 import com.meidusa.venus.client.cluster.ClusterInvokerFactory;
 import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
@@ -9,8 +8,8 @@ import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
 import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.registry.RegisterContext;
 import com.meidusa.venus.registry.RegisterService;
-import com.meidusa.venus.registry.mysql.MysqlRegister;
 import com.meidusa.venus.service.registry.HostPort;
 import com.meidusa.venus.service.registry.ServiceDefinition;
 import com.meidusa.venus.util.NetUtil;
@@ -31,12 +30,10 @@ public class ClientRemoteInvoker implements Invoker{
 
     private static Logger logger = LoggerFactory.getLogger(ClientRemoteInvoker.class);
 
-    private RemoteConfig remoteConfig;
-
     /**
-     * 注册中心地址
+     * 静态地址配置
      */
-    private String registerUrl;
+    private RemoteConfig remoteConfig;
 
     /**
      * 注册中心
@@ -52,18 +49,24 @@ public class ClientRemoteInvoker implements Invoker{
 
     @Override
     public void init() throws RpcException {
+        //初始化注册中心
+        if(register == null){
+            initRegister();
+        }
         //TODO 订阅时机
         subscrible();
     }
 
     /**
-     * 订阅服务
+     * 获取注册中心
+     * @return
      */
-    void subscrible(){
-        String subscribleUrl = "subscrible://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0&host=" + NetUtil.getLocalIp();
-        URL url = URL.parse(subscribleUrl);
-        logger.info("url:{}",url);
-        getRegister().subscrible(url);
+    void initRegister(){
+        Register register = RegisterContext.getInstance().getRegister();//MysqlRegister.getInstance(true,null);
+        if(register == null){
+            throw new RpcException("init register failed.");
+        }
+        this.register = register;
     }
 
     @Override
@@ -90,18 +93,30 @@ public class ClientRemoteInvoker implements Invoker{
      * @return
      */
     List<URL> lookup(Invocation invocation){
-        if(remoteConfig != null){//静态地址
+        if(!isDynamicLookup()){//静态地址
             List<URL> urlList = lookupByStatic(invocation);
             if(CollectionUtils.isEmpty(urlList)){
                 throw new RpcException("not found avalid providers.");
             }
             return urlList;
-        }else if(StringUtils.isNotEmpty(registerUrl)){//动态注册中心查找
+        }else{//动态注册中心查找
             List<URL> urlList = lookupByDynamic(invocation);
             if(CollectionUtils.isEmpty(urlList)){
                 throw new RpcException("not found avalid providers.");
             }
             return urlList;
+        }
+    }
+
+    /**
+     * 判断是否动态寻址
+     * @return
+     */
+    boolean isDynamicLookup(){
+        if(remoteConfig != null){//静态地址
+            return false;
+        }else if(register != null){//动态注册中心查找
+            return true;
         }else{
             throw new RpcException("remoteConfig and registerUrl not allow empty.");
         }
@@ -131,7 +146,6 @@ public class ClientRemoteInvoker implements Invoker{
      */
     List<URL> lookupByDynamic(Invocation invocation){
         List<URL> urlList = new ArrayList<URL>();
-
         //TODO url动态拼装
         String path = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
         URL serviceUrl = URL.parse(path);
@@ -154,43 +168,13 @@ public class ClientRemoteInvoker implements Invoker{
     }
 
     /**
-     * 获取注册中心
-     * @return
+     * 订阅服务 TODO 订阅服务时机
      */
-    Register getRegister(){
-        if(register != null){
-            return register;
-        }
-        //TODO 对于远程，使用registerUrl初始化remoteRegisterService
-        register = MysqlRegister.getInstance(true,null);
-        return register;
-    }
-
-    /**
-     * 获取注册中心远程服务
-     * @param registerUrl
-     * @return
-     */
-    RegisterService getRegisterService(String registerUrl){
-        String[] split = registerUrl.split(";");
-        List<HostPort> hosts = new ArrayList<HostPort>();
-        for (int i = 0; i < split.length; i++) {
-            String str = split[i];
-            String[] arr = str.split(":");
-            if (arr.length > 1) {
-                String host = arr[0];
-                String port = arr[1];
-                HostPort hp = new HostPort(host, Integer.parseInt(port));
-                hosts.add(hp);
-            }
-        }
-
-        HostPort hp = hosts.get(new Random().nextInt(hosts.size()));
-        SimpleServiceFactory ssf = new SimpleServiceFactory(hp.getHost(), hp.getPort());
-        ssf.setCoTimeout(60000);
-        ssf.setSoTimeout(60000);
-        RegisterService registerService = ssf.getService(RegisterService.class);
-        return registerService;
+    void subscrible(){
+        String subscribleUrl = "subscrible://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0&host=" + NetUtil.getLocalIp();
+        URL url = URL.parse(subscribleUrl);
+        logger.info("url:{}",url);
+        getRegister().subscrible(url);
     }
 
     /**
@@ -215,11 +199,11 @@ public class ClientRemoteInvoker implements Invoker{
         this.remoteConfig = remoteConfig;
     }
 
-    public String getRegisterUrl() {
-        return registerUrl;
+    public Register getRegister() {
+        return register;
     }
 
-    public void setRegisterUrl(String registerUrl) {
-        this.registerUrl = registerUrl;
+    public void setRegister(Register register) {
+        this.register = register;
     }
 }
