@@ -1,5 +1,7 @@
 package com.meidusa.venus.registry;
 
+import java.util.List;
+
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.service.registry.ServiceDefinition;
@@ -69,6 +71,8 @@ public interface Register {
      * @throws VenusRegisteException
      */
     void destroy() throws VenusRegisteException;
+    
+    List<ServiceDefinition> findAllServices(String interfaceName,String serviceName) throws VenusRegisteException;
 
 
 }

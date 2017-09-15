@@ -118,6 +118,33 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 			throw new DAOException("根据serviceName:" + serviceName + ",获取venusService异常", e);
 		}
 	}
+	
+	public List<VenusServiceDO> getServices(String interfaceName, String serviceName) throws DAOException {
+		String sql = SELECT_FIELDS + " from t_venus_service where ";
+		Object[] params = new Object[] { serviceName};
+		if (StringUtils.isNotBlank(serviceName)) {
+			sql = sql + " name=? ";
+		}
+		if (StringUtils.isNotBlank(interfaceName)) {
+			sql = sql + " and interface_name=?";
+			params = new Object[] { serviceName, interfaceName };
+		}
+		try {
+			return this.jdbcTemplate.query(sql, params, new ResultSetExtractor<List<VenusServiceDO>>() {
+				@Override
+				public List<VenusServiceDO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<VenusServiceDO> returnList = new ArrayList<VenusServiceDO>();
+					while (rs.next()) {
+						VenusServiceDO resultToVenusServiceDO = ResultUtils.resultToVenusServiceDO(rs);
+						returnList.add(resultToVenusServiceDO);
+					}
+					return returnList;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据serviceName:" + serviceName + ",获取venusService异常", e);
+		}
+	}
 
 	@Override
 	public List<VenusServiceDO> getServices(Collection<Integer> ids) throws DAOException {

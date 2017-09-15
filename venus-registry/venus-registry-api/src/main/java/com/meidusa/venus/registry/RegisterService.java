@@ -1,5 +1,7 @@
 package com.meidusa.venus.registry;
 
+import java.util.List;
+
 import com.meidusa.venus.URL;
 import com.meidusa.venus.service.registry.ServiceDefinition;
 
@@ -39,6 +41,8 @@ public interface RegisterService {
     boolean unsubscrible(URL url) throws VenusRegisteException;
 
     ServiceDefinition urlToServiceDefine(URL url);
+    
+    List<ServiceDefinition> getServiceDefines(String interfaceName, String serviceName) throws VenusRegisteException;
     
     void heartbeatRegister(URL url);
     
