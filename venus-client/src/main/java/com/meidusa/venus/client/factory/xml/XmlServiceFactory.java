@@ -265,6 +265,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         //创建InvocationHandler
         //连接管理功能放到InvocationHandler，由外围serviceFacotry传递url、remoteConfig或者不传地址信息（若不传，则即为动态寻址）
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
+        //TODO 初始化服务时订阅
         invocationHandler.setServiceInterface(serviceConfig.getType());
         //若配置静态地址，以静态为先
         if(StringUtils.isNotEmpty(serviceConfig.getRemote()) || StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){

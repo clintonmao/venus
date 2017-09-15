@@ -97,35 +97,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
         //初始化服务
         initServices(serviceConfigList, interceptors, interceptorStacks);
-
-        //注册服务 TODO 改为依次实例化、注册
-        registe(serviceConfigList);
-    }
-
-    /**
-     * 服务注册
-     */
-    void registe(List<ServiceConfig> serviceConfigList){
-        if(CollectionUtils.isNotEmpty(serviceConfigList)){
-            Register register = getRegister();
-            for (ServiceConfig serviceConfig : serviceConfigList) {
-                URL registerUrl = getURL(serviceConfig);
-                register.registe(registerUrl);
-            }
-        }
-    }
-
-    /**
-     * 获取注册url
-     * @param serviceConfig
-     * @return
-     */
-    URL getURL(ServiceConfig serviceConfig){
-        String strUrl = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0&host=%s&port=16800&methods=sayHello[java.lang.String]";
-        strUrl = String.format(strUrl, NetUtil.getLocalIp());
-        logger.info("registerUrl:%",strUrl);
-        URL url = URL.parse(strUrl);
-        return url;
     }
 
     /**
@@ -280,7 +251,31 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
             ConfigurableListableBeanFactory cbf = (ConfigurableListableBeanFactory) beanFactory;
             cbf.registerResolvableDependency(service.getType(), service.getInstance());
         }
+
+        //注册服务 TODO 待完善
+        registeService(serviceConfig);
         return service;
+    }
+
+    /**
+     * 注册服务
+     */
+    void registeService(ServiceConfig serviceConfig){
+        URL registerUrl = getURL(serviceConfig);
+        getRegister().registe(registerUrl);
+    }
+
+    /**
+     * 获取注册url
+     * @param serviceConfig
+     * @return
+     */
+    URL getURL(ServiceConfig serviceConfig){
+        String strUrl = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0&host=%s&port=16800&methods=sayHello[java.lang.String]";
+        strUrl = String.format(strUrl, NetUtil.getLocalIp());
+        logger.info("registerUrl:%",strUrl);
+        URL url = URL.parse(strUrl);
+        return url;
     }
 
     /**
