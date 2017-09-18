@@ -1,6 +1,9 @@
 package com.meidusa.venus.bus.dispatch;
 
 import com.meidusa.venus.*;
+import com.meidusa.venus.bus.registry.ServiceManager;
+import com.meidusa.venus.client.VenusRegistryFactory;
+import com.meidusa.venus.registry.Register;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +15,11 @@ public class BusDispatcherProxy implements Dispatcher {
 
     private static Logger logger = LoggerFactory.getLogger(BusDispatcherProxy.class);
 
-    BusRemoteDispatcher busRemoteDispatcher = new BusRemoteDispatcher();
+    private ServiceManager serviceManager;
+
+    private VenusRegistryFactory venusRegistryFactory;
+
+    private BusRemoteDispatcher busRemoteDispatcher;
 
     @Override
     public void init() throws RpcException {
@@ -31,7 +38,7 @@ public class BusDispatcherProxy implements Dispatcher {
                 }
             }
 
-            Result result = busRemoteDispatcher.invoke(invocation,null);
+            Result result = getBusRemoteDispatcher().invoke(invocation,null);
             return result;
         } catch (RpcException e) {
             //调用异常切面处理
@@ -50,6 +57,21 @@ public class BusDispatcherProxy implements Dispatcher {
                 filter.afterInvoke(invocation,url);
             }
         }
+    }
+
+    public BusRemoteDispatcher getBusRemoteDispatcher() {
+        if(busRemoteDispatcher != null){
+            return busRemoteDispatcher;
+        }
+        busRemoteDispatcher = new BusRemoteDispatcher();
+        if(venusRegistryFactory != null){
+            Register register = venusRegistryFactory.getRegister();
+            busRemoteDispatcher.setRegister(register);
+        }
+        if(serviceManager != null){
+            busRemoteDispatcher.setServiceManager(serviceManager);
+        }
+        return busRemoteDispatcher;
     }
 
     @Override
@@ -82,5 +104,21 @@ public class BusDispatcherProxy implements Dispatcher {
     Filter[] getAfterFilters(){
         return new Filter[]{
         };
+    }
+
+    public ServiceManager getServiceManager() {
+        return serviceManager;
+    }
+
+    public void setServiceManager(ServiceManager serviceManager) {
+        this.serviceManager = serviceManager;
+    }
+
+    public VenusRegistryFactory getVenusRegistryFactory() {
+        return venusRegistryFactory;
+    }
+
+    public void setVenusRegistryFactory(VenusRegistryFactory venusRegistryFactory) {
+        this.venusRegistryFactory = venusRegistryFactory;
     }
 }

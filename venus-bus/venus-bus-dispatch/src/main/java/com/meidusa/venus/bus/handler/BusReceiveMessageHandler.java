@@ -11,6 +11,7 @@ import com.meidusa.venus.bus.dispatch.BusDispatcherProxy;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.bus.registry.ServiceManager;
 import com.meidusa.venus.bus.util.VenusTrafficCollector;
+import com.meidusa.venus.client.VenusRegistryFactory;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.support.ShutdownListener;
@@ -36,9 +37,11 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
         Runtime.getRuntime().addShutdownHook(listener);
     }
 
-    private ServiceManager serviceRegisterManager;
+    private ServiceManager serviceManager;
 
-    private BusDispatcherProxy busDispatcherProxy = new BusDispatcherProxy();
+    private VenusRegistryFactory venusRegistryFactory;
+
+    private BusDispatcherProxy busDispatcherProxy;
 
     //TODO 将连接统一为VenusFrontendConnection，可能出现不兼容问题?
     @Override
@@ -86,7 +89,7 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
             invocation = parseInvocation(srcConn, message);
 
             //通过分发代理分发消息 TODO 通过线程池处理
-            result = busDispatcherProxy.invoke(invocation,null);
+            result = getBusDispatcherProxy().invoke(invocation,null);
         } catch (Exception e) {
             //TODO 异常信息包装
             result = new Result();
@@ -166,6 +169,20 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
         }
     }
 
+    public BusDispatcherProxy getBusDispatcherProxy() {
+        if(busDispatcherProxy != null){
+            return busDispatcherProxy;
+        }
+        busDispatcherProxy = new BusDispatcherProxy();
+        if(serviceManager != null){
+            busDispatcherProxy.setServiceManager(serviceManager);
+        }
+        if(venusRegistryFactory != null){
+            busDispatcherProxy.setVenusRegistryFactory(venusRegistryFactory);
+        }
+        return busDispatcherProxy;
+    }
+
     /**
      * 校验版本号是否可用 TODO 放到寻址中实现，尽量与client复用
      * @param invocation
@@ -182,11 +199,19 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
         error.message = "Service version not match";
     }
 
-    public ServiceManager getServiceRegisterManager() {
-        return serviceRegisterManager;
+    public ServiceManager getServiceManager() {
+        return serviceManager;
     }
 
-    public void setServiceRegisterManager(ServiceManager serviceRegisterManager) {
-        this.serviceRegisterManager = serviceRegisterManager;
+    public void setServiceManager(ServiceManager serviceManager) {
+        this.serviceManager = serviceManager;
+    }
+
+    public VenusRegistryFactory getVenusRegistryFactory() {
+        return venusRegistryFactory;
+    }
+
+    public void setVenusRegistryFactory(VenusRegistryFactory venusRegistryFactory) {
+        this.venusRegistryFactory = venusRegistryFactory;
     }
 }

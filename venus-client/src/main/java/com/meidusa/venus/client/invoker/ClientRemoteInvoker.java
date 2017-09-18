@@ -141,11 +141,8 @@ public class ClientRemoteInvoker implements Invoker{
      */
     List<URL> lookupByDynamic(Invocation invocation){
         List<URL> urlList = new ArrayList<URL>();
-        //TODO url动态拼装
-        String path = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
-        URL serviceUrl = URL.parse(path);
 
-        //TODO 本地或远程接口调用
+        URL serviceUrl = parseUrl(invocation);
         ServiceDefinition serviceDefinition = getRegister().lookup(serviceUrl);
         if(serviceDefinition == null || CollectionUtils.isEmpty(serviceDefinition.getIpAddress())){
             throw new RpcException("not found available service providers.");
@@ -160,6 +157,17 @@ public class ClientRemoteInvoker implements Invoker{
             urlList.add(url);
         }
         return urlList;
+    }
+
+    /**
+     * 解析url
+     * @param invocation
+     * @return
+     */
+    URL parseUrl(Invocation invocation){
+        String path = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
+        URL serviceUrl = URL.parse(path);
+        return serviceUrl;
     }
 
     /**

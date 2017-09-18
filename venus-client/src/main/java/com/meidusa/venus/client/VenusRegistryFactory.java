@@ -34,6 +34,8 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
      */
     private String url;
 
+    private Register register;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         valid();
@@ -59,6 +61,7 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
 
         //实例化register
         Register register = new MysqlRegister(registerService);
+        this.register = register;
         RegisterContext.getInstance().setRegister(register);
     }
 
@@ -131,5 +134,13 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public Register getRegister() {
+        return register;
+    }
+
+    public void setRegister(Register register) {
+        this.register = register;
     }
 }

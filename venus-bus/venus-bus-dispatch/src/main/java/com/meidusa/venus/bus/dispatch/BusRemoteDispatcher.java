@@ -4,14 +4,17 @@ import com.meidusa.venus.*;
 import com.meidusa.venus.bus.BusInvocation;
 import com.meidusa.venus.bus.registry.xml.config.RemoteConfig;
 import com.meidusa.venus.bus.registry.ServiceManager;
+import com.meidusa.venus.client.VenusRegistryFactory;
 import com.meidusa.venus.client.cluster.ClusterInvokerFactory;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.service.registry.ServiceDefinition;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -84,10 +87,20 @@ public class BusRemoteDispatcher implements Dispatcher{
      * @return
      */
     List<URL> lookupByStatic(Invocation invocation){
-        //TODO
+        List<URL> urlList = new ArrayList<URL>();
         List<RemoteConfig> remoteConfigList = serviceManager.lookup(invocation.getServiceName());
-        //TODO toURL,若空，则抛异常
-        return Collections.emptyList();
+        if(CollectionUtils.isEmpty(remoteConfigList)){
+            return urlList;
+        }
+        for(RemoteConfig remoteConfig:remoteConfigList){
+            String ipAddressList = remoteConfig.getFactory().getIpAddressList();
+            String[] arr = ipAddressList.split(":");
+            URL url = new URL();
+            url.setHost(arr[0]);
+            url.setPort(Integer.parseInt(arr[1]));
+            urlList.add(url);
+        }
+        return urlList;
     }
 
     /**
@@ -95,12 +108,35 @@ public class BusRemoteDispatcher implements Dispatcher{
      * @return
      */
     List<URL> lookupByDynamic(Invocation invocation){
-        BusInvocation busInvocation = (BusInvocation)invocation;
-        //TODO invocation->toUrl
-        ServiceDefinition serviceDefinition = register.lookup(null);
-        //TODO 若空，则抛异常
-        //TODO toUrl，统一寻址输入、输出；统一本地配置输入、输出
+        List<URL> urlList = new ArrayList<URL>();
+
+        URL serviceUrl = parseUrl(invocation);
+        ServiceDefinition serviceDefinition = register.lookup(serviceUrl);
+
+        if(serviceDefinition == null || CollectionUtils.isEmpty(serviceDefinition.getIpAddress())){
+            throw new RpcException("not found available service providers.");
+        }
+        logger.info("serviceDefinition:{}",serviceDefinition);
+
+        for(String item:serviceDefinition.getIpAddress()){
+            String[] arr = item.split(":");
+            URL url = new URL();
+            url.setHost(arr[0]);
+            url.setPort(Integer.parseInt(arr[1]));
+            urlList.add(url);
+        }
         return null;
+    }
+
+    /**
+     * 解析url
+     * @param invocation
+     * @return
+     */
+    URL parseUrl(Invocation invocation){
+        String path = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
+        URL serviceUrl = URL.parse(path);
+        return serviceUrl;
     }
 
     /**
@@ -122,5 +158,19 @@ public class BusRemoteDispatcher implements Dispatcher{
 
     }
 
+    public ServiceManager getServiceManager() {
+        return serviceManager;
+    }
 
+    public void setServiceManager(ServiceManager serviceManager) {
+        this.serviceManager = serviceManager;
+    }
+
+    public Register getRegister() {
+        return register;
+    }
+
+    public void setRegister(Register register) {
+        this.register = register;
+    }
 }
