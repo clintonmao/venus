@@ -86,7 +86,6 @@ public class MysqlRegister implements Register {
 			heartbeat();
 		} catch (Exception e) {
 			registeFailUrls.add(url);
-			logger.error("服务{}注册异常,异常原因：{} ", url.getServiceName(), e);
 			throw new VenusRegisteException("服务注册异常" + url.getServiceName(), e);
 		}
 		registeUrls.add(url);
@@ -96,7 +95,6 @@ public class MysqlRegister implements Register {
 	@Override
 	public void unregiste(URL url) throws VenusRegisteException {
 		if (StringUtils.isBlank(url.getVersion())) {
-			logger.error("服务{}取消注册异常,异常原因：{} ", url.getServiceName(), "version为空");
 			throw new VenusRegisteException("取消注册异常" + url.getServiceName() + ",version为空");
 		}
 		try {
@@ -105,7 +103,6 @@ public class MysqlRegister implements Register {
 				registeUrls.remove(url);
 			}
 		} catch (Exception e) {
-			logger.error("服务{}取消注册异常,异常原因：{} ", url.getServiceName(), e);
 			throw new VenusRegisteException("取消注册异常" + url.getServiceName(), e);
 		}
 	}
@@ -120,7 +117,6 @@ public class MysqlRegister implements Register {
 			//FIXME 若抛异常，就不要打印error信息了，否则日志会打印两次error
 			logger.error("服务{}订阅异常 ,异常原因：{}", url.getServiceName(), e);
 			//FIXME 此处异常要处理，就不要抛出了，否则会中止流程
-			throw new VenusRegisteException("服务订阅异常" + url.getServiceName(), e);
 		}
 		subscribleUrls.add(url);
 		load();
@@ -129,7 +125,6 @@ public class MysqlRegister implements Register {
 	@Override
 	public void unsubscrible(URL url) throws VenusRegisteException {
 		if (StringUtils.isBlank(url.getVersion())) {
-			logger.error("服务{}取消订阅异常,异常原因：{} ", url.getServiceName(), "version为空");
 			throw new VenusRegisteException("取消订阅异常" + url.getServiceName() + ",version为空");
 		}
 		try {
@@ -138,7 +133,6 @@ public class MysqlRegister implements Register {
 				subscribleUrls.remove(url);
 			}
 		} catch (Exception e) {
-			logger.error("服务{}取消订阅异常 ,异常原因：{}", url.getServiceName(), e);
 			throw new VenusRegisteException("取消订阅异常" + url.getServiceName(), e);
 		}
 		load();

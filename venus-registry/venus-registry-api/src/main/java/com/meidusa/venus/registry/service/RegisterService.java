@@ -41,14 +41,39 @@ public interface RegisterService {
      */
     boolean unsubscrible(URL url) throws VenusRegisteException;
 
+    /**
+     * 根据URL对象返回服务定义对象
+     * @param url
+     * @return
+     */
     ServiceDefinition urlToServiceDefine(URL url);
     
+    /**
+     * 根据接口名和服务名查询返回服务定义列表
+     * @param interfaceName
+     * @param serviceName
+     * @return
+     * @throws VenusRegisteException
+     */
     List<ServiceDefinition> getServiceDefines(String interfaceName, String serviceName) throws VenusRegisteException;
     
+    /**
+     * 根据URL更新注册接口的心跳时间
+     * @param url
+     */
     void heartbeatRegister(URL url);
     
+    /**
+     * 根据URL更新订阅接口的心跳时间
+     * @param url
+     */
     void heartbeatSubcribe(URL url);
     
+    /**
+     * 清理无效的服务映射关系
+     * @param currentDateTime
+     * @param updateTime
+     */
     void clearInvalidService(String currentDateTime,String updateTime);
 
 }
