@@ -9,32 +9,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.meidusa.venus.URL;
-import org.apache.commons.beanutils.BeanUtils;
+import com.meidusa.venus.bus.config.BusRemoteConfig;
+import com.meidusa.venus.bus.config.BusServiceConfig;
+import com.meidusa.venus.bus.config.VenusBusConfig;
+import com.meidusa.venus.bus.registry.ServiceManager;
+import com.meidusa.venus.exception.VenusConfigException;
 import org.apache.commons.digester.Digester;
 import org.apache.commons.digester.RuleSet;
 import org.apache.commons.digester.xmlrules.FromXmlRuleSet;
-import org.apache.commons.lang.StringUtils;
 
 import com.meidusa.toolkit.common.bean.config.ConfigUtil;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
-import com.meidusa.toolkit.common.poolable.MultipleLoadBalanceObjectPool;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.BackendConnectionPool;
-import com.meidusa.toolkit.net.MultipleLoadBalanceBackendConnectionPool;
-import com.meidusa.toolkit.net.PollingBackendConnectionPool;
-import com.meidusa.toolkit.util.StringUtil;
-import com.meidusa.venus.bus.registry.AbstractServiceManager;
-import com.meidusa.venus.bus.config.BusConfig;
-import com.meidusa.venus.bus.config.RemoteServiceConfig;
-import com.meidusa.venus.bus.network.BusBackendConnectionFactory;
-import com.meidusa.venus.bus.registry.xml.bean.FactoryConfig;
-import com.meidusa.venus.bus.registry.xml.bean.Remote;
 import com.meidusa.venus.digester.DigesterRuleParser;
-import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.util.DefaultRange;
 import com.meidusa.venus.util.Range;
 import com.meidusa.venus.util.RangeUtil;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * XML方式服务注册管理
@@ -42,122 +34,48 @@ import com.meidusa.venus.util.RangeUtil;
  * @author structchen
  * 
  */
-public class XmlServiceManager extends AbstractServiceManager {
+public class XmlServiceManager implements ServiceManager {
 
     private String[] configFiles;
 
-    private Map<String, BackendConnectionPool> initRemoteMap(Map<String, Remote> remots) throws Exception {
-        Map<String, BackendConnectionPool> poolMap = new HashMap<String, BackendConnectionPool>();
-        for (Map.Entry<String, Remote> entry : remots.entrySet()) {
-            Remote remote = entry.getValue();
-            FactoryConfig factoryConfig = remote.getFactory();
-            if (factoryConfig == null || StringUtils.isEmpty(factoryConfig.getIpAddressList())) {
-                throw new ConfigurationException("remote name=" + remote.getName() + " factory config is null or ipAddress is null");
+    /**
+     * 服务名称-服务配置映射表 TODO 版本号，1:M
+     */
+    private Map<String,BusRemoteConfig> serviceRemoteConfigMap = new HashMap<String,BusRemoteConfig>();
+
+
+    /**
+     * 初始化配置
+     */
+    void init(){
+        VenusBusConfig busConfig = parseBusConfig();
+        for (BusServiceConfig serviceConfig : busConfig.getServiceConfigMap()) {
+            //TODO 确认range用途
+            Range range = RangeUtil.getVersionRange(serviceConfig.getVersion());
+            if (range == null) {
+                range = new DefaultRange();
             }
-            String ipAddress = factoryConfig.getIpAddressList();
-            String ipList[] = StringUtil.split(ipAddress, ", ");
-
-            BackendConnectionPool nioPools[] = new PollingBackendConnectionPool[ipList.length];
-
-            for (int i = 0; i < ipList.length; i++) {
-                BusBackendConnectionFactory nioFactory = new BusBackendConnectionFactory();
-                if (realPoolMap.get(ipList[i]) != null) {
-                    nioPools[i] = realPoolMap.get(ipList[i]);
-                    continue;
-                }
-
-                if (factoryConfig != null) {
-                    BeanUtils.copyProperties(nioFactory, factoryConfig);
-                }
-
-                String temp[] = StringUtil.split(ipList[i], ":");
-                if (temp.length > 1) {
-                    nioFactory.setHost(temp[0]);
-                    nioFactory.setPort(Integer.valueOf(temp[1]));
-                } else {
-                    nioFactory.setHost(temp[0]);
-                    nioFactory.setPort(PacketConstant.VENUS_DEFAULT_PORT);
-                }
-
-                if (remote.getAuthenticator() != null) {
-                    nioFactory.setAuthenticator(remote.getAuthenticator());
-                }
-
-                nioFactory.setConnector(this.getConnector());
-                nioFactory.setMessageHandler(getMessageHandler());
-
-                nioPools[i] = new PollingBackendConnectionPool(ipList[i], nioFactory, remote.getPoolSize());
-
-                nioPools[i].init();
+            String serviceName = serviceConfig.getServiceName();
+            BusRemoteConfig remoteConfig = null;
+            //init remoteConfig
+            if(StringUtils.isNotEmpty(serviceConfig.getRemote())){
+                remoteConfig = busConfig.getRemoteConfigMap().get(serviceConfig.getRemote());
+            }else if(StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
+                String ipAddressList = serviceConfig.getIpAddressList();
+                remoteConfig = BusRemoteConfig.parse(ipAddressList);
+            }else{
+                throw new VenusConfigException("invliad bus registry config.");
             }
-            String poolName = remote.getName();
-
-            MultipleLoadBalanceBackendConnectionPool nioPool = new MultipleLoadBalanceBackendConnectionPool(poolName,
-                    MultipleLoadBalanceObjectPool.LOADBALANCING_ROUNDROBIN, nioPools);
-
-            nioPool.init();
-            poolMap.put(remote.getName(), nioPool);
-
+            serviceRemoteConfigMap.put(serviceName,remoteConfig);
         }
-
-        return poolMap;
-    }
-
-    //TODO 初始化装载服务配置
-    protected Map<String, List<Tuple<Range, BackendConnectionPool>>> load() throws Exception {
-        BusConfig all = getBusConfig();
-
-        Map<String, BackendConnectionPool> poolMap = null;//TODO 确认此段代码 initRemoteMap(all.getRemoteMap());
-
-        Map<String, List<Tuple<Range, BackendConnectionPool>>> serviceMap = new HashMap<String, List<Tuple<Range, BackendConnectionPool>>>();
-
-        // create objectPool
-        for (RemoteServiceConfig config : all.getServices()) {
-            BackendConnectionPool pool = null;
-            if (!StringUtil.isEmpty(config.getRemote())) {
-                pool = poolMap.get(config.getRemote());
-                if (pool == null) {
-                    throw new ConfigurationException("register=" + config.getServiceName() + ",remote not found:" + config.getRemote());
-                }
-            } else {
-                String ipAddress = config.getIpAddressList();
-                if (!StringUtil.isEmpty(ipAddress)) {
-                    String ipList[] = StringUtil.split(config.getIpAddressList(), ", ");
-                    pool = createVirtualPool(ipList, null);
-                } else {
-                    throw new ConfigurationException("Service or ipAddressList or remote can not be null:" + config.getServiceName());
-                }
-            }
-
-            try {
-                Tuple<Range, BackendConnectionPool> tuple = new Tuple<Range, BackendConnectionPool>();
-                tuple.left = RangeUtil.getVersionRange(config.getVersion());
-                if (tuple.left == null) {
-                    tuple.left = new DefaultRange();
-                }
-                tuple.right = pool;
-
-                List<Tuple<Range, BackendConnectionPool>> list = serviceMap.get(config.getServiceName());
-                if (list == null) {
-                    list = new ArrayList<Tuple<Range, BackendConnectionPool>>();
-                    serviceMap.put(config.getServiceName(), list);
-                }
-                list.add(tuple);
-
-            } catch (Exception e) {
-                throw new ConfigurationException("init remote register config error:", e);
-            }
-        }
-        return serviceMap;
-
     }
 
     /**
-     * 
+     * 解析bus配置
      * @return
      */
-    protected BusConfig getBusConfig() {
-        BusConfig all = new BusConfig();
+    VenusBusConfig parseBusConfig() {
+        VenusBusConfig busConfig = new VenusBusConfig();
         for (String configFile : configFiles) {
             configFile = (String) ConfigUtil.filter(configFile);
             RuleSet ruleSet = new FromXmlRuleSet(this.getClass().getResource("venusRemoteServiceRule.xml"), new DigesterRuleParser());
@@ -184,26 +102,139 @@ public class XmlServiceManager extends AbstractServiceManager {
             }
 
             try {
-                BusConfig venus = (BusConfig) digester.parse(is);
-                for (RemoteServiceConfig config : venus.getServices()) {
+                VenusBusConfig venus = (VenusBusConfig) digester.parse(is);
+                for (BusServiceConfig config : venus.getServiceConfigMap()) {
                     if (config.getServiceName() == null) {
                         throw new ConfigurationException("Service name can not be null:" + configFile);
                     }
                 }
-                all.getRemoteMap().putAll(venus.getRemoteMap());
-                all.getServices().addAll(venus.getServices());
+                busConfig.getRemoteConfigMap().putAll(venus.getRemoteConfigMap());
+                busConfig.getServiceConfigMap().addAll(venus.getServiceConfigMap());
             } catch (Exception e) {
                 throw new ConfigurationException("can not parser xml:" + configFile, e);
             }
         }
 
-        return all;
+        return busConfig;
     }
 
     @Override
-    public List<URL> lookup(String serviceName) {
-        return null;
+    public List<BusRemoteConfig> lookup(String serviceName) {
+        //TODO 版本号多记录处理
+        List<BusRemoteConfig> remoteConfigList = new ArrayList<BusRemoteConfig>();
+        BusRemoteConfig remoteConfig = serviceRemoteConfigMap.get(serviceName);
+        if(remoteConfig != null){
+            remoteConfigList.add(remoteConfig);
+        }
+        return remoteConfigList;
     }
+
+//    Map<String, List<Tuple<Range, BackendConnectionPool>>> load() throws Exception {
+//        VenusBusConfig busConfig = parseBusConfig();
+//
+//        Map<String, BackendConnectionPool> poolMap = null;//TODO 确认此段代码 initRemoteMap(all.getRemoteConfigMap());
+//
+//        Map<String, List<Tuple<Range, BackendConnectionPool>>> serviceMap = new HashMap<String, List<Tuple<Range, BackendConnectionPool>>>();
+//
+//        // create objectPool
+//        for (BusServiceConfig serviceConfig : busConfig.getServiceConfigMap()) {
+//            BackendConnectionPool pool = null;
+//            if (!StringUtil.isEmpty(serviceConfig.getRemote())) {
+//                pool = poolMap.get(serviceConfig.getRemote());
+//                if (pool == null) {
+//                    throw new ConfigurationException("register=" + serviceConfig.getServiceName() + ",remote not found:" + serviceConfig.getRemote());
+//                }
+//            } else {
+//                String ipAddress = serviceConfig.getIpAddressList();
+//                if (!StringUtil.isEmpty(ipAddress)) {
+//                    String ipList[] = StringUtil.split(serviceConfig.getIpAddressList(), ", ");
+//                    //remove pool
+//                    //pool = createVirtualPool(ipList, null);
+//                } else {
+//                    throw new ConfigurationException("Service or ipAddressList or remote can not be null:" + serviceConfig.getServiceName());
+//                }
+//            }
+//
+//            try {
+//                Tuple<Range, BackendConnectionPool> tuple = new Tuple<Range, BackendConnectionPool>();
+//                tuple.left = RangeUtil.getVersionRange(serviceConfig.getVersion());
+//                if (tuple.left == null) {
+//                    tuple.left = new DefaultRange();
+//                }
+//                tuple.right = pool;
+//
+//                List<Tuple<Range, BackendConnectionPool>> list = serviceMap.get(serviceConfig.getServiceName());
+//                if (list == null) {
+//                    list = new ArrayList<Tuple<Range, BackendConnectionPool>>();
+//                    serviceMap.put(serviceConfig.getServiceName(), list);
+//                }
+//                list.add(tuple);
+//
+//            } catch (Exception e) {
+//                throw new ConfigurationException("init remote register config error:", e);
+//            }
+//        }
+//        return serviceMap;
+//    }
+
+
+//            private Map<String, BackendConnectionPool> initRemoteMap(Map<String, BusRemoteConfig> remots) throws Exception {
+//        Map<String, BackendConnectionPool> poolMap = new HashMap<String, BackendConnectionPool>();
+//        for (Map.Entry<String, BusRemoteConfig> entry : remots.entrySet()) {
+//            BusRemoteConfig remote = entry.getValue();
+//            BusFactoryConfig factoryConfig = remote.getFactory();
+//            if (factoryConfig == null || StringUtils.isEmpty(factoryConfig.getIpAddressList())) {
+//                throw new ConfigurationException("remote name=" + remote.getName() + " factory config is null or ipAddress is null");
+//            }
+//            String ipAddress = factoryConfig.getIpAddressList();
+//            String ipList[] = StringUtil.split(ipAddress, ", ");
+//
+//            BackendConnectionPool nioPools[] = new PollingBackendConnectionPool[ipList.length];
+//
+//            for (int i = 0; i < ipList.length; i++) {
+//                BusBackendConnectionFactory nioFactory = new BusBackendConnectionFactory();
+//                if (realPoolMap.get(ipList[i]) != null) {
+//                    nioPools[i] = realPoolMap.get(ipList[i]);
+//                    continue;
+//                }
+//
+//                if (factoryConfig != null) {
+//                    BeanUtils.copyProperties(nioFactory, factoryConfig);
+//                }
+//
+//                String temp[] = StringUtil.split(ipList[i], ":");
+//                if (temp.length > 1) {
+//                    nioFactory.setHost(temp[0]);
+//                    nioFactory.setPort(Integer.valueOf(temp[1]));
+//                } else {
+//                    nioFactory.setHost(temp[0]);
+//                    nioFactory.setPort(PacketConstant.VENUS_DEFAULT_PORT);
+//                }
+//
+//                if (remote.getAuthenticator() != null) {
+//                    nioFactory.setAuthenticator(remote.getAuthenticator());
+//                }
+//
+//                nioFactory.setConnector(this.getConnector());
+//                nioFactory.setMessageHandler(getMessageHandler());
+//
+//                nioPools[i] = new PollingBackendConnectionPool(ipList[i], nioFactory, remote.getPoolSize());
+//
+//                nioPools[i].init();
+//            }
+//            String poolName = remote.getName();
+//
+//            MultipleLoadBalanceBackendConnectionPool nioPool = new MultipleLoadBalanceBackendConnectionPool(poolName,
+//                    MultipleLoadBalanceObjectPool.LOADBALANCING_ROUNDROBIN, nioPools);
+//
+//            nioPool.init();
+//            poolMap.put(remote.getName(), nioPool);
+//
+//        }
+//
+//        return poolMap;
+//    }
+
 
     public String[] getConfigFiles() {
         return configFiles;

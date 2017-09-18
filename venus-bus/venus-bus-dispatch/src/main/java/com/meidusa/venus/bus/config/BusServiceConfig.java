@@ -1,14 +1,16 @@
-package com.meidusa.venus.bus.registry.xml.bean;
+package com.meidusa.venus.bus.config;
 
 /**
  * 
  * @author structchen
  * 
  */
-public class RemoteServiceConfig {
+public class BusServiceConfig {
     private String remote;
     private String serviceName;
     private String version;
+    private String ipAddressList;
+    private int soTimeout;
 
     public String getRemote() {
         return remote;
@@ -50,6 +52,4 @@ public class RemoteServiceConfig {
         this.soTimeout = soTimeout;
     }
 
-    private String ipAddressList;
-    private int soTimeout;
 }

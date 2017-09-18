@@ -3,6 +3,7 @@ package com.meidusa.venus.bus.dispatch;
 import com.meidusa.venus.*;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
 import com.meidusa.venus.bus.BusInvocation;
+import com.meidusa.venus.bus.config.BusRemoteConfig;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.bus.registry.ServiceManager;
 import com.meidusa.venus.client.cluster.ClusterInvokerFactory;
@@ -13,6 +14,8 @@ import com.meidusa.venus.io.packet.AbstractServicePacket;
 import com.meidusa.venus.io.packet.ErrorPacket;
 import com.meidusa.venus.io.packet.ServiceAPIPacket;
 import com.meidusa.venus.io.packet.ServicePacketBuffer;
+import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.service.registry.ServiceDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +30,15 @@ public class BusRemoteDispatcher implements Dispatcher{
 
     private static Logger logger = LoggerFactory.getLogger(BusRemoteDispatcher.class);
 
-    private ServiceManager serviceRegisterManager;
+    /**
+     * XML注册管理
+     */
+    private ServiceManager serviceManager;
+
+    /**
+     * 远程注册中心注册管理
+     */
+    private Register register;
 
     private ClusterInvoker clusterInvoker;
 
@@ -71,8 +82,7 @@ public class BusRemoteDispatcher implements Dispatcher{
      * @return
      */
     boolean isDynamicLookup(){
-        //TODO 根据容器寻址配置方式判断
-        return true;
+        return register != null;
     }
 
     /**
@@ -81,6 +91,9 @@ public class BusRemoteDispatcher implements Dispatcher{
      * @return
      */
     List<URL> lookupByStatic(Invocation invocation){
+        //TODO
+        List<BusRemoteConfig> remoteConfigList = serviceManager.lookup(invocation.getServiceName());
+        //TODO toURL,若空，则抛异常
         return Collections.emptyList();
     }
 
@@ -90,41 +103,11 @@ public class BusRemoteDispatcher implements Dispatcher{
      */
     List<URL> lookupByDynamic(Invocation invocation){
         BusInvocation busInvocation = (BusInvocation)invocation;
-        BusFrontendConnection srcConn = busInvocation.getSrcConn();
-        ServicePacketBuffer packetBuffer = busInvocation.getPacketBuffer();
-        String serviceName = busInvocation.getServiceName();
-        try {
-            List<URL> list = serviceRegisterManager.lookup(serviceName);
-
-            // service not found
-            if (list == null || list.size() == 0) {
-                ServiceAPIPacket apiPacket = new ServiceAPIPacket();
-                packetBuffer.reset();
-                apiPacket.init(packetBuffer);
-                ErrorPacket error = new ErrorPacket();
-                AbstractServicePacket.copyHead(apiPacket, error);
-                error.errorCode = VenusExceptionCodeConstant.SERVICE_NOT_FOUND;
-                error.message = "service not found :" + serviceName;
-                //错误返回
-                srcConn.write(error.toByteBuffer());
-
-                throw new RpcException("service not found");
-            }
-            return list;
-        } catch (Exception e) {
-            ServiceAPIPacket apiPacket = new ServiceAPIPacket();
-            packetBuffer.reset();
-            apiPacket.init(packetBuffer);
-
-            ErrorPacket error = new ErrorPacket();
-            AbstractServicePacket.copyHead(apiPacket, error);
-            error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
-            error.message = e.getMessage();
-            //错误返回，统一返回，fixed
-            //srcConn.write(error.toByteBuffer());
-            logger.error("error when invoke", e);
-            throw new ErrorPacketWrapperException(error);
-        }
+        //TODO invocation->toUrl
+        ServiceDefinition serviceDefinition = register.lookup(null);
+        //TODO 若空，则抛异常
+        //TODO toUrl，统一寻址输入、输出；统一本地配置输入、输出
+        return null;
     }
 
     /**

@@ -22,7 +22,9 @@ import java.util.Map;
  * venus客户端配置
  */
 public class VenusClientConfig {
+
     private List<ServiceConfig> serviceConfigs = new ArrayList<ServiceConfig>();
+
     private Map<String, RemoteConfig> remoteConfigMap = new HashMap<String, RemoteConfig>();
 
     public void addService(ServiceConfig config) {

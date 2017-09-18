@@ -8,11 +8,11 @@ import com.meidusa.venus.Result;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.bus.BusInvocation;
+import com.meidusa.venus.bus.config.BusRemoteConfig;
 import com.meidusa.venus.bus.handler.BusDispatchMessageHandler;
 import com.meidusa.venus.bus.network.BusBackendConnection;
 import com.meidusa.venus.bus.network.BusBackendConnectionFactory;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
-import com.meidusa.venus.bus.registry.xml.bean.Remote;
 import com.meidusa.venus.io.authenticate.Authenticator;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.packet.ServicePacketBuffer;
@@ -35,7 +35,7 @@ public class BusDispatcher implements Dispatcher{
 
     private static Logger logger = LoggerFactory.getLogger(BusDispatcher.class);
 
-    protected int DEFAULT_POOL_SIZE = Remote.DEFAULT_POOL_SIZE;
+    protected int DEFAULT_POOL_SIZE = BusRemoteConfig.DEFAULT_POOL_SIZE;
 
     private static ConnectionConnector connector;
 

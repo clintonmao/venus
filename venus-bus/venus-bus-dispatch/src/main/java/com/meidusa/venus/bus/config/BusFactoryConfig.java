@@ -12,9 +12,9 @@
  * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package com.meidusa.venus.bus.registry.xml.bean;
+package com.meidusa.venus.bus.config;
 
-public class FactoryConfig {
+public class BusFactoryConfig {
     private String ipAddressList = "127.0.0.1:16800";
     private int sendBufferSize = 64;
     private int receiveBufferSize = 64;

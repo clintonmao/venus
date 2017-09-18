@@ -85,9 +85,8 @@
 	<!-- 
 		基于服务注册中心的服务注册管理
 	 -->
-	<bean id="serviceRegisterManager" class="com.meidusa.venus.bus.registry.register.RegistryServiceManager" init-method="init">
-		<property name="host" value="${venus.registry.host}"/>
-		<property name="port" value="${venus.registry.port}"/>
+	<bean id="venusRegistryFactory" class="com.meidusa.venus.client.VenusRegistryFactory">
+		<property name="url" value="injvm://localhost"/>
 	</bean>
 
 	<!--认证、异常配置-->

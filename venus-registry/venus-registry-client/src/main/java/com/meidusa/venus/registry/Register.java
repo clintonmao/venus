@@ -53,24 +53,18 @@ public interface Register {
     void clearInvalid() throws VenusRegisteException;
 
     /**
-     * 从本地查找服务定义
-     * @param url
-     * @return
-     * @throws VenusRegisteException
-     */
-    ServiceDefinition lookup(URL url) throws VenusRegisteException;
-
-    /**
      * 加载服务定义到本地
      * @throws VenusRegisteException
      */
     void load() throws VenusRegisteException;
 
     /**
-     * 销毁，清理、释放相关资源
+     * 从本地查找服务定义 TODO 统一查找输入、输出签名
+     * @param url
+     * @return
      * @throws VenusRegisteException
      */
-    void destroy() throws VenusRegisteException;
+    ServiceDefinition lookup(URL url) throws VenusRegisteException;
 
     /**
      * 查找服务定义列表
@@ -80,6 +74,12 @@ public interface Register {
      * @throws VenusRegisteException
      */
     List<ServiceDefinition> findServiceList(String interfaceName, String serviceName) throws VenusRegisteException;
+
+    /**
+     * 销毁，清理、释放相关资源
+     * @throws VenusRegisteException
+     */
+    void destroy() throws VenusRegisteException;
 
 
 }
