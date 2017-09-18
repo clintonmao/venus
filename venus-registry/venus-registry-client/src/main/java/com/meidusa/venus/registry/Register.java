@@ -71,8 +71,15 @@ public interface Register {
      * @throws VenusRegisteException
      */
     void destroy() throws VenusRegisteException;
-    
-    List<ServiceDefinition> findAllServices(String interfaceName,String serviceName) throws VenusRegisteException;
+
+    /**
+     * 查找服务定义列表
+     * @param interfaceName
+     * @param serviceName
+     * @return
+     * @throws VenusRegisteException
+     */
+    List<ServiceDefinition> findServiceList(String interfaceName, String serviceName) throws VenusRegisteException;
 
 
 }

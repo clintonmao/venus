@@ -13,7 +13,7 @@
     <modules>
 		<module>venus-registry-api</module>
 		<module>venus-registry-service</module>
-		<module>venus-registry-endpoint</module>
+		<module>venus-registry-client</module>
 	</modules>
 
     <dependencies>

@@ -476,7 +476,7 @@ public class MysqlRegister implements Register {
 	}
 
 	@Override
-	public List<ServiceDefinition> findAllServices(String interfaceName,String serviceName) throws VenusRegisteException {
+	public List<ServiceDefinition> findServiceList(String interfaceName, String serviceName) throws VenusRegisteException {
 		return registerService.getServiceDefines(interfaceName, serviceName);
 	}
 

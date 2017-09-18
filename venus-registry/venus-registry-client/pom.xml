@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>venus-registry-endpoint</artifactId>
+    <artifactId>venus-registry-client</artifactId>
 
     <dependencies>
         <dependency>
