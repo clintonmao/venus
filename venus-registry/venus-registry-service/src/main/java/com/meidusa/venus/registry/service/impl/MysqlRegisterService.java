@@ -60,7 +60,7 @@ public class MysqlRegisterService implements RegisterService {
 
 	private JdbcTemplate jdbcTemplate;
 
-	private String connectStr;
+	private String connectUrl;
 
 	public MysqlRegisterService() {
 		//this("mysql://10.32.173.250:3306/registry_new?username=registry&password=registry");
@@ -74,12 +74,12 @@ public class MysqlRegisterService implements RegisterService {
 	 * @return
 	 */
 	public MysqlRegisterService(String connectStr) {
-		this.setConnectStr(connectStr);
+		this.setConnectUrl(connectStr);
 		init();
 	}
 
 	public void init() {
-		String url = this.getConnectStr();
+		String url = this.getConnectUrl();
 		if (!url.startsWith("mysql://")) {
 			logger.error("URL 参数异常,非jdbc mysql协议,url=>{}", url);
 			throw new IllegalArgumentException("URL 参数异常,非jdbc mysql协议,url=>" + url);
@@ -563,12 +563,13 @@ public class MysqlRegisterService implements RegisterService {
 		this.venusServiceMappingDAO = venusServiceMappingDAO;
 	}
 
-	public String getConnectStr() {
-		return connectStr;
+	public String getConnectUrl() {
+		return connectUrl;
 	}
 
-	public void setConnectStr(String connectStr) {
-		this.connectStr = connectStr;
+	public void setConnectUrl(String connectUrl) {
+		this.connectUrl = connectUrl;
 	}
+
 
 }

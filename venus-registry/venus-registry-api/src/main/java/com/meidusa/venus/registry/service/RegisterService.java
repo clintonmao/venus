@@ -50,4 +50,10 @@ public interface RegisterService {
     void heartbeatSubcribe(URL url);
     
     void clearInvalidService(String currentDateTime,String updateTime);
+
+    /**
+     * 设置注册中心DB连接Url
+     * @param connectUrl
+     */
+    void setConnectUrl(String connectUrl);
 }
