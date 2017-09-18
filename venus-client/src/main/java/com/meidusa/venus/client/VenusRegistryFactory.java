@@ -55,10 +55,10 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
      */
     void initRegister(){
         //根据配置创建registerService实例，本地依赖或venus远程依赖
-        RegisterService localRegisterService = null;
+        RegisterService registerService = null;
         if (isInjvm(url)) {
             try {
-                localRegisterService = (RegisterService) Class
+                registerService = (RegisterService) Class
                         .forName("com.meidusa.venus.registry.service.MysqlRegisterService").newInstance();
             } catch (Exception e) {
                 throw new RpcException(e);
@@ -67,11 +67,10 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
             //TODO venus远程依赖
             throw new RpcException("todo impl.");
         }
-        if(localRegisterService == null){
+        if(registerService == null){
             throw new RpcException("init register service failed.");
         }
-        MysqlRegister register = new MysqlRegister();
-        register.setRegisterService(localRegisterService);
+        MysqlRegister register = new MysqlRegister(registerService);
         RegisterContext.getInstance().setRegister(register);
     }
 

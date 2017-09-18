@@ -15,7 +15,7 @@
 	<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" />
 
 	<!--应用配置-->
-	<bean id="name" class="com.meidusa.venus.client.Application">
+	<bean class="com.meidusa.venus.client.Application">
 		<property name="name" value="demo-consumer"/>
 	</bean>
 
