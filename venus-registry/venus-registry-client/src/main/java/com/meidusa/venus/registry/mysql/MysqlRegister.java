@@ -53,7 +53,8 @@ public class MysqlRegister implements Register {
 
 	private String subcribePath = "/data/application/venusLocalSubcribe.txt";
 
-	public MysqlRegister() {
+	public MysqlRegister(RegisterService registerService) {
+		this.registerService = registerService;
 		try {
 			init();
 		} catch (Exception e) {
@@ -320,14 +321,6 @@ public class MysqlRegister implements Register {
 		calendar.setTime(date);
 		calendar.add(Calendar.SECOND, -second);
 		return calendar.getTime();
-	}
-
-	public RegisterService getRegisterService() {
-		return registerService;
-	}
-
-	public void setRegisterService(RegisterService registerService) {
-		this.registerService = registerService;
 	}
 
 	/**
