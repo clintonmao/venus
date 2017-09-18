@@ -5,7 +5,7 @@ import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.RegisterService;
+import com.meidusa.venus.registry.service.RegisterService;
 import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.service.registry.ServiceDefinition;
 import org.apache.commons.collections.CollectionUtils;
@@ -117,7 +117,9 @@ public class MysqlRegister implements Register {
 			heartbeat();
 		} catch (Exception e) {
 			subscribleFailUrls.add(url);
+			//FIXME 若抛异常，就不要打印error信息了，否则日志会打印两次error
 			logger.error("服务{}订阅异常 ,异常原因：{}", url.getServiceName(), e);
+			//FIXME 此处异常要处理，就不要抛出了，否则会中止流程
 			throw new VenusRegisteException("服务订阅异常" + url.getServiceName(), e);
 		}
 		subscribleUrls.add(url);

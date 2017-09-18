@@ -2,10 +2,7 @@ package com.meidusa.venus.bus.registry;
 
 import java.util.List;
 
-import com.meidusa.toolkit.common.util.Tuple;
-import com.meidusa.toolkit.net.BackendConnectionPool;
-import com.meidusa.venus.bus.config.BusRemoteConfig;
-import com.meidusa.venus.util.Range;
+import com.meidusa.venus.bus.registry.xml.config.RemoteConfig;
 
 /**
  * Service Manager Interface
@@ -20,6 +17,6 @@ public interface ServiceManager {
      * @param serviceName
      * @return
      */
-    List<BusRemoteConfig> lookup(String serviceName);
+    List<RemoteConfig> lookup(String serviceName);
 
 }

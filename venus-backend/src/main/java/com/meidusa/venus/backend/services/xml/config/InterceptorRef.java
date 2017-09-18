@@ -1,6 +1,6 @@
-package com.meidusa.venus.backend.services.xml.bean;
+package com.meidusa.venus.backend.services.xml.config;
 
-public class InterceptorStackRef {
+public class InterceptorRef {
     private String name;
 
     public String getName() {

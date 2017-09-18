@@ -1,11 +1,11 @@
-package com.meidusa.venus.bus.config;
+package com.meidusa.venus.bus.registry.xml.config;
 
 /**
  * 
  * @author structchen
  * 
  */
-public class BusServiceConfig {
+public class ServiceConfig {
     private String remote;
     private String serviceName;
     private String version;

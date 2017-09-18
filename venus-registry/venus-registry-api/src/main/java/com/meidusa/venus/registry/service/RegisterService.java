@@ -1,8 +1,9 @@
-package com.meidusa.venus.registry;
+package com.meidusa.venus.registry.service;
 
 import java.util.List;
 
 import com.meidusa.venus.URL;
+import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.service.registry.ServiceDefinition;
 
 /**

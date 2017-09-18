@@ -14,14 +14,14 @@
 
 	<pattern value="venus-server">
 		<object-create-rule-with-init
-			classname="com.meidusa.venus.backend.services.xml.bean.VenusServerConfig"
+			classname="com.meidusa.venus.backend.services.xml.config.VenusServerConfig"
 			attrname="class" />
 		<set-properties-rule />
 		<bean-property-setter-byAttrname-rule
 			pattern="property" attrname="name" /> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
 		<pattern value="services/service">
 			<object-create-rule-with-init
-				classname="com.meidusa.venus.backend.services.xml.bean.ServiceConfig" />
+				classname="com.meidusa.venus.backend.services.xml.config.ServiceConfig" />
 			<bean-property-setter-byAttrname-rule
 				pattern="property" attrname="name" /> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
 			<set-next-rule methodname="addService" />
@@ -38,7 +38,7 @@
 
 			<pattern value="endpoint">
 				<object-create-rule-with-init
-					classname="com.meidusa.venus.backend.services.xml.bean.EndpointConfig" />
+					classname="com.meidusa.venus.backend.services.xml.config.EndpointConfig" />
 				<set-properties-rule>
 					<alias attr-name="interceptor-stack" prop-name="interceptorStack" />
 				</set-properties-rule>
@@ -54,7 +54,7 @@
 					<set-next-rule methodname="addInterceptorConfig" />
 				</pattern>
 				<pattern value="performanceLogger">
-					<object-create-rule-with-init classname="com.meidusa.venus.backend.services.xml.bean.PerformanceLogger" />
+					<object-create-rule-with-init classname="com.meidusa.venus.backend.services.xml.config.PerformanceLogger" />
 					<bean-property-setter-byAttrname-rule pattern="property" attrname="name" />
 					<set-properties-rule />
 					<set-next-rule methodname="setPerformanceLogger" />
@@ -79,11 +79,11 @@
 
 		<pattern value="interceptor-stacks/interceptor-stack">
 			<object-create-rule-with-init
-				classname="com.meidusa.venus.backend.services.xml.bean.InterceptorStackConfig" />
+				classname="com.meidusa.venus.backend.services.xml.config.InterceptorStackConfig" />
 			<set-properties-rule />
 			<pattern value="interceptor-ref">
 				<object-create-rule-with-init
-					classname="com.meidusa.venus.backend.services.xml.bean.InterceptorRef" />
+					classname="com.meidusa.venus.backend.services.xml.config.InterceptorRef" />
 				<set-properties-rule />
 				<set-next-rule methodname="addInterceptorRef" />
 			</pattern>

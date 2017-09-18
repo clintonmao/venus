@@ -244,7 +244,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      * 初始化service
      * @param serviceConfig
      */
-    void initService(ServiceConfig serviceConfig,VenusClientConfig venusClientConfig) {
+    void initService(ServiceConfig serviceConfig, VenusClientConfig venusClientConfig) {
         /*
         if(StringUtils.isEmpty(serviceConfig.getRemote()) && StringUtils.isEmpty(serviceConfig.getIpAddressList()) && register == null){
             throw new ConfigurationException("remote or ipAddressList or register can not be null:" + serviceConfig.getType());
@@ -322,7 +322,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      * @param venusClientConfig
      * @return
      */
-    RemoteConfig getRemoteConfig(ServiceConfig serviceConfig,VenusClientConfig venusClientConfig){
+    RemoteConfig getRemoteConfig(ServiceConfig serviceConfig, VenusClientConfig venusClientConfig){
         if(StringUtils.isNotEmpty(serviceConfig.getRemote())){
             RemoteConfig remoteConfig = venusClientConfig.getRemoteConfigMap().get(serviceConfig.getRemote());
             if(remoteConfig == null){

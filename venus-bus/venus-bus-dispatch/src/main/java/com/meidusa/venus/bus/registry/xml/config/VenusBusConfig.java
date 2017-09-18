@@ -11,7 +11,7 @@
  * 	You should have received a copy of the GNU AFFERO GENERAL PUBLIC LICENSE along with this program; 
  * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package com.meidusa.venus.bus.config;
+package com.meidusa.venus.bus.registry.xml.config;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,23 +26,23 @@ import java.util.Map;
  */
 public class VenusBusConfig {
 
-    private List<BusServiceConfig> serviceConfigMap = new ArrayList<BusServiceConfig>();
+    private List<ServiceConfig> serviceConfigMap = new ArrayList<ServiceConfig>();
 
-    private Map<String, BusRemoteConfig> remoteConfigMap = new HashMap<String, BusRemoteConfig>();
+    private Map<String, RemoteConfig> remoteConfigMap = new HashMap<String, RemoteConfig>();
 
-    public void addService(BusServiceConfig config) {
+    public void addService(ServiceConfig config) {
         serviceConfigMap.add(config);
     }
 
-    public void addRemote(BusRemoteConfig remote) {
+    public void addRemote(RemoteConfig remote) {
         remoteConfigMap.put(remote.getName(), remote);
     }
 
-    public List<BusServiceConfig> getServiceConfigMap() {
+    public List<ServiceConfig> getServiceConfigMap() {
         return serviceConfigMap;
     }
 
-    public Map<String, BusRemoteConfig> getRemoteConfigMap() {
+    public Map<String, RemoteConfig> getRemoteConfigMap() {
         return remoteConfigMap;
     }
 

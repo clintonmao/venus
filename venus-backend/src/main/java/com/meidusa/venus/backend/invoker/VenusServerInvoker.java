@@ -10,7 +10,7 @@ import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
 import com.meidusa.venus.backend.invoker.support.*;
 import com.meidusa.venus.backend.services.*;
-import com.meidusa.venus.backend.services.xml.bean.PerformanceLogger;
+import com.meidusa.venus.backend.services.xml.config.PerformanceLogger;
 import com.meidusa.venus.backend.support.Response;
 import com.meidusa.venus.backend.support.UtilTimerStack;
 import com.meidusa.venus.exception.*;

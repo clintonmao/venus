@@ -8,7 +8,7 @@ import org.springframework.beans.factory.InitializingBean;
 import com.meidusa.toolkit.net.ConnectionManager;
 
 /**
- * Spring factory bean,作为Connection Manager的工厂,每个 manager 默认的执行线程为 CPU core 数量
+ * Spring factory config,作为Connection Manager的工厂,每个 manager 默认的执行线程为 CPU core 数量
  * 
  * @author structchen
  * 

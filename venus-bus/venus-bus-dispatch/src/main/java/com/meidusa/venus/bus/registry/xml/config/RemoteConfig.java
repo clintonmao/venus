@@ -11,17 +11,17 @@
  * 	You should have received a copy of the GNU AFFERO GENERAL PUBLIC LICENSE along with this program; 
  * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package com.meidusa.venus.bus.config;
+package com.meidusa.venus.bus.registry.xml.config;
 
 import com.meidusa.venus.io.authenticate.Authenticator;
 
 //TODO 与client统一
-public class BusRemoteConfig {
+public class RemoteConfig {
     public final static int DEFAULT_POOL_SIZE = 8;
     private int poolSize = DEFAULT_POOL_SIZE;
     private int loadbalance = 1;
     private String name;
-    private BusFactoryConfig factory;
+    private FactoryConfig factory;
     private Authenticator authenticator;
 
     public String getName() {
@@ -32,11 +32,11 @@ public class BusRemoteConfig {
         this.name = name;
     }
 
-    public BusFactoryConfig getFactory() {
+    public FactoryConfig getFactory() {
         return factory;
     }
 
-    public void setFactory(BusFactoryConfig factory) {
+    public void setFactory(FactoryConfig factory) {
         this.factory = factory;
     }
 
@@ -64,8 +64,8 @@ public class BusRemoteConfig {
         this.poolSize = poolSize;
     }
 
-    public static BusRemoteConfig parse(String ipAddressList){
-        BusRemoteConfig remoteConfig = new BusRemoteConfig();
+    public static RemoteConfig parse(String ipAddressList){
+        RemoteConfig remoteConfig = new RemoteConfig();
         remoteConfig.setFactory(null);
         return remoteConfig;
     }

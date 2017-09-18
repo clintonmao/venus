@@ -1,19 +1,12 @@
 package com.meidusa.venus.bus.dispatch;
 
 import com.meidusa.venus.*;
-import com.meidusa.venus.backend.ErrorPacketWrapperException;
 import com.meidusa.venus.bus.BusInvocation;
-import com.meidusa.venus.bus.config.BusRemoteConfig;
-import com.meidusa.venus.bus.network.BusFrontendConnection;
+import com.meidusa.venus.bus.registry.xml.config.RemoteConfig;
 import com.meidusa.venus.bus.registry.ServiceManager;
 import com.meidusa.venus.client.cluster.ClusterInvokerFactory;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
-import com.meidusa.venus.exception.VenusExceptionCodeConstant;
-import com.meidusa.venus.io.packet.AbstractServicePacket;
-import com.meidusa.venus.io.packet.ErrorPacket;
-import com.meidusa.venus.io.packet.ServiceAPIPacket;
-import com.meidusa.venus.io.packet.ServicePacketBuffer;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.service.registry.ServiceDefinition;
 import org.slf4j.Logger;
@@ -92,7 +85,7 @@ public class BusRemoteDispatcher implements Dispatcher{
      */
     List<URL> lookupByStatic(Invocation invocation){
         //TODO
-        List<BusRemoteConfig> remoteConfigList = serviceManager.lookup(invocation.getServiceName());
+        List<RemoteConfig> remoteConfigList = serviceManager.lookup(invocation.getServiceName());
         //TODO toURL,若空，则抛异常
         return Collections.emptyList();
     }

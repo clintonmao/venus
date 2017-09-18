@@ -16,7 +16,7 @@ import com.meidusa.venus.backend.invoker.support.ResponseEntityWrapper;
 import com.meidusa.venus.backend.invoker.support.ResponseHandler;
 import com.meidusa.venus.RpcInvocation;
 import com.meidusa.venus.backend.services.*;
-import com.meidusa.venus.backend.services.xml.bean.PerformanceLogger;
+import com.meidusa.venus.backend.services.xml.config.PerformanceLogger;
 import com.meidusa.venus.backend.support.Response;
 import com.meidusa.venus.client.AthenaContext;
 import com.meidusa.venus.exception.*;

@@ -9,9 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.meidusa.venus.bus.config.BusRemoteConfig;
-import com.meidusa.venus.bus.config.BusServiceConfig;
-import com.meidusa.venus.bus.config.VenusBusConfig;
+import com.meidusa.venus.bus.registry.xml.config.RemoteConfig;
+import com.meidusa.venus.bus.registry.xml.config.ServiceConfig;
+import com.meidusa.venus.bus.registry.xml.config.VenusBusConfig;
 import com.meidusa.venus.bus.registry.ServiceManager;
 import com.meidusa.venus.exception.VenusConfigException;
 import org.apache.commons.digester.Digester;
@@ -20,8 +20,6 @@ import org.apache.commons.digester.xmlrules.FromXmlRuleSet;
 
 import com.meidusa.toolkit.common.bean.config.ConfigUtil;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
-import com.meidusa.toolkit.common.util.Tuple;
-import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.util.DefaultRange;
 import com.meidusa.venus.util.Range;
@@ -41,7 +39,7 @@ public class XmlServiceManager implements ServiceManager {
     /**
      * 服务名称-服务配置映射表 TODO 版本号，1:M
      */
-    private Map<String,BusRemoteConfig> serviceRemoteConfigMap = new HashMap<String,BusRemoteConfig>();
+    private Map<String,RemoteConfig> serviceRemoteConfigMap = new HashMap<String,RemoteConfig>();
 
 
     /**
@@ -49,20 +47,20 @@ public class XmlServiceManager implements ServiceManager {
      */
     void init(){
         VenusBusConfig busConfig = parseBusConfig();
-        for (BusServiceConfig serviceConfig : busConfig.getServiceConfigMap()) {
+        for (ServiceConfig serviceConfig : busConfig.getServiceConfigMap()) {
             //TODO 确认range用途
             Range range = RangeUtil.getVersionRange(serviceConfig.getVersion());
             if (range == null) {
                 range = new DefaultRange();
             }
             String serviceName = serviceConfig.getServiceName();
-            BusRemoteConfig remoteConfig = null;
+            RemoteConfig remoteConfig = null;
             //init remoteConfig
             if(StringUtils.isNotEmpty(serviceConfig.getRemote())){
                 remoteConfig = busConfig.getRemoteConfigMap().get(serviceConfig.getRemote());
             }else if(StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
                 String ipAddressList = serviceConfig.getIpAddressList();
-                remoteConfig = BusRemoteConfig.parse(ipAddressList);
+                remoteConfig = RemoteConfig.parse(ipAddressList);
             }else{
                 throw new VenusConfigException("invliad bus registry config.");
             }
@@ -103,7 +101,7 @@ public class XmlServiceManager implements ServiceManager {
 
             try {
                 VenusBusConfig venus = (VenusBusConfig) digester.parse(is);
-                for (BusServiceConfig config : venus.getServiceConfigMap()) {
+                for (ServiceConfig config : venus.getServiceConfigMap()) {
                     if (config.getServiceName() == null) {
                         throw new ConfigurationException("Service name can not be null:" + configFile);
                     }
@@ -119,10 +117,10 @@ public class XmlServiceManager implements ServiceManager {
     }
 
     @Override
-    public List<BusRemoteConfig> lookup(String serviceName) {
+    public List<RemoteConfig> lookup(String serviceName) {
         //TODO 版本号多记录处理
-        List<BusRemoteConfig> remoteConfigList = new ArrayList<BusRemoteConfig>();
-        BusRemoteConfig remoteConfig = serviceRemoteConfigMap.get(serviceName);
+        List<RemoteConfig> remoteConfigList = new ArrayList<RemoteConfig>();
+        RemoteConfig remoteConfig = serviceRemoteConfigMap.get(serviceName);
         if(remoteConfig != null){
             remoteConfigList.add(remoteConfig);
         }
@@ -137,7 +135,7 @@ public class XmlServiceManager implements ServiceManager {
 //        Map<String, List<Tuple<Range, BackendConnectionPool>>> serviceMap = new HashMap<String, List<Tuple<Range, BackendConnectionPool>>>();
 //
 //        // create objectPool
-//        for (BusServiceConfig serviceConfig : busConfig.getServiceConfigMap()) {
+//        for (ServiceConfig serviceConfig : busConfig.getServiceConfigMap()) {
 //            BackendConnectionPool pool = null;
 //            if (!StringUtil.isEmpty(serviceConfig.getRemote())) {
 //                pool = poolMap.get(serviceConfig.getRemote());
@@ -178,11 +176,11 @@ public class XmlServiceManager implements ServiceManager {
 //    }
 
 
-//            private Map<String, BackendConnectionPool> initRemoteMap(Map<String, BusRemoteConfig> remots) throws Exception {
+//            private Map<String, BackendConnectionPool> initRemoteMap(Map<String, RemoteConfig> remots) throws Exception {
 //        Map<String, BackendConnectionPool> poolMap = new HashMap<String, BackendConnectionPool>();
-//        for (Map.Entry<String, BusRemoteConfig> entry : remots.entrySet()) {
-//            BusRemoteConfig remote = entry.getValue();
-//            BusFactoryConfig factoryConfig = remote.getFactory();
+//        for (Map.Entry<String, RemoteConfig> entry : remots.entrySet()) {
+//            RemoteConfig remote = entry.getValue();
+//            FactoryConfig factoryConfig = remote.getFactory();
 //            if (factoryConfig == null || StringUtils.isEmpty(factoryConfig.getIpAddressList())) {
 //                throw new ConfigurationException("remote name=" + remote.getName() + " factory config is null or ipAddress is null");
 //            }

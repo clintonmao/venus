@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.services.xml.bean;
+package com.meidusa.venus.backend.services.xml.config;
 
 import java.util.ArrayList;
 import java.util.List;

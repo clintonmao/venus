@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.services.xml.bean;
+package com.meidusa.venus.backend.services.xml.config;
 
 import java.util.HashMap;
 import java.util.Map;

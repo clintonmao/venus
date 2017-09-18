@@ -2,25 +2,20 @@ package com.meidusa.venus.client.invoker;
 
 import com.meidusa.venus.*;
 import com.meidusa.venus.client.cluster.ClusterInvokerFactory;
-import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.RegisterContext;
-import com.meidusa.venus.registry.RegisterService;
-import com.meidusa.venus.service.registry.HostPort;
 import com.meidusa.venus.service.registry.ServiceDefinition;
 import com.meidusa.venus.util.NetUtil;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 /**
  * client 远程（包含实例间）调用

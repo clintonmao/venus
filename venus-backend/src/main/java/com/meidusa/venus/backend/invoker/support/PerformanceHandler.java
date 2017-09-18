@@ -4,7 +4,7 @@ import com.meidusa.fastjson.JSON;
 import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.venus.backend.support.Response;
 import com.meidusa.venus.backend.services.Endpoint;
-import com.meidusa.venus.backend.services.xml.bean.PerformanceLogger;
+import com.meidusa.venus.backend.services.xml.config.PerformanceLogger;
 import com.meidusa.venus.io.packet.ErrorPacket;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;

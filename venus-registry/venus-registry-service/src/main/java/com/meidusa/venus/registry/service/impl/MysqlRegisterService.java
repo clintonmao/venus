@@ -1,4 +1,4 @@
-package com.meidusa.venus.registry.service;
+package com.meidusa.venus.registry.service.impl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.meidusa.venus.registry.service.RegisterService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.meidusa.venus.URL;
-import com.meidusa.venus.registry.RegisterService;
 import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.dao.VenusApplicationDAO;
 import com.meidusa.venus.registry.dao.VenusServerDAO;
@@ -363,13 +362,13 @@ public class MysqlRegisterService implements RegisterService {
 				return serviceDefinitions;
 			}
 			for (Iterator<VenusServiceDO> ite = services.iterator(); ite.hasNext();) {
-				VenusServiceDO venusServiceDO = (VenusServiceDO) ite.next();
+				VenusServiceDO venusServiceDO = ite.next();
 				if (venusServiceDO.getIsDelete()) {
 					ite.remove();
 				}
 			}
 			for (Iterator<VenusServiceDO> ite = services.iterator(); ite.hasNext();) {
-				VenusServiceDO venusServiceDO = (VenusServiceDO) ite.next();
+				VenusServiceDO venusServiceDO = ite.next();
 				Integer serviceId = venusServiceDO.getId();
 
 				List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMapping(serviceId,
