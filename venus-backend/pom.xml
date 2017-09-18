@@ -70,7 +70,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.meidusa.venus</groupId>
-			<artifactId>venus-registry-endpoint</artifactId>
+			<artifactId>venus-registry-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
