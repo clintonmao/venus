@@ -70,11 +70,11 @@ public class MysqlRegisterService implements RegisterService {
 	 * url =
 	 * "mysql://10.32.173.250:3306/registry_new?username=registry&password=registry";
 	 * 
-	 * @param connectStr
+	 * @param connectUrl
 	 * @return
 	 */
-	public MysqlRegisterService(String connectStr) {
-		this.setConnectUrl(connectStr);
+	public MysqlRegisterService(String connectUrl) {
+		this.setConnectUrl(connectUrl);
 		init();
 	}
 
