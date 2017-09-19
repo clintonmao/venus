@@ -12,13 +12,12 @@ public class RegistryServerApplication extends Application<ApplicationConfig> {
 
 	@Override
 	public ApplicationConfig getApplicationConfig() {
-		return null;  
+		return null;
 	}
 
 	@Override
 	protected String[] getConfigLocations() {
-		return new String[] { "file:${project.home}/conf/application-venus-server.xml"
-							  	};
+		return new String[] { "file:${project.home}/conf/application-venus-server.xml" };
 	}
 
 	public static void main(String[] args) {
