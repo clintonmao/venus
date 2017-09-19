@@ -46,7 +46,7 @@ public interface RegisterService {
      * @param url
      * @return
      */
-    VenusServiceDefinitionDO urlToServiceDefine(URL url);
+    VenusServiceDefinitionDO findServiceDefinition(URL url);
     
     /**
      * 根据接口名和服务名查询返回服务定义列表
@@ -55,7 +55,7 @@ public interface RegisterService {
      * @return
      * @throws VenusRegisteException
      */
-    List<VenusServiceDefinitionDO> getServiceDefines(String interfaceName, String serviceName) throws VenusRegisteException;
+    List<VenusServiceDefinitionDO> finderviceDefinitionList(String interfaceName, String serviceName) throws VenusRegisteException;
     
     /**
      * 根据URL更新注册接口的心跳时间
@@ -75,5 +75,16 @@ public interface RegisterService {
      * @param updateTime
      */
     void clearInvalidService(String currentDateTime,String updateTime);
+
+    /**
+     * 设置连接Url
+     * @param connectUrl
+     */
+    void setConnectUrl(String connectUrl);
+
+    /**
+     * 初始化连接相关
+     */
+    void init();
 
 }

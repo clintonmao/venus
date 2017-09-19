@@ -207,7 +207,7 @@ public class MysqlRegister implements Register {
 				String key = getKeyFromUrl(url);
 				VenusServiceDefinitionDO def = null;
 				try {
-					def = registerService.urlToServiceDefine(url);
+					def = registerService.findServiceDefinition(url);
 					logger.info("srvDef:{}", def);
 					subscribleServiceDefinitionMap.put(key, def);
 					jsons.add(JSON.toJSONString(def));
@@ -466,7 +466,7 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public List<VenusServiceDefinitionDO> findServiceList(String interfaceName, String serviceName) throws VenusRegisteException {
-		return registerService.getServiceDefines(interfaceName, serviceName);
+		return registerService.finderviceDefinitionList(interfaceName, serviceName);
 	}
 
 	/*

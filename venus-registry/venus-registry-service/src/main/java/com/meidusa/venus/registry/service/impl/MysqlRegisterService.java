@@ -293,7 +293,7 @@ public class MysqlRegisterService implements RegisterService {
 	 * }
 	 */
 
-	public VenusServiceDefinitionDO urlToServiceDefine(URL url) {
+	public VenusServiceDefinitionDO findServiceDefinition(URL url) {
 		String interfaceName = url.getInterfaceName();
 		String serviceName = url.getServiceName();
 		String version = url.getVersion();
@@ -347,7 +347,7 @@ public class MysqlRegisterService implements RegisterService {
 		return null;
 	}
 	
-	public List<VenusServiceDefinitionDO> getServiceDefines(String interfaceName, String serviceName)
+	public List<VenusServiceDefinitionDO> finderviceDefinitionList(String interfaceName, String serviceName)
 			throws VenusRegisteException {
 		List<Integer> serverIds = new ArrayList<Integer>();
 		List<VenusServiceDefinitionDO> serviceDefinitions = new ArrayList<VenusServiceDefinitionDO>();

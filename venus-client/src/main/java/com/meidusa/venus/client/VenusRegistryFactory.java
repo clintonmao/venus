@@ -5,10 +5,9 @@ import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.RegisterContext;
-import com.meidusa.venus.registry.service.RegisterService;
-import com.meidusa.venus.registry.mysql.MysqlRegister;
-import com.meidusa.venus.registry.service.impl.MysqlRegisterService;
 import com.meidusa.venus.registry.domain.HostPort;
+import com.meidusa.venus.registry.mysql.MysqlRegister;
+import com.meidusa.venus.registry.service.RegisterService;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,9 +73,13 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
         RegisterService registerService = null;
         if (isInjvm(url)) {
             //TODO 配置信息提取
-            //registerService = (RegisterService) Class.forName("com.meidusa.venus.registry.service.impl.MysqlRegisterService").newInstance();
+            try {
+                registerService = (RegisterService) Class.forName("com.meidusa.venus.registry.service.impl.MysqlRegisterService").newInstance();
+            } catch (Exception e) {
+                throw new RpcException(e);
+            }
             String connectUrl = "mysql://10.32.173.250:3306/registry_new?username=registry&password=registry";
-            registerService = new MysqlRegisterService(connectUrl);
+            registerService.setConnectUrl(connectUrl);
         } else {
             registerService = newVenusRegisterService(url);
             //TODO 设置connectUrl
@@ -84,6 +87,7 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
         if(registerService == null){
             throw new RpcException("init register service failed.");
         }
+        registerService.init();
         return registerService;
     }
 
