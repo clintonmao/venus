@@ -38,6 +38,7 @@ public class BusDispatcherProxy implements Dispatcher {
                 }
             }
 
+            //远程调用
             Result result = getBusRemoteDispatcher().invoke(invocation,null);
             return result;
         } catch (RpcException e) {
