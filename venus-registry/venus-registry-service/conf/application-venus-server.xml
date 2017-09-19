@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+		http://www.springframework.org/schema/oxm http://www.springframework.org/schema/oxm/spring-oxm-3.0.xsd"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:oxm="http://www.springframework.org/schema/oxm"
+	xmlns:p="http://www.springframework.org/schema/p"
+	default-autowire="byName">
+	
+	<bean id="mysqlRegisterService" class="com.meidusa.venus.registry.service.impl.MysqlRegisterService" init-method="init">
+		<property name="connectUrl" value=""></property>
+	</bean>
+	<import resource="file:${project.home:.}/conf/application-venus-placeholder.xml"/>	
+	<import resource="classpath:/spring/applicationContext-service-container.xml"/>	
+    <bean id="serviceManager" class="com.meidusa.venus.backend.services.xml.XmlFileServiceManager">
+        <property name="configFiles">
+            <list>
+                <value>file:${project.home:.}/conf/application-venus-services.xml</value>
+            </list>
+            
+        </property>
+    </bean>
+    
+    <bean id="authenticateProvider" class="com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider">
+    	<property name="useDummy" value="${venus.authenticate.provider.useDummy}" />
+		<property name="username" value="${venus.authenticate.provider.userName}" />
+		<property name="password" value="${venus.authenticate.provider.passWord}" />
+    </bean>
+    
+    <bean id="venusExceptionFactory" class="com.meidusa.venus.exception.XmlVenusExceptionFactory" init-method="init">
+		<property name="configFiles">
+			<list>
+				<value>classpath:com/meidusa/venus/exception/VenusSystemException.xml</value>
+			</list>
+		</property>
+	</bean>
+</beans>
