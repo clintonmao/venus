@@ -1,29 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>venus-registry</artifactId>
-        <groupId>com.meidusa.venus</groupId>
-        <version>3.3.1</version>
-    </parent>
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>venus-registry</artifactId>
+		<groupId>com.meidusa.venus</groupId>
+		<version>3.3.1</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
 
-    <artifactId>venus-registry-service</artifactId>
-    <properties>
+	<artifactId>venus-registry-service</artifactId>
+	<properties>
 		<project.home>${basedir}</project.home>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+		<gagu.ucm.version>0.0.1-SNAPSHOT</gagu.ucm.version>
 	</properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>com.meidusa.venus</groupId>
-            <artifactId>venus-registry-api</artifactId>
-            <version>3.3.1</version>
-        </dependency>
-    </dependencies>
-    
-    	<build>
+	<dependencies>
+		<dependency>
+			<groupId>com.meidusa.venus</groupId>
+			<artifactId>venus-registry-api</artifactId>
+			<version>3.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.gagu</groupId>
+			<artifactId>gagu-ucm-agent</artifactId>
+			<version>${gagu.ucm.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>spring-beans</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>spring-context</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>spring-core</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+	</dependencies>
+
+	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -37,14 +56,14 @@
 					</descriptors>
 				</configuration>
 				<executions>
-                   <execution>
-                       <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                   </execution>
-                </executions>
+					<execution>
+						<id>make-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

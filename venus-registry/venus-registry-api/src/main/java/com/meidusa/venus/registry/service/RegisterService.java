@@ -3,12 +3,17 @@ package com.meidusa.venus.registry.service;
 import java.util.List;
 
 import com.meidusa.venus.URL;
+import com.meidusa.venus.annotations.Endpoint;
+import com.meidusa.venus.annotations.Param;
+import com.meidusa.venus.annotations.PerformanceLevel;
+import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.domain.ServiceDefinitionDO;
 
 /**
  * Created by Zhangzhihua on 2017/8/16.
  */
+@Service(name = "registerService", version = 1, athenaFlag=false)
 public interface RegisterService {
 
     /**
@@ -16,7 +21,9 @@ public interface RegisterService {
      * @param url
      * @throws VenusRegisteException
      */
-    void registe(URL url) throws VenusRegisteException;
+	@Endpoint(name = "registe")
+	@PerformanceLevel(printParams=false,printResult = false)
+    void registe(@Param(name = "url") URL url) throws VenusRegisteException;
 
     /**
      * 服务反注册
@@ -24,29 +31,37 @@ public interface RegisterService {
      * @return TODO
      * @throws VenusRegisteException
      */
-    boolean unregiste(URL url) throws VenusRegisteException;
+	@Endpoint(name = "unregiste")
+	@PerformanceLevel(printParams=false,printResult = false)
+    boolean unregiste(@Param(name = "url")URL url) throws VenusRegisteException;
 
     /**
      * 服务订阅
      * @param url
      * @throws VenusRegisteException
      */
-    void subscrible(URL url) throws VenusRegisteException;
+	@Endpoint(name = "subscrible")
+	@PerformanceLevel(printParams=false,printResult = false)
+    void subscrible(@Param(name = "url")URL url) throws VenusRegisteException;
 
     /**
      * 服务反订阅
      * @param url
-     * @return TODO
+     * @return boolean
      * @throws VenusRegisteException
      */
-    boolean unsubscrible(URL url) throws VenusRegisteException;
+	@Endpoint(name = "unsubscrible")
+	@PerformanceLevel(printParams=false,printResult = false)
+    boolean unsubscrible(@Param(name = "url")URL url) throws VenusRegisteException;
 
     /**
      * 根据URL对象返回服务定义对象
      * @param url
      * @return
      */
-    ServiceDefinitionDO urlToServiceDefine(URL url);
+	@Endpoint(name = "urlToServiceDefine")
+	@PerformanceLevel(printParams=false,printResult = false)
+    ServiceDefinitionDO urlToServiceDefine(@Param(name = "url")URL url);
     
     /**
      * 根据接口名和服务名查询返回服务定义列表
@@ -55,25 +70,33 @@ public interface RegisterService {
      * @return
      * @throws VenusRegisteException
      */
-    List<ServiceDefinitionDO> getServiceDefines(String interfaceName, String serviceName) throws VenusRegisteException;
+	@Endpoint(name = "getServiceDefines")
+	@PerformanceLevel(printParams=false,printResult = false)
+    List<ServiceDefinitionDO> getServiceDefines(@Param(name = "interfaceName")String interfaceName, @Param(name = "serviceName")String serviceName) throws VenusRegisteException;
     
     /**
      * 根据URL更新注册接口的心跳时间
      * @param url
      */
-    void heartbeatRegister(URL url);
+	@Endpoint(name = "heartbeatRegister")
+	@PerformanceLevel(printParams=false,printResult = false)
+    void heartbeatRegister(@Param(name = "url")URL url);
     
     /**
      * 根据URL更新订阅接口的心跳时间
      * @param url
      */
-    void heartbeatSubcribe(URL url);
+	@Endpoint(name = "heartbeatSubcribe")
+	@PerformanceLevel(printParams=false,printResult = false)
+    void heartbeatSubcribe(@Param(name = "url")URL url);
     
     /**
      * 清理无效的服务映射关系
      * @param currentDateTime
      * @param updateTime
      */
-    void clearInvalidService(String currentDateTime,String updateTime);
+	@Endpoint(name = "clearInvalidService")
+	@PerformanceLevel(printParams=false,printResult = false)
+    void clearInvalidService(@Param(name = "currentDateTime")String currentDateTime,@Param(name = "updateTime")String updateTime);
 
 }
