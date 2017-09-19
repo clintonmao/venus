@@ -260,12 +260,12 @@ public class VenusPoolFactory implements BeanFactoryAware, InitializingBean {
         }
 
         // 初始化 remote，并且创建Pool
-        for (Map.Entry<String, RemoteConfig> entry : all.getRemoteConfigMap().entrySet()) {
+        for (Map.Entry<String, ClientRemoteConfig> entry : all.getRemoteConfigMap().entrySet()) {
             pool = createObjectPool(entry.getValue(), realPools);
         }
     }
 
-    private ObjectPool createObjectPool(RemoteConfig remoteConfig, List<ObjectPool> realPools) throws Exception {
+    private ObjectPool createObjectPool(ClientRemoteConfig remoteConfig, List<ObjectPool> realPools) throws Exception {
         FactoryConfig factoryConfig = remoteConfig.getFactory();
         if (factoryConfig == null) {
             throw new ConfigurationException(remoteConfig.getName() + " factory cannot be null");

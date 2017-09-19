@@ -8,7 +8,7 @@ import java.util.Map;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.client.factory.ServiceFactory;
-import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
+import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
@@ -159,9 +159,9 @@ public class SimpleServiceFactory implements ServiceFactory {
      * 获取远程配置
      * @return
      */
-    RemoteConfig getRemoteConfig(String host, int port){
+    ClientRemoteConfig getRemoteConfig(String host, int port){
         String ipAddress = String.format("%s:%d",host,port);
-        RemoteConfig remoteConfig = RemoteConfig.newInstace(ipAddress);
+        ClientRemoteConfig remoteConfig = ClientRemoteConfig.newInstace(ipAddress);
         return remoteConfig;
     }
 

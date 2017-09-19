@@ -2,7 +2,7 @@ package com.meidusa.venus.bus.dispatch;
 
 import com.meidusa.venus.*;
 import com.meidusa.venus.bus.BusInvocation;
-import com.meidusa.venus.bus.registry.xml.config.RemoteConfig;
+import com.meidusa.venus.bus.registry.xml.config.BusRemoteConfig;
 import com.meidusa.venus.bus.registry.ServiceManager;
 import com.meidusa.venus.client.cluster.ClusterInvokerFactory;
 import com.meidusa.venus.client.router.Router;
@@ -87,16 +87,17 @@ public class BusRemoteDispatcher implements Dispatcher{
      */
     List<URL> lookupByStatic(BusInvocation invocation){
         List<URL> urlList = new ArrayList<URL>();
-        List<RemoteConfig> remoteConfigList = serviceManager.lookup(invocation.getServiceName());
+        List<BusRemoteConfig> remoteConfigList = serviceManager.lookup(invocation.getServiceName());
         if(CollectionUtils.isEmpty(remoteConfigList)){
             return urlList;
         }
-        for(RemoteConfig remoteConfig:remoteConfigList){
+        for(BusRemoteConfig remoteConfig:remoteConfigList){
             String ipAddressList = remoteConfig.getFactory().getIpAddressList();
             String[] arr = ipAddressList.split(":");
             URL url = new URL();
             url.setHost(arr[0]);
             url.setPort(Integer.parseInt(arr[1]));
+            url.setRemoteConfig(remoteConfig);
             urlList.add(url);
         }
         return urlList;
@@ -122,6 +123,7 @@ public class BusRemoteDispatcher implements Dispatcher{
             URL url = new URL();
             url.setHost(arr[0]);
             url.setPort(Integer.parseInt(arr[1]));
+            url.setServiceDefinition(serviceDefinition);
             urlList.add(url);
         }
         return null;

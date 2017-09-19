@@ -54,7 +54,10 @@ public class URL implements Serializable {
 	/** 服务地址属性映射表，即?后属性<K,V> */
 	private Map<String, Object> properties = new HashMap<String, Object>();
 
-	/*关联服务定义*/
+	/*配置文件服务地址配置*/
+	private RemoteConfig remoteConfig;
+
+	/*注册中心服务定义*/
 	private ServiceDefinitionDO serviceDefinition;
 
 	public String getProtocol() {
@@ -325,6 +328,14 @@ public class URL implements Serializable {
 
 	public void setMethods(String methods) {
 		this.methods = methods;
+	}
+
+	public RemoteConfig getRemoteConfig() {
+		return remoteConfig;
+	}
+
+	public void setRemoteConfig(RemoteConfig remoteConfig) {
+		this.remoteConfig = remoteConfig;
 	}
 
 	public ServiceDefinitionDO getServiceDefinition() {

@@ -25,13 +25,13 @@ public class VenusClientConfig {
 
     private List<ServiceConfig> serviceConfigs = new ArrayList<ServiceConfig>();
 
-    private Map<String, RemoteConfig> remoteConfigMap = new HashMap<String, RemoteConfig>();
+    private Map<String, ClientRemoteConfig> remoteConfigMap = new HashMap<String, ClientRemoteConfig>();
 
     public void addService(ServiceConfig config) {
         serviceConfigs.add(config);
     }
 
-    public void addRemote(RemoteConfig remoteConfig) {
+    public void addRemote(ClientRemoteConfig remoteConfig) {
         remoteConfigMap.put(remoteConfig.getName(), remoteConfig);
     }
 
@@ -39,7 +39,7 @@ public class VenusClientConfig {
         return serviceConfigs;
     }
 
-    public Map<String, RemoteConfig> getRemoteConfigMap() {
+    public Map<String, ClientRemoteConfig> getRemoteConfigMap() {
         return remoteConfigMap;
     }
 
