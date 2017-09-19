@@ -13,7 +13,7 @@
 	<bean class="com.gagu.ucm.agent.venus.placeholder.VenusPropertyPlaceholderConfigurer">
 		<property name="locations">
 			<list>
-				<value>file:${project.home:.}/application.properties</value>
+				<value>classpath:application.properties</value>
 			</list>
 		</property>
 	</bean>

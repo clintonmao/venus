@@ -60,18 +60,11 @@
             <artifactId>asm</artifactId>
             <version>3.3.1</version>
         </dependency>
-
-        <dependency>
-            <groupId>com.meidusa.venus</groupId>
-            <artifactId>venus-common-base</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
             <version>3.1.1</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-project</artifactId>
@@ -90,6 +83,10 @@
         <dependency>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.meidusa.venus.commons</groupId>
+            <artifactId>venus-common-base</artifactId>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus.commons</groupId>

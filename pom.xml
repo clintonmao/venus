@@ -178,22 +178,22 @@
 			</dependency>
 			<!-- venus -->
 			<dependency>
-				<groupId>com.meidusa.venus</groupId>
+				<groupId>com.meidusa.venus.commons</groupId>
 				<artifactId>venus-commons-annotation</artifactId>
 				<version>${venus.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.meidusa.venus</groupId>
+				<groupId>com.meidusa.venus.commons</groupId>
 				<artifactId>venus-common-base</artifactId>
 				<version>${venus.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.meidusa.venus</groupId>
+				<groupId>com.meidusa.venus.commons</groupId>
 				<artifactId>venus-common-validator</artifactId>
 				<version>${venus.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.meidusa.venus</groupId>
+				<groupId>com.meidusa.venus.commons</groupId>
 				<artifactId>venus-common-exception</artifactId>
 				<version>${venus.version}</version>
 			</dependency>
@@ -207,31 +207,21 @@
 				<artifactId>venus-backend</artifactId>
 				<version>${venus.version}</version>
 			</dependency>
-
 			<dependency>
 				<groupId>com.meidusa.venus</groupId>
 				<artifactId>venus-http-adaptor</artifactId>
 				<version>${venus.version}</version>
 			</dependency>
-
 			<dependency>
 				<groupId>com.meidusa.venus</groupId>
 				<artifactId>venus-http-backend</artifactId>
 				<version>${venus.version}</version>
 			</dependency>
-
 			<dependency>
 				<groupId>com.meidusa.venus</groupId>
 				<artifactId>venus-http-filter</artifactId>
 				<version>${venus.version}</version>
 			</dependency>
-
-			<dependency>
-				<groupId>com.meidusa.venus.extension</groupId>
-				<artifactId>venus-extension-athena</artifactId>
-				<version>${venus.version}</version>
-			</dependency>
-			
 			<!-- toolkit -->
 			<dependency>
 				<groupId>com.meidusa.toolkit.commons</groupId>

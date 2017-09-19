@@ -17,7 +17,7 @@ public class RegistryServerApplication extends Application<ApplicationConfig> {
 
 	@Override
 	protected String[] getConfigLocations() {
-		return new String[] { "file:${project.home}/conf/application-venus-server.xml" };
+		return new String[] { "classpath:/conf/application-venus-server.xml" };
 	}
 
 	public static void main(String[] args) {

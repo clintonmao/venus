@@ -138,7 +138,12 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                     for(ServiceConfig serviceConfig : venusServerConfig.getServiceConfigs()){
                         if(serviceConfig.getInstance() == null){
                             if(beanFactory != null){
-                                Object object = beanFactory.getBean("helloService");
+                                //TODO 旧逻辑按实例名称查找spring实例？
+                                Object object = beanFactory.getBean(serviceConfig.getType());
+                                if(object == null){
+                                    String errorMsg = String.format("init venus config instance %s error.",serviceConfig.getType().getName());
+                                    throw new VenusConfigException(errorMsg);
+                                }
                                 serviceConfig.setInstance(object);
                             }
                         }
