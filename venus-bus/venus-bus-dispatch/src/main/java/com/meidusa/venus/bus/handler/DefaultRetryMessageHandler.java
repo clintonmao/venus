@@ -134,7 +134,8 @@ public class DefaultRetryMessageHandler implements RetryMessageHandler{
             int index = apiName.lastIndexOf(".");
             String serviceName = apiName.substring(0, index);
             // String methodName = apiName.substring(index + 1);
-            List<Tuple<Range, BackendConnectionPool>> list = serviceRegisterManager.getRemoteList(serviceName);
+            //TODO 确认功能废弃？
+            List<Tuple<Range, BackendConnectionPool>> list = null;//serviceRegisterManager.getRemoteList(serviceName);
 
             // service not found
             if (list == null || list.size() == 0) {
