@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.meidusa.venus.bus.registry.xml.config.RemoteConfig;
+import com.meidusa.venus.bus.registry.xml.config.BusRemoteConfig;
 import com.meidusa.venus.bus.registry.xml.config.ServiceConfig;
 import com.meidusa.venus.bus.registry.xml.config.VenusBusConfig;
 import com.meidusa.venus.bus.registry.ServiceManager;
@@ -39,7 +39,7 @@ public class XmlServiceManager implements ServiceManager {
     /**
      * 服务名称-服务配置映射表 TODO 版本号，1:M
      */
-    private Map<String,RemoteConfig> serviceRemoteConfigMap = new HashMap<String,RemoteConfig>();
+    private Map<String,BusRemoteConfig> serviceRemoteConfigMap = new HashMap<String,BusRemoteConfig>();
 
 
     /**
@@ -54,13 +54,13 @@ public class XmlServiceManager implements ServiceManager {
                 range = new DefaultRange();
             }
             String serviceName = serviceConfig.getServiceName();
-            RemoteConfig remoteConfig = null;
+            BusRemoteConfig remoteConfig = null;
             //init remoteConfig
             if(StringUtils.isNotEmpty(serviceConfig.getRemote())){
                 remoteConfig = busConfig.getRemoteConfigMap().get(serviceConfig.getRemote());
             }else if(StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
                 String ipAddressList = serviceConfig.getIpAddressList();
-                remoteConfig = RemoteConfig.parse(ipAddressList);
+                remoteConfig = BusRemoteConfig.parse(ipAddressList);
             }else{
                 throw new VenusConfigException("invliad bus registry config.");
             }
@@ -117,10 +117,10 @@ public class XmlServiceManager implements ServiceManager {
     }
 
     @Override
-    public List<RemoteConfig> lookup(String serviceName) {
+    public List<BusRemoteConfig> lookup(String serviceName) {
         //TODO 版本号多记录处理
-        List<RemoteConfig> remoteConfigList = new ArrayList<RemoteConfig>();
-        RemoteConfig remoteConfig = serviceRemoteConfigMap.get(serviceName);
+        List<BusRemoteConfig> remoteConfigList = new ArrayList<BusRemoteConfig>();
+        BusRemoteConfig remoteConfig = serviceRemoteConfigMap.get(serviceName);
         if(remoteConfig != null){
             remoteConfigList.add(remoteConfig);
         }
@@ -176,10 +176,10 @@ public class XmlServiceManager implements ServiceManager {
 //    }
 
 
-//            private Map<String, BackendConnectionPool> initRemoteMap(Map<String, RemoteConfig> remots) throws Exception {
+//            private Map<String, BackendConnectionPool> initRemoteMap(Map<String, ClientRemoteConfig> remots) throws Exception {
 //        Map<String, BackendConnectionPool> poolMap = new HashMap<String, BackendConnectionPool>();
-//        for (Map.Entry<String, RemoteConfig> entry : remots.entrySet()) {
-//            RemoteConfig remote = entry.getValue();
+//        for (Map.Entry<String, ClientRemoteConfig> entry : remots.entrySet()) {
+//            ClientRemoteConfig remote = entry.getValue();
 //            FactoryConfig factoryConfig = remote.getFactory();
 //            if (factoryConfig == null || StringUtils.isEmpty(factoryConfig.getIpAddressList())) {
 //                throw new ConfigurationException("remote name=" + remote.getName() + " factory config is null or ipAddress is null");

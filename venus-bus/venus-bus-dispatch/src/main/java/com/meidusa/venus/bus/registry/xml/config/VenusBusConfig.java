@@ -28,13 +28,13 @@ public class VenusBusConfig {
 
     private List<ServiceConfig> serviceConfigMap = new ArrayList<ServiceConfig>();
 
-    private Map<String, RemoteConfig> remoteConfigMap = new HashMap<String, RemoteConfig>();
+    private Map<String, BusRemoteConfig> remoteConfigMap = new HashMap<String, BusRemoteConfig>();
 
     public void addService(ServiceConfig config) {
         serviceConfigMap.add(config);
     }
 
-    public void addRemote(RemoteConfig remote) {
+    public void addRemote(BusRemoteConfig remote) {
         remoteConfigMap.put(remote.getName(), remote);
     }
 
@@ -42,7 +42,7 @@ public class VenusBusConfig {
         return serviceConfigMap;
     }
 
-    public Map<String, RemoteConfig> getRemoteConfigMap() {
+    public Map<String, BusRemoteConfig> getRemoteConfigMap() {
         return remoteConfigMap;
     }
 

@@ -3,7 +3,7 @@ package com.meidusa.venus.client.invoker;
 import com.meidusa.venus.*;
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.client.cluster.ClusterInvokerFactory;
-import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
+import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
@@ -29,7 +29,7 @@ public class ClientRemoteInvoker implements Invoker{
     /**
      * 静态地址配置
      */
-    private RemoteConfig remoteConfig;
+    private ClientRemoteConfig remoteConfig;
 
     /**
      * 注册中心
@@ -132,6 +132,7 @@ public class ClientRemoteInvoker implements Invoker{
         URL url = new URL();
         url.setHost(arr[0]);
         url.setPort(Integer.parseInt(arr[1]));
+        url.setRemoteConfig(remoteConfig);
         urlList.add(url);
         return urlList;
     }
@@ -145,6 +146,7 @@ public class ClientRemoteInvoker implements Invoker{
         List<URL> urlList = new ArrayList<URL>();
 
         URL serviceUrl = parseUrl(invocation);
+        //TODO 查找多条匹配记录，如只给出interfaceName、serviceName，有多个版本号服务定义
         VenusServiceDefinitionDO serviceDefinition = getRegister().lookup(serviceUrl);
         if(serviceDefinition == null || CollectionUtils.isEmpty(serviceDefinition.getIpAddress())){
             throw new RpcException("not found available service providers.");
@@ -156,6 +158,7 @@ public class ClientRemoteInvoker implements Invoker{
             URL url = new URL();
             url.setHost(arr[0]);
             url.setPort(Integer.parseInt(arr[1]));
+            url.setServiceDefinition(serviceDefinition);
             urlList.add(url);
         }
         return urlList;
@@ -196,11 +199,11 @@ public class ClientRemoteInvoker implements Invoker{
         return clusterInvoker;
     }
 
-    public RemoteConfig getRemoteConfig() {
+    public ClientRemoteConfig getRemoteConfig() {
         return remoteConfig;
     }
 
-    public void setRemoteConfig(RemoteConfig remoteConfig) {
+    public void setRemoteConfig(ClientRemoteConfig remoteConfig) {
         this.remoteConfig = remoteConfig;
     }
 

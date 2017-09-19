@@ -6,7 +6,7 @@ import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
-import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
+import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.filter.limit.ClientActivesLimitFilter;
 import com.meidusa.venus.client.filter.limit.ClientTpsLimitFilter;
 import com.meidusa.venus.client.filter.mock.ClientCallbackMockFilter;
@@ -48,7 +48,7 @@ public class ClientInvokerProxy implements Invoker {
     /**
      * 静态配置地址
      */
-    private RemoteConfig remoteConfig;
+    private ClientRemoteConfig remoteConfig;
 
     /**
      * 注册中心
@@ -251,11 +251,11 @@ public class ClientInvokerProxy implements Invoker {
         this.authenticator = authenticator;
     }
 
-    public RemoteConfig getRemoteConfig() {
+    public ClientRemoteConfig getRemoteConfig() {
         return remoteConfig;
     }
 
-    public void setRemoteConfig(RemoteConfig remoteConfig) {
+    public void setRemoteConfig(ClientRemoteConfig remoteConfig) {
         this.remoteConfig = remoteConfig;
     }
 

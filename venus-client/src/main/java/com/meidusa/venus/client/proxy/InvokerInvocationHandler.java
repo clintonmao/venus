@@ -10,7 +10,7 @@ import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.client.AthenaContext;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.ServiceFactory;
-import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
+import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.invoker.ClientInvokerProxy;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.packet.PacketConstant;
@@ -61,7 +61,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
     /**
      * 静态配置地址
      */
-    private RemoteConfig remoteConfig;
+    private ClientRemoteConfig remoteConfig;
 
     /**
      * 注册中心
@@ -190,11 +190,11 @@ public class InvokerInvocationHandler implements InvocationHandler {
         this.serviceInterface = serviceInterface;
     }
 
-    public RemoteConfig getRemoteConfig() {
+    public ClientRemoteConfig getRemoteConfig() {
         return remoteConfig;
     }
 
-    public void setRemoteConfig(RemoteConfig remoteConfig) {
+    public void setRemoteConfig(ClientRemoteConfig remoteConfig) {
         this.remoteConfig = remoteConfig;
     }
 

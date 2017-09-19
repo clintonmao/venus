@@ -20,7 +20,7 @@ import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.client.factory.ServiceFactory;
-import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
+import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.factory.xml.config.ServiceConfig;
 import com.meidusa.venus.client.factory.xml.config.VenusClientConfig;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanContext;
@@ -269,7 +269,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         invocationHandler.setServiceInterface(serviceConfig.getType());
         //若配置静态地址，以静态为先
         if(StringUtils.isNotEmpty(serviceConfig.getRemote()) || StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
-            RemoteConfig remoteConfig = getRemoteConfig(serviceConfig,venusClientConfig);
+            ClientRemoteConfig remoteConfig = getRemoteConfig(serviceConfig,venusClientConfig);
             invocationHandler.setRemoteConfig(remoteConfig);
         }else{
             //要保证先初始化VenusRegisterFactory
@@ -322,16 +322,16 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      * @param venusClientConfig
      * @return
      */
-    RemoteConfig getRemoteConfig(ServiceConfig serviceConfig, VenusClientConfig venusClientConfig){
+    ClientRemoteConfig getRemoteConfig(ServiceConfig serviceConfig, VenusClientConfig venusClientConfig){
         if(StringUtils.isNotEmpty(serviceConfig.getRemote())){
-            RemoteConfig remoteConfig = venusClientConfig.getRemoteConfigMap().get(serviceConfig.getRemote());
+            ClientRemoteConfig remoteConfig = venusClientConfig.getRemoteConfigMap().get(serviceConfig.getRemote());
             if(remoteConfig == null){
                 throw new ConfigurationException(String.format("remoteConfig %  not found.",serviceConfig.getRemote()));
             }
             return remoteConfig;
         }
         if(StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
-            RemoteConfig remoteConfig = RemoteConfig.newInstace(serviceConfig.getIpAddressList());
+            ClientRemoteConfig remoteConfig = ClientRemoteConfig.newInstace(serviceConfig.getIpAddressList());
             return remoteConfig;
         }
         return null;

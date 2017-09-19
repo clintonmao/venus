@@ -11,17 +11,31 @@
  * 	You should have received a copy of the GNU AFFERO GENERAL PUBLIC LICENSE along with this program; 
  * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package com.meidusa.venus.bus.registry.xml.config;
+package com.meidusa.venus.client.factory.xml.config;
 
+import com.meidusa.venus.RemoteConfig;
 import com.meidusa.venus.io.authenticate.Authenticator;
 
-//TODO 与client统一
-public class RemoteConfig {
-    public final static int DEFAULT_POOL_SIZE = 8;
-    private int poolSize = DEFAULT_POOL_SIZE;
-    private int loadbalance = 1;
+/**
+ * client静态地址配置
+ */
+public class ClientRemoteConfig implements RemoteConfig {
+
     private String name;
+
     private FactoryConfig factory;
+
+    /**
+     * 连接池配置
+     */
+    private PoolConfig pool;
+
+    private boolean share = true;
+
+    private int loadbalance = 1;
+
+    private boolean enabled =true;
+
     private Authenticator authenticator;
 
     public String getName() {
@@ -40,6 +54,14 @@ public class RemoteConfig {
         this.factory = factory;
     }
 
+    public PoolConfig getPool() {
+        return pool;
+    }
+
+    public void setPool(PoolConfig pool) {
+        this.pool = pool;
+    }
+
     public Authenticator getAuthenticator() {
         return authenticator;
     }
@@ -56,17 +78,32 @@ public class RemoteConfig {
         this.loadbalance = loadbalance;
     }
 
-    public int getPoolSize() {
-        return poolSize;
-    }
+	public boolean isEnabled() {
+		return enabled;
+	}
 
-    public void setPoolSize(int poolSize) {
-        this.poolSize = poolSize;
-    }
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 
-    public static RemoteConfig parse(String ipAddressList){
-        RemoteConfig remoteConfig = new RemoteConfig();
-        remoteConfig.setFactory(null);
+	public boolean isShare() {
+		return share;
+	}
+
+	public void setShare(boolean share) {
+		this.share = share;
+	}
+
+    /**
+     * 根据ip地址段构造缺省的远程配置
+     * @param ipAddressList
+     * @return
+     */
+	public static ClientRemoteConfig newInstace(String ipAddressList){
+        FactoryConfig factoryConfig = new FactoryConfig();
+        factoryConfig.setIpAddressList(ipAddressList);
+        ClientRemoteConfig remoteConfig = new ClientRemoteConfig();
+        remoteConfig.setFactory(factoryConfig);
         return remoteConfig;
     }
 

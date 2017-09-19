@@ -58,7 +58,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     /**
      * 远程连接配置，包含ip相关信息
      */
-    private RemoteConfig remoteConfig;
+    private ClientRemoteConfig remoteConfig;
 
     private VenusExceptionFactory venusExceptionFactory;
 
@@ -351,14 +351,14 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @throws Exception
      * @param url
      */
-    public BackendConnectionPool getNioConnPool(URL url,RemoteConfig remoteConfig) throws Exception {
+    public BackendConnectionPool getNioConnPool(URL url,ClientRemoteConfig remoteConfig) throws Exception {
         //若存在，则直接使用，否则新建
         String address = String.format("%s:%s",url.getHost(),String.valueOf(url.getPort()));
         if(nioPoolMap.get(address) != null){
             return nioPoolMap.get(address);
         }
 
-        BackendConnectionPool backendConnectionPool = createNioPool(url,new RemoteConfig());
+        BackendConnectionPool backendConnectionPool = createNioPool(url,new ClientRemoteConfig());
         nioPoolMap.put(address,backendConnectionPool);
         return backendConnectionPool;
         /*
@@ -380,7 +380,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @return
      * @throws Exception
      */
-    private BackendConnectionPool createNioPool(URL url,RemoteConfig remoteConfig) throws Exception {
+    private BackendConnectionPool createNioPool(URL url,ClientRemoteConfig remoteConfig) throws Exception {
         //初始化连接工厂
         VenusBackendConnectionFactory nioFactory = new VenusBackendConnectionFactory();
         nioFactory.setHost(url.getHost());
@@ -537,11 +537,11 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         this.container = container;
     }
 
-    public RemoteConfig getRemoteConfig() {
+    public ClientRemoteConfig getRemoteConfig() {
         return remoteConfig;
     }
 
-    public void setRemoteConfig(RemoteConfig remoteConfig) {
+    public void setRemoteConfig(ClientRemoteConfig remoteConfig) {
         this.remoteConfig = remoteConfig;
     }
 
