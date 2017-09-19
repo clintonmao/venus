@@ -1,4 +1,4 @@
-package com.meidusa.venus.service.registry;
+package com.meidusa.venus.registry.domain;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,7 +7,6 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 
 import com.meidusa.toolkit.common.util.ObjectUtil;
-import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
 
 /**
  * 服务定义
@@ -15,7 +14,7 @@ import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
  * @author structchen
  * 
  */
-public class ServiceDefinition {
+public class ServiceDefinitionDO {
 
 	/**
 	 * 服务名称
@@ -111,8 +110,8 @@ public class ServiceDefinition {
 		if (obj == this) {
 			return true;
 		}
-		if (obj instanceof ServiceDefinition) {
-			ServiceDefinition target = (ServiceDefinition) obj;
+		if (obj instanceof ServiceDefinitionDO) {
+			ServiceDefinitionDO target = (ServiceDefinitionDO) obj;
 			boolean result = StringUtils.equals(name, target.getName());
 			result = result && StringUtils.equals(versionRange, target.getVersionRange());
 			result = result && this.getIpAddress() != null && target.getIpAddress().equals(this.getIpAddress());
@@ -133,7 +132,7 @@ public class ServiceDefinition {
 
 	@Override
 	public String toString() {
-		return "ServiceDefinition [name=" + name + ", interfaceName=" + interfaceName + ", versionRange=" + versionRange
+		return "ServiceDefinitionDO [name=" + name + ", interfaceName=" + interfaceName + ", versionRange=" + versionRange
 				+ ", active=" + active + ", ipAddress=" + ipAddress + ", description=" + description
 				+ ", serviceConfigs=" + serviceConfigs + "]";
 	}

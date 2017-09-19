@@ -1,4 +1,4 @@
-package com.meidusa.venus.service.registry;
+package com.meidusa.venus.registry.domain;
 
 public class HostPort {
 

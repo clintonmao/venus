@@ -8,7 +8,7 @@ import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.RegisterContext;
-import com.meidusa.venus.service.registry.ServiceDefinition;
+import com.meidusa.venus.registry.domain.ServiceDefinitionDO;
 import com.meidusa.venus.util.NetUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -143,7 +143,7 @@ public class ClientRemoteInvoker implements Invoker{
         List<URL> urlList = new ArrayList<URL>();
 
         URL serviceUrl = parseUrl(invocation);
-        ServiceDefinition serviceDefinition = getRegister().lookup(serviceUrl);
+        ServiceDefinitionDO serviceDefinition = getRegister().lookup(serviceUrl);
         if(serviceDefinition == null || CollectionUtils.isEmpty(serviceDefinition.getIpAddress())){
             throw new RpcException("not found available service providers.");
         }

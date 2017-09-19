@@ -10,8 +10,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.mysql.MysqlRegister;
-import com.meidusa.venus.service.registry.ServiceDefinition;
+import com.meidusa.venus.registry.domain.ServiceDefinitionDO;
 
 @ContextConfiguration(locations = { "classpath:registry-dao.xml" })
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -89,7 +88,7 @@ public class SpringTestCase extends AbstractJUnit4SpringContextTests {
 		u.setConsumerCheck(true);
 		mysqlRegister.subscrible(u);
 
-		ServiceDefinition lookup = mysqlRegister.lookup(u);
+		ServiceDefinitionDO lookup = mysqlRegister.lookup(u);
 		System.out.println(lookup);
 
 	}

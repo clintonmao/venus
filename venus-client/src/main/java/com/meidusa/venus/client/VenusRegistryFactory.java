@@ -8,7 +8,7 @@ import com.meidusa.venus.registry.RegisterContext;
 import com.meidusa.venus.registry.service.RegisterService;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
 import com.meidusa.venus.registry.service.impl.MysqlRegisterService;
-import com.meidusa.venus.service.registry.HostPort;
+import com.meidusa.venus.registry.domain.HostPort;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.meidusa.venus.registry.domain.*;
 import com.meidusa.venus.registry.service.RegisterService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -31,13 +32,7 @@ import com.meidusa.venus.registry.dao.impl.VenusServerDaoImpl;
 import com.meidusa.venus.registry.dao.impl.VenusServiceConfigDaoImpl;
 import com.meidusa.venus.registry.dao.impl.VenusServiceDaoImpl;
 import com.meidusa.venus.registry.dao.impl.VenusServiceMappingDaoImpl;
-import com.meidusa.venus.registry.domain.RegisteConstant;
-import com.meidusa.venus.registry.domain.VenusApplicationDO;
-import com.meidusa.venus.registry.domain.VenusServerDO;
-import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
-import com.meidusa.venus.registry.domain.VenusServiceDO;
-import com.meidusa.venus.registry.domain.VenusServiceMappingDO;
-import com.meidusa.venus.service.registry.ServiceDefinition;
+import com.meidusa.venus.registry.domain.ServiceDefinitionDO;
 
 /**
  * Created by Zhangzhihua on 2017/8/16.
@@ -286,7 +281,7 @@ public class MysqlRegisterService implements RegisterService {
 	 * 
 	 * }
 	 * 
-	 * @Override public ServiceDefinition lookup(URL url) throws
+	 * @Override public ServiceDefinitionDO lookup(URL url) throws
 	 * VenusRegisteException { return null; }
 	 * 
 	 * @Override public void load() throws VenusRegisteException {
@@ -298,7 +293,7 @@ public class MysqlRegisterService implements RegisterService {
 	 * }
 	 */
 
-	public ServiceDefinition urlToServiceDefine(URL url) {
+	public ServiceDefinitionDO urlToServiceDefine(URL url) {
 		String interfaceName = url.getInterfaceName();
 		String serviceName = url.getServiceName();
 		String version = url.getVersion();
@@ -332,7 +327,7 @@ public class MysqlRegisterService implements RegisterService {
 				}
 			}
 			if (CollectionUtils.isNotEmpty(hostPortSet)) {
-				ServiceDefinition def = new ServiceDefinition();
+				ServiceDefinitionDO def = new ServiceDefinitionDO();
 				def.setInterfaceName(interfaceName);
 				def.setName(serviceName);
 				def.setIpAddress(hostPortSet);
@@ -352,10 +347,10 @@ public class MysqlRegisterService implements RegisterService {
 		return null;
 	}
 	
-	public List<ServiceDefinition> getServiceDefines(String interfaceName, String serviceName)
+	public List<ServiceDefinitionDO> getServiceDefines(String interfaceName, String serviceName)
 			throws VenusRegisteException {
 		List<Integer> serverIds = new ArrayList<Integer>();
-		List<ServiceDefinition> serviceDefinitions = new ArrayList<ServiceDefinition>();
+		List<ServiceDefinitionDO> serviceDefinitions = new ArrayList<ServiceDefinitionDO>();
 		try {
 			List<VenusServiceDO> services = venusServiceDAO.getServices(interfaceName, serviceName);
 			if (null == services) {
@@ -394,7 +389,7 @@ public class MysqlRegisterService implements RegisterService {
 					}
 				}
 				if (CollectionUtils.isNotEmpty(hostPortSet)) {
-					ServiceDefinition def = new ServiceDefinition();
+					ServiceDefinitionDO def = new ServiceDefinitionDO();
 					def.setInterfaceName(interfaceName);
 					def.setName(serviceName);
 					def.setIpAddress(hostPortSet);

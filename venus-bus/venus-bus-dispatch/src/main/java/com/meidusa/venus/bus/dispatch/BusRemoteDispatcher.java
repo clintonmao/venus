@@ -1,21 +1,18 @@
 package com.meidusa.venus.bus.dispatch;
 
 import com.meidusa.venus.*;
-import com.meidusa.venus.bus.BusInvocation;
 import com.meidusa.venus.bus.registry.xml.config.RemoteConfig;
 import com.meidusa.venus.bus.registry.ServiceManager;
-import com.meidusa.venus.client.VenusRegistryFactory;
 import com.meidusa.venus.client.cluster.ClusterInvokerFactory;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
 import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.service.registry.ServiceDefinition;
+import com.meidusa.venus.registry.domain.ServiceDefinitionDO;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -111,7 +108,7 @@ public class BusRemoteDispatcher implements Dispatcher{
         List<URL> urlList = new ArrayList<URL>();
 
         URL serviceUrl = parseUrl(invocation);
-        ServiceDefinition serviceDefinition = register.lookup(serviceUrl);
+        ServiceDefinitionDO serviceDefinition = register.lookup(serviceUrl);
 
         if(serviceDefinition == null || CollectionUtils.isEmpty(serviceDefinition.getIpAddress())){
             throw new RpcException("not found available service providers.");

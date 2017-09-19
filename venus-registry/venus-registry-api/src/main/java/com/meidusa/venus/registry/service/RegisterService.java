@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.VenusRegisteException;
-import com.meidusa.venus.service.registry.ServiceDefinition;
+import com.meidusa.venus.registry.domain.ServiceDefinitionDO;
 
 /**
  * Created by Zhangzhihua on 2017/8/16.
@@ -46,7 +46,7 @@ public interface RegisterService {
      * @param url
      * @return
      */
-    ServiceDefinition urlToServiceDefine(URL url);
+    ServiceDefinitionDO urlToServiceDefine(URL url);
     
     /**
      * 根据接口名和服务名查询返回服务定义列表
@@ -55,7 +55,7 @@ public interface RegisterService {
      * @return
      * @throws VenusRegisteException
      */
-    List<ServiceDefinition> getServiceDefines(String interfaceName, String serviceName) throws VenusRegisteException;
+    List<ServiceDefinitionDO> getServiceDefines(String interfaceName, String serviceName) throws VenusRegisteException;
     
     /**
      * 根据URL更新注册接口的心跳时间

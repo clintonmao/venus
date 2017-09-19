@@ -27,7 +27,7 @@ public interface ServiceRegistry {
      * 获得单个服务的 服务定义
      * @param name 服务名
      * @param version 版本号
-     * @return ServiceDefinition
+     * @return ServiceDefinitionDO
      */
     @Endpoint(name = "getServiceDefinition")
     ServiceDefinition getServiceDefinition(@Param(name = "name") String name, @Param(name = "version") int version);
