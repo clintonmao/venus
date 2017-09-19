@@ -14,7 +14,7 @@
 package com.meidusa.venus.client.invoker.venus;
 
 import com.meidusa.toolkit.net.MessageHandler;
-import com.meidusa.venus.Invocation;
+import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.handler.VenusClientMessageHandler;
@@ -48,7 +48,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
     /**
      * rpcId-请求映射表 TODO 完成、异常清理问题；及监控大小问题
      */
-    private Map<String, Invocation> serviceInvocationMap;
+    private Map<String, ClientInvocation> serviceInvocationMap;
 
     /**
      * rpcId-响应映射表
@@ -99,7 +99,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_RESPONSE:
                 //获取clientId/clientRequestId，用于获取invocation请求信息
-                Invocation syncInvocation = serviceInvocationMap.get(RpcIdUtil.getRpcId(parseServicePacket(message)));
+                ClientInvocation syncInvocation = serviceInvocationMap.get(RpcIdUtil.getRpcId(parseServicePacket(message)));
 
                 ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, syncInvocation.getMethod().getGenericReturnType());
                 response.init(message);
@@ -113,7 +113,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 }
                 break;
             case PacketConstant.PACKET_TYPE_NOTIFY_PUBLISH:
-                Invocation asyncInvocation = serviceInvocationMap.get(RpcIdUtil.getRpcId(parseServicePacket(message)));
+                ClientInvocation asyncInvocation = serviceInvocationMap.get(RpcIdUtil.getRpcId(parseServicePacket(message)));
 
                 ServicePacketBuffer buffer = new ServicePacketBuffer(message);
                 buffer.setPosition(PacketConstant.SERVICE_HEADER_SIZE + 4);
@@ -211,11 +211,11 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         this.serviceResponseMap = serviceResponseMap;
     }
 
-    public Map<String, Invocation> getServiceInvocationMap() {
+    public Map<String, ClientInvocation> getServiceInvocationMap() {
         return serviceInvocationMap;
     }
 
-    public void setServiceInvocationMap(Map<String, Invocation> serviceInvocationMap) {
+    public void setServiceInvocationMap(Map<String, ClientInvocation> serviceInvocationMap) {
         this.serviceInvocationMap = serviceInvocationMap;
     }
 

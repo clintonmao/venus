@@ -6,6 +6,7 @@ import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
+import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.client.factory.xml.XmlServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.*;
 import com.meidusa.venus.client.invoker.AbstractClientInvoker;
@@ -84,7 +85,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     /**
      * rpcId-请求映射表 TODO 完成、异常清理问题；及监控大小问题
      */
-    private Map<String, Invocation> serviceInvocationMap = new ConcurrentHashMap<String, Invocation>();
+    private Map<String, ClientInvocation> serviceInvocationMap = new ConcurrentHashMap<String, ClientInvocation>();
 
     /**
      * rpcId-响应映射表 TODO 完成、异常清理问题；及监控大小问题
@@ -144,7 +145,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     }
 
     @Override
-    public Result doInvoke(Invocation invocation, URL url) throws RpcException {
+    public Result doInvoke(ClientInvocation invocation, URL url) throws RpcException {
         try {
             if(!isCallbackInvocation(invocation)){
                 return doInvokeWithSync(invocation, url);
@@ -161,7 +162,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @param invocation
      * @return
      */
-    boolean isCallbackInvocation(Invocation invocation){
+    boolean isCallbackInvocation(ClientInvocation invocation){
         EndpointParameter[] params = invocation.getParams();
         if (params != null) {
             Object[] args = invocation.getArgs();
@@ -181,7 +182,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @return
      * @throws Exception
      */
-    public Result doInvokeWithSync(Invocation invocation, URL url) throws Exception {
+    public Result doInvokeWithSync(ClientInvocation invocation, URL url) throws Exception {
         //构造请求消息
         SerializeServiceRequestPacket request = buildRequest(invocation);
         //添加rpcId -> invocation映射表
@@ -212,7 +213,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @return
      * @throws Exception
      */
-    public Result doInvokeWithCallback(Invocation invocation, URL url) throws Exception {
+    public Result doInvokeWithCallback(ClientInvocation invocation, URL url) throws Exception {
         //构造请求消息
         SerializeServiceRequestPacket request = buildRequest(invocation);
         //添加rpcId-> invocation映射表
@@ -230,7 +231,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @param invocation
      * @return
      */
-    SerializeServiceRequestPacket buildRequest(Invocation invocation){
+    SerializeServiceRequestPacket buildRequest(ClientInvocation invocation){
         Method method = invocation.getMethod();
         Service service = invocation.getService();
         Endpoint endpoint = invocation.getEndpoint();
@@ -294,7 +295,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @return
      * @throws Exception
      */
-    void sendRequest(Invocation invocation, SerializeServiceRequestPacket serviceRequestPacket, URL url) throws Exception{
+    void sendRequest(ClientInvocation invocation, SerializeServiceRequestPacket serviceRequestPacket, URL url) throws Exception{
         byte[] traceID = invocation.getTraceID();
         Service service = invocation.getService();
         Endpoint endpoint = invocation.getEndpoint();
@@ -477,7 +478,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @param serviceRequestPacket
      * @param invocation
      */
-    private void setTransactionId(AthenaTransactionId athenaTransactionId, SerializeServiceRequestPacket serviceRequestPacket, Invocation invocation) {
+    private void setTransactionId(AthenaTransactionId athenaTransactionId, SerializeServiceRequestPacket serviceRequestPacket, ClientInvocation invocation) {
         if (athenaTransactionId != null) {
             if (athenaTransactionId.getRootId() != null) {
                 byte[] athenaId = athenaTransactionId.getRootId().getBytes();

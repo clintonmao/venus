@@ -31,6 +31,11 @@ public class URL implements Serializable {
 	/** 版本号，如 1.0.0 */
 	private String version;
 
+	private String methods;
+
+	/** 应用名 */
+	private String application;
+
 	/** ip，如 192.168.1.1 */
 	private String host;
 
@@ -40,19 +45,17 @@ public class URL implements Serializable {
 	/** 机器权重 0~100 */
 	private int weight;
 
-	/** 应用名 */
-	private String application;
-
 	/** 负载策略 */
 	private String loadbanlance;
 
 	/** 订阅检测 */
 	private boolean consumerCheck;
 
-	private String methods;
-
 	/** 服务地址属性映射表，即?后属性<K,V> */
 	private Map<String, Object> properties = new HashMap<String, Object>();
+
+	/*关联服务定义*/
+	private ServiceDefinitionDO serviceDefinition;
 
 	public String getProtocol() {
 		return protocol;
@@ -322,6 +325,14 @@ public class URL implements Serializable {
 
 	public void setMethods(String methods) {
 		this.methods = methods;
+	}
+
+	public ServiceDefinitionDO getServiceDefinition() {
+		return serviceDefinition;
+	}
+
+	public void setServiceDefinition(ServiceDefinitionDO serviceDefinition) {
+		this.serviceDefinition = serviceDefinition;
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package com.meidusa.venus.client.filter.limit;
 
 import com.meidusa.venus.*;
+import com.meidusa.venus.ClientInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,11 +52,12 @@ public class ClientTpsLimitFilter extends BaseLimitFilter implements Filter {
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
-        if(!isEnableTpsLimit(invocation, url)){
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
+        if(!isEnableTpsLimit(clientInvocation, url)){
             return null;
         }
         //获取方法路径及当前并发数
-        String methodPath = getMethodPath(invocation, url);
+        String methodPath = getMethodPath(clientInvocation, url);
         AtomicInteger activeLimit = methodTpsMapping.get(methodPath);
         if(activeLimit == null){
             activeLimit = new AtomicInteger(0);
@@ -89,7 +91,7 @@ public class ClientTpsLimitFilter extends BaseLimitFilter implements Filter {
      * @param url
      * @return
      */
-    boolean isEnableTpsLimit(Invocation invocation, URL url){
+    boolean isEnableTpsLimit(ClientInvocation invocation, URL url){
         String limitType = getLimitType(invocation, url);
         return LIMIT_TYPE_TPS.equalsIgnoreCase(limitType);
     }

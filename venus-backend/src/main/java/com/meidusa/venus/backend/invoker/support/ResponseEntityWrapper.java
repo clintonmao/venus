@@ -1,7 +1,7 @@
 package com.meidusa.venus.backend.invoker.support;
 
 import com.meidusa.venus.Result;
-import com.meidusa.venus.RpcInvocation;
+import com.meidusa.venus.ServerInvocation;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
@@ -23,7 +23,7 @@ public class ResponseEntityWrapper {
     public ResponseEntityWrapper(){
     }
 
-    public static ResponseEntityWrapper parse(RpcInvocation invocation, Result result, boolean athenaFlag){
+    public static ResponseEntityWrapper parse(ServerInvocation invocation, Result result, boolean athenaFlag){
         ResponseEntityWrapper wrapper = new ResponseEntityWrapper();
         wrapper.setConn(invocation.getConn());
         wrapper.setRouterPacket(invocation.getRouterPacket());

@@ -1,6 +1,7 @@
 package com.meidusa.venus.client.filter.mock;
 
 import com.meidusa.venus.*;
+import com.meidusa.venus.ClientInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,11 +20,12 @@ public class ClientReturnMockFilter extends BaseMockFilter implements Filter {
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
-        if(!isEnableReturnMock(invocation, url)){
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
+        if(!isEnableReturnMock(clientInvocation, url)){
             return null;
         }
         //获取mock返回值
-        Object retru = getMockReturn(invocation, url);
+        Object retru = getMockReturn(clientInvocation, url);
         //TODO 校验return
         return new Result(retru);
     }
@@ -44,7 +46,7 @@ public class ClientReturnMockFilter extends BaseMockFilter implements Filter {
      * @param url
      * @return
      */
-    Object getMockReturn(Invocation invocation, URL url){
+    Object getMockReturn(ClientInvocation invocation, URL url){
         return "ok";
     }
 
@@ -54,7 +56,7 @@ public class ClientReturnMockFilter extends BaseMockFilter implements Filter {
      * @param url
      * @return
      */
-    boolean isEnableReturnMock(Invocation invocation, URL url){
+    boolean isEnableReturnMock(ClientInvocation invocation, URL url){
         String mockType = getMockType(invocation, url);
         return MOCK_TYPE_RETURN.equalsIgnoreCase(mockType);
     }

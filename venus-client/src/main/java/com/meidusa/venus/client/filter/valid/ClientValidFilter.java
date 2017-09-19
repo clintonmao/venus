@@ -1,6 +1,7 @@
 package com.meidusa.venus.client.filter.valid;
 
 import com.meidusa.venus.*;
+import com.meidusa.venus.ClientInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,9 +22,10 @@ public class ClientValidFilter implements Filter {
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
         //endpoint定义校验
-        if(invocation.getEndpoint() == null){
-            Method method = invocation.getMethod();
+        if(clientInvocation.getEndpoint() == null){
+            Method method = clientInvocation.getMethod();
             if (!method.getDeclaringClass().equals(Object.class)) {
                 logger.error("remote invoke error: endpoint annotation not declare on method=" + method.getName());
                 throw new RpcException("remote invoke error: endpoint annotation not declare on method=" + method.getName());

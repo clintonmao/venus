@@ -3,6 +3,7 @@ package com.meidusa.venus.client.invoker;
 import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
+import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.util.VenusAnnotationUtils;
 import org.slf4j.Logger;
@@ -22,17 +23,18 @@ public abstract class AbstractClientInvoker implements Invoker {
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
         VenusThreadContext.set(VenusThreadContext.REQUEST_URL,url);
-        Method method = invocation.getMethod();
-        Service service = invocation.getService();
-        Endpoint endpoint = invocation.getEndpoint();
+        Method method = clientInvocation.getMethod();
+        Service service = clientInvocation.getService();
+        Endpoint endpoint = clientInvocation.getEndpoint();
 
         try {
             //初始化
             init();
 
             //调用相应协议实现
-            Result result = doInvoke(invocation, url);
+            Result result = doInvoke(clientInvocation, url);
             return result;
         } catch (Throwable e) {
             if (!(e instanceof CodedException)) {
@@ -55,5 +57,5 @@ public abstract class AbstractClientInvoker implements Invoker {
      * @return
      * @throws RpcException
      */
-    public abstract Result doInvoke(Invocation invocation, URL url) throws RpcException;
+    public abstract Result doInvoke(ClientInvocation invocation, URL url) throws RpcException;
 }

@@ -3,7 +3,7 @@ package com.meidusa.venus.backend.invoker;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.backend.invoker.support.ResponseEntityWrapper;
 import com.meidusa.venus.backend.invoker.support.ResponseHandler;
-import com.meidusa.venus.RpcInvocation;
+import com.meidusa.venus.ServerInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +29,7 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
 
     private SerializeServiceRequestPacket request;
 
-    private RpcInvocation invocation;
+    private ServerInvocation invocation;
 
     private boolean isResponsed = false;
 
@@ -40,7 +40,7 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
     }
 
     public VenusServerInvocationListener(VenusFrontendConnection conn, ReferenceInvocationListener<T> source, SerializeServiceRequestPacket request,
-                                         VenusRouterPacket routerPacket, RpcInvocation invocation) {
+                                         VenusRouterPacket routerPacket, ServerInvocation invocation) {
         this.conn = conn;
         this.source = source;
         this.request = request;

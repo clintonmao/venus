@@ -2,8 +2,6 @@ package com.meidusa.venus.monitor.filter;
 
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
-import com.meidusa.venus.monitor.filter.BaseMonitorFilter;
-import com.meidusa.venus.monitor.filter.InvocationDetail;
 
 import java.util.Date;
 
@@ -33,12 +31,13 @@ public class ServerMonitorFilter extends BaseMonitorFilter implements Filter{
 
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
+        ServerInvocation serverInvocation = (ServerInvocation)invocation;
         Result result = (Result) VenusThreadContext.get(VenusThreadContext.RESPONSE_RESULT);
         Throwable e = (Throwable)VenusThreadContext.get(VenusThreadContext.RESPONSE_EXCEPTION);
 
         InvocationDetail invocationDetail = new InvocationDetail();
         invocationDetail.setFrom(InvocationDetail.FROM_SERVER);
-        invocationDetail.setInvocation(invocation);
+        invocationDetail.setInvocation(serverInvocation);
         invocationDetail.setResponseTime(new Date());
         invocationDetail.setResult(result);
         invocationDetail.setException(e);

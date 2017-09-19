@@ -3,7 +3,7 @@ package com.meidusa.venus.backend.filter.valid;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.venus.*;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
-import com.meidusa.venus.RpcInvocation;
+import com.meidusa.venus.ServerInvocation;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.services.Service;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
@@ -29,7 +29,7 @@ public class ServerValidFilter implements Filter {
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
-        RpcInvocation rpcInvocation = (RpcInvocation)invocation;
+        ServerInvocation rpcInvocation = (ServerInvocation)invocation;
         valid(rpcInvocation);
         return null;
     }
@@ -54,7 +54,7 @@ public class ServerValidFilter implements Filter {
      * @param invocation
      * @return
      */
-    void valid(RpcInvocation invocation){
+    void valid(ServerInvocation invocation){
         Tuple<Long, byte[]> data = invocation.getData();
         byte[] message = invocation.getMessage();
         byte packetSerializeType = invocation.getPacketSerializeType();
@@ -104,7 +104,7 @@ public class ServerValidFilter implements Filter {
      * @param waitTime
      * @param invocation
      */
-    void checkTimeout(Endpoint endpoint, AbstractServiceRequestPacket request, long waitTime, RpcInvocation invocation) {
+    void checkTimeout(Endpoint endpoint, AbstractServiceRequestPacket request, long waitTime, ServerInvocation invocation) {
         if (waitTime > endpoint.getTimeWait()) {
             ErrorPacket error = new ErrorPacket();
             AbstractServicePacket.copyHead(request, error);

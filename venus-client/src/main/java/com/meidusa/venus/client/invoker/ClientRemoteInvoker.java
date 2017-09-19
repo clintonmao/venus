@@ -1,6 +1,7 @@
 package com.meidusa.venus.client.invoker;
 
 import com.meidusa.venus.*;
+import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.client.cluster.ClusterInvokerFactory;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
@@ -8,7 +9,7 @@ import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.RegisterContext;
-import com.meidusa.venus.registry.domain.ServiceDefinitionDO;
+import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.util.NetUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -66,11 +67,12 @@ public class ClientRemoteInvoker implements Invoker{
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
-        //寻址，静态或动态 TODO 地址变化对连接池的影响
-        List<URL> urlList = lookup(invocation);
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
+        //寻址，静态或动态
+        List<URL> urlList = lookup(clientInvocation);
 
         //路由规则过滤
-        urlList = router.filte(urlList, invocation);
+        urlList = router.filte(clientInvocation, urlList);
 
         //集群容错调用
         Result result = getClusterInvoker().invoke(invocation, urlList);
@@ -87,7 +89,7 @@ public class ClientRemoteInvoker implements Invoker{
      * @param invocation
      * @return
      */
-    List<URL> lookup(Invocation invocation){
+    List<URL> lookup(ClientInvocation invocation){
         if(!isDynamicLookup()){//静态地址
             List<URL> urlList = lookupByStatic(invocation);
             if(CollectionUtils.isEmpty(urlList)){
@@ -122,7 +124,7 @@ public class ClientRemoteInvoker implements Invoker{
      * @param invocation
      * @return
      */
-    List<URL> lookupByStatic(Invocation invocation){
+    List<URL> lookupByStatic(ClientInvocation invocation){
         List<URL> urlList = new ArrayList<URL>();
         //TODO 确认及处理多个地址格式
         String ipAddressList = remoteConfig.getFactory().getIpAddressList();
@@ -139,11 +141,11 @@ public class ClientRemoteInvoker implements Invoker{
      * @param invocation
      * @return
      */
-    List<URL> lookupByDynamic(Invocation invocation){
+    List<URL> lookupByDynamic(ClientInvocation invocation){
         List<URL> urlList = new ArrayList<URL>();
 
         URL serviceUrl = parseUrl(invocation);
-        ServiceDefinitionDO serviceDefinition = getRegister().lookup(serviceUrl);
+        VenusServiceDefinitionDO serviceDefinition = getRegister().lookup(serviceUrl);
         if(serviceDefinition == null || CollectionUtils.isEmpty(serviceDefinition.getIpAddress())){
             throw new RpcException("not found available service providers.");
         }
@@ -164,7 +166,7 @@ public class ClientRemoteInvoker implements Invoker{
      * @param invocation
      * @return
      */
-    URL parseUrl(Invocation invocation){
+    URL parseUrl(ClientInvocation invocation){
         String path = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
         URL serviceUrl = URL.parse(path);
         return serviceUrl;

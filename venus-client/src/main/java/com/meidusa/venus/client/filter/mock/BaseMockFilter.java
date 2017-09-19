@@ -1,6 +1,6 @@
 package com.meidusa.venus.client.filter.mock;
 
-import com.meidusa.venus.Invocation;
+import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,7 @@ public class BaseMockFilter {
      * @param url
      * @return
      */
-    String getMethodPath(Invocation invocation, URL url){
+    String getMethodPath(ClientInvocation invocation, URL url){
         String methodPath = String.format(
                 "%s/%s?version=%s&method=%s",
                 invocation.getMethod().getDeclaringClass().getName(),
@@ -44,7 +44,7 @@ public class BaseMockFilter {
      * @param url
      * @return
      */
-    String getMockType(Invocation invocation,URL url){
+    String getMockType(ClientInvocation invocation, URL url){
         //TODO 获取流控类型
         return null;//MOCK_TYPE_RETURN;
     }

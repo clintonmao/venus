@@ -4,6 +4,7 @@ import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
+import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.RemoteConfig;
 import com.meidusa.venus.client.filter.limit.ClientActivesLimitFilter;
@@ -72,6 +73,7 @@ public class ClientInvokerProxy implements Invoker {
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
         try {
             //调用前切面处理，校验、流控、降级等
             for(Filter filter : getBeforeFilters()){
@@ -83,7 +85,7 @@ public class ClientInvokerProxy implements Invoker {
             }
 
             //根据配置选择内部调用还是跨实例/远程调用
-            if(isInjvmInvoke(invocation)){
+            if(isInjvmInvoke(clientInvocation)){
                 Result result = getInjvmInvoker().invoke(invocation, url);
                 VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
                 return result;
@@ -117,7 +119,7 @@ public class ClientInvokerProxy implements Invoker {
      * @param invocation
      * @return
      */
-    boolean isInjvmInvoke(Invocation invocation){
+    boolean isInjvmInvoke(ClientInvocation invocation){
         Service service = invocation.getService();
         Endpoint endpoint = invocation.getEndpoint();
         if (endpoint != null && service != null) {

@@ -8,6 +8,7 @@ import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.ExceptionCode;
 import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
+import com.meidusa.venus.ServerInvocation;
 import com.meidusa.venus.backend.invoker.support.*;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.config.PerformanceLogger;
@@ -107,7 +108,7 @@ public class VenusServerInvoker implements Invoker {
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
-        RpcInvocation rpcInvocation = (RpcInvocation)invocation;
+        ServerInvocation rpcInvocation = (ServerInvocation)invocation;
         //获取调用信息
         Tuple<Long, byte[]> data = rpcInvocation.getData();
         byte[] message = rpcInvocation.getMessage();

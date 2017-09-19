@@ -5,7 +5,7 @@ import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.domain.ServiceDefinitionDO;
+import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.registry.service.RegisterService;
 import com.meidusa.venus.registry.VenusRegisteException;
 import org.apache.commons.collections.CollectionUtils;
@@ -41,7 +41,7 @@ public class MysqlRegister implements Register {
 	private Set<URL> subscribleFailUrls = new HashSet<URL>();// 失败的继续跑启线程定时运行
 
 	/** 已订阅成功的 服务定义对象 */
-	private ConcurrentMap<String, ServiceDefinitionDO> subscribleServiceDefinitionMap = new ConcurrentHashMap<String, ServiceDefinitionDO>();
+	private ConcurrentMap<String, VenusServiceDefinitionDO> subscribleServiceDefinitionMap = new ConcurrentHashMap<String, VenusServiceDefinitionDO>();
 
 	private boolean loadRunning = false;
 
@@ -164,19 +164,19 @@ public class MysqlRegister implements Register {
 	}
 
 	@Override
-	public ServiceDefinitionDO lookup(URL url) throws VenusRegisteException {
+	public VenusServiceDefinitionDO lookup(URL url) throws VenusRegisteException {
 //		 ServiceDefineRunnable run = new ServiceDefineRunnable();
 //		 run.run();//测试接口时用
 		// 接口名 服务名 版本号 加载服务的server信息及serviceConfig信息
-		// 根据本地 ServiceDefinitionDO 列表去查找
+		// 根据本地 VenusServiceDefinitionDO 列表去查找
 		String key = getKeyFromUrl(url);
-		ServiceDefinitionDO serviceDefinition = subscribleServiceDefinitionMap.get(key);
+		VenusServiceDefinitionDO serviceDefinition = subscribleServiceDefinitionMap.get(key);
 		if (null == serviceDefinition) {
 			List<String> readFileJsons = readFile(subcribePath);
-			Map<String, ServiceDefinitionDO> map = new HashMap<String, ServiceDefinitionDO>();
+			Map<String, VenusServiceDefinitionDO> map = new HashMap<String, VenusServiceDefinitionDO>();
 			if (CollectionUtils.isNotEmpty(readFileJsons)) {
 				for (String str : readFileJsons) {
-					ServiceDefinitionDO parseObject = JSON.parseObject(str, ServiceDefinitionDO.class);
+					VenusServiceDefinitionDO parseObject = JSON.parseObject(str, VenusServiceDefinitionDO.class);
 					map.put(getKey(parseObject), parseObject);
 				}
 			}
@@ -192,7 +192,7 @@ public class MysqlRegister implements Register {
 		return serviceName + "_" + version + "_" + interfaceName;
 	}
 
-	private static String getKey(ServiceDefinitionDO url) {
+	private static String getKey(VenusServiceDefinitionDO url) {
 		String serviceName = url.getName();
 		String interfaceName = url.getInterfaceName();
 		String version = url.getVersionRange();
@@ -205,7 +205,7 @@ public class MysqlRegister implements Register {
 			List<String> jsons = new ArrayList<String>();
 			for (URL url : subscribleUrls) {
 				String key = getKeyFromUrl(url);
-				ServiceDefinitionDO def = null;
+				VenusServiceDefinitionDO def = null;
 				try {
 					def = registerService.urlToServiceDefine(url);
 					logger.info("srvDef:{}", def);
@@ -443,10 +443,10 @@ public class MysqlRegister implements Register {
 		List<String> returnList = new ArrayList<String>();
 		for (Iterator<String> iterator = oldList.iterator(); iterator.hasNext();) {
 			String json = iterator.next();
-			ServiceDefinitionDO oldObject = JSON.parseObject(json, ServiceDefinitionDO.class);
+			VenusServiceDefinitionDO oldObject = JSON.parseObject(json, VenusServiceDefinitionDO.class);
 			if (CollectionUtils.isNotEmpty(newList)) {
 				for (String str : newList) {
-					ServiceDefinitionDO newObject = JSON.parseObject(str, ServiceDefinitionDO.class);
+					VenusServiceDefinitionDO newObject = JSON.parseObject(str, VenusServiceDefinitionDO.class);
 					if (getKey(oldObject).equals(getKey(newObject))) {
 						iterator.remove();
 					}
@@ -465,15 +465,15 @@ public class MysqlRegister implements Register {
 	}
 
 	@Override
-	public List<ServiceDefinitionDO> findServiceList(String interfaceName, String serviceName) throws VenusRegisteException {
+	public List<VenusServiceDefinitionDO> findServiceList(String interfaceName, String serviceName) throws VenusRegisteException {
 		return registerService.getServiceDefines(interfaceName, serviceName);
 	}
 
 	/*
 	 * public static void main(String args[]) {
 	 * 
-	 * ServiceDefinitionDO def1 = new ServiceDefinitionDO(); ServiceDefinitionDO def2
-	 * = new ServiceDefinitionDO();
+	 * VenusServiceDefinitionDO def1 = new VenusServiceDefinitionDO(); VenusServiceDefinitionDO def2
+	 * = new VenusServiceDefinitionDO();
 	 * 
 	 * RouterRule rr = new RouterRule(); VenusServiceConfigDO conf = new
 	 * VenusServiceConfigDO(); conf.setRouterRule(rr);

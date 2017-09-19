@@ -14,7 +14,7 @@ import com.meidusa.venus.backend.ErrorPacketWrapperException;
 import com.meidusa.venus.backend.invoker.support.RequestHandler;
 import com.meidusa.venus.backend.invoker.support.ResponseEntityWrapper;
 import com.meidusa.venus.backend.invoker.support.ResponseHandler;
-import com.meidusa.venus.RpcInvocation;
+import com.meidusa.venus.ServerInvocation;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.config.PerformanceLogger;
 import com.meidusa.venus.backend.support.Response;
@@ -135,7 +135,7 @@ public class VenusServerInvokerTask implements Runnable{
      * @param data
      */
     public void handle(VenusFrontendConnection conn, Tuple<Long, byte[]> data) {
-        RpcInvocation invocation = null;
+        ServerInvocation invocation = null;
         Result result = null;
         try {
             //解析请求对象
@@ -199,8 +199,8 @@ public class VenusServerInvokerTask implements Runnable{
      * 解析并构造请求对象 TODO 统一接口invocation定义
      * @return
      */
-    RpcInvocation parseInvocation(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
-        RpcInvocation invocation = new RpcInvocation();
+    ServerInvocation parseInvocation(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
+        ServerInvocation invocation = new ServerInvocation();
         invocation.setConn(conn);
         invocation.setData(data);
         invocation.setClientId(conn.getClientId());
@@ -418,7 +418,7 @@ public class VenusServerInvokerTask implements Runnable{
      * @param conn
      * @param routerPacket
      */
-    void initParamsForInvocationListener(SerializeServiceRequestPacket request, VenusFrontendConnection conn, VenusRouterPacket routerPacket,RpcInvocation invocation){
+    void initParamsForInvocationListener(SerializeServiceRequestPacket request, VenusFrontendConnection conn, VenusRouterPacket routerPacket,ServerInvocation invocation){
         for (Map.Entry<String, Object> entry : request.parameterMap.entrySet()) {
             if (entry.getValue() instanceof ReferenceInvocationListener) {
                 VenusServerInvocationListener<Serializable> invocationListener = new VenusServerInvocationListener<Serializable>(conn, (ReferenceInvocationListener) entry.getValue(), request,
@@ -457,7 +457,7 @@ public class VenusServerInvokerTask implements Runnable{
      * @param rpcInvocation
      * @return
      */
-    RequestContext getRequestContext(RpcInvocation rpcInvocation){
+    RequestContext getRequestContext(ServerInvocation rpcInvocation){
         byte packetSerializeType = rpcInvocation.getPacketSerializeType();
         //构造请求上下文信息
         RequestHandler requestHandler = new RequestHandler();

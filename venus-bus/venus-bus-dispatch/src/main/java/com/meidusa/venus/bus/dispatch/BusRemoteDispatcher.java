@@ -1,13 +1,14 @@
 package com.meidusa.venus.bus.dispatch;
 
 import com.meidusa.venus.*;
+import com.meidusa.venus.bus.BusInvocation;
 import com.meidusa.venus.bus.registry.xml.config.RemoteConfig;
 import com.meidusa.venus.bus.registry.ServiceManager;
 import com.meidusa.venus.client.cluster.ClusterInvokerFactory;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
 import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.domain.ServiceDefinitionDO;
+import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,12 +46,13 @@ public class BusRemoteDispatcher implements Dispatcher{
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
+        BusInvocation busInvocation = (BusInvocation)invocation;
         //寻址
-        List<URL> urlList = lookup(invocation);
+        List<URL> urlList = lookup(busInvocation);
 
         //TODO 路由规则过滤/版本号校验 router.filte
         //路由规则过滤
-        urlList = router.filte(urlList, invocation);
+        urlList = router.filte(invocation, urlList);
 
         //集群容错分发调用
         Result result = getClusterInvoker().invoke(invocation,urlList);
@@ -62,7 +64,7 @@ public class BusRemoteDispatcher implements Dispatcher{
      * @param invocation
      * @return
      */
-    List<URL> lookup(Invocation invocation){
+    List<URL> lookup(BusInvocation invocation){
         if(!isDynamicLookup()){
             return this.lookupByStatic(invocation);
         }else{
@@ -83,7 +85,7 @@ public class BusRemoteDispatcher implements Dispatcher{
      * @param invocation
      * @return
      */
-    List<URL> lookupByStatic(Invocation invocation){
+    List<URL> lookupByStatic(BusInvocation invocation){
         List<URL> urlList = new ArrayList<URL>();
         List<RemoteConfig> remoteConfigList = serviceManager.lookup(invocation.getServiceName());
         if(CollectionUtils.isEmpty(remoteConfigList)){
@@ -104,11 +106,11 @@ public class BusRemoteDispatcher implements Dispatcher{
      * 查找服务地址
      * @return
      */
-    List<URL> lookupByDynamic(Invocation invocation){
+    List<URL> lookupByDynamic(BusInvocation invocation){
         List<URL> urlList = new ArrayList<URL>();
 
         URL serviceUrl = parseUrl(invocation);
-        ServiceDefinitionDO serviceDefinition = register.lookup(serviceUrl);
+        VenusServiceDefinitionDO serviceDefinition = register.lookup(serviceUrl);
 
         if(serviceDefinition == null || CollectionUtils.isEmpty(serviceDefinition.getIpAddress())){
             throw new RpcException("not found available service providers.");
@@ -130,7 +132,7 @@ public class BusRemoteDispatcher implements Dispatcher{
      * @param invocation
      * @return
      */
-    URL parseUrl(Invocation invocation){
+    URL parseUrl(BusInvocation invocation){
         String path = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
         URL serviceUrl = URL.parse(path);
         return serviceUrl;

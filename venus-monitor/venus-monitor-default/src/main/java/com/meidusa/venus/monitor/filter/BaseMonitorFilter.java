@@ -1,7 +1,7 @@
 package com.meidusa.venus.monitor.filter;
 
 import com.athena.service.api.AthenaDataService;
-import com.meidusa.venus.Invocation;
+import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.monitor.reporter.MonitorReporterDelegate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +69,10 @@ public class BaseMonitorFilter {
      * @return
      */
     String getMethodAndEnvPath(InvocationDetail detail){
-        Invocation invocation = detail.getInvocation();
+        ClientInvocation invocation = null;
+        if(detail.getInvocation() instanceof ClientInvocation){
+            invocation = (ClientInvocation)detail.getInvocation();
+        }
         //请求时间，精确为分钟
         String requestTimeOfMinutes = getTimeOfMinutes(invocation.getRequestTime());
         //方法路径信息

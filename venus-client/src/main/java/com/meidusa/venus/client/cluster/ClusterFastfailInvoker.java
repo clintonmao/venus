@@ -1,6 +1,7 @@
 package com.meidusa.venus.client.cluster;
 
 import com.meidusa.venus.*;
+import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 
 import java.util.List;
@@ -17,7 +18,8 @@ public class ClusterFastfailInvoker extends AbstractClusterInvoker implements Cl
 
     @Override
     public Result invoke(Invocation invocation, List<URL> urlList) throws RpcException {
-        Invoker invoker = getInvoker(invocation);
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
+        Invoker invoker = getInvoker(clientInvocation);
         return  invoker.invoke(invocation,urlList.get(0));
     }
 
@@ -30,7 +32,7 @@ public class ClusterFastfailInvoker extends AbstractClusterInvoker implements Cl
      * @param invocation
      * @return
      */
-    Invoker getInvoker(Invocation invocation){
+    Invoker getInvoker(ClientInvocation invocation){
         //TODO
         return new VenusClientInvoker();
     }

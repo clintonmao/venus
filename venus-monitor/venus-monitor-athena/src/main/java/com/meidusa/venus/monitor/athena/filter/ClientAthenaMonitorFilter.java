@@ -33,9 +33,10 @@ public class ClientAthenaMonitorFilter implements Filter {
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
-        Service service = invocation.getService();
-        Endpoint endpoint = invocation.getEndpoint();
-        Method method = invocation.getMethod();
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
+        Service service = clientInvocation.getService();
+        Endpoint endpoint = clientInvocation.getEndpoint();
+        Method method = clientInvocation.getMethod();
         //athena相关
         if(service != null && service.athenaFlag()){
             //athenaId
@@ -46,15 +47,15 @@ public class ClientAthenaMonitorFilter implements Filter {
                 //保存athena信息到上下文
                 if (athenaTransactionId.getRootId() != null) {
                     byte[] athenaId = athenaTransactionId.getRootId().getBytes();
-                    invocation.setAthenaId(athenaId);
+                    clientInvocation.setAthenaId(athenaId);
                 }
                 if (athenaTransactionId.getParentId() != null) {
                     byte[] parentId = athenaTransactionId.getParentId().getBytes();
-                    invocation.setParentId(parentId);
+                    clientInvocation.setParentId(parentId);
                 }
                 if (athenaTransactionId.getMessageId() != null) {
                     byte[] messageId = athenaTransactionId.getMessageId().getBytes();
-                    invocation.setMessageId(messageId);
+                    clientInvocation.setMessageId(messageId);
                 }
             }
         }
@@ -68,7 +69,8 @@ public class ClientAthenaMonitorFilter implements Filter {
 
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
-        if (invocation.getService().athenaFlag()) {
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
+        if (clientInvocation.getService().athenaFlag()) {
             //从上下文设置请求、接收报文长度
             Integer clientOutputSize = (Integer) VenusThreadContext.get(VenusThreadContext.CLIENT_OUTPUT_SIZE);
             if(clientOutputSize != null){

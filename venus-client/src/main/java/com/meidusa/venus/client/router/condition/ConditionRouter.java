@@ -18,7 +18,7 @@ import java.util.Map;
 public class ConditionRouter implements Router {
 
     @Override
-    public List<URL> filte(List<URL> urlList, Invocation invocation) {
+    public List<URL> filte(Invocation invocation, List<URL> urlList) {
         List<URL> alllowUrlList = new ArrayList<URL>();
         for(URL url: urlList){
             List<ConditionRule> ruleList = getRouteRules(url);

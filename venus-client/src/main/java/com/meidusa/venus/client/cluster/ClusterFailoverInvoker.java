@@ -1,9 +1,9 @@
 package com.meidusa.venus.client.cluster;
 
 import com.meidusa.venus.*;
+import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.client.cluster.loadbanlance.Loadbanlance;
 import com.meidusa.venus.client.cluster.loadbanlance.RandomLoadbanlance;
-import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +31,7 @@ public class ClusterFailoverInvoker extends AbstractClusterInvoker implements Cl
 
     @Override
     public Result invoke(Invocation invocation, List<URL> urlList) throws RpcException {
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
         //TODO 只针对系统异常进行重试
         for(int i=0;i<retry;i++){
             try {
@@ -43,7 +44,7 @@ public class ClusterFailoverInvoker extends AbstractClusterInvoker implements Cl
                 logger.warn("invoke failed.",e);
             }
         }
-        throw new RpcException(String.format("invoke serivce %s,method %s failed with %d tries.",invocation.getService().name(),invocation.getMethod().getName(),retry));
+        throw new RpcException(String.format("invoke serivce %s,method %s failed with %d tries.",clientInvocation.getService().name(),clientInvocation.getMethod().getName(),retry));
     }
 
     /**

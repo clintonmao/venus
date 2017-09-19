@@ -1,8 +1,7 @@
 package com.meidusa.venus.monitor.filter;
 
-import com.meidusa.venus.Invocation;
+import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.Result;
-import com.meidusa.venus.monitor.filter.InvocationDetail;
 import com.meidusa.venus.util.NetUtil;
 
 import java.util.Calendar;
@@ -59,7 +58,10 @@ public class InvocationStatistic {
     }
 
     public InvocationStatistic(InvocationDetail detail){
-        Invocation invocation = detail.getInvocation();
+        ClientInvocation invocation = null;
+        if(detail.getInvocation() instanceof ClientInvocation){
+            invocation = (ClientInvocation)detail.getInvocation();
+        }
         String serviceInterfaceName = invocation.getMethod().getDeclaringClass().getName();
         String serviceName = invocation.getServiceName();
         String version = "0.0.0";
@@ -142,7 +144,10 @@ public class InvocationStatistic {
      * @return
      */
     long getCostTime(InvocationDetail detail){
-        Invocation invocation = detail.getInvocation();
+        ClientInvocation invocation = null;
+        if(detail.getInvocation() instanceof ClientInvocation){
+            invocation = (ClientInvocation)detail.getInvocation();
+        }
         Date requestTime = invocation.getRequestTime();
         Date responseTime = detail.getResponseTime();
         if(responseTime == null){

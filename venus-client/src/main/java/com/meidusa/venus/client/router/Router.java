@@ -13,8 +13,8 @@ public interface Router {
 
     /**
      * 根据路由规则过滤地址列表 TODO invocation参数定义?
-     * @param urlList
      * @param invocation  @return
+     * @param urlList
      */
-    List<URL> filte(List<URL> urlList, Invocation invocation);
+    List<URL> filte(Invocation invocation, List<URL> urlList);
 }

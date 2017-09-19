@@ -1,5 +1,6 @@
 package com.meidusa.venus.monitor.filter;
 
+import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.Invocation;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.URL;

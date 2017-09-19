@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.meidusa.venus.ServiceDefinitionDO;
 import org.apache.commons.lang.StringUtils;
 
 import com.meidusa.toolkit.common.util.ObjectUtil;
@@ -14,7 +15,7 @@ import com.meidusa.toolkit.common.util.ObjectUtil;
  * @author structchen
  * 
  */
-public class ServiceDefinitionDO {
+public class VenusServiceDefinitionDO implements ServiceDefinitionDO {
 
 	/**
 	 * 服务名称
@@ -110,8 +111,8 @@ public class ServiceDefinitionDO {
 		if (obj == this) {
 			return true;
 		}
-		if (obj instanceof ServiceDefinitionDO) {
-			ServiceDefinitionDO target = (ServiceDefinitionDO) obj;
+		if (obj instanceof VenusServiceDefinitionDO) {
+			VenusServiceDefinitionDO target = (VenusServiceDefinitionDO) obj;
 			boolean result = StringUtils.equals(name, target.getName());
 			result = result && StringUtils.equals(versionRange, target.getVersionRange());
 			result = result && this.getIpAddress() != null && target.getIpAddress().equals(this.getIpAddress());
@@ -132,7 +133,7 @@ public class ServiceDefinitionDO {
 
 	@Override
 	public String toString() {
-		return "ServiceDefinitionDO [name=" + name + ", interfaceName=" + interfaceName + ", versionRange=" + versionRange
+		return "VenusServiceDefinitionDO [name=" + name + ", interfaceName=" + interfaceName + ", versionRange=" + versionRange
 				+ ", active=" + active + ", ipAddress=" + ipAddress + ", description=" + description
 				+ ", serviceConfigs=" + serviceConfigs + "]";
 	}

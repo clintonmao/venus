@@ -1,6 +1,7 @@
 package com.meidusa.venus.client.filter.mock;
 
 import com.meidusa.venus.*;
+import com.meidusa.venus.ClientInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +22,8 @@ public class ClientCallbackMockFilter extends BaseMockFilter implements Filter {
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
-        if(!isEnableCallbackMock(invocation, url)){
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
+        if(!isEnableCallbackMock(clientInvocation, url)){
             return null;
         }
         //获取mock callback TODO 注入instance及动态构造method并传参
@@ -44,7 +46,7 @@ public class ClientCallbackMockFilter extends BaseMockFilter implements Filter {
      * @param url
      * @return
      */
-    boolean isEnableCallbackMock(Invocation invocation, URL url){
+    boolean isEnableCallbackMock(ClientInvocation invocation, URL url){
         String mockType = getMockType(invocation, url);
         return MOCK_TYPE_CALLBACK.equalsIgnoreCase(mockType);
     }

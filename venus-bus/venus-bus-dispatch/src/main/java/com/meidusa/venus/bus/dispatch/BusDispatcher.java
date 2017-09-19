@@ -3,10 +3,7 @@ package com.meidusa.venus.bus.dispatch;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.*;
 import com.meidusa.toolkit.util.StringUtil;
-import com.meidusa.venus.Invocation;
-import com.meidusa.venus.Result;
-import com.meidusa.venus.RpcException;
-import com.meidusa.venus.URL;
+import com.meidusa.venus.*;
 import com.meidusa.venus.bus.BusInvocation;
 import com.meidusa.venus.bus.registry.xml.config.RemoteConfig;
 import com.meidusa.venus.bus.handler.BusDispatchMessageHandler;
@@ -93,13 +90,14 @@ public class BusDispatcher implements Dispatcher{
      * @param invocation
      */
     @Override
-    public Result invoke(Invocation invocation,URL url) throws RpcException{
+    public Result invoke(Invocation invocation, URL url) throws RpcException{
+        BusInvocation busInvocation = (BusInvocation)invocation;
         try {
             //构造请求
-            ByteBuffer byteBuffer = buildRequest(invocation);
+            ByteBuffer byteBuffer = buildRequest(busInvocation);
 
             //发送请求
-            sendRequest(invocation,byteBuffer,url);
+            sendRequest(busInvocation,byteBuffer,url);
 
             //若未出现异常，则直接返回Null,响应结果由response线程处理
             return null;
@@ -113,8 +111,8 @@ public class BusDispatcher implements Dispatcher{
      * @param invocation
      * @return
      */
-    ByteBuffer buildRequest(Invocation invocation){
-        BusInvocation busInvocation = (BusInvocation)invocation;
+    ByteBuffer buildRequest(BusInvocation invocation){
+        BusInvocation busInvocation = invocation;
         List<Tuple<Range, BackendConnectionPool>> list = busInvocation.getList();
         BusFrontendConnection srcConn = busInvocation.getSrcConn();
         VenusRouterPacket routerPacket = busInvocation.getRouterPacket();
@@ -133,8 +131,8 @@ public class BusDispatcher implements Dispatcher{
      * @param byteBuffer
      * @param url
      */
-    void sendRequest(Invocation invocation,ByteBuffer byteBuffer,URL url){
-        BusInvocation busInvocation = (BusInvocation)invocation;
+    void sendRequest(BusInvocation invocation, ByteBuffer byteBuffer, URL url){
+        BusInvocation busInvocation = invocation;
         BusFrontendConnection srcConn = busInvocation.getSrcConn();
         VenusRouterPacket routerPacket = busInvocation.getRouterPacket();
 

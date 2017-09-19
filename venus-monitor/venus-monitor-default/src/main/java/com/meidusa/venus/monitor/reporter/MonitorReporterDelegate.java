@@ -3,7 +3,7 @@ package com.meidusa.venus.monitor.reporter;
 import com.athena.domain.MethodCallDetailDO;
 import com.athena.domain.MethodStaticDO;
 import com.athena.service.api.AthenaDataService;
-import com.meidusa.venus.Invocation;
+import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.backend.serializer.JSONSerializer;
@@ -61,7 +61,10 @@ public class MonitorReporterDelegate {
      * @return
      */
     MethodCallDetailDO convertDetail(InvocationDetail detail){
-        Invocation invocation = detail.getInvocation();
+        ClientInvocation invocation = null;
+        if(detail.getInvocation() instanceof ClientInvocation){
+            invocation = (ClientInvocation)detail.getInvocation();
+        }
         URL url = detail.getUrl();
         Result result = detail.getResult();
         Throwable exception = detail.getException();

@@ -32,7 +32,7 @@ public class ServerAthenaMonitorFilter implements Filter {
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
-        RpcInvocation rpcInvocation = (RpcInvocation)invocation;
+        ServerInvocation rpcInvocation = (ServerInvocation)invocation;
         Tuple<Long, byte[]> data = rpcInvocation.getData();
         SerializeServiceRequestPacket request = rpcInvocation.getRequest();
         String apiName = request.apiName;
@@ -56,7 +56,7 @@ public class ServerAthenaMonitorFilter implements Filter {
 
     @Override
     public Result throwInvoke(Invocation invocation, URL url, Throwable e) throws RpcException {
-        RpcInvocation rpcInvocation = (RpcInvocation)invocation;
+        ServerInvocation rpcInvocation = (ServerInvocation)invocation;
         SerializeServiceRequestPacket request = rpcInvocation.getRequest();
         String apiName = request.apiName;
         Endpoint endpoint = rpcInvocation.getEndpointEx();
@@ -71,7 +71,7 @@ public class ServerAthenaMonitorFilter implements Filter {
 
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
-        RpcInvocation rpcInvocation = (RpcInvocation)invocation;
+        ServerInvocation rpcInvocation = (ServerInvocation)invocation;
         Endpoint endpoint = rpcInvocation.getEndpointEx();
         Tuple<Long, byte[]> data = rpcInvocation.getData();
         SerializeServiceRequestPacket request = rpcInvocation.getRequest();

@@ -1,7 +1,7 @@
 package com.meidusa.venus.client.proxy;
 
 import com.athena.service.api.AthenaDataService;
-import com.meidusa.venus.Invocation;
+import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.annotations.Endpoint;
@@ -93,7 +93,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         try {
             //构造请求
-            Invocation invocation = buildInvocation(proxy, method, args);
+            ClientInvocation invocation = buildInvocation(proxy, method, args);
 
             //通过代理调用服务
             Result result = getClientInvokerProxy().invoke(invocation,null);
@@ -144,8 +144,8 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * @param args
      * @return
      */
-    Invocation buildInvocation(Object proxy, Method method, Object[] args){
-        Invocation invocation = new Invocation();
+    ClientInvocation buildInvocation(Object proxy, Method method, Object[] args){
+        ClientInvocation invocation = new ClientInvocation();
         invocation.setServiceInterface(serviceInterface);
         invocation.setMethod(method);
         invocation.setArgs(args);

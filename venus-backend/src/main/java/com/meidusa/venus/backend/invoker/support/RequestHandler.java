@@ -1,7 +1,7 @@
 package com.meidusa.venus.backend.invoker.support;
 
 import com.meidusa.toolkit.net.util.InetAddressUtil;
-import com.meidusa.venus.RpcInvocation;
+import com.meidusa.venus.ServerInvocation;
 import com.meidusa.venus.backend.services.RequestInfo;
 import com.meidusa.venus.backend.services.RequestContext;
 import com.meidusa.venus.backend.services.Endpoint;
@@ -15,7 +15,7 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
  */
 public class RequestHandler {
 
-    public RequestInfo getRequestInfo(byte packetSerializeType, VenusRouterPacket routerPacket, RpcInvocation invocation) {
+    public RequestInfo getRequestInfo(byte packetSerializeType, VenusRouterPacket routerPacket, ServerInvocation invocation) {
         RequestInfo info = new RequestInfo();
         if (routerPacket != null) {
             info.setRemoteIp(InetAddressUtil.intToAddress(routerPacket.srcIP));

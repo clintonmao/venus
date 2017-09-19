@@ -3,7 +3,7 @@ package com.meidusa.venus.registry;
 import java.util.List;
 
 import com.meidusa.venus.URL;
-import com.meidusa.venus.registry.domain.ServiceDefinitionDO;
+import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 
 /**
  * 服务注册接口
@@ -63,7 +63,7 @@ public interface Register {
      * @return
      * @throws VenusRegisteException
      */
-    ServiceDefinitionDO lookup(URL url) throws VenusRegisteException;
+    VenusServiceDefinitionDO lookup(URL url) throws VenusRegisteException;
 
     /**
      * 查找服务定义列表
@@ -72,7 +72,7 @@ public interface Register {
      * @return
      * @throws VenusRegisteException
      */
-    List<ServiceDefinitionDO> findServiceList(String interfaceName, String serviceName) throws VenusRegisteException;
+    List<VenusServiceDefinitionDO> findServiceList(String interfaceName, String serviceName) throws VenusRegisteException;
 
     /**
      * 销毁，清理、释放相关资源

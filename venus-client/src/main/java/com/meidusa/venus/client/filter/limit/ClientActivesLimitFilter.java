@@ -1,6 +1,7 @@
 package com.meidusa.venus.client.filter.limit;
 
 import com.meidusa.venus.*;
+import com.meidusa.venus.ClientInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,11 +33,12 @@ public class ClientActivesLimitFilter extends BaseLimitFilter implements Filter 
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
-        if(!isEnableActiveLimit(invocation, url)){
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
+        if(!isEnableActiveLimit(clientInvocation, url)){
             return null;
         }
         //获取方法路径及当前并发数
-        String methodPath = getMethodPath(invocation, url);
+        String methodPath = getMethodPath(clientInvocation, url);
         AtomicInteger activeLimit = methodActivesMapping.get(methodPath);
         if(activeLimit == null){
             activeLimit = new AtomicInteger(0);
@@ -61,10 +63,11 @@ public class ClientActivesLimitFilter extends BaseLimitFilter implements Filter 
 
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
-        if(!isEnableActiveLimit(invocation, url)){
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
+        if(!isEnableActiveLimit(clientInvocation, url)){
             return null;
         }
-        String methodPath = getMethodPath(invocation, url);
+        String methodPath = getMethodPath(clientInvocation, url);
         AtomicInteger activeLimit = methodActivesMapping.get(methodPath);
         if(activeLimit != null){
             //-1
@@ -93,7 +96,7 @@ public class ClientActivesLimitFilter extends BaseLimitFilter implements Filter 
      * @param url
      * @return
      */
-    boolean isEnableActiveLimit(Invocation invocation, URL url){
+    boolean isEnableActiveLimit(ClientInvocation invocation, URL url){
         String limitType = getLimitType(invocation, url);
         return LIMIT_TYPE_ACTIVE.equalsIgnoreCase(limitType);
     }
