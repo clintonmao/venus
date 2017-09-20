@@ -8,6 +8,8 @@ import com.meidusa.fastjson.JSON;
 
 import org.apache.commons.collections.CollectionUtils;
 
+import com.meidusa.venus.registry.data.move.OldServerDO;
+import com.meidusa.venus.registry.data.move.OldServiceDO;
 import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
 import com.meidusa.venus.registry.domain.FlowControl;
 import com.meidusa.venus.registry.domain.MockConfig;
@@ -120,26 +122,42 @@ public class ResultUtils {
 			}
 		}
 	}
-	
+
 	public final static OldServiceMappingDO rsToOldServiceMappingDO(ResultSet rs) throws SQLException {
-		OldServiceMappingDO venusServiceMapping = new OldServiceMappingDO();
-		venusServiceMapping.setActive(rs.getBoolean("active"));
-		venusServiceMapping.setCreateTime(rs.getTimestamp("create_time"));
-		venusServiceMapping.setDescription(rs.getString("description"));
-		
-		venusServiceMapping.setHostName(rs.getString("host_name"));
-		venusServiceMapping.setMapId(rs.getInt("map_id"));
-		venusServiceMapping.setPort(rs.getInt("port"));
-		
-		venusServiceMapping.setServerId(rs.getInt("server_id"));
-		venusServiceMapping.setServiceId(rs.getInt("service_id"));
-		venusServiceMapping.setServiceName(rs.getString("service_name"));
-		
-		venusServiceMapping.setSync(rs.getBoolean("sync"));
-		venusServiceMapping.setUpdateTime(rs.getTimestamp("update_time"));
-		venusServiceMapping.setVersion(rs.getString("version"));
-		
-		return venusServiceMapping;
+		OldServiceMappingDO oldServiceMapping = new OldServiceMappingDO();
+		oldServiceMapping.setActive(rs.getBoolean("active"));
+		oldServiceMapping.setCreateTime(rs.getTimestamp("create_time"));
+		oldServiceMapping.setDescription(rs.getString("description"));
+
+		oldServiceMapping.setHostName(rs.getString("host_name"));
+		oldServiceMapping.setMapId(rs.getInt("map_id"));
+		oldServiceMapping.setPort(rs.getInt("port"));
+
+		oldServiceMapping.setServerId(rs.getInt("server_id"));
+		oldServiceMapping.setServiceId(rs.getInt("service_id"));
+		oldServiceMapping.setServiceName(rs.getString("service_name"));
+
+		oldServiceMapping.setSync(rs.getBoolean("sync"));
+		oldServiceMapping.setUpdateTime(rs.getTimestamp("update_time"));
+		oldServiceMapping.setVersion(rs.getString("version"));
+
+		return oldServiceMapping;
+	}
+
+	public final static OldServiceDO rsToOldServiceDO(ResultSet rs) throws SQLException {
+		OldServiceDO service = new OldServiceDO();
+		service.setId(rs.getInt("id"));
+		service.setServiceName(rs.getString("service_name"));
+		service.setDescription(rs.getString("description"));
+		return service;
+	}
+
+	public final static OldServerDO rsToOldServerDO(ResultSet rs) throws SQLException {
+		OldServerDO server = new OldServerDO();
+		server.setId(rs.getInt("id"));
+		server.setHostName(rs.getString("hostname"));
+		server.setPort(rs.getInt("port"));
+		return server;
 	}
 
 }

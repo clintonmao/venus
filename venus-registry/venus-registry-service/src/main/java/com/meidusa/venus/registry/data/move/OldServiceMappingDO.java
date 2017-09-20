@@ -32,10 +32,10 @@ public class OldServiceMappingDO implements Serializable {
 	private String version;
 
 	/** 服务映射状态 */
-	private boolean active;
+	private Boolean active;
 
 	/** 服务映射是否同步 */
-	private boolean sync;
+	private Boolean sync;
 
 	/** 服务映射创建时间 */
 	private Date createTime;
@@ -83,15 +83,15 @@ public class OldServiceMappingDO implements Serializable {
 		return version;
 	}
 
-	public boolean isActive() {
+	public Boolean isActive() {
 		return active;
 	}
 
-	public boolean isSync() {
+	public Boolean isSync() {
 		return sync;
 	}
 
-	public void setActive(boolean active) {
+	public void setActive(Boolean active) {
 		this.active = active;
 	}
 
@@ -127,7 +127,7 @@ public class OldServiceMappingDO implements Serializable {
 		this.serviceName = serviceName;
 	}
 
-	public void setSync(boolean sync) {
+	public void setSync(Boolean sync) {
 		this.sync = sync;
 	}
 

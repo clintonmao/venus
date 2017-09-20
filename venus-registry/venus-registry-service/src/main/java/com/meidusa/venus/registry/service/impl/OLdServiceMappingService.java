@@ -12,9 +12,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import com.meidusa.venus.registry.dao.OldServiceMappingDAO;
 import com.meidusa.venus.registry.dao.impl.DataSourceUtil;
 import com.meidusa.venus.registry.dao.impl.OldServiceMappingDaoImpl;
+import com.meidusa.venus.registry.data.move.OldServerDO;
+import com.meidusa.venus.registry.data.move.OldServiceDO;
 import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
 
 public class OLdServiceMappingService {
+
+	private static final int PAGE_SIZE_200 = 200;
 
 	private static Logger logger = LoggerFactory.getLogger(OLdServiceMappingService.class);
 
@@ -63,23 +67,66 @@ public class OLdServiceMappingService {
 		}
 	}
 
-	public void t() {
-		Integer oldServiceMappingCount = oldServiceMappingDAO.getOldServiceMappingCount();
-		if (null != oldServiceMappingCount && oldServiceMappingCount > 0) {
-			int pageSize = 200;
-			int mod = oldServiceMappingCount % pageSize;
-			int count = oldServiceMappingCount / pageSize;
+	public void moveServiceMappings() {
+		Integer totalCount = oldServiceMappingDAO.getOldServiceMappingCount();
+		if (null != totalCount && totalCount > 0) {
+			int mod = totalCount % PAGE_SIZE_200;
+			int count = totalCount / PAGE_SIZE_200;
 			if (mod > 0) {
 				count = count + 1;
 			}
 			Integer mapId = null;
 			for (int i = 0; i < count; i++) {
-				List<OldServiceMappingDO> queryOldServiceMappings = oldServiceMappingDAO
-						.queryOldServiceMappings(pageSize, mapId);
-				if (CollectionUtils.isNotEmpty(queryOldServiceMappings)) {
-					mapId = queryOldServiceMappings.get(queryOldServiceMappings.size() - 1).getMapId();
-					for (OldServiceMappingDO oldServiceMappingDO : queryOldServiceMappings) {
+				List<OldServiceMappingDO> oldServiceMappings = oldServiceMappingDAO
+						.queryOldServiceMappings(PAGE_SIZE_200, mapId);
+				if (CollectionUtils.isNotEmpty(oldServiceMappings)) {
+					mapId = oldServiceMappings.get(oldServiceMappings.size() - 1).getMapId();
+					for (OldServiceMappingDO oldServiceMappingDO : oldServiceMappings) {
 						System.out.println("mapId=>" + oldServiceMappingDO.getMapId());
+						// TODO 在此更新 新的数据库等操作
+					}
+				}
+			}
+		}
+	}
+
+	public void moveServices() {
+		Integer totalCount = oldServiceMappingDAO.getOldServiceCount();
+		if (null != totalCount && totalCount > 0) {
+			int mod = totalCount % PAGE_SIZE_200;
+			int count = totalCount / PAGE_SIZE_200;
+			if (mod > 0) {
+				count = count + 1;
+			}
+			Integer mapId = null;
+			for (int i = 0; i < count; i++) {
+				List<OldServiceDO> services = oldServiceMappingDAO.queryOldServices(PAGE_SIZE_200, mapId);
+				if (CollectionUtils.isNotEmpty(services)) {
+					mapId = services.get(services.size() - 1).getId();
+					for (OldServiceDO oldServiceDO : services) {
+						System.out.println("id=>" + oldServiceDO.getId());
+						// TODO 在此更新 新的数据库等操作
+					}
+				}
+			}
+		}
+	}
+	
+	public void moveServers() {
+		Integer totalCount = oldServiceMappingDAO.getOldServerCount();
+		if (null != totalCount && totalCount > 0) {
+			int mod = totalCount % PAGE_SIZE_200;
+			int count = totalCount / PAGE_SIZE_200;
+			if (mod > 0) {
+				count = count + 1;
+			}
+			Integer id = null;
+			for (int i = 0; i < count; i++) {
+				List<OldServerDO> servers = oldServiceMappingDAO.queryOldServers(PAGE_SIZE_200, id);
+				if (CollectionUtils.isNotEmpty(servers)) {
+					id = servers.get(servers.size() - 1).getId();
+					for (OldServerDO oldServerDO : servers) {
+						System.out.println("id=>" + oldServerDO.getId());
 						// TODO 在此更新 新的数据库等操作
 					}
 				}
@@ -111,4 +158,9 @@ public class OLdServiceMappingService {
 		this.oldServiceMappingDAO = oldServiceMappingDAO;
 	}
 
+	public static void main(String args[]) {
+		OLdServiceMappingService oms = new OLdServiceMappingService();
+		oms.init();
+		oms.moveServers();
+	}
 }
