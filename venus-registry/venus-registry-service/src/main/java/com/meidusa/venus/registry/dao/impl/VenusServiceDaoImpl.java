@@ -94,7 +94,7 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 	}
 
 	@Override
-	public VenusServiceDO getService(String serviceName, String version, String interfaceName) throws DAOException {
+	public VenusServiceDO getService(String interfaceName, String serviceName, String version) throws DAOException {
 		String sql = SELECT_FIELDS + " from t_venus_service where ";
 		Object[] params = new Object[] { serviceName, version };
 		if (StringUtils.isNotBlank(serviceName)) {
@@ -112,6 +112,45 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 						return ResultUtils.resultToVenusServiceDO(rs);
 					}
 					return null;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据serviceName:" + serviceName + ",获取venusService异常", e);
+		}
+	}
+	
+	public static Object[] listToArray(List<Object> list) {
+		if (null == list) {
+			return new Object[0];
+		}
+		int size = list.size();
+		return list.toArray(new Object[size]);
+	}
+	
+	@Override
+	public List<VenusServiceDO> queryServices(String interfaceName, String serviceName, String version)
+			throws DAOException {
+		String sql = SELECT_FIELDS + " from t_venus_service where name=? ";
+		List<Object> params = new ArrayList<Object>();
+		params.add(serviceName);
+		if (StringUtils.isNotBlank(interfaceName)) {
+			sql = sql + " and interface_name=? ";
+			params.add(interfaceName);
+		}
+
+		if (StringUtils.isNotBlank(version)) {
+			sql = sql + " and version=? ";
+			params.add(version);
+		}
+		try {
+			return this.jdbcTemplate.query(sql, listToArray(params), new ResultSetExtractor<List<VenusServiceDO>>() {
+				@Override
+				public List<VenusServiceDO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<VenusServiceDO> returnList = new ArrayList<VenusServiceDO>();
+					while (rs.next()) {
+						returnList.add(ResultUtils.resultToVenusServiceDO(rs));
+					}
+					return returnList;
 				}
 			});
 		} catch (Exception e) {

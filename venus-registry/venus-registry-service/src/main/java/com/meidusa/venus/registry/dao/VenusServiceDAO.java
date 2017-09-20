@@ -16,13 +16,15 @@ public interface VenusServiceDAO {
 
 	/**
 	 * 
+	 * @param interfaceName 可为空
 	 * @param serviceName 不能为空
 	 * @param version TODO
-	 * @param interfaceName 可为空
 	 * @return
 	 * @throws DAOException
 	 */
-	VenusServiceDO getService(String serviceName, String version, String interfaceName) throws DAOException;
+	VenusServiceDO getService(String interfaceName, String serviceName, String version) throws DAOException;
+	
+	List<VenusServiceDO> queryServices(String interfaceName, String serviceName, String version) throws DAOException;
 	
 	List<VenusServiceDO> getServices(String interfaceName, String serviceName) throws DAOException;
 	

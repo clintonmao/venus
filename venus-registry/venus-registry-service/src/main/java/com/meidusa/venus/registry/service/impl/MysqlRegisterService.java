@@ -32,7 +32,6 @@ import com.meidusa.venus.registry.dao.impl.VenusServerDaoImpl;
 import com.meidusa.venus.registry.dao.impl.VenusServiceConfigDaoImpl;
 import com.meidusa.venus.registry.dao.impl.VenusServiceDaoImpl;
 import com.meidusa.venus.registry.dao.impl.VenusServiceMappingDaoImpl;
-import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 
 /**
  * Created by Zhangzhihua on 2017/8/16.
@@ -138,8 +137,8 @@ public class MysqlRegisterService implements RegisterService {
 		} else {
 			serverId = server.getId();
 		}
-		VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
-				url.getInterfaceName());
+		VenusServiceDO service = venusServiceDAO.getService(url.getInterfaceName(), url.getServiceName(),
+				url.getVersion());
 		int serviceId = 0;
 		if (null == service) {
 			VenusServiceDO venusServiceDO = new VenusServiceDO();
@@ -181,8 +180,8 @@ public class MysqlRegisterService implements RegisterService {
 
 	@Override
 	public boolean unregiste(URL url) throws VenusRegisteException {
-		VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
-				url.getInterfaceName());
+		VenusServiceDO service = venusServiceDAO.getService(url.getInterfaceName(), url.getServiceName(),
+				url.getVersion());
 		if (null != service && null != service.getRegisteType()
 				&& service.getRegisteType() == RegisteConstant.AUTO_REGISTE) {// 自动注册的逻辑删除,手动注册的不删除
 			VenusServerDO server = venusServerDAO.getServer(url.getHost(), url.getPort());
@@ -202,8 +201,13 @@ public class MysqlRegisterService implements RegisterService {
 	@Override
 	public void subscrible(URL url) throws VenusRegisteException {
 		//FIXME 改为返回多条记录
-		VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
-				url.getInterfaceName());
+		List<VenusServiceDO> services = venusServiceDAO.queryServices(url.getInterfaceName(), url.getServiceName(),
+				url.getVersion());
+		for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
+			VenusServiceDO service = (VenusServiceDO) iterator.next();
+			if(service.getIsDelete()){
+				iterator.remove();
+			}
 		if (null == service && url.isConsumerCheck()) {// 服务不存在并且配置了检测则抛出异常
 			logger.error("服务订阅异常,原因:服务{}不存在 ", url.getServiceName());
 			throw new VenusRegisteException("服务订阅异常,原因:服务" + url.getServiceName() + "不存在");
@@ -261,12 +265,13 @@ public class MysqlRegisterService implements RegisterService {
 		} else {
 			venusServiceMappingDAO.updateServiceMapping(serviceMapping.getId(), true, false);
 		}
+		}
 	}
 
 	@Override
 	public boolean unsubscrible(URL url) throws VenusRegisteException {
-		VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
-				url.getInterfaceName());
+		VenusServiceDO service = venusServiceDAO.getService(url.getInterfaceName(), url.getServiceName(),
+				url.getVersion());
 		if (null != service) {
 			VenusServerDO server = venusServerDAO.getServer(url.getHost(), 0);
 			if (null != server) {
@@ -286,7 +291,7 @@ public class MysqlRegisterService implements RegisterService {
 		String version = url.getVersion();
 		List<Integer> serverIds = new ArrayList<Integer>();
 		try {
-			VenusServiceDO service = venusServiceDAO.getService(serviceName, version, interfaceName);
+			VenusServiceDO service = venusServiceDAO.getService(interfaceName, serviceName, version);//servicePath interfaceName/serviceName?version=version
 			if (null == service || (null != service && service.getIsDelete())) {
 				return null;
 			}
@@ -402,7 +407,7 @@ public class MysqlRegisterService implements RegisterService {
 		String serviceName = url.getServiceName();
 		String version = url.getVersion();
 		try {
-			VenusServiceDO service = venusServiceDAO.getService(serviceName, version, interfaceName);
+			VenusServiceDO service = venusServiceDAO.getService(interfaceName, serviceName, version);
 			if (service.getIsDelete()) {
 				return;
 			}
@@ -425,7 +430,7 @@ public class MysqlRegisterService implements RegisterService {
 		String version = url.getVersion();
 
 		try {
-			VenusServiceDO service = venusServiceDAO.getService(serviceName, version, interfaceName);
+			VenusServiceDO service = venusServiceDAO.getService(interfaceName, serviceName, version);
 			if (null != service && service.getIsDelete()) {
 				return;
 			}

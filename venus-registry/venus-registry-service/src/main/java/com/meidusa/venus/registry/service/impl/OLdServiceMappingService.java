@@ -24,26 +24,25 @@ public class OLdServiceMappingService {
 
 	private OldServiceMappingDAO oldServiceMappingDAO;
 
-	private BasicDataSource dataSource;
-
 	private JdbcTemplate jdbcTemplate;
-
-	private String connectUrl;
+	
+	/** 原注册中心mysql连接地址 */
+	private String oldConnectUrl;
 
 	public OLdServiceMappingService() {
 
 	}
 
 	public OLdServiceMappingService(String connectUrl) {
-		this.setConnectUrl(connectUrl);
+		this.setOldConnectUrl(connectUrl);
 		init();
 	}
 
 	public void init() {
-		if (StringUtils.isBlank(this.getConnectUrl())) {
-			this.setConnectUrl("mysql://10.32.173.250:3306/registry?username=registry&password=registry");
+		if (StringUtils.isBlank(this.getOldConnectUrl())) {
+			this.setOldConnectUrl("mysql://10.32.173.250:3306/registry?username=registry&password=registry");
 		}
-		String url = this.getConnectUrl();
+		String url = this.getOldConnectUrl();
 		if (!url.startsWith("mysql://")) {
 			logger.error("URL 参数异常,非jdbc mysql协议,url=>{}", url);
 			throw new IllegalArgumentException("URL 参数异常,非jdbc mysql协议,url=>" + url);
@@ -56,9 +55,9 @@ public class OLdServiceMappingService {
 			logger.error("URL 参数异常,未包含密码,url=>{}", url);
 			throw new IllegalArgumentException("URL 参数异常,未包含密码,url=>" + url);
 		}
-		dataSource = DataSourceUtil.getBasicDataSource(url);
+		BasicDataSource dataSource = DataSourceUtil.getBasicDataSource(url);
 		if (jdbcTemplate == null) {
-			synchronized (MysqlRegisterService.class) {
+			synchronized (OLdServiceMappingService.class) {
 				if (jdbcTemplate == null) {
 					jdbcTemplate = new JdbcTemplate(dataSource);
 				}
@@ -142,12 +141,12 @@ public class OLdServiceMappingService {
 		this.jdbcTemplate = jdbcTemplate;
 	}
 
-	public String getConnectUrl() {
-		return connectUrl;
+	public String getOldConnectUrl() {
+		return oldConnectUrl;
 	}
 
-	public void setConnectUrl(String connectUrl) {
-		this.connectUrl = connectUrl;
+	public void setOldConnectUrl(String oldConnectUrl) {
+		this.oldConnectUrl = oldConnectUrl;
 	}
 
 	public OldServiceMappingDAO getOldServiceMappingDAO() {
