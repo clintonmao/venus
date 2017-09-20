@@ -8,6 +8,7 @@ import com.meidusa.fastjson.JSON;
 
 import org.apache.commons.collections.CollectionUtils;
 
+import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
 import com.meidusa.venus.registry.domain.FlowControl;
 import com.meidusa.venus.registry.domain.MockConfig;
 import com.meidusa.venus.registry.domain.RouterRule;
@@ -118,6 +119,27 @@ public class ResultUtils {
 				}
 			}
 		}
+	}
+	
+	public final static OldServiceMappingDO rsToOldServiceMappingDO(ResultSet rs) throws SQLException {
+		OldServiceMappingDO venusServiceMapping = new OldServiceMappingDO();
+		venusServiceMapping.setActive(rs.getBoolean("active"));
+		venusServiceMapping.setCreateTime(rs.getTimestamp("create_time"));
+		venusServiceMapping.setDescription(rs.getString("description"));
+		
+		venusServiceMapping.setHostName(rs.getString("host_name"));
+		venusServiceMapping.setMapId(rs.getInt("map_id"));
+		venusServiceMapping.setPort(rs.getInt("port"));
+		
+		venusServiceMapping.setServerId(rs.getInt("server_id"));
+		venusServiceMapping.setServiceId(rs.getInt("service_id"));
+		venusServiceMapping.setServiceName(rs.getString("service_name"));
+		
+		venusServiceMapping.setSync(rs.getBoolean("sync"));
+		venusServiceMapping.setUpdateTime(rs.getTimestamp("update_time"));
+		venusServiceMapping.setVersion(rs.getString("version"));
+		
+		return venusServiceMapping;
 	}
 
 }
