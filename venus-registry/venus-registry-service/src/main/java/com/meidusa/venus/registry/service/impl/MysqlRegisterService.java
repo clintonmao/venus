@@ -279,23 +279,6 @@ public class MysqlRegisterService implements RegisterService {
 		return false;
 	}
 
-	/*
-	 * @Override public void heartbeat() throws VenusRegisteException {
-	 * 
-	 * }
-	 * 
-	 * @Override public VenusServiceDefinitionDO lookup(URL url) throws
-	 * VenusRegisteException { return null; }
-	 * 
-	 * @Override public void load() throws VenusRegisteException {
-	 * 
-	 * }
-	 * 
-	 * @Override public void destroy() throws VenusRegisteException {
-	 * 
-	 * }
-	 */
-
 	public VenusServiceDefinitionDO findServiceDefinition(URL url) {
 		String interfaceName = url.getInterfaceName();
 		String serviceName = url.getServiceName();
