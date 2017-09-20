@@ -130,18 +130,30 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 	@Override
 	public List<VenusServiceDO> queryServices(String interfaceName, String serviceName, String version)
 			throws DAOException {
-		String sql = SELECT_FIELDS + " from t_venus_service where name=? ";
+		if(StringUtils.isBlank(interfaceName) && StringUtils.isBlank(serviceName)){
+			throw new DAOException("serviceName与interfaceName不能同时为空");
+		}
+		
+		String sql = SELECT_FIELDS + " from t_venus_service where ";
+		StringBuilder whereSql = new StringBuilder();
 		List<Object> params = new ArrayList<Object>();
-		params.add(serviceName);
+		if (StringUtils.isNotBlank(serviceName)) {
+			whereSql.append(" and name=? ");
+			params.add(serviceName);
+		}
 		if (StringUtils.isNotBlank(interfaceName)) {
-			sql = sql + " and interface_name=? ";
+			whereSql.append(" and interface_name=? ");
 			params.add(interfaceName);
 		}
 
 		if (StringUtils.isNotBlank(version)) {
-			sql = sql + " and version=? ";
+			whereSql.append(" and version=? ");
 			params.add(version);
 		}
+		
+		String wsql = whereSql.toString().trim().substring(whereSql.toString().trim().indexOf("and") + 3);
+		sql = sql + " " + wsql;
+		
 		try {
 			return this.jdbcTemplate.query(sql, listToArray(params), new ResultSetExtractor<List<VenusServiceDO>>() {
 				@Override
@@ -149,7 +161,7 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 					List<VenusServiceDO> returnList = new ArrayList<VenusServiceDO>();
 					while (rs.next()) {
 						VenusServiceDO resultToVenusServiceDO = ResultUtils.resultToVenusServiceDO(rs);
-						if(resultToVenusServiceDO.getIsDelete()){
+						if (resultToVenusServiceDO.getIsDelete()) {
 							continue;
 						}
 						returnList.add(resultToVenusServiceDO);

@@ -209,10 +209,12 @@ public class MysqlRegister implements Register {
 				String key = getKeyFromUrl(url);
 				try {
 					//FIXME 可能查多条记录，mapping映射结构要改
-					List<VenusServiceDefinitionDO> def = registerService.findServiceDefinitions(url);
-					logger.info("srvDef:{}", def);
-					subscribleServiceDefinitionMap.put(key, def);
-					jsons.add(JSON.toJSONString(def));
+					List<VenusServiceDefinitionDO> serviceDefinitions = registerService.findServiceDefinitions(url);
+					if (CollectionUtils.isNotEmpty(serviceDefinitions)) {
+						logger.info("srvDef:{}", serviceDefinitions);
+						subscribleServiceDefinitionMap.put(key, serviceDefinitions);
+						jsons.add(JSON.toJSONString(serviceDefinitions));
+					}
 				} catch (Exception e) {
 					logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
 				}
