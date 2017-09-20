@@ -20,6 +20,8 @@ import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.annotations.Endpoint;
+import com.meidusa.venus.annotations.Service;
+import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.client.factory.ServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.factory.xml.config.ServiceConfig;
@@ -300,6 +302,11 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         for (Method method : serviceConfig.getType().getMethods()) {
             Endpoint endpoint = method.getAnnotation(Endpoint.class);
             if (endpoint != null) {
+                Service service = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
+                if(service != null){
+                    serviceConfig.setBeanName(service.name());
+                }
+
                 Class[] eclazz = method.getExceptionTypes();
                 for (Class clazz : eclazz) {
                     if (venusExceptionFactory != null && CodedException.class.isAssignableFrom(clazz)) {
@@ -330,7 +337,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         if(serviceConfig.getType() != null){
             serviceInterfaceName = serviceConfig.getType().getName();
         }
-        String serivceName = serviceConfig.getBeanName();//TODO serviceName从注释中获取
+        String serivceName = serviceConfig.getBeanName();
         String version = "0.0.0";//TODO
         String consumerHost = NetUtil.getLocalIp();
 

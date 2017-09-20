@@ -162,7 +162,10 @@ public class ClientRemoteInvoker implements Invoker{
         if(invocation.getServiceInterface() != null){
             serviceInterfaceName = invocation.getServiceInterface().getName();
         }
-        String serviceName = "null";//invocation.getServiceName();
+        String serviceName = "null";
+        if(invocation.getService() != null){
+            serviceName = invocation.getService().name();
+        }
         String version = "0.0.0";//TODO
         String serviceUrl = String.format(
                 "venus://%s/%s?version=%s",
