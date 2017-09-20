@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -75,8 +76,12 @@ public class XmlServiceManager implements ServiceManager {
     VenusBusConfig parseBusConfig() {
         VenusBusConfig busConfig = new VenusBusConfig();
         for (String configFile : configFiles) {
-            configFile = (String) ConfigUtil.filter(configFile);
-            RuleSet ruleSet = new FromXmlRuleSet(this.getClass().getResource("venusRemoteServiceRule.xml"), new DigesterRuleParser());
+            //configFile = (String) ConfigUtil.filter(configFile);
+            URL url = this.getClass().getResource("venusRemoteServiceRule.xml");
+            if (url == null) {
+                throw new VenusConfigException("venusRemoteServiceRule.xml not found!,pls rebuild bus!");
+            }
+            RuleSet ruleSet = new FromXmlRuleSet(url, new DigesterRuleParser());
             Digester digester = new Digester();
             digester.setValidating(false);
             digester.addRuleSet(ruleSet);

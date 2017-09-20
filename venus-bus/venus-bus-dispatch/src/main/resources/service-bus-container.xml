@@ -11,7 +11,7 @@
 	<bean class="com.meidusa.venus.spring.VenusPropertyPlaceholderConfigurer">
         <property name="locations">
             <list>
-                <value>file:${project.home}/application.properties</value>
+                <value>classpath:application.properties</value>
             </list>
         </property>
     </bean>
@@ -56,7 +56,7 @@
 	<bean id="xmlServiceRegisterManager" class="com.meidusa.venus.bus.registry.xml.XmlServiceManager" init-method="init">
 		<property name="configFiles">
 			<list>
-				<value>file:${project.home}/conf/venusRemoteConfig.xml</value>
+				<value>classpath:venusRemoteConfig.xml</value>
 			</list>
 		</property>
 	</bean>

@@ -330,7 +330,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         if(serviceConfig.getType() != null){
             serviceInterfaceName = serviceConfig.getType().getName();
         }
-        String serivceName = serviceConfig.getBeanName();
+        String serivceName = serviceConfig.getBeanName();//TODO serviceName从注释中获取
         String version = "0.0.0";//TODO
         String consumerHost = NetUtil.getLocalIp();
 

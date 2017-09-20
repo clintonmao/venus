@@ -220,7 +220,8 @@ public class MysqlRegister implements Register {
 				}
 			}
 			if (CollectionUtils.isNotEmpty(jsons)) {
-				writeFile(subcribePath, jsons);
+				//FIXME
+				//writeFile(subcribePath, jsons);
 			}
 		}
 	}

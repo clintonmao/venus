@@ -11,6 +11,7 @@ import com.meidusa.toolkit.common.runtime.DefaultApplication;
  * 
  */
 public class ServiceBusApplication extends DefaultApplication<ServiceBusApplicationConfig> {
+
     private ServiceBusApplicationConfig config = new ServiceBusApplicationConfig();
 
     @Override

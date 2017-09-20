@@ -137,16 +137,16 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		String sql = SELECT_FIELDS + " from t_venus_service where ";
 		StringBuilder whereSql = new StringBuilder();
 		List<Object> params = new ArrayList<Object>();
-		if (StringUtils.isNotBlank(serviceName)) {
+		if (StringUtils.isNotBlank(serviceName) && !"null".equalsIgnoreCase(serviceName)) {
 			whereSql.append(" and name=? ");
 			params.add(serviceName);
 		}
-		if (StringUtils.isNotBlank(interfaceName)) {
+		if (StringUtils.isNotBlank(interfaceName) && !"null".equalsIgnoreCase(interfaceName)) {
 			whereSql.append(" and interface_name=? ");
 			params.add(interfaceName);
 		}
 
-		if (StringUtils.isNotBlank(version)) {
+		if (StringUtils.isNotBlank(version) && !"null".equalsIgnoreCase(version)) {
 			whereSql.append(" and version=? ");
 			params.add(version);
 		}

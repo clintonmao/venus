@@ -88,8 +88,8 @@ public class SpringTestCase extends AbstractJUnit4SpringContextTests {
 		u.setConsumerCheck(true);
 		mysqlRegister.subscrible(u);
 
-		VenusServiceDefinitionDO lookup = mysqlRegister.lookup(u);
-		System.out.println(lookup);
+//		VenusServiceDefinitionDO lookup = mysqlRegister.lookup(u);
+//		System.out.println(lookup);
 
 	}
 

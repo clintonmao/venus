@@ -131,19 +131,23 @@ public class ClientRemoteInvoker implements Invoker{
         URL requestUrl = parseRequestUrl(invocation);
 
         //查找服务定义
-        //TODO 查找多条匹配记录，如只给出interfaceName、serviceName，有多个版本号服务定义
-        VenusServiceDefinitionDO serviceDefinition = getRegister().lookup(requestUrl);
-        if(serviceDefinition == null || CollectionUtils.isEmpty(serviceDefinition.getIpAddress())){
+        List<VenusServiceDefinitionDO> serviceDefinitionDOList = getRegister().lookup(requestUrl);
+        if(CollectionUtils.isEmpty(serviceDefinitionDOList)){
             throw new RpcException(String.format("not found available service %s providers.",requestUrl.toString()));
         }
-        logger.info("look up srvDef:{}",serviceDefinition);
-        for(String item:serviceDefinition.getIpAddress()){
-            String[] arr = item.split(":");
-            URL url = new URL();
-            url.setHost(arr[0]);
-            url.setPort(Integer.parseInt(arr[1]));
-            url.setServiceDefinition(serviceDefinition);
-            urlList.add(url);
+        logger.info("look up service:{} provider group:{}",requestUrl.toString(),serviceDefinitionDOList.size());
+
+        //TODO group/urls关系
+        for(VenusServiceDefinitionDO srvDef:serviceDefinitionDOList){
+            logger.info("look up service:{} provider size:{}",requestUrl.toString(),srvDef.getIpAddress().size());
+            for(String addresss:srvDef.getIpAddress()){
+                String[] arr = addresss.split(":");
+                URL url = new URL();
+                url.setHost(arr[0]);
+                url.setPort(Integer.parseInt(arr[1]));
+                url.setServiceDefinition(srvDef);
+                urlList.add(url);
+            }
         }
         return urlList;
     }
@@ -158,7 +162,7 @@ public class ClientRemoteInvoker implements Invoker{
         if(invocation.getServiceInterface() != null){
             serviceInterfaceName = invocation.getServiceInterface().getName();
         }
-        String serviceName = invocation.getServiceName();
+        String serviceName = "null";//invocation.getServiceName();
         String version = "0.0.0";//TODO
         String serviceUrl = String.format(
                 "venus://%s/%s?version=%s",

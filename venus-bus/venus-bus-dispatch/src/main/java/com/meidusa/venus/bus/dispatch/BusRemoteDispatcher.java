@@ -110,23 +110,28 @@ public class BusRemoteDispatcher implements Dispatcher{
     List<URL> lookupByDynamic(BusInvocation invocation){
         List<URL> urlList = new ArrayList<URL>();
 
-        URL serviceUrl = parseUrl(invocation);
-        VenusServiceDefinitionDO serviceDefinition = register.lookup(serviceUrl);
+        //解析请求Url
+        URL requestUrl = parseRequestUrl(invocation);
 
-        if(serviceDefinition == null || CollectionUtils.isEmpty(serviceDefinition.getIpAddress())){
-            throw new RpcException("not found available service providers.");
+        //查找服务定义
+        List<VenusServiceDefinitionDO> serviceDefinitionDOList = getRegister().lookup(requestUrl);
+        if(CollectionUtils.isEmpty(serviceDefinitionDOList)){
+            throw new RpcException(String.format("not found available service %s providers.",requestUrl.toString()));
         }
-        logger.info("serviceDefinition:{}",serviceDefinition);
+        logger.info("look up service:{} provider group:{}",requestUrl.toString(),serviceDefinitionDOList.size());
 
-        for(String item:serviceDefinition.getIpAddress()){
-            String[] arr = item.split(":");
-            URL url = new URL();
-            url.setHost(arr[0]);
-            url.setPort(Integer.parseInt(arr[1]));
-            url.setServiceDefinition(serviceDefinition);
-            urlList.add(url);
+        //TODO group/urls关系
+        for(VenusServiceDefinitionDO srvDef:serviceDefinitionDOList){
+            for(String addresss:srvDef.getIpAddress()){
+                String[] arr = addresss.split(":");
+                URL url = new URL();
+                url.setHost(arr[0]);
+                url.setPort(Integer.parseInt(arr[1]));
+                url.setServiceDefinition(srvDef);
+                urlList.add(url);
+            }
         }
-        return null;
+        return urlList;
     }
 
     /**
@@ -134,7 +139,7 @@ public class BusRemoteDispatcher implements Dispatcher{
      * @param invocation
      * @return
      */
-    URL parseUrl(BusInvocation invocation){
+    URL parseRequestUrl(BusInvocation invocation){
         String path = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
         URL serviceUrl = URL.parse(path);
         return serviceUrl;
