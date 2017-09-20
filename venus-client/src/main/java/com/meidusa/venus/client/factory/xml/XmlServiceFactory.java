@@ -270,25 +270,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      * @param venusClientConfig
      */
     void initServiceProxy(ServiceConfig serviceConfig, VenusClientConfig venusClientConfig) {
-        /*
-        if(StringUtils.isEmpty(serviceConfig.getRemote()) && StringUtils.isEmpty(serviceConfig.getIpAddressList()) && register == null){
-            throw new ConfigurationException("remote or ipAddressList or register can not be null:" + serviceConfig.getType());
-        }
-        */
-        /*
-        if (serviceConfig.getInstance() != null) {
-            ServiceDefinedBean defined = new ServiceDefinedBean(serviceConfig.getBeanName(),serviceConfig.getType(),serviceConfig.getInstance(), null);
-            if (serviceConfig.getBeanName() != null) {
-                serviceNameMap.put(serviceConfig.getBeanName(), defined);
-            }else{
-                serviceMap.put(serviceConfig.getType(), defined);
-            }
-            continue;
-        }
-        */
-
-        //创建服务代理
-        //连接管理功能放到InvocationHandler，由外围serviceFacotry传递url、remoteConfig或者不传地址信息（若不传，则即为动态寻址）
+        //创建服务代理invocation
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
         invocationHandler.setServiceInterface(serviceConfig.getType());
         //若配置静态地址，以静态为先
@@ -296,11 +278,8 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             ClientRemoteConfig remoteConfig = getRemoteConfig(serviceConfig,venusClientConfig);
             invocationHandler.setRemoteConfig(remoteConfig);
         }else{
-            //要保证先初始化VenusRegisterFactory
-            Register register = RegisterContext.getInstance().getRegister();
             invocationHandler.setRegister(register);
         }
-
         invocationHandler.setVenusExceptionFactory(this.getVenusExceptionFactory());
         invocationHandler.setServiceFactory(this);
         //TODO 确认相关属性功能
@@ -315,7 +294,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         }
         */
 
-        //创建代理
+        //创建服务代理
         Object object = Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{serviceConfig.getType()}, invocationHandler);
 
         for (Method method : serviceConfig.getType().getMethods()) {

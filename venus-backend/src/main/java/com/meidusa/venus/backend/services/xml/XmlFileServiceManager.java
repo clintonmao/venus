@@ -16,7 +16,8 @@ import com.meidusa.venus.backend.interceptor.config.InterceptorConfig;
 import com.meidusa.venus.backend.invoker.support.CodeMapScanner;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.config.*;
-import com.meidusa.venus.backend.services.xml.support.*;
+import com.meidusa.venus.backend.services.xml.support.BackendBeanContext;
+import com.meidusa.venus.backend.services.xml.support.BackendBeanUtilsBean;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.registry.Register;
@@ -121,7 +122,9 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         //初始化服务
         Map<String, InterceptorMapping> interceptors = venusServerConfig.getInterceptors();
         Map<String, InterceptorStackConfig> interceptorStacks = venusServerConfig.getInterceptorStatcks();
-        initServices(serviceConfigList, interceptors, interceptorStacks);
+        for (ServiceConfig serviceConfig : serviceConfigList) {
+            initSerivce(serviceConfig,interceptors,interceptorStacks);
+        }
     }
 
     /**
@@ -202,26 +205,17 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     }
 
     /**
-     * 初始化所有服务
-     * @param serviceConfigList
+     * 初始化服务
+     * @param serviceConfig
      * @param interceptors
-     * @param interceptorStacks
+     * @param interceptorStatcks
      */
-    private void initServices(List<ServiceConfig> serviceConfigList, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStacks) {
-        for (ServiceConfig serviceConfig : serviceConfigList) {
-            //初始化服务存根
-            Service service = initServiceStub(serviceConfig, interceptors, interceptorStacks);
-            Map<String, Collection<Endpoint>> ends = service.getEndpoints().asMap();
-            for (Map.Entry<String, Collection<Endpoint>> entry : ends.entrySet()) {
-                if (entry.getValue() != null && !entry.getValue().isEmpty()) {
-                    //TODO 初始化monitorService
-                    //MonitorRuntime.getInstance().initEndPoint(service.getName(), entry.getValue().iterator().next().getName());
-                }
-            }
+    void initSerivce(ServiceConfig serviceConfig, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks){
+        //初始化服务stub
+        Service service = initServiceStub(serviceConfig, interceptors, interceptorStatcks);
 
-            //注册服务
-            registeService(serviceConfig,service);
-        }
+        //注册服务
+        registeService(serviceConfig, service);
     }
 
     /**
@@ -264,6 +258,14 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         if (beanFactory instanceof ConfigurableListableBeanFactory) {
             ConfigurableListableBeanFactory cbf = (ConfigurableListableBeanFactory) beanFactory;
             cbf.registerResolvableDependency(service.getType(), service.getInstance());
+        }
+
+        Map<String, Collection<Endpoint>> ends = service.getEndpoints().asMap();
+        for (Map.Entry<String, Collection<Endpoint>> entry : ends.entrySet()) {
+            if (entry.getValue() != null && !entry.getValue().isEmpty()) {
+                //TODO 初始化monitorService
+                //MonitorRuntime.getInstance().initEndPoint(service.getName(), entry.getValue().iterator().next().getName());
+            }
         }
         return service;
     }
