@@ -260,8 +260,8 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         //初始化服务代理
         initServiceProxy(serviceConfig,venusClientConfig);
 
-        //订阅服务 TODO 改为根据配置动态注册
-        subscribleService();
+        //订阅服务
+        subscribleService(serviceConfig);
     }
 
     /**
@@ -321,10 +321,28 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
     /**
      * 订阅服务
      */
-    void subscribleService(){
-        String subscribleUrl = "subscrible://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0&host=" + NetUtil.getLocalIp();
+    void subscribleService(ServiceConfig serviceConfig){
+        //若配置静态地址，则跳过
+        if(StringUtils.isNotEmpty(serviceConfig.getRemote()) || StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
+            return;
+        }
+        String serviceInterfaceName = null;
+        if(serviceConfig.getType() != null){
+            serviceInterfaceName = serviceConfig.getType().getName();
+        }
+        String serivceName = serviceConfig.getBeanName();
+        String version = "0.0.0";//TODO
+        String consumerHost = NetUtil.getLocalIp();
+
+        String subscribleUrl = String.format(
+                "subscrible://%s/%s?version=%s&host=%s",
+                serviceInterfaceName,
+                serivceName,
+                version,
+                consumerHost
+                );
         com.meidusa.venus.URL url = com.meidusa.venus.URL.parse(subscribleUrl);
-        logger.info("url:{}",url);
+        logger.info("sbuscrible service:{}",url);
         register.subscrible(url);
     }
 
