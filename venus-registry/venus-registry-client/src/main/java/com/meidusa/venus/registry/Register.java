@@ -63,7 +63,7 @@ public interface Register {
      * @return
      * @throws VenusRegisteException
      */
-    VenusServiceDefinitionDO lookup(URL url) throws VenusRegisteException;
+    List<VenusServiceDefinitionDO> lookup(URL url) throws VenusRegisteException;
 
 //    /**
 //     * 查找服务定义列表

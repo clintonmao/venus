@@ -41,7 +41,7 @@ public class MysqlRegister implements Register {
 	private Set<URL> subscribleFailUrls = new HashSet<URL>();// 失败的继续跑启线程定时运行
 
 	/** 已订阅成功的 服务定义对象 */
-	private ConcurrentMap<String, VenusServiceDefinitionDO> subscribleServiceDefinitionMap = new ConcurrentHashMap<String, VenusServiceDefinitionDO>();
+	private ConcurrentMap<String, List<VenusServiceDefinitionDO>> subscribleServiceDefinitionMap = new ConcurrentHashMap<String, List<VenusServiceDefinitionDO>>();
 
 	private boolean loadRunning = false;
 
@@ -164,25 +164,27 @@ public class MysqlRegister implements Register {
 	}
 
 	@Override
-	public VenusServiceDefinitionDO lookup(URL url) throws VenusRegisteException {
+	public List<VenusServiceDefinitionDO> lookup(URL url) throws VenusRegisteException {
 //		 ServiceDefineRunnable run = new ServiceDefineRunnable();
 //		 run.run();//测试接口时用
 		// 接口名 服务名 版本号 加载服务的server信息及serviceConfig信息
 		// 根据本地 VenusServiceDefinitionDO 列表去查找
 		String key = getKeyFromUrl(url);
-		VenusServiceDefinitionDO serviceDefinition = subscribleServiceDefinitionMap.get(key);
-		if (null == serviceDefinition) {
+		List<VenusServiceDefinitionDO> serviceDefinitions = subscribleServiceDefinitionMap.get(key);
+		if (CollectionUtils.isEmpty(serviceDefinitions)) {
 			List<String> readFileJsons = readFile(subcribePath);
-			Map<String, VenusServiceDefinitionDO> map = new HashMap<String, VenusServiceDefinitionDO>();
+			Map<String, List<VenusServiceDefinitionDO>> map = new HashMap<String, List<VenusServiceDefinitionDO>>();
 			if (CollectionUtils.isNotEmpty(readFileJsons)) {
 				for (String str : readFileJsons) {
-					VenusServiceDefinitionDO parseObject = JSON.parseObject(str, VenusServiceDefinitionDO.class);
-					map.put(getKey(parseObject), parseObject);
+					List<VenusServiceDefinitionDO> parseObject = JSON.parseArray(str, VenusServiceDefinitionDO.class);
+					if (CollectionUtils.isNotEmpty(parseObject)) {
+						map.put(getKey(parseObject.get(0)), parseObject);
+					}
 				}
 			}
-			serviceDefinition = map.get(key);
+			serviceDefinitions = map.get(key);
 		}
-		return serviceDefinition;
+		return serviceDefinitions;
 	}
 
 	private static String getKeyFromUrl(URL url) {
@@ -196,7 +198,7 @@ public class MysqlRegister implements Register {
 		String serviceName = url.getName();
 		String interfaceName = url.getInterfaceName();
 		String version = url.getVersionRange();
-		return serviceName + "_" + version + "_" + interfaceName;
+		return interfaceName + "/" + serviceName + "/?version=" + version;
 	}
 
 	@Override
@@ -205,10 +207,9 @@ public class MysqlRegister implements Register {
 			List<String> jsons = new ArrayList<String>();
 			for (URL url : subscribleUrls) {
 				String key = getKeyFromUrl(url);
-				VenusServiceDefinitionDO def = null;
 				try {
 					//FIXME 可能查多条记录，mapping映射结构要改
-					def = registerService.findServiceDefinition(url);
+					List<VenusServiceDefinitionDO> def = registerService.findServiceDefinitions(url);
 					logger.info("srvDef:{}", def);
 					subscribleServiceDefinitionMap.put(key, def);
 					jsons.add(JSON.toJSONString(def));

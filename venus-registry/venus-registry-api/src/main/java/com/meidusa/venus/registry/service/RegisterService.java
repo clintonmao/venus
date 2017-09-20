@@ -61,7 +61,7 @@ public interface RegisterService {
      */
 	@Endpoint(name = "findServiceDefinition")
 	@PerformanceLevel(printParams=false,printResult = false)
-    VenusServiceDefinitionDO findServiceDefinition(@Param(name = "url")URL url);
+	List<VenusServiceDefinitionDO> findServiceDefinitions(@Param(name = "url")URL url);
     
 //    /**
 //     * 根据接口名和服务名查询返回服务定义列表

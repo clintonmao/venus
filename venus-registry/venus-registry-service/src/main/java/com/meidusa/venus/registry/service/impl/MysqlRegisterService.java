@@ -270,31 +270,34 @@ public class MysqlRegisterService implements RegisterService {
 
 	@Override
 	public boolean unsubscrible(URL url) throws VenusRegisteException {
-		VenusServiceDO service = venusServiceDAO.getService(url.getInterfaceName(), url.getServiceName(),
+		List<VenusServiceDO> services = venusServiceDAO.queryServices(url.getInterfaceName(), url.getServiceName(),
 				url.getVersion());
-		if (null != service) {
-			VenusServerDO server = venusServerDAO.getServer(url.getHost(), 0);
-			if (null != server) {
-				VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(server.getId(),
-						service.getId(), RegisteConstant.CONSUMER);
-				if (null != serviceMapping) {
-					return venusServiceMappingDAO.deleteServiceMapping(serviceMapping.getId());
+		for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
+			VenusServiceDO service = iterator.next();
+			if (null != service) {
+				VenusServerDO server = venusServerDAO.getServer(url.getHost(), 0);
+				if (null != server) {
+					VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(server.getId(),
+							service.getId(), RegisteConstant.CONSUMER);
+					if (null != serviceMapping) {
+						return venusServiceMappingDAO.deleteServiceMapping(serviceMapping.getId());
+					}
 				}
 			}
 		}
 		return false;
 	}
 
-	public VenusServiceDefinitionDO findServiceDefinition(URL url) {
+	public List<VenusServiceDefinitionDO> findServiceDefinitions(URL url) {
+		List<VenusServiceDefinitionDO> returnList=new ArrayList<VenusServiceDefinitionDO>();
 		String interfaceName = url.getInterfaceName();
 		String serviceName = url.getServiceName();
 		String version = url.getVersion();
 		List<Integer> serverIds = new ArrayList<Integer>();
 		try {
-			VenusServiceDO service = venusServiceDAO.getService(interfaceName, serviceName, version);//servicePath interfaceName/serviceName?version=version
-			if (null == service || (null != service && service.getIsDelete())) {
-				return null;
-			}
+			List<VenusServiceDO> services = venusServiceDAO.queryServices(interfaceName, serviceName, version);//servicePath interfaceName/serviceName?version=version
+			for (Iterator<VenusServiceDO> ite = services.iterator(); ite.hasNext();) {
+			VenusServiceDO service =  ite.next();
 			Integer serviceId = service.getId();
 			List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMapping(serviceId,
 					RegisteConstant.PROVIDER, false);
@@ -329,14 +332,14 @@ public class MysqlRegisterService implements RegisterService {
 				List<VenusServiceConfigDO> serviceConfigs = venusServiceConfigDAO.getServiceConfigs(serviceId);
 				ResultUtils.setServiceConfigs(serviceConfigs);
 				def.setServiceConfigs(serviceConfigs);
-				return def;
+				returnList.add(def);
+			}
 			}
 		} catch (Exception e) {
 			logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
 			throw new VenusRegisteException("ServiceDefineRunnable 运行异常,服务名：" + url.getServiceName(), e);
 		}
-
-		return null;
+		return returnList;
 	}
 	
 //	public List<VenusServiceDefinitionDO> finderviceDefinitionList(String interfaceName, String serviceName)

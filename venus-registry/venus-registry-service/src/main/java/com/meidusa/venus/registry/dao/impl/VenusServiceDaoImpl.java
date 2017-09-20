@@ -148,7 +148,11 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 				public List<VenusServiceDO> extractData(ResultSet rs) throws SQLException, DataAccessException {
 					List<VenusServiceDO> returnList = new ArrayList<VenusServiceDO>();
 					while (rs.next()) {
-						returnList.add(ResultUtils.resultToVenusServiceDO(rs));
+						VenusServiceDO resultToVenusServiceDO = ResultUtils.resultToVenusServiceDO(rs);
+						if(resultToVenusServiceDO.getIsDelete()){
+							continue;
+						}
+						returnList.add(resultToVenusServiceDO);
 					}
 					return returnList;
 				}
