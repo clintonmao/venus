@@ -207,6 +207,7 @@ public class MysqlRegister implements Register {
 				String key = getKeyFromUrl(url);
 				VenusServiceDefinitionDO def = null;
 				try {
+					//FIXME 可能查多条记录，mapping映射结构要改
 					def = registerService.findServiceDefinition(url);
 					logger.info("srvDef:{}", def);
 					subscribleServiceDefinitionMap.put(key, def);
@@ -464,10 +465,10 @@ public class MysqlRegister implements Register {
 		return os.toLowerCase().startsWith("win");
 	}
 
-	@Override
-	public List<VenusServiceDefinitionDO> findServiceList(String interfaceName, String serviceName) throws VenusRegisteException {
-		return registerService.finderviceDefinitionList(interfaceName, serviceName);
-	}
+//	@Override
+//	public List<VenusServiceDefinitionDO> findServiceList(String interfaceName, String serviceName) throws VenusRegisteException {
+//		return registerService.finderviceDefinitionList(interfaceName, serviceName);
+//	}
 
 	/*
 	 * public static void main(String args[]) {

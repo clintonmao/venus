@@ -65,14 +65,14 @@ public interface Register {
      */
     VenusServiceDefinitionDO lookup(URL url) throws VenusRegisteException;
 
-    /**
-     * 查找服务定义列表
-     * @param interfaceName
-     * @param serviceName
-     * @return
-     * @throws VenusRegisteException
-     */
-    List<VenusServiceDefinitionDO> findServiceList(String interfaceName, String serviceName) throws VenusRegisteException;
+//    /**
+//     * 查找服务定义列表
+//     * @param interfaceName
+//     * @param serviceName
+//     * @return
+//     * @throws VenusRegisteException
+//     */
+//    List<VenusServiceDefinitionDO> findServiceList(String interfaceName, String serviceName) throws VenusRegisteException;
 
     /**
      * 销毁，清理、释放相关资源

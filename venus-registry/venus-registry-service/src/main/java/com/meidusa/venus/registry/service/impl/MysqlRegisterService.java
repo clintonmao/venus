@@ -201,6 +201,7 @@ public class MysqlRegisterService implements RegisterService {
 
 	@Override
 	public void subscrible(URL url) throws VenusRegisteException {
+		//FIXME 改为返回多条记录
 		VenusServiceDO service = venusServiceDAO.getService(url.getServiceName(), url.getVersion(),
 				url.getInterfaceName());
 		if (null == service && url.isConsumerCheck()) {// 服务不存在并且配置了检测则抛出异常
@@ -333,68 +334,68 @@ public class MysqlRegisterService implements RegisterService {
 		return null;
 	}
 	
-	public List<VenusServiceDefinitionDO> finderviceDefinitionList(String interfaceName, String serviceName)
-			throws VenusRegisteException {
-		List<Integer> serverIds = new ArrayList<Integer>();
-		List<VenusServiceDefinitionDO> serviceDefinitions = new ArrayList<VenusServiceDefinitionDO>();
-		try {
-			List<VenusServiceDO> services = venusServiceDAO.getServices(interfaceName, serviceName);
-			if (null == services) {
-				return serviceDefinitions;
-			}
-			for (Iterator<VenusServiceDO> ite = services.iterator(); ite.hasNext();) {
-				VenusServiceDO venusServiceDO = ite.next();
-				if (venusServiceDO.getIsDelete()) {
-					ite.remove();
-				}
-			}
-			for (Iterator<VenusServiceDO> ite = services.iterator(); ite.hasNext();) {
-				VenusServiceDO venusServiceDO = ite.next();
-				Integer serviceId = venusServiceDO.getId();
-
-				List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMapping(serviceId,
-						RegisteConstant.PROVIDER, false);
-				if (CollectionUtils.isNotEmpty(serviceMappings)) {
-					for (VenusServiceMappingDO venusServiceMappingDO : serviceMappings) {
-						if (venusServiceMappingDO.isActive()) {// 只取active的
-							Integer serverId = venusServiceMappingDO.getServerId();
-							serverIds.add(serverId);
-						}
-					}
-				}
-
-				Set<String> hostPortSet = new HashSet<String>();
-				if (CollectionUtils.isNotEmpty(serverIds)) {
-					List<VenusServerDO> servers = venusServerDAO.getServers(serverIds);
-					if (CollectionUtils.isNotEmpty(servers)) {
-						for (Iterator<VenusServerDO> iterator = servers.iterator(); iterator.hasNext();) {
-							VenusServerDO venusServerDO = iterator.next();
-							String hostPort = venusServerDO.getHostname() + ":" + venusServerDO.getPort();
-							hostPortSet.add(hostPort);
-						}
-					}
-				}
-				if (CollectionUtils.isNotEmpty(hostPortSet)) {
-					VenusServiceDefinitionDO def = new VenusServiceDefinitionDO();
-					def.setInterfaceName(interfaceName);
-					def.setName(serviceName);
-					def.setIpAddress(hostPortSet);
-					def.setActive(true);
-					def.setDescription(venusServiceDO.getDescription());
-					def.setVersionRange(venusServiceDO.getVersion());
-					List<VenusServiceConfigDO> serviceConfigs = venusServiceConfigDAO.getServiceConfigs(serviceId);
-					ResultUtils.setServiceConfigs(serviceConfigs);
-					def.setServiceConfigs(serviceConfigs);
-					serviceDefinitions.add(def);
-				}
-				return serviceDefinitions;
-			}
-		} catch (Exception e) {
-			logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", serviceName, e);
-			throw new VenusRegisteException("ServiceDefineRunnable 运行异常,服务名：" + serviceName, e);
-		}
-		return serviceDefinitions;
-	}
+//	public List<VenusServiceDefinitionDO> finderviceDefinitionList(String interfaceName, String serviceName)
+//			throws VenusRegisteException {
+//		List<Integer> serverIds = new ArrayList<Integer>();
+//		List<VenusServiceDefinitionDO> serviceDefinitions = new ArrayList<VenusServiceDefinitionDO>();
+//		try {
+//			List<VenusServiceDO> services = venusServiceDAO.getServices(interfaceName, serviceName);
+//			if (null == services) {
+//				return serviceDefinitions;
+//			}
+//			for (Iterator<VenusServiceDO> ite = services.iterator(); ite.hasNext();) {
+//				VenusServiceDO venusServiceDO = ite.next();
+//				if (venusServiceDO.getIsDelete()) {
+//					ite.remove();
+//				}
+//			}
+//			for (Iterator<VenusServiceDO> ite = services.iterator(); ite.hasNext();) {
+//				VenusServiceDO venusServiceDO = ite.next();
+//				Integer serviceId = venusServiceDO.getId();
+//
+//				List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMapping(serviceId,
+//						RegisteConstant.PROVIDER, false);
+//				if (CollectionUtils.isNotEmpty(serviceMappings)) {
+//					for (VenusServiceMappingDO venusServiceMappingDO : serviceMappings) {
+//						if (venusServiceMappingDO.isActive()) {// 只取active的
+//							Integer serverId = venusServiceMappingDO.getServerId();
+//							serverIds.add(serverId);
+//						}
+//					}
+//				}
+//
+//				Set<String> hostPortSet = new HashSet<String>();
+//				if (CollectionUtils.isNotEmpty(serverIds)) {
+//					List<VenusServerDO> servers = venusServerDAO.getServers(serverIds);
+//					if (CollectionUtils.isNotEmpty(servers)) {
+//						for (Iterator<VenusServerDO> iterator = servers.iterator(); iterator.hasNext();) {
+//							VenusServerDO venusServerDO = iterator.next();
+//							String hostPort = venusServerDO.getHostname() + ":" + venusServerDO.getPort();
+//							hostPortSet.add(hostPort);
+//						}
+//					}
+//				}
+//				if (CollectionUtils.isNotEmpty(hostPortSet)) {
+//					VenusServiceDefinitionDO def = new VenusServiceDefinitionDO();
+//					def.setInterfaceName(interfaceName);
+//					def.setName(serviceName);
+//					def.setIpAddress(hostPortSet);
+//					def.setActive(true);
+//					def.setDescription(venusServiceDO.getDescription());
+//					def.setVersionRange(venusServiceDO.getVersion());
+//					List<VenusServiceConfigDO> serviceConfigs = venusServiceConfigDAO.getServiceConfigs(serviceId);
+//					ResultUtils.setServiceConfigs(serviceConfigs);
+//					def.setServiceConfigs(serviceConfigs);
+//					serviceDefinitions.add(def);
+//				}
+//				return serviceDefinitions;
+//			}
+//		} catch (Exception e) {
+//			logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", serviceName, e);
+//			throw new VenusRegisteException("ServiceDefineRunnable 运行异常,服务名：" + serviceName, e);
+//		}
+//		return serviceDefinitions;
+//	}
 
 	public void heartbeatSubcribe(URL url) {
 		String interfaceName = url.getInterfaceName();
