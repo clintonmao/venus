@@ -11,6 +11,8 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 
 import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.dao.OldServiceMappingDAO;
+import com.meidusa.venus.registry.data.move.OldServerDO;
+import com.meidusa.venus.registry.data.move.OldServiceDO;
 import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
 
 public class OldServiceMappingDaoImpl implements OldServiceMappingDAO {
@@ -29,7 +31,7 @@ public class OldServiceMappingDaoImpl implements OldServiceMappingDAO {
 		if (null != mappId) {
 			sql = sql + " where map.id>" + mappId;
 		}
-		sql = sql + " order by map.id desc limit " + pageSize;
+		sql = sql + " order by map.id asc limit " + pageSize;
 
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] {}, new ResultSetExtractor<List<OldServiceMappingDO>>() {
@@ -53,7 +55,77 @@ public class OldServiceMappingDaoImpl implements OldServiceMappingDAO {
 		try {
 			return this.jdbcTemplate.queryForObject(sql, Integer.class);
 		} catch (Exception e) {
-			throw new DAOException("根据sql=>" + sql + ";获取服务映射关系异常", e);
+			throw new DAOException("根据sql=>" + sql + ";获取服务映射关系记录数异常", e);
+		}
+	}
+
+	@Override
+	public List<OldServiceDO> queryOldServices(Integer pageSize, Integer id) throws DAOException {
+		String sql = "SELECT id,name as service_name,description from t_venus_service ";
+
+		if (null != id) {
+			sql = sql + " where id>" + id;
+		}
+		sql = sql + " order by id asc limit " + pageSize;
+
+		try {
+			return this.jdbcTemplate.query(sql, new Object[] {}, new ResultSetExtractor<List<OldServiceDO>>() {
+				@Override
+				public List<OldServiceDO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<OldServiceDO> returnList = new ArrayList<OldServiceDO>();
+					while (rs.next()) {
+						returnList.add(ResultUtils.rsToOldServiceDO(rs));
+					}
+					return returnList;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据sql=>" + sql + ";获取服务列表异常", e);
+		}
+	}
+
+	@Override
+	public Integer getOldServiceCount() throws DAOException {
+		String sql = "SELECT count(id) as records FROM t_venus_service ";
+		try {
+			return this.jdbcTemplate.queryForObject(sql, Integer.class);
+		} catch (Exception e) {
+			throw new DAOException("根据sql=>" + sql + ";获取服务记录数异常", e);
+		}
+	}
+
+	@Override
+	public List<OldServerDO> queryOldServers(Integer pageSize, Integer id) throws DAOException {
+		String sql = "SELECT id,hostname,port FROM t_venus_server ";
+
+		if (null != id) {
+			sql = sql + " where id>" + id;
+		}
+		sql = sql + " order by id asc limit " + pageSize;
+
+		try {
+			return this.jdbcTemplate.query(sql, new Object[] {}, new ResultSetExtractor<List<OldServerDO>>() {
+				@Override
+				public List<OldServerDO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<OldServerDO> returnList = new ArrayList<OldServerDO>();
+					while (rs.next()) {
+						returnList.add(ResultUtils.rsToOldServerDO(rs));
+					}
+					return returnList;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据sql=>" + sql + ";获取主机列表异常", e);
+		}
+	}
+
+	@Override
+	public Integer getOldServerCount() throws DAOException {
+		String sql = "SELECT count(id) as records FROM t_venus_server ";
+		try {
+			return this.jdbcTemplate.queryForObject(sql, Integer.class);
+		} catch (Exception e) {
+			throw new DAOException("根据sql=>" + sql + ";获取主机记录数异常", e);
 		}
 	}
 
