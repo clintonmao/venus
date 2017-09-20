@@ -17,6 +17,7 @@ package com.meidusa.venus.client.factory.xml;
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
+import com.meidusa.venus.RpcException;
 import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.client.factory.ServiceFactory;
@@ -34,6 +35,7 @@ import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.RegisterContext;
 import com.meidusa.venus.util.FileWatchdog;
+import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
@@ -105,6 +107,11 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
 
     private BeanContext beanContext;
 
+    /**
+     * 注册中心
+     */
+    private Register register;
+
     //private boolean enableReload = false;
     //private int asyncExecutorSize = 10;
     //private boolean enableAsync = true;
@@ -146,27 +153,12 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
     		return;
     	}
     	inited = true;
-        logger.trace("current Venus Client id=" + PacketConstant.VENUS_CLIENT_ID);
 
-        if (venusExceptionFactory == null) {
-            XmlVenusExceptionFactory xmlVenusExceptionFactory = new XmlVenusExceptionFactory();
-            //3.0.8版本将采用自动扫描的方式获得 exception 相关的配置
-            //xmlVenusExceptionFactory.setConfigFiles(new String[] { "classpath:com/meidusa/venus/exception/VenusSystemException.xml" });
-            xmlVenusExceptionFactory.init();
-            this.venusExceptionFactory = xmlVenusExceptionFactory;
-        }
+    	//初始化应用上下文
+    	initContext();
 
-        if(applicationContext != null){
-            VenusContext.getInstance().setApplicationContext(applicationContext);
-        }
-
-        beanContext = new ClientBeanContext(applicationContext!= null ?applicationContext.getAutowireCapableBeanFactory(): null);
-        BeanContextBean.getInstance().setBeanContext(beanContext);
-        if(beanContext != null){
-            VenusContext.getInstance().setBeanContext(beanContext);
-        }
-
-        VenusBeanUtilsBean.setInstance(new ClientBeanUtilsBean(new ConvertUtilsBean(), new PropertyUtilsBean(), beanContext));
+        //初始化注册中心
+        initRegister();
 
         //初始化配置
         initConfiguration();
@@ -192,21 +184,41 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         }*/
     }
 
-    class VenusFileWatchdog extends FileWatchdog {
+    /**
+     * 初始化应用上下文
+     */
+    void initContext(){
+        logger.trace("current Venus Client id=" + PacketConstant.VENUS_CLIENT_ID);
 
-        protected VenusFileWatchdog(File... file) {
-            super(file);
+        if (venusExceptionFactory == null) {
+            XmlVenusExceptionFactory xmlVenusExceptionFactory = new XmlVenusExceptionFactory();
+            //3.0.8版本将采用自动扫描的方式获得 exception 相关的配置
+            //xmlVenusExceptionFactory.setConfigFiles(new String[] { "classpath:com/meidusa/venus/exception/VenusSystemException.xml" });
+            xmlVenusExceptionFactory.init();
+            this.venusExceptionFactory = xmlVenusExceptionFactory;
         }
 
-        @Override
-        protected void doOnChange() {
-            try {
-                XmlServiceFactory.this.initConfiguration();
-            } catch (Exception e) {
-                XmlServiceFactory.logger.error("reload configuration error", e);
-            }
+        if(applicationContext != null){
+            VenusContext.getInstance().setApplicationContext(applicationContext);
         }
+        beanContext = new ClientBeanContext(applicationContext!= null ?applicationContext.getAutowireCapableBeanFactory(): null);
+        BeanContextBean.getInstance().setBeanContext(beanContext);
+        if(beanContext != null){
+            VenusContext.getInstance().setBeanContext(beanContext);
+        }
+        VenusBeanUtilsBean.setInstance(new ClientBeanUtilsBean(new ConvertUtilsBean(), new PropertyUtilsBean(), beanContext));
+    }
 
+    /**
+     * 获取注册中心
+     * @return
+     */
+    void initRegister(){
+        Register register = RegisterContext.getInstance().getRegister();//MysqlRegister.getInstance(true,null);
+        if(register == null){
+            throw new RpcException("init register failed.");
+        }
+        this.register = register;
     }
 
     /**
@@ -245,6 +257,19 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      * @param serviceConfig
      */
     void initService(ServiceConfig serviceConfig, VenusClientConfig venusClientConfig) {
+        //初始化服务代理
+        initServiceProxy(serviceConfig,venusClientConfig);
+
+        //订阅服务 TODO 改为根据配置动态注册
+        subscribleService();
+    }
+
+    /**
+     * 初始化服务代理
+     * @param serviceConfig
+     * @param venusClientConfig
+     */
+    void initServiceProxy(ServiceConfig serviceConfig, VenusClientConfig venusClientConfig) {
         /*
         if(StringUtils.isEmpty(serviceConfig.getRemote()) && StringUtils.isEmpty(serviceConfig.getIpAddressList()) && register == null){
             throw new ConfigurationException("remote or ipAddressList or register can not be null:" + serviceConfig.getType());
@@ -262,10 +287,9 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         }
         */
 
-        //创建InvocationHandler
+        //创建服务代理
         //连接管理功能放到InvocationHandler，由外围serviceFacotry传递url、remoteConfig或者不传地址信息（若不传，则即为动态寻址）
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
-        //TODO 初始化服务时订阅
         invocationHandler.setServiceInterface(serviceConfig.getType());
         //若配置静态地址，以静态为先
         if(StringUtils.isNotEmpty(serviceConfig.getRemote()) || StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
@@ -291,7 +315,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         }
         */
 
-        //创建服务代理
+        //创建代理
         Object object = Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{serviceConfig.getType()}, invocationHandler);
 
         for (Method method : serviceConfig.getType().getMethods()) {
@@ -308,13 +332,23 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
 
         serviceConfigMap.put(serviceConfig.getType(), serviceConfig);
         ServiceDefinedBean defined = new ServiceDefinedBean(serviceConfig.getBeanName(),serviceConfig.getType(),object, invocationHandler);
-
         if (serviceConfig.getBeanName() != null) {
             serviceNameMap.put(serviceConfig.getBeanName(), defined);
         }else{
             serviceMap.put(serviceConfig.getType(), defined);
         }
     }
+
+    /**
+     * 订阅服务
+     */
+    void subscribleService(){
+        String subscribleUrl = "subscrible://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0&host=" + NetUtil.getLocalIp();
+        com.meidusa.venus.URL url = com.meidusa.venus.URL.parse(subscribleUrl);
+        logger.info("url:{}",url);
+        register.subscrible(url);
+    }
+
 
     /**
      * 获取静态地址配置信息
@@ -425,6 +459,23 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
 				}
 			}
         }
+    }
+
+    class VenusFileWatchdog extends FileWatchdog {
+
+        protected VenusFileWatchdog(File... file) {
+            super(file);
+        }
+
+        @Override
+        protected void doOnChange() {
+            try {
+                XmlServiceFactory.this.initConfiguration();
+            } catch (Exception e) {
+                XmlServiceFactory.logger.error("reload configuration error", e);
+            }
+        }
+
     }
 
     public void destroy() {

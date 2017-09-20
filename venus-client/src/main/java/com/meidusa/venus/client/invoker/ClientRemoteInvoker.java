@@ -45,24 +45,6 @@ public class ClientRemoteInvoker implements Invoker{
 
     @Override
     public void init() throws RpcException {
-        //初始化注册中心
-        if(register == null){
-            initRegister();
-        }
-        //TODO 订阅时机
-        subscrible();
-    }
-
-    /**
-     * 获取注册中心
-     * @return
-     */
-    void initRegister(){
-        Register register = RegisterContext.getInstance().getRegister();//MysqlRegister.getInstance(true,null);
-        if(register == null){
-            throw new RpcException("init register failed.");
-        }
-        this.register = register;
     }
 
     @Override
@@ -145,14 +127,16 @@ public class ClientRemoteInvoker implements Invoker{
     List<URL> lookupByDynamic(ClientInvocation invocation){
         List<URL> urlList = new ArrayList<URL>();
 
-        URL serviceUrl = parseUrl(invocation);
-        //TODO 查找多条匹配记录，如只给出interfaceName、serviceName，有多个版本号服务定义
-        VenusServiceDefinitionDO serviceDefinition = getRegister().lookup(serviceUrl);
-        if(serviceDefinition == null || CollectionUtils.isEmpty(serviceDefinition.getIpAddress())){
-            throw new RpcException("not found available service providers.");
-        }
-        logger.info("serviceDefinition:{}",serviceDefinition);
+        //解析请求Url
+        URL requestUrl = parseRequestUrl(invocation);
 
+        //查找服务定义
+        //TODO 查找多条匹配记录，如只给出interfaceName、serviceName，有多个版本号服务定义
+        VenusServiceDefinitionDO serviceDefinition = getRegister().lookup(requestUrl);
+        if(serviceDefinition == null || CollectionUtils.isEmpty(serviceDefinition.getIpAddress())){
+            throw new RpcException(String.format("not found available service %s providers.",requestUrl.toString()));
+        }
+        logger.info("look up srvDef:{}",serviceDefinition);
         for(String item:serviceDefinition.getIpAddress()){
             String[] arr = item.split(":");
             URL url = new URL();
@@ -165,24 +149,25 @@ public class ClientRemoteInvoker implements Invoker{
     }
 
     /**
-     * 解析url
+     * 解析请求url
      * @param invocation
      * @return
      */
-    URL parseUrl(ClientInvocation invocation){
-        String path = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
-        URL serviceUrl = URL.parse(path);
-        return serviceUrl;
-    }
-
-    /**
-     * 订阅服务 TODO 订阅服务时机
-     */
-    void subscrible(){
-        String subscribleUrl = "subscrible://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0&host=" + NetUtil.getLocalIp();
-        URL url = URL.parse(subscribleUrl);
-        logger.info("url:{}",url);
-        getRegister().subscrible(url);
+    URL parseRequestUrl(ClientInvocation invocation){
+        String serviceInterfaceName = "null";
+        if(invocation.getServiceInterface() != null){
+            serviceInterfaceName = invocation.getServiceInterface().getName();
+        }
+        String serviceName = invocation.getServiceName();
+        String version = "0.0.0";//TODO
+        String serviceUrl = String.format(
+                "venus://%s/%s?version=%s",
+                serviceInterfaceName,
+                serviceName,
+                version
+                );
+        URL url = URL.parse(serviceUrl);
+        return url;
     }
 
     /**

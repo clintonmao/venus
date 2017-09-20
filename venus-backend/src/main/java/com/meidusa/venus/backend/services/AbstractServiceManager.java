@@ -32,25 +32,29 @@ public abstract class AbstractServiceManager implements ServiceManager {
 
     private boolean supportOverload = false;
 
-    protected final Map<String, Service> services = new HashMap<String, Service>();
-
-    /**
-     * @return the serviceInstancePool
-     */
-    public Collection<Service> getServices() {
-        return services.values();
-    }
+    protected final Map<String, Service> serviceMap = new HashMap<String, Service>();
 
     @Override
     public Service getService(String serviceName) throws ServiceNotFoundException {
         if (serviceName == null) {
             throw new ServiceNotFoundException("Cannot find service with null");
         }
-        if (!services.containsKey(serviceName)) {
+        if (!serviceMap.containsKey(serviceName)) {
             throw new ServiceNotFoundException("No service named " + serviceName);
         }
 
-        return services.get(serviceName);
+        return serviceMap.get(serviceName);
+    }
+
+    public Map<String, Service> getServiceMap() {
+        return serviceMap;
+    }
+
+    /**
+     * @return the serviceInstancePool
+     */
+    public Collection<Service> getServices() {
+        return serviceMap.values();
     }
 
     @Override
@@ -66,7 +70,7 @@ public abstract class AbstractServiceManager implements ServiceManager {
             String serviceName = apiName.substring(0, index);
             String endpointName = apiName.substring(index + 1);
 
-            Service service = services.get(serviceName);
+            Service service = serviceMap.get(serviceName);
             if (service == null) {
                 throw new ServiceNotFoundException("No service named " + serviceName);
             }
@@ -85,7 +89,7 @@ public abstract class AbstractServiceManager implements ServiceManager {
     public Endpoint getEndpoint(String serviceName, String endpointName, String[] paramNames) throws ServiceNotFoundException, EndPointNotFoundException,
             SystemParameterRequiredException {
         // find service
-        Service service = services.get(serviceName);
+        Service service = serviceMap.get(serviceName);
         if (service == null) {
             throw new ServiceNotFoundException("No service named " + serviceName);
         }
@@ -235,10 +239,6 @@ public abstract class AbstractServiceManager implements ServiceManager {
         }
 
         return p;
-    }
-
-    public Map<String, Service> getServiceMappings(){
-        return services;
     }
 
 }

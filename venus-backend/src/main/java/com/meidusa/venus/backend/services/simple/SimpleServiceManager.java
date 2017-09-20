@@ -40,7 +40,7 @@ public class SimpleServiceManager extends AbstractServiceManager implements Init
             }
 
             for (Service service : loadedServices) {
-                services.put(service.getName(), service);
+                serviceMap.put(service.getName(), service);
             }
         }
     }
@@ -60,7 +60,7 @@ public class SimpleServiceManager extends AbstractServiceManager implements Init
     }
 
     public Map<String, Service> getServicesAsMap() {
-        return services;
+        return serviceMap;
     }
 
     /**

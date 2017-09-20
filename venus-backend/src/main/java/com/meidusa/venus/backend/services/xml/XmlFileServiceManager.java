@@ -70,47 +70,58 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        //初始化上下文
+        initContext();
+
+        //初始化注册中心
+        initRegister();
+
+        //初始化配置
+        initConfiguration();
+    }
+
+    /**
+     * 初始化上下文
+     */
+    void initContext(){
         if(applicationContext != null){
             VenusContext.getInstance().setApplicationContext(applicationContext);
         }
-
         beanContext = new BackendBeanContext(beanFactory);
         BeanContextBean.getInstance().setBeanContext(beanContext);
         VenusBeanUtilsBean.setInstance(new BackendBeanUtilsBean(new ConvertUtilsBean(), new PropertyUtilsBean(), beanContext));
         if(beanContext != null){
             VenusContext.getInstance().setBeanContext(beanContext);
         }
-
         CodeMapScanner.getCodeMap();
         //AthenaExtensionResolver.getInstance().resolver();
+    }
 
+    /**
+     * 初始化注册中心
+     */
+    void initRegister(){
+        Register register = RegisterContext.getInstance().getRegister();
+        if(register == null){
+            throw new RpcException("init register failed.");
+        }
+        this.register = register;
+    }
+
+    /**
+     * 初始化配置
+     */
+    void initConfiguration(){
         //解析配置文件
         VenusServerConfig venusServerConfig = parseConfig();
-
         List<ServiceConfig> serviceConfigList = venusServerConfig.getServiceConfigs();
         addMonitorServiceConfig(serviceConfigList);
         addRegistryServiceConfig(serviceConfigList);
 
+        //初始化服务
         Map<String, InterceptorMapping> interceptors = venusServerConfig.getInterceptors();
         Map<String, InterceptorStackConfig> interceptorStacks = venusServerConfig.getInterceptorStatcks();
-
-        //初始化服务
         initServices(serviceConfigList, interceptors, interceptorStacks);
-    }
-
-    /**
-     * 获取注册中心
-     * @return
-     */
-    Register getRegister(){
-        if(register != null){
-            return register;
-        }
-        register = RegisterContext.getInstance().getRegister();
-        if(register == null){
-            throw new RpcException("init register failed.");
-        }
-        return register;
     }
 
     /**
@@ -197,10 +208,9 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @param interceptorStacks
      */
     private void initServices(List<ServiceConfig> serviceConfigList, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStacks) {
-        for (ServiceConfig config : serviceConfigList) {
-            //初始化服务
-            Service service = initService(config, interceptors, interceptorStacks);
-
+        for (ServiceConfig serviceConfig : serviceConfigList) {
+            //初始化服务存根
+            Service service = initServiceStub(serviceConfig, interceptors, interceptorStacks);
             Map<String, Collection<Endpoint>> ends = service.getEndpoints().asMap();
             for (Map.Entry<String, Collection<Endpoint>> entry : ends.entrySet()) {
                 if (entry.getValue() != null && !entry.getValue().isEmpty()) {
@@ -208,17 +218,20 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                     //MonitorRuntime.getInstance().initEndPoint(service.getName(), entry.getValue().iterator().next().getName());
                 }
             }
+
+            //注册服务
+            registeService(serviceConfig,service);
         }
     }
 
     /**
-     * 初始化服务
+     * 初始化服务stub
      * @param serviceConfig
      * @param interceptors
      * @param interceptorStatcks
      * @return
      */
-    protected Service initService(ServiceConfig serviceConfig, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks) {
+    protected Service initServiceStub(ServiceConfig serviceConfig, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks) {
         //初始化service
         SingletonService service = new SingletonService();
         service.setType(serviceConfig.getType());
@@ -227,14 +240,11 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         type.cast(serviceConfig.getInstance());
         service.setActive(serviceConfig.isActive());
         service.setVersionRange(serviceConfig.getVersionRange());
-
         com.meidusa.venus.annotations.Service serviceAnnotation = type.getAnnotation(com.meidusa.venus.annotations.Service.class);
-        
         if(serviceAnnotation == null){
         	logger.error("Service annotation not found in class="+type.getClass());
         	throw new VenusConfigException("Service annotation not found in class="+type.getClass());
         }
-
         service.setAthenaFlag(serviceAnnotation.athenaFlag());
         if (!serviceAnnotation.name().isEmpty()) {
             service.setName(serviceAnnotation.name());
@@ -248,37 +258,52 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         Multimap<String, Endpoint> endpoints = initEndpoinits(service,methods,serviceConfig,interceptors,interceptorStatcks);
         service.setEndpoints(endpoints);
 
-        this.services.put(service.getName(), service);
+        this.serviceMap.put(service.getName(), service);
 
         // register to resolvable dependency container
         if (beanFactory instanceof ConfigurableListableBeanFactory) {
             ConfigurableListableBeanFactory cbf = (ConfigurableListableBeanFactory) beanFactory;
             cbf.registerResolvableDependency(service.getType(), service.getInstance());
         }
-
-        //注册服务 TODO 待完善
-        registeService(serviceConfig);
         return service;
     }
 
     /**
      * 注册服务
      */
-    void registeService(ServiceConfig serviceConfig){
-        URL registerUrl = getURL(serviceConfig);
-        getRegister().registe(registerUrl);
+    void registeService(ServiceConfig serviceConfig,Service service){
+        //获取服务注册url
+        URL serviceRegisterUrl = parseRegisterUrl(serviceConfig,service);
+
+        //注册服务
+        getRegister().registe(serviceRegisterUrl);
     }
 
     /**
-     * 获取注册url
+     * 获取服务注册url
      * @param serviceConfig
      * @return
      */
-    URL getURL(ServiceConfig serviceConfig){
-        String strUrl = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0&host=%s&port=16800&methods=sayHello[java.lang.String]";
-        strUrl = String.format(strUrl, NetUtil.getLocalIp());
-        logger.info("registerUrl:%",strUrl);
-        URL url = URL.parse(strUrl);
+    URL parseRegisterUrl(ServiceConfig serviceConfig, Service service){
+        String protocol = "venus";//TODO
+        String serviceInterfaceName = serviceConfig.getType().getName();
+        String serviceName = service.getName();
+        String version = "0.0.0";//TODO
+        String host = NetUtil.getLocalIp();
+        String port = "16800";//TODO
+        String methods = "sayHello[java.lang.String]";//TODO
+        String registerUrl = String.format(
+                "%s://%s/%s?version=%s&host=%s&port=%s&methods=%s",
+                protocol,
+                serviceInterfaceName,
+                serviceName,
+                version,
+                host,
+                port,
+                methods
+        );
+        logger.info("registe service:{}",registerUrl);
+        URL url = URL.parse(registerUrl);
         return url;
     }
 
@@ -342,10 +367,9 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
                 //TODO 确认代码用途及替换方案
                 //ep.setPerformanceLogger(pLogger);
-
                 ep.setService(service);
-                if (logger.isInfoEnabled()) {
-                    logger.info("Add Endpoint: " + ep.getService().getName() + "." + ep.getName());
+                if (logger.isDebugEnabled()) {
+                    logger.debug("add endpoint: " + ep.getService().getName() + "." + ep.getName());
                 }
                 endpoints.put(ep.getName(), ep);
             }
@@ -386,6 +410,14 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
         this.beanFactory = beanFactory;
+    }
+
+    /**
+     * 获取注册中心
+     * @return
+     */
+    Register getRegister(){
+        return register;
     }
 
 }
