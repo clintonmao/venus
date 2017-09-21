@@ -119,11 +119,11 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
 
         try {
             VenusRouterPacket routerPacket = new VenusRouterPacket();
-            routerPacket.srcIP = InetAddressUtil.pack(srcConn.getInetAddress().getAddress());
-            routerPacket.data = message;
-            routerPacket.startTime = TimeUtil.currentTimeMillis();
             routerPacket.frontendConnectionID = srcConn.getSequenceID();
             routerPacket.frontendRequestID = srcConn.getNextRequestID();
+            routerPacket.data = message;
+            routerPacket.srcIP = InetAddressUtil.pack(srcConn.getInetAddress().getAddress());
+            routerPacket.startTime = TimeUtil.currentTimeMillis();
             routerPacket.serializeType = srcConn.getSerializeType();
 
             //解析服务信息
@@ -184,7 +184,7 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
     }
 
     /**
-     * 校验版本号是否可用 TODO 放到寻址中实现，尽量与client复用
+     * 校验版本号是否可用 TODO 功能由路由filter替代
      * @param invocation
      */
     void validVersion(BusInvocation invocation){

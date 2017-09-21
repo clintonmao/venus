@@ -19,25 +19,22 @@ import com.meidusa.venus.io.network.VenusFrontendConnectionFactory;
 public class BusFrontendConnectionFactory extends VenusFrontendConnectionFactory implements InitializingBean {
     private static Logger logger = LoggerFactory.getLogger(BusFrontendConnectionFactory.class);
 
-    /**
-     * 
-     */
-    private RetryMessageHandler retry;
-
-    public RetryMessageHandler getRetry() {
-        return retry;
-    }
-
-    public void setRetry(RetryMessageHandler retry) {
-        this.retry = retry;
-    }
+    private RetryMessageHandler retryMessageHandler;
 
     protected FrontendConnection getConnection(SocketChannel channel) {
         BusFrontendConnection conn = new BusFrontendConnection(channel);
         conn.setRequestHandler(getMessageHandler());
         conn.setAuthenticateProvider(getAuthenticateProvider());
-        conn.setRetryHandler(retry);
+        conn.setRetryHandler(retryMessageHandler);
         return conn;
+    }
+
+    public RetryMessageHandler getRetryMessageHandler() {
+        return retryMessageHandler;
+    }
+
+    public void setRetryMessageHandler(RetryMessageHandler retryMessageHandler) {
+        this.retryMessageHandler = retryMessageHandler;
     }
 
     @Override

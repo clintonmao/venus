@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+		http://www.springframework.org/schema/oxm http://www.springframework.org/schema/oxm/spring-oxm-3.0.xsd"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:oxm="http://www.springframework.org/schema/oxm" xmlns:p="http://www.springframework.org/schema/p"
+	default-autowire="byName">
+
+	<context:annotation-config/>
+	<context:component-scan base-package="com.chexiang.*" />
+	<context:component-scan base-package="com.saic.framework.*" />
+	<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" />
+
+	<!--应用配置-->
+	<bean class="com.meidusa.venus.client.Application">
+		<property name="name" value="demo-consumer"/>
+	</bean>
+
+	<!--注册配置-->
+	<bean id="venusRegistryFactory" class="com.meidusa.venus.client.VenusRegistryFactory">
+		<property name="url" value="injvm://localhost"/>
+	</bean>
+
+	<!--监控配置-->
+	<bean id="venusMonitorFactory" class="com.meidusa.venus.client.VenusMonitorFactory">
+		<property name="url" value="10.32.174.23:16800"/>
+	</bean>
+
+	<bean id="serviceFactory" class="com.meidusa.venus.client.VenusServiceFactory" destroy-method="destroy">
+		<property name="configFiles">
+			<list>
+				<value>classpath:hello-venus-client.xml</value>
+			</list>
+		</property>
+		<property name="needPing" value="false"/>
+		<property name="venusExceptionFactory" ref="venusExceptionFactory"/>
+	</bean>
+
+	<bean id="venusExceptionFactory" class="com.meidusa.venus.exception.XmlVenusExceptionFactory" init-method="init">
+		<property name="configFiles">
+			<list>
+				<value>classpath:com/meidusa/venus/exception/VenusSystemException.xml</value>
+			</list>
+		</property>
+	</bean>
+
+	<!--
+	String host = "10.32.174.22";
+    String host = "10.47.16.58";
+    String host = "10.47.58.63";
+    10.47.58.63:16800
+	<service type="com.athena.service.api.AthenaDataService" remote="monitor-remote"/>
+    <service type="com.athena.service.api.AthenaDataService" ipAddressList="10.32.174.23:16800"/>
+    -->
+
+	<!--将此配置提取整合到venusMonitorFactory.athena中-->
+	<bean name="configManager" class="com.saic.framework.athena.configuration.DefaultClientConfigManager">
+		<property name="appName" value="athena-client"/>
+		<property name="monitorEnabled"  value="yes" />
+	</bean>
+	
+</beans>

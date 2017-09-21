@@ -142,8 +142,7 @@ public class VenusServerInvokerTask implements Runnable{
             invocation = parseInvocation(conn, data);
 
             //通过代理调用服务
-            VenusServerInvokerProxy venusServerInvokerProxy = getVenusServerInvokerProxy();
-            result = venusServerInvokerProxy.invoke(invocation, null);
+            result = getVenusServerInvokerProxy().invoke(invocation, null);
         } catch (Exception e) {
             //TODO 处理异常信息丢失、异常信息包装
             result = new Result();

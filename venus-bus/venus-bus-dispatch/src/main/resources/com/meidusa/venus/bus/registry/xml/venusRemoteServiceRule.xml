@@ -14,7 +14,7 @@
 		<bean-property-setter-byAttrname-rule pattern="property" attrname="name"/> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
 		
 		<pattern value="services/service">
-			<object-create-rule-with-init classname="com.meidusa.venus.bus.registry.xml.config.BusServiceConfig"/>
+			<object-create-rule-with-init classname="com.meidusa.venus.bus.registry.xml.config.ServiceConfig"/>
 			<set-properties-rule />
 			<bean-property-setter-byAttrname-rule pattern="property" attrname="name"/> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
 			<set-next-rule methodname="addService"/>

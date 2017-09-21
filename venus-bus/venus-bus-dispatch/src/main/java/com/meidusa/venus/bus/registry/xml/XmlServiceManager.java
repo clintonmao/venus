@@ -19,13 +19,13 @@ import org.apache.commons.digester.Digester;
 import org.apache.commons.digester.RuleSet;
 import org.apache.commons.digester.xmlrules.FromXmlRuleSet;
 
-import com.meidusa.toolkit.common.bean.config.ConfigUtil;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.util.DefaultRange;
 import com.meidusa.venus.util.Range;
 import com.meidusa.venus.util.RangeUtil;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * XML方式服务注册管理
@@ -33,7 +33,7 @@ import org.apache.commons.lang.StringUtils;
  * @author structchen
  * 
  */
-public class XmlServiceManager implements ServiceManager {
+public class XmlServiceManager implements ServiceManager,InitializingBean {
 
     private String[] configFiles;
 
@@ -42,6 +42,11 @@ public class XmlServiceManager implements ServiceManager {
      */
     private Map<String,BusRemoteConfig> serviceRemoteConfigMap = new HashMap<String,BusRemoteConfig>();
 
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+
+    }
 
     /**
      * 初始化配置

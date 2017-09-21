@@ -64,6 +64,8 @@ public class ServerInvocation implements Invocation {
 
     VenusFrontendConnection conn;
 
+    SerializeServiceRequestPacket request;
+
     VenusRouterPacket routerPacket;
 
     Tuple<Long, byte[]> data;
@@ -77,8 +79,6 @@ public class ServerInvocation implements Invocation {
     String finalSourceIp;
 
     long waitTime;
-
-    SerializeServiceRequestPacket request;
 
     /**
      * 服务端端点配置，非注释配置 TODO 统一

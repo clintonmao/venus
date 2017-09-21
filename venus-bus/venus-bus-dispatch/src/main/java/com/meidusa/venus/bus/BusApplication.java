@@ -11,7 +11,7 @@ public class BusApplication {
 
     //TODO 完善main app
     void run(){
-        ApplicationContext context = new ClassPathXmlApplicationContext("classpath:service-bus-container.xml");
+        ApplicationContext context = new ClassPathXmlApplicationContext("classpath:applicationContext-bus.xml");
         context.containsBean("authenticator");
         try {
             Thread.sleep(1000*60*60);
