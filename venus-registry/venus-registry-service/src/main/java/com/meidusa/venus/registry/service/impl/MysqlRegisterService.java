@@ -32,6 +32,7 @@ import com.meidusa.venus.registry.dao.impl.VenusServerDaoImpl;
 import com.meidusa.venus.registry.dao.impl.VenusServiceConfigDaoImpl;
 import com.meidusa.venus.registry.dao.impl.VenusServiceDaoImpl;
 import com.meidusa.venus.registry.dao.impl.VenusServiceMappingDaoImpl;
+import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
 
 /**
  * Created by Zhangzhihua on 2017/8/16.
@@ -362,6 +363,30 @@ public class MysqlRegisterService implements RegisterService {
 			throw new VenusRegisteException("ServiceDefineRunnable 运行异常,服务名：" + url.getServiceName(), e);
 		}
 		return returnList;
+	}
+	
+	public void addNewServiceMapping(OldServiceMappingDO old) {
+		boolean exists = venusServiceMappingDAO.existServiceMapping(old.getHostName(), old.getPort(),
+				old.getServiceName(), old.getVersion());
+		if (!exists) {// 不存在则添加
+			VenusServiceMappingDO venusServiceMappingDO = new VenusServiceMappingDO();
+			VenusServerDO server = venusServerDAO.getServer(old.getHostName(), old.getPort());
+			if (null != server) {
+				venusServiceMappingDO.setServerId(server.getId());
+				VenusServiceDO service = venusServiceDAO.getService(old.getServiceName());//TODO 版本如何 处理 老数据无版本，新数据都有版本
+				if (null != service) {
+					venusServiceMappingDO.setServiceId(service.getId());
+					venusServiceMappingDO.setProviderAppId(0);
+					venusServiceMappingDO.setConsumerAppId(0);
+					venusServiceMappingDO.setSync(true);
+					venusServiceMappingDO.setActive(true);
+					venusServiceMappingDO.setRole(RegisteConstant.PROVIDER);
+					venusServiceMappingDO.setVersion(old.getVersion());
+					venusServiceMappingDO.setIsDelete(false);
+					venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
+				}
+			}
+		}
 	}
 	
 //	public List<VenusServiceDefinitionDO> finderviceDefinitionList(String interfaceName, String serviceName)
