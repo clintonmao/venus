@@ -57,7 +57,7 @@ public class MysqlRegisterService implements RegisterService {
 	private String connectUrl;
 
 	public MysqlRegisterService() {
-		//this("mysql://10.32.173.250:3306/registry_new?username=registry&password=registry");
+		
 	}
 
 	/**
@@ -127,16 +127,7 @@ public class MysqlRegisterService implements RegisterService {
 				}
 			}
 		}
-		VenusServerDO server = venusServerDAO.getServer(url.getHost(), url.getPort());
-		int serverId = 0;
-		if (null == server) {
-			VenusServerDO venusServerDO = new VenusServerDO();
-			venusServerDO.setHostname(url.getHost());
-			venusServerDO.setPort(url.getPort());
-			serverId = venusServerDAO.addServer(venusServerDO);
-		} else {
-			serverId = server.getId();
-		}
+		int serverId = addServer(url.getHost(), url.getPort());
 		VenusServiceDO service = venusServiceDAO.getService(url.getInterfaceName(), url.getServiceName(),
 				url.getVersion());
 		int serviceId = 0;
@@ -176,6 +167,20 @@ public class MysqlRegisterService implements RegisterService {
 			String oldVersion = serviceMapping.getVersion();// 有区间的version需特殊处理
 
 		}
+	}
+
+	public int addServer(String host,int port) {
+		VenusServerDO server = venusServerDAO.getServer(host, port);
+		int serverId = 0;
+		if (null == server) {
+			VenusServerDO venusServerDO = new VenusServerDO();
+			venusServerDO.setHostname(host);
+			venusServerDO.setPort(port);
+			serverId = venusServerDAO.addServer(venusServerDO);
+		} else {
+			serverId = server.getId();
+		}
+		return serverId;
 	}
 
 	@Override

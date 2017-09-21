@@ -113,5 +113,15 @@ public interface RegisterService {
 	@Endpoint(name = "init")
 	@PerformanceLevel(printParams=false,printResult = false)
     void init();
+	
+	/**
+	 * 根据 host port添加主机
+	 * @param host
+	 * @param port
+	 * @return
+	 */
+	@Endpoint(name = "addServer")
+	@PerformanceLevel(printParams=false,printResult = false)
+	int addServer(@Param(name = "host")String host,@Param(name = "port")int port);
 
 }

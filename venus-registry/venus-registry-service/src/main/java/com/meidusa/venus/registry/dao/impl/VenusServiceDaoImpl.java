@@ -16,8 +16,10 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 
+import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.dao.VenusServiceDAO;
+import com.meidusa.venus.registry.domain.RegisteConstant;
 import com.meidusa.venus.registry.domain.VenusServiceDO;
 
 public class VenusServiceDaoImpl implements VenusServiceDAO {
@@ -33,21 +35,98 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 
 	@Override
 	public int addService(VenusServiceDO venusServiceDO) throws DAOException {
-		final String sql = "insert into t_venus_service (name,interface_name,version, description,app_id,registe_type,methods,is_delete, create_time, update_time) values ('"
-				+ venusServiceDO.getName() + "', '" + venusServiceDO.getInterfaceName() + "', '"
-				+ venusServiceDO.getVersion() + "', '" + venusServiceDO.getDescription() + "', "
-				+ venusServiceDO.getAppId() + "," + venusServiceDO.getRegisteType() + ",'" + venusServiceDO.getMethods()
-				+ "'," + venusServiceDO.getIsDelete() + ", now(), now())";
+//		final String sql = "insert into t_venus_service (name,interface_name,version,description,app_id,registe_type,methods,is_delete,create_time,update_time) values ('"
+//		+ vs.getName() + "','" + vs.getInterfaceName() + "','"
+//		+ vs.getVersion() + "','" + vs.getDescription() + "',"
+//		+ vs.getAppId() + "," + vs.getRegisteType() + ",'" + vs.getMethods()
+//		+ "'," + vs.getIsDelete() + ",now(),now())";
+		final String insertSql=genInsertSql(venusServiceDO);
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		int autoIncId = 0;
 		jdbcTemplate.update(new PreparedStatementCreator() {
 			public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
-				PreparedStatement ps = con.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+				PreparedStatement ps = con.prepareStatement(insertSql, PreparedStatement.RETURN_GENERATED_KEYS);
 				return ps;
 			}
 		}, keyHolder);
 		autoIncId = keyHolder.getKey().intValue();
 		return autoIncId;
+	}
+	
+	private static String genInsertSql(VenusServiceDO vs) {
+		StringBuilder columns = new StringBuilder();
+		StringBuilder values = new StringBuilder();
+		
+		columns.append("name,");
+		values.append("'" + vs.getName() + "',");
+		
+		if (StringUtils.isNotBlank(vs.getInterfaceName()) && !"null".equals(vs.getInterfaceName())) {
+			columns.append("interface_name,");
+			values.append("'" + vs.getInterfaceName() + "',");
+		}
+		
+		if (StringUtils.isNotBlank(vs.getVersion()) && !"null".equals(vs.getVersion())) {
+			columns.append("version,");
+			values.append("'" + vs.getVersion() + "',");
+		}
+		
+		if (StringUtils.isNotBlank(vs.getDescription()) && !"null".equals(vs.getDescription())) {
+			columns.append("description,");
+			values.append("'" + vs.getDescription() + "',");
+		}
+		
+		columns.append("app_id,");
+		values.append(vs.getAppId() + ",");
+
+		columns.append("registe_type,");
+		values.append(vs.getRegisteType() + ",");
+
+		if (StringUtils.isNotBlank(vs.getMethods()) && !"null".equals(vs.getMethods())) {
+			columns.append("methods,");
+			values.append("'" + vs.getMethods() + "',");
+		}
+		
+		columns.append("is_delete,");
+		values.append(vs.getIsDelete() + ",");
+
+		columns.append("create_time,");
+		values.append("now(),");
+
+		columns.append("update_time,");
+		values.append("now(),");
+
+		String columnsStr = columns.toString();
+		String valuesStr = values.toString();
+		return "insert into t_venus_service (" + columnsStr.substring(0, columnsStr.length() - 1) + ") values ("
+				+ values.substring(0, valuesStr.length() - 1) + ")";
+
+	}
+	
+	public static void main(String args[]){
+		URL u = new URL();
+		u.setServiceName("orderService");
+		u.setInterfaceName("com.chexiang.order.OrderService");
+		u.setVersion("1.0.0");
+
+		u.setPath("com.chexiang.order.OrderService/orderService");
+		u.setApplication("test-order-domain");
+		u.setHost("192.168.0.1");
+
+		u.setPort(16800);
+		u.setProtocol("venus");
+		u.setLoadbanlance("random");
+		u.setMethods("getOrderById[java.lang.String],selectAllOrder[java.lang.String]");
+		
+		VenusServiceDO vs = new VenusServiceDO();
+		vs.setInterfaceName(u.getInterfaceName());
+		vs.setName(u.getServiceName());
+		vs.setAppId(0);
+		vs.setVersion(u.getVersion());
+		vs.setRegisteType(RegisteConstant.AUTO_REGISTE);
+		vs.setMethods(u.getMethods());
+		vs.setDescription("desc");
+		vs.setIsDelete(false);
+		System.out.println(genInsertSql(vs));
 	}
 
 	@Override

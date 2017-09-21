@@ -10,11 +10,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.meidusa.venus.registry.dao.OldServiceMappingDAO;
+import com.meidusa.venus.registry.dao.VenusServerDAO;
+import com.meidusa.venus.registry.dao.VenusServiceDAO;
+import com.meidusa.venus.registry.dao.VenusServiceMappingDAO;
 import com.meidusa.venus.registry.dao.impl.DataSourceUtil;
 import com.meidusa.venus.registry.dao.impl.OldServiceMappingDaoImpl;
+import com.meidusa.venus.registry.dao.impl.VenusApplicationDaoImpl;
+import com.meidusa.venus.registry.dao.impl.VenusServerDaoImpl;
+import com.meidusa.venus.registry.dao.impl.VenusServiceConfigDaoImpl;
+import com.meidusa.venus.registry.dao.impl.VenusServiceDaoImpl;
+import com.meidusa.venus.registry.dao.impl.VenusServiceMappingDaoImpl;
 import com.meidusa.venus.registry.data.move.OldServerDO;
 import com.meidusa.venus.registry.data.move.OldServiceDO;
 import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
+import com.meidusa.venus.registry.service.RegisterService;
 
 public class OLdServiceMappingService {
 
@@ -24,17 +33,19 @@ public class OLdServiceMappingService {
 
 	private OldServiceMappingDAO oldServiceMappingDAO;
 
-	private JdbcTemplate jdbcTemplate;
-	
+	private JdbcTemplate oldJdbcTemplate;
+
 	/** 原注册中心mysql连接地址 */
 	private String oldConnectUrl;
+	
+	private RegisterService registerService;
 
 	public OLdServiceMappingService() {
 
 	}
 
-	public OLdServiceMappingService(String connectUrl) {
-		this.setOldConnectUrl(connectUrl);
+	public OLdServiceMappingService(String oldConnectUrl, String connectUrl) {
+		this.setOldConnectUrl(oldConnectUrl);
 		init();
 	}
 
@@ -56,14 +67,15 @@ public class OLdServiceMappingService {
 			throw new IllegalArgumentException("URL 参数异常,未包含密码,url=>" + url);
 		}
 		BasicDataSource dataSource = DataSourceUtil.getBasicDataSource(url);
-		if (jdbcTemplate == null) {
+		if (oldJdbcTemplate == null) {
 			synchronized (OLdServiceMappingService.class) {
-				if (jdbcTemplate == null) {
-					jdbcTemplate = new JdbcTemplate(dataSource);
+				if (oldJdbcTemplate == null) {
+					oldJdbcTemplate = new JdbcTemplate(dataSource);
 				}
-				this.setOldServiceMappingDAO(new OldServiceMappingDaoImpl(jdbcTemplate));
+				this.setOldServiceMappingDAO(new OldServiceMappingDaoImpl(oldJdbcTemplate));
 			}
 		}
+		
 	}
 
 	public void moveServiceMappings() {
@@ -110,7 +122,7 @@ public class OLdServiceMappingService {
 			}
 		}
 	}
-	
+
 	public void moveServers() {
 		Integer totalCount = oldServiceMappingDAO.getOldServerCount();
 		if (null != totalCount && totalCount > 0) {
@@ -126,19 +138,19 @@ public class OLdServiceMappingService {
 					id = servers.get(servers.size() - 1).getId();
 					for (OldServerDO oldServerDO : servers) {
 						System.out.println("id=>" + oldServerDO.getId());
-						// TODO 在此更新 新的数据库等操作
+						//registerService.addServer(oldServerDO.getHostName(), oldServerDO.getPort());
 					}
 				}
 			}
 		}
 	}
 
-	public JdbcTemplate getJdbcTemplate() {
-		return jdbcTemplate;
+	public JdbcTemplate getOldJdbcTemplate() {
+		return oldJdbcTemplate;
 	}
 
-	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
-		this.jdbcTemplate = jdbcTemplate;
+	public void setOldJdbcTemplate(JdbcTemplate oldJdbcTemplate) {
+		this.oldJdbcTemplate = oldJdbcTemplate;
 	}
 
 	public String getOldConnectUrl() {
@@ -155,6 +167,14 @@ public class OLdServiceMappingService {
 
 	public void setOldServiceMappingDAO(OldServiceMappingDAO oldServiceMappingDAO) {
 		this.oldServiceMappingDAO = oldServiceMappingDAO;
+	}
+
+	public RegisterService getRegisterService() {
+		return registerService;
+	}
+
+	public void setRegisterService(RegisterService registerService) {
+		this.registerService = registerService;
 	}
 
 	public static void main(String args[]) {
