@@ -192,9 +192,7 @@ public class MysqlRegister implements Register {
 	@Override
 	public List<VenusServiceDefinitionDO> lookup(URL url, boolean isQueryFromRegister) throws VenusRegisteException {
 		if (isQueryFromRegister) {
-			String key = getKeyFromUrl(url);
-			List<VenusServiceDefinitionDO> serviceDefinitions = subscribleServiceDefinitionMap.get(key);
-			return serviceDefinitions;
+			return registerService.findServiceDefinitions(url);
 		} else {
 			return lookup(url);
 		}
