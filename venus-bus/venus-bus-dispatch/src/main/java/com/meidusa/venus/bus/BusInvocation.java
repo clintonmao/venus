@@ -284,12 +284,23 @@ public class BusInvocation implements Invocation {
     }
 
     @Override
+    public String getServiceInterfaceName() {
+        return null;
+    }
+
+    @Override
     public String getServiceName() {
         return serviceName;
+    }
+
+    @Override
+    public String getVersion() {
+        return null;
     }
 
     @Override
     public String getMethodName() {
         return null;
     }
+
 }

@@ -1,7 +1,7 @@
 package com.meidusa.venus.client.filter.limit;
 
 import com.meidusa.venus.*;
-import com.meidusa.venus.ClientInvocation;
+import com.meidusa.venus.client.VenusPathUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * client 并发数流控处理
  * Created by Zhangzhihua on 2017/8/1.
  */
-public class ClientActivesLimitFilter extends BaseLimitFilter implements Filter {
+public class ClientActivesLimitFilter implements Filter {
 
     private static Logger logger = LoggerFactory.getLogger(ClientActivesLimitFilter.class);
 
@@ -22,9 +22,11 @@ public class ClientActivesLimitFilter extends BaseLimitFilter implements Filter 
      */
     private static Map<String,AtomicInteger> methodActivesMapping = new ConcurrentHashMap<String,AtomicInteger>();
 
-    /**
-     * 默认并发流控阈值
-     */
+    //流控类型-并发数
+    private static final String LIMIT_TYPE_ACTIVE = "active_limit";
+    //流控类型-TPS
+    private static final String LIMIT_TYPE_TPS = "tps_limit";
+    //默认并发流控阈值
     private static final int DEFAULT_ACTIVES_LIMIT = 5;
 
     @Override
@@ -38,7 +40,7 @@ public class ClientActivesLimitFilter extends BaseLimitFilter implements Filter 
             return null;
         }
         //获取方法路径及当前并发数
-        String methodPath = getMethodPath(clientInvocation, url);
+        String methodPath = VenusPathUtil.getMethodPath(clientInvocation, url);
         AtomicInteger activeLimit = methodActivesMapping.get(methodPath);
         if(activeLimit == null){
             activeLimit = new AtomicInteger(0);
@@ -67,7 +69,7 @@ public class ClientActivesLimitFilter extends BaseLimitFilter implements Filter 
         if(!isEnableActiveLimit(clientInvocation, url)){
             return null;
         }
-        String methodPath = getMethodPath(clientInvocation, url);
+        String methodPath = VenusPathUtil.getMethodPath(clientInvocation, url);
         AtomicInteger activeLimit = methodActivesMapping.get(methodPath);
         if(activeLimit != null){
             //-1
@@ -103,6 +105,17 @@ public class ClientActivesLimitFilter extends BaseLimitFilter implements Filter 
 
     @Override
     public void destroy() throws RpcException {
+    }
+
+    /**
+     * 获取流控类型
+     * @param invocation
+     * @param url
+     * @return
+     */
+    String getLimitType(ClientInvocation invocation, URL url){
+        //TODO 获取流控类型
+        return LIMIT_TYPE_ACTIVE;
     }
 
 }

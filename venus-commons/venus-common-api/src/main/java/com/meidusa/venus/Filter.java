@@ -2,7 +2,7 @@ package com.meidusa.venus;
 
 
 /**
- * filte
+ * filte接口定义
  * Created by Zhangzhihua on 2017/8/1.
  */
 public interface Filter{

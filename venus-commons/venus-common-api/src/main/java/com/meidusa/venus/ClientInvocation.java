@@ -200,6 +200,11 @@ public class ClientInvocation implements Invocation {
     }
 
     @Override
+    public String getServiceInterfaceName() {
+        return null;
+    }
+
+    @Override
     public String getServiceName() {
         if(service != null){
             return service.name();
@@ -214,7 +219,13 @@ public class ClientInvocation implements Invocation {
     }
 
     @Override
+    public String getVersion() {
+        return null;
+    }
+
+    @Override
     public String getMethodName() {
         return this.getMethod().getName();
     }
+
 }
