@@ -189,6 +189,17 @@ public class MysqlRegister implements Register {
 		return serviceDefinitions;
 	}
 
+	@Override
+	public List<VenusServiceDefinitionDO> lookup(URL url, boolean isQueryFromRegister) throws VenusRegisteException {
+		if (isQueryFromRegister) {
+			String key = getKeyFromUrl(url);
+			List<VenusServiceDefinitionDO> serviceDefinitions = subscribleServiceDefinitionMap.get(key);
+			return serviceDefinitions;
+		} else {
+			return lookup(url);
+		}
+	}
+
 	private static String getKeyFromUrl(URL url) {
 		String interfaceName = url.getInterfaceName();
 		String serviceName = url.getServiceName();

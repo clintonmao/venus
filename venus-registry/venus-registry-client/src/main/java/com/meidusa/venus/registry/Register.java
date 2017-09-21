@@ -64,6 +64,8 @@ public interface Register {
      * @throws VenusRegisteException
      */
     List<VenusServiceDefinitionDO> lookup(URL url) throws VenusRegisteException;
+    
+    List<VenusServiceDefinitionDO> lookup(URL url,boolean isQueryFromRegister) throws VenusRegisteException;//true data false 上面
 
 //    /**
 //     * 查找服务定义列表
