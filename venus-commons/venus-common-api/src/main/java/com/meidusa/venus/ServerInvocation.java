@@ -243,16 +243,19 @@ public class ServerInvocation implements Invocation {
     public String getServiceName() {
         if(service != null){
             return service.name();
-        }else if(this instanceof ServerInvocation){
+        }else{
             ServerInvocation rpcInvocation = this;
             if(rpcInvocation.getEndpointEx() != null && rpcInvocation.getEndpointEx().getService() != null){
                 return rpcInvocation.getEndpointEx().getService().getName();
             }else{
                 throw new RpcException("get serviceName error.");
             }
-        }else{
-            throw new RpcException("get serviceName error.");
         }
+    }
+
+    @Override
+    public String getMethodName() {
+        return this.getMethod().getName();
     }
 
     public VenusFrontendConnection getConn() {

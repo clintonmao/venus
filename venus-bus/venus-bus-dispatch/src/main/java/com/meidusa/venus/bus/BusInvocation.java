@@ -103,10 +103,6 @@ public class BusInvocation implements Invocation {
         this.packetBuffer = packetBuffer;
     }
 
-    public String getServiceName() {
-        return serviceName;
-    }
-
     public void setServiceName(String serviceName) {
         this.serviceName = serviceName;
     }
@@ -285,5 +281,15 @@ public class BusInvocation implements Invocation {
 
     public void setAsync(boolean async) {
         this.async = async;
+    }
+
+    @Override
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    @Override
+    public String getMethodName() {
+        return null;
     }
 }

@@ -114,9 +114,20 @@ public class BusRemoteDispatcher implements Dispatcher{
         URL requestUrl = parseRequestUrl(invocation);
 
         //查找服务定义
-        List<VenusServiceDefinitionDO> serviceDefinitionDOList = getRegister().lookup(requestUrl);
+        Register register = getRegister();
+        List<VenusServiceDefinitionDO> serviceDefinitionDOList = null;
+        //缓存查找
+        serviceDefinitionDOList = register.lookup(requestUrl);
+        //若缓存为空，则从注册中心查找
         if(CollectionUtils.isEmpty(serviceDefinitionDOList)){
-            throw new RpcException(String.format("not found available service %s providers.",requestUrl.toString()));
+            serviceDefinitionDOList = register.lookup(requestUrl,true);
+            //若注册中心不为空，则订阅服务，否则报服务没有提供节点错误
+            if(CollectionUtils.isNotEmpty(serviceDefinitionDOList)){
+                //TODO 重复订阅、重复注册、lookup时未订阅
+                register.subscrible(requestUrl);
+            }else{
+                throw new RpcException(String.format("not found available service %s providers.",requestUrl.toString()));
+            }
         }
         logger.info("look up service:{} provider group:{}",requestUrl.toString(),serviceDefinitionDOList.size());
 
@@ -140,7 +151,7 @@ public class BusRemoteDispatcher implements Dispatcher{
      * @return
      */
     URL parseRequestUrl(BusInvocation invocation){
-        String path = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
+        String path = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=0.0.0";
         URL serviceUrl = URL.parse(path);
         return serviceUrl;
     }

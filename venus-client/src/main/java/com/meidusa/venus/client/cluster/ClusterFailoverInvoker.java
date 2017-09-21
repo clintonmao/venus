@@ -31,7 +31,6 @@ public class ClusterFailoverInvoker extends AbstractClusterInvoker implements Cl
 
     @Override
     public Result invoke(Invocation invocation, List<URL> urlList) throws RpcException {
-        ClientInvocation clientInvocation = (ClientInvocation)invocation;
         //TODO 只针对系统异常进行重试
         for(int i=0;i<retry;i++){
             try {
@@ -44,7 +43,8 @@ public class ClusterFailoverInvoker extends AbstractClusterInvoker implements Cl
                 logger.warn("invoke failed.",e);
             }
         }
-        throw new RpcException(String.format("invoke serivce %s,method %s failed with %d tries.",clientInvocation.getService().name(),clientInvocation.getMethod().getName(),retry));
+
+        throw new RpcException(String.format("invoke serivce %s,method %s failed with %d tries.",invocation.getServiceName(),invocation.getMethodName(),retry));
     }
 
     /**
