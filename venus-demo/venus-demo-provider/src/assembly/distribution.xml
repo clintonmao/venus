@@ -31,8 +31,8 @@
 			<outputDirectory>/bin</outputDirectory>
 		</fileSet>
 		<fileSet>
-			<directory>${basedir}/src/main/resources/conf</directory>
-			<outputDirectory>/conf</outputDirectory>
+			<directory>${basedir}/src/main/resources</directory>
+			<outputDirectory>.</outputDirectory>
 		</fileSet>
 		<fileSet>
 			<directory>${basedir}/src/main/resources</directory>

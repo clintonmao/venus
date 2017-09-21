@@ -1,7 +1,6 @@
 package com.meidusa.venus.monitor.athena.reporter.impl;
 
 import com.meidusa.venus.VenusContext;
-import com.meidusa.venus.client.factory.ServiceFactory;
 import com.meidusa.venus.monitor.athena.reporter.AthenaClientTransaction;
 import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionId;
 import com.saic.framework.athena.client.Athena;

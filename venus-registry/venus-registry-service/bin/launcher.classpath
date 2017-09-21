@@ -1,4 +1,4 @@
-main is com.athena.server.AthenaServerApplication from venus
+main is com.meidusa.venus.registry.server.RegistryServerApplication from venus
 
 [venus]
 load ${project.home}/lib/*.jar
