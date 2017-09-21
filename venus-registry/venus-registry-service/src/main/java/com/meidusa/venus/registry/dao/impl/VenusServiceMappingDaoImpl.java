@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -270,4 +271,23 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 		}
 		return update > 0;
 	}
+	
+	public boolean existServiceMapping(String hostName, int port, String serviceName, String version)
+			throws DAOException {
+		String sql = "SELECT count(map.id) as records FROM t_venus_service_mapping as map "
+				+ "left join t_venus_server as s "
+				+ "on map.server_id=s.id left join t_venus_service as v on v.id=map.service_id " + " where s.hostname='"
+				+ hostName + "' and s.port=" + port + " and v.name='" + serviceName + "' ";
+		if (StringUtils.isBlank(version) || "null".equals(version)) {
+			sql = sql + " and map.version is null ";
+		}
+		try {
+			return this.jdbcTemplate.queryForObject(sql, Integer.class) > 0;
+		} catch (Exception e) {
+			throw new DAOException(
+					"根据等于serviceName＝>" + serviceName + ",hostName=>" + hostName + ",port=>" + port + "获取服务映射关系个数异常",
+					e);
+		}
+	}
+	
 }

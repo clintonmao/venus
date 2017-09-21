@@ -30,6 +30,8 @@ public interface VenusServiceDAO {
 	
 	VenusServiceDO getService(Integer id) throws DAOException;
 	
+	VenusServiceDO getService(String serviceName) throws DAOException;
+	
 	List<VenusServiceDO> getServices(Collection<Integer> ids) throws DAOException;
 
 }

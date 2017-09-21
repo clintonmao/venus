@@ -182,6 +182,23 @@ public class MysqlRegisterService implements RegisterService {
 		}
 		return serverId;
 	}
+	
+	public int addService(String serviceName, String description){
+		VenusServiceDO service = venusServiceDAO.getService(serviceName);
+		int serviceId = 0;
+		if (null == service) {
+			VenusServiceDO venusServiceDO = new VenusServiceDO();
+			venusServiceDO.setName(serviceName);
+			venusServiceDO.setAppId(null);
+			venusServiceDO.setVersion(null);
+			venusServiceDO.setRegisteType(RegisteConstant.OPERATOR_REGISTE);
+			venusServiceDO.setMethods(null);
+			venusServiceDO.setDescription(description);
+			venusServiceDO.setIsDelete(false);
+			serviceId = venusServiceDAO.addService(venusServiceDO);
+		}
+		return serviceId;
+	}
 
 	@Override
 	public boolean unregiste(URL url) throws VenusRegisteException {

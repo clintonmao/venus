@@ -123,5 +123,15 @@ public interface RegisterService {
 	@Endpoint(name = "addServer")
 	@PerformanceLevel(printParams=false,printResult = false)
 	int addServer(@Param(name = "host")String host,@Param(name = "port")int port);
+	
+	/**
+	 * 根据服务名添加服务(用于数据同步)
+	 * @param serviceName
+	 * @param description TODO
+	 * @return
+	 */
+	@Endpoint(name = "addService")
+	@PerformanceLevel(printParams=false,printResult = false)
+	int addService(@Param(name = "serviceName")String serviceName, @Param(name = "description")String description);
 
 }
