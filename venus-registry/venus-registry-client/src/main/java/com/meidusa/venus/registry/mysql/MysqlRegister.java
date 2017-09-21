@@ -5,6 +5,8 @@ import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.registry.domain.RouterRule;
+import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.registry.service.RegisterService;
 import com.meidusa.venus.registry.VenusRegisteException;
@@ -220,8 +222,7 @@ public class MysqlRegister implements Register {
 				}
 			}
 			if (CollectionUtils.isNotEmpty(jsons)) {
-				//FIXME
-				//writeFile(subcribePath, jsons);
+				writeFile(subcribePath, jsons);
 			}
 		}
 	}
@@ -448,11 +449,11 @@ public class MysqlRegister implements Register {
 		List<String> returnList = new ArrayList<String>();
 		for (Iterator<String> iterator = oldList.iterator(); iterator.hasNext();) {
 			String json = iterator.next();
-			VenusServiceDefinitionDO oldObject = JSON.parseObject(json, VenusServiceDefinitionDO.class);
+			List<VenusServiceDefinitionDO> oldObject = JSON.parseArray(json, VenusServiceDefinitionDO.class);
 			if (CollectionUtils.isNotEmpty(newList)) {
 				for (String str : newList) {
-					VenusServiceDefinitionDO newObject = JSON.parseObject(str, VenusServiceDefinitionDO.class);
-					if (getKey(oldObject).equals(getKey(newObject))) {
+					List<VenusServiceDefinitionDO> newObject = JSON.parseArray(str, VenusServiceDefinitionDO.class);
+					if (getKey(oldObject.get(0)).equals(getKey(newObject.get(0)))) {
 						iterator.remove();
 					}
 				}
@@ -474,29 +475,41 @@ public class MysqlRegister implements Register {
 //		return registerService.finderviceDefinitionList(interfaceName, serviceName);
 //	}
 
-	/*
-	 * public static void main(String args[]) {
-	 * 
-	 * VenusServiceDefinitionDO def1 = new VenusServiceDefinitionDO(); VenusServiceDefinitionDO def2
-	 * = new VenusServiceDefinitionDO();
-	 * 
-	 * RouterRule rr = new RouterRule(); VenusServiceConfigDO conf = new
-	 * VenusServiceConfigDO(); conf.setRouterRule(rr);
-	 * 
-	 * List<VenusServiceConfigDO> serviceConfigs = new
-	 * ArrayList<VenusServiceConfigDO>(); serviceConfigs.add(conf);
-	 * def1.setServiceConfigs(serviceConfigs);
-	 * def2.setServiceConfigs(serviceConfigs); def1.setName("orderService");
-	 * def2.setName("userService"); def1.setVersionRange("1.0.0");
-	 * def2.setVersionRange("1.0.0");
-	 * def1.setInterfaceName("com.chexiang.Orderservice");
-	 * def2.setInterfaceName("com.chexiang.Userservice");
-	 * 
-	 * List<String> jsons = new ArrayList<String>();
-	 * jsons.add(JSON.toJSONString(def1)); jsons.add(JSON.toJSONString(def2));
-	 * String filePath = "D:\\soft\\b\\a.txt"; writeFile(filePath, jsons);
-	 * List<String> readFile = readFile(filePath); for (String str : readFile) {
-	 * System.out.println(str); } }
-	 */
+	
+	/*public static void main(String args[]) {
+
+		VenusServiceDefinitionDO def1 = new VenusServiceDefinitionDO();
+		VenusServiceDefinitionDO def2 = new VenusServiceDefinitionDO();
+
+		RouterRule rr = new RouterRule();
+		VenusServiceConfigDO conf = new VenusServiceConfigDO();
+		conf.setRouterRule(rr);
+
+		List<VenusServiceConfigDO> serviceConfigs = new ArrayList<VenusServiceConfigDO>();
+		serviceConfigs.add(conf);
+		def1.setServiceConfigs(serviceConfigs);
+		def2.setServiceConfigs(serviceConfigs);
+		def1.setName("orderService");
+		def2.setName("userService");
+		def1.setVersionRange("1.0.0");
+		def2.setVersionRange("1.0.0");
+		def1.setInterfaceName("com.chexiang.Orderservice");
+		def2.setInterfaceName("com.chexiang.Userservice");
+
+		List<VenusServiceDefinitionDO> list1=new ArrayList<VenusServiceDefinitionDO>();
+		List<VenusServiceDefinitionDO> list2=new ArrayList<VenusServiceDefinitionDO>();
+		list1.add(def1);
+		list2.add(def2);
+		List<String> jsons = new ArrayList<String>();
+		jsons.add(JSON.toJSONString(list1));
+		jsons.add(JSON.toJSONString(list2));
+		String filePath = "D:\\soft\\b\\a.txt";
+		writeFile(filePath, jsons);
+		List<String> readFile = readFile(filePath);
+		for (String str : readFile) {
+			System.out.println(str);
+		}
+	}*/
+	 
 
 }
