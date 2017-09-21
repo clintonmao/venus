@@ -117,6 +117,7 @@ public class OLdServiceMappingService {
 					for (OldServiceDO oldServiceDO : services) {
 						System.out.println("id=>" + oldServiceDO.getId());
 						// TODO 在此更新 新的数据库等操作
+						//registerService.addService(oldServiceDO.getServiceName(), oldServiceDO.getDescription());
 					}
 				}
 			}

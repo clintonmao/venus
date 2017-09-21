@@ -34,5 +34,16 @@ public interface VenusServiceMappingDAO {
 	boolean deleteServiceMappings(List<Integer> ids) throws DAOException;
 	
 	List<VenusServiceMappingDO> getServiceMappings(int serviceId) throws DAOException;
+	
+	/**
+	 * 根据 主机IP 端口 服务名 服务版号 判断 服务映射关系是否存在
+	 * @param hostName
+	 * @param port
+	 * @param serviceName
+	 * @param version
+	 * @return
+	 * @throws DAOException
+	 */
+	boolean existServiceMapping(String hostName, int port, String serviceName, String version) throws DAOException;
 
 }
