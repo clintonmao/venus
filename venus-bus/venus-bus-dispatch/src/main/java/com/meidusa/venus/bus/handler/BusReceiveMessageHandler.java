@@ -14,9 +14,13 @@ import com.meidusa.venus.client.VenusRegistryFactory;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.support.ShutdownListener;
+import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 接收客户端请求消息处理
@@ -39,6 +43,11 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
     private VenusRegistryFactory venusRegistryFactory;
 
     private BusDispatcherProxy busDispatcherProxy;
+
+    /**
+     * 请求连接映射表
+     */
+    private Map<String,BusFrontendConnection> requestConnectionMap = new ConcurrentHashMap<String,BusFrontendConnection>();
 
     //TODO 将连接统一为VenusFrontendConnection，可能出现不兼容问题?
     @Override
@@ -82,6 +91,10 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
         BusInvocation invocation = null;
         Result result = null;
         try {
+            //TODO 处理使用过清理问题
+            String rpcId = RpcIdUtil.getRpcId(srcConn.getClientId(),srcConn.getNextRequestID());
+            requestConnectionMap.put(rpcId,srcConn);
+
             //解析请求
             invocation = parseInvocation(srcConn, message);
 

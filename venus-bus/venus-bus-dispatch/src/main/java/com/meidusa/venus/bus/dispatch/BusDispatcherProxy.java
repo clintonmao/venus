@@ -1,10 +1,13 @@
 package com.meidusa.venus.bus.dispatch;
 
 import com.meidusa.venus.*;
+import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.client.VenusRegistryFactory;
 import com.meidusa.venus.registry.Register;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 /**
  * 消息分发代理类，除进行分发，另处理校验、监控等切面操作
@@ -17,6 +20,8 @@ public class BusDispatcherProxy implements Dispatcher {
     private VenusRegistryFactory venusRegistryFactory;
 
     private BusRemoteDispatcher busRemoteDispatcher;
+
+    private Map<String,BusFrontendConnection> requestConnectionMap;
 
     @Override
     public void init() throws RpcException {
@@ -107,5 +112,13 @@ public class BusDispatcherProxy implements Dispatcher {
 
     public void setVenusRegistryFactory(VenusRegistryFactory venusRegistryFactory) {
         this.venusRegistryFactory = venusRegistryFactory;
+    }
+
+    public Map<String, BusFrontendConnection> getRequestConnectionMap() {
+        return requestConnectionMap;
+    }
+
+    public void setRequestConnectionMap(Map<String, BusFrontendConnection> requestConnectionMap) {
+        this.requestConnectionMap = requestConnectionMap;
     }
 }

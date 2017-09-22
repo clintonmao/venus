@@ -2,6 +2,7 @@ package com.meidusa.venus.bus.dispatch;
 
 import com.meidusa.venus.*;
 import com.meidusa.venus.bus.BusInvocation;
+import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.client.cluster.ClusterInvokerFactory;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 消息远程分发处理，负责寻址、过滤、集群容错分发调用等
@@ -26,6 +28,8 @@ public class BusRemoteDispatcher implements Dispatcher{
      * 注册中心
      */
     private Register register;
+
+    private Map<String,BusFrontendConnection> requestConnectionMap;
 
     private ClusterInvoker clusterInvoker;
 
@@ -130,5 +134,13 @@ public class BusRemoteDispatcher implements Dispatcher{
 
     public void setRegister(Register register) {
         this.register = register;
+    }
+
+    public Map<String, BusFrontendConnection> getRequestConnectionMap() {
+        return requestConnectionMap;
+    }
+
+    public void setRequestConnectionMap(Map<String, BusFrontendConnection> requestConnectionMap) {
+        this.requestConnectionMap = requestConnectionMap;
     }
 }
