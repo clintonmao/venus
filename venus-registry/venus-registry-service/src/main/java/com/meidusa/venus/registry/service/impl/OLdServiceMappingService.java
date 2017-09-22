@@ -2,6 +2,7 @@ package com.meidusa.venus.registry.service.impl;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.dbcp.BasicDataSource;
@@ -10,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.registry.dao.OldServiceMappingDAO;
 import com.meidusa.venus.registry.dao.impl.DataSourceUtil;
 import com.meidusa.venus.registry.dao.impl.OldServiceMappingDaoImpl;
@@ -40,6 +42,12 @@ public class OLdServiceMappingService {
 	public OLdServiceMappingService(String oldConnectUrl, String connectUrl) {
 		this.setOldConnectUrl(oldConnectUrl);
 		init();
+		// GlobalScheduler.getInstance().scheduleAtFixedRate(new
+		// MoveServerRunnable(), 5, 5, TimeUnit.MINUTES);
+		// GlobalScheduler.getInstance().scheduleAtFixedRate(new
+		// MoveServiceRunnable(), 5, 5, TimeUnit.MINUTES);
+		// GlobalScheduler.getInstance().scheduleAtFixedRate(new
+		// MoveServiceMappingRunnable(), 5, 5, TimeUnit.MINUTES);
 	}
 
 	public void init() {
@@ -88,6 +96,10 @@ public class OLdServiceMappingService {
 					for (OldServiceMappingDO oldServiceMappingDO : oldServiceMappings) {
 						System.out.println("mapId=>" + oldServiceMappingDO.getMapId());
 						// TODO 在此更新 新的数据库等操作
+						// registerService.addNewServiceMapping(oldServiceMappingDO.getHostName(),
+						// oldServiceMappingDO.getPort(),
+						// oldServiceMappingDO.getServiceName(),
+						// oldServiceMappingDO.getVersion());
 					}
 				}
 			}
@@ -118,9 +130,9 @@ public class OLdServiceMappingService {
 									version = null;
 								}
 								// TODO 在此更新 新的数据库等操作
-//								 registerService.addService(oldServiceDO.getServiceName(),
-//								 oldServiceDO.getDescription(),
-//								 version);
+								// registerService.addService(oldServiceDO.getServiceName(),
+								// oldServiceDO.getDescription(),
+								// version);
 							}
 						}
 					}
@@ -189,4 +201,32 @@ public class OLdServiceMappingService {
 		oms.init();
 		oms.moveServers();
 	}
+
+	private class MoveServerRunnable implements Runnable {
+
+		@Override
+		public void run() {
+			moveServers();
+		}
+
+	}
+
+	private class MoveServiceRunnable implements Runnable {
+
+		@Override
+		public void run() {
+			moveServices();
+		}
+
+	}
+
+	private class MoveServiceMappingRunnable implements Runnable {
+
+		@Override
+		public void run() {
+			moveServiceMappings();
+		}
+
+	}
+
 }
