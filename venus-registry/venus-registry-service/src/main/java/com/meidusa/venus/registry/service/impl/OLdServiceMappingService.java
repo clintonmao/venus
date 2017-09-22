@@ -194,11 +194,17 @@ public class OLdServiceMappingService {
 		this.registerService = registerService;
 	}
 
-	public static void main(String args[]) {
-		OLdServiceMappingService oms = new OLdServiceMappingService();
-		oms.init();
-		oms.moveServers();
-	}
+/*	public static void main(String args[]) {
+		MysqlRegisterService newDs = new MysqlRegisterService();
+		newDs.setConnectUrl("mysql://localhost:3306/registry_venus?username=root&password=123456");
+		newDs.init();
+
+		OLdServiceMappingService oldDs = new OLdServiceMappingService();
+		oldDs.setRegisterService(newDs);
+		oldDs.setOldConnectUrl("mysql://10.32.173.250:3306/registry?username=registry&password=registry");
+		oldDs.init();
+		oldDs.moveServiceMappings();
+	}*/
 
 	private class MoveServerRunnable implements Runnable {
 

@@ -88,7 +88,7 @@ public class VenusServiceDO implements Serializable {
 		this.version = version;
 	}
 
-	public int getAppId() {
+	public Integer getAppId() {
 		return appId;
 	}
 

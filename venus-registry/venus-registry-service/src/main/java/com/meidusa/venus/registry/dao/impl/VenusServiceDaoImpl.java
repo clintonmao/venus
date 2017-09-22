@@ -73,10 +73,15 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		if (StringUtils.isNotBlank(vs.getDescription()) && !"null".equals(vs.getDescription())) {
 			columns.append("description,");
 			values.append("'" + vs.getDescription() + "',");
+		}else{
+			columns.append("description,");
+			values.append("'',");
 		}
 		
-		columns.append("app_id,");
-		values.append(vs.getAppId() + ",");
+		if (null != vs.getAppId()) {
+			columns.append("app_id,");
+			values.append(vs.getAppId() + ",");
+		}
 
 		columns.append("registe_type,");
 		values.append(vs.getRegisteType() + ",");
