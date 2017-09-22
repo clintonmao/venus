@@ -1,5 +1,6 @@
 package com.meidusa.venus.registry.service.impl;
 
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -10,16 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.meidusa.venus.registry.dao.OldServiceMappingDAO;
-import com.meidusa.venus.registry.dao.VenusServerDAO;
-import com.meidusa.venus.registry.dao.VenusServiceDAO;
-import com.meidusa.venus.registry.dao.VenusServiceMappingDAO;
 import com.meidusa.venus.registry.dao.impl.DataSourceUtil;
 import com.meidusa.venus.registry.dao.impl.OldServiceMappingDaoImpl;
-import com.meidusa.venus.registry.dao.impl.VenusApplicationDaoImpl;
-import com.meidusa.venus.registry.dao.impl.VenusServerDaoImpl;
-import com.meidusa.venus.registry.dao.impl.VenusServiceConfigDaoImpl;
-import com.meidusa.venus.registry.dao.impl.VenusServiceDaoImpl;
-import com.meidusa.venus.registry.dao.impl.VenusServiceMappingDaoImpl;
 import com.meidusa.venus.registry.data.move.OldServerDO;
 import com.meidusa.venus.registry.data.move.OldServiceDO;
 import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
@@ -37,7 +30,7 @@ public class OLdServiceMappingService {
 
 	/** 原注册中心mysql连接地址 */
 	private String oldConnectUrl;
-	
+
 	private RegisterService registerService;
 
 	public OLdServiceMappingService() {
@@ -75,7 +68,7 @@ public class OLdServiceMappingService {
 				this.setOldServiceMappingDAO(new OldServiceMappingDaoImpl(oldJdbcTemplate));
 			}
 		}
-		
+
 	}
 
 	public void moveServiceMappings() {
@@ -115,9 +108,21 @@ public class OLdServiceMappingService {
 				if (CollectionUtils.isNotEmpty(services)) {
 					mapId = services.get(services.size() - 1).getId();
 					for (OldServiceDO oldServiceDO : services) {
+						List<String> queryOldServiceVersions = oldServiceMappingDAO
+								.queryOldServiceVersions(oldServiceDO.getServiceName());
 						System.out.println("id=>" + oldServiceDO.getId());
-						// TODO 在此更新 新的数据库等操作
-						//registerService.addService(oldServiceDO.getServiceName(), oldServiceDO.getDescription());
+						if (CollectionUtils.isNotEmpty(queryOldServiceVersions)) {
+							for (Iterator<String> iterator = queryOldServiceVersions.iterator(); iterator.hasNext();) {
+								String version = iterator.next();
+								if (StringUtils.isBlank(version) || "null".equals(version)) {
+									version = null;
+								}
+								// TODO 在此更新 新的数据库等操作
+//								 registerService.addService(oldServiceDO.getServiceName(),
+//								 oldServiceDO.getDescription(),
+//								 version);
+							}
+						}
 					}
 				}
 			}
@@ -139,7 +144,8 @@ public class OLdServiceMappingService {
 					id = servers.get(servers.size() - 1).getId();
 					for (OldServerDO oldServerDO : servers) {
 						System.out.println("id=>" + oldServerDO.getId());
-						//registerService.addServer(oldServerDO.getHostName(), oldServerDO.getPort());
+						// registerService.addServer(oldServerDO.getHostName(),
+						// oldServerDO.getPort());
 					}
 				}
 			}

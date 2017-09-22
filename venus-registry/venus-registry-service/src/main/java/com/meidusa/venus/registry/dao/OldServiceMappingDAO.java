@@ -20,5 +20,7 @@ public interface OldServiceMappingDAO {
 	List<OldServerDO> queryOldServers(Integer pageSize, Integer id) throws DAOException;
 
 	Integer getOldServerCount() throws DAOException;
+	
+	List<String> queryOldServiceVersions(String serviceName) throws DAOException;
 
 }

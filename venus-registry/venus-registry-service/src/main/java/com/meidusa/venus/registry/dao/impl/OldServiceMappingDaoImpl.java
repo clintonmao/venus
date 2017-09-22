@@ -83,7 +83,30 @@ public class OldServiceMappingDaoImpl implements OldServiceMappingDAO {
 			throw new DAOException("根据sql=>" + sql + ";获取服务列表异常", e);
 		}
 	}
+	
+	
+	
+	public List<String> queryOldServiceVersions(String serviceName) throws DAOException {
+		String sql = "SELECT distinct map.version FROM t_venus_service_mapping as map left join t_venus_service as v on v.id=map.service_id "
+				+ "where v.name=? order by map.id desc ";
 
+		try {
+			return this.jdbcTemplate.query(sql, new Object[] {serviceName}, new ResultSetExtractor<List<String>>() {
+				@Override
+				public List<String> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<String> returnList = new ArrayList<String>();
+					while (rs.next()) {
+						returnList.add(rs.getString("version"));
+					}
+					return returnList;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据sql=>" + sql + ";获取服务version列表异常", e);
+		}
+	}
+	
+	
 	@Override
 	public Integer getOldServiceCount() throws DAOException {
 		String sql = "SELECT count(id) as records FROM t_venus_service ";

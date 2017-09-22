@@ -184,14 +184,14 @@ public class MysqlRegisterService implements RegisterService {
 		return serverId;
 	}
 	
-	public int addService(String serviceName, String description){
-		VenusServiceDO service = venusServiceDAO.getService(serviceName);
+	public int addService(String serviceName, String description, String version){
+		VenusServiceDO service = venusServiceDAO.getService(serviceName,version);
 		int serviceId = 0;
 		if (null == service) {
 			VenusServiceDO venusServiceDO = new VenusServiceDO();
 			venusServiceDO.setName(serviceName);
 			venusServiceDO.setAppId(null);
-			venusServiceDO.setVersion(null);
+			venusServiceDO.setVersion(version);
 			venusServiceDO.setRegisteType(RegisteConstant.OPERATOR_REGISTE);
 			venusServiceDO.setMethods(null);
 			venusServiceDO.setDescription(description);
@@ -228,9 +228,6 @@ public class MysqlRegisterService implements RegisterService {
 				url.getVersion());
 		for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
 			VenusServiceDO service = (VenusServiceDO) iterator.next();
-			if(service.getIsDelete()){
-				iterator.remove();
-			}
 		if (null == service && url.isConsumerCheck()) {// 服务不存在并且配置了检测则抛出异常
 			logger.error("服务订阅异常,原因:服务{}不存在 ", url.getServiceName());
 			throw new VenusRegisteException("服务订阅异常,原因:服务" + url.getServiceName() + "不存在");
@@ -365,29 +362,31 @@ public class MysqlRegisterService implements RegisterService {
 		return returnList;
 	}
 	
-	public void addNewServiceMapping(OldServiceMappingDO old) {
-		boolean exists = venusServiceMappingDAO.existServiceMapping(old.getHostName(), old.getPort(),
-				old.getServiceName(), old.getVersion());
+	public void addNewServiceMapping(String hostName,int port,String serviceName,String version) {
+		boolean exists = venusServiceMappingDAO.existServiceMapping(hostName, port,
+				serviceName, version);
 		if (!exists) {// 不存在则添加
 			VenusServiceMappingDO venusServiceMappingDO = new VenusServiceMappingDO();
-			VenusServerDO server = venusServerDAO.getServer(old.getHostName(), old.getPort());
+			VenusServerDO server = venusServerDAO.getServer(hostName, port);
 			if (null != server) {
-				venusServiceMappingDO.setServerId(server.getId());
-				VenusServiceDO service = venusServiceDAO.getService(old.getServiceName());//TODO 版本如何 处理 老数据无版本，新数据都有版本
+				VenusServiceDO service = venusServiceDAO.getService(serviceName,version);/*TODO 版本如何 处理 老数据无版本，新数据都有版本*/
 				if (null != service) {
+					venusServiceMappingDO.setServerId(server.getId());
 					venusServiceMappingDO.setServiceId(service.getId());
 					venusServiceMappingDO.setProviderAppId(0);
 					venusServiceMappingDO.setConsumerAppId(0);
 					venusServiceMappingDO.setSync(true);
 					venusServiceMappingDO.setActive(true);
 					venusServiceMappingDO.setRole(RegisteConstant.PROVIDER);
-					venusServiceMappingDO.setVersion(old.getVersion());
+					venusServiceMappingDO.setVersion(version);
 					venusServiceMappingDO.setIsDelete(false);
 					venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
 				}
 			}
 		}
 	}
+	
+	
 	
 //	public List<VenusServiceDefinitionDO> finderviceDefinitionList(String interfaceName, String serviceName)
 //			throws VenusRegisteException {
