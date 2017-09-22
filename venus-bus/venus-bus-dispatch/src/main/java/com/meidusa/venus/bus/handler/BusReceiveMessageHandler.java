@@ -45,7 +45,7 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
     private BusDispatcherProxy busDispatcherProxy;
 
     /**
-     * 请求连接映射表
+     * 请求连接映射表 TODO 处理连接中断等情况，使用类旧版本observer机制或者定期清理机制?
      */
     private Map<String,BusFrontendConnection> requestConnectionMap = new ConcurrentHashMap<String,BusFrontendConnection>();
 
@@ -110,7 +110,7 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
 
         //若寻址路由出错或者分发异常等，则直接返回
         if(result != null){
-            //TODO 输出响应
+            //TODO 输出响应，统一输出机制，与dispatchMesgHandler输出机制统一
         }
     }
 

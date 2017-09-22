@@ -85,8 +85,7 @@ public class BusDispatchMessageHandler extends BusBackendMessageHandler implemen
             ErrorPacket errorPacket = (ErrorPacket)object;
             String rpcId = RpcIdUtil.getRpcId(errorPacket);
             BusFrontendConnection busFrontendConnection = requestConnectionMap.get(rpcId);
-            //TODO 处理连接中断等情况
-            //TODO 统一与receiver响应处理
+            //TODO 输出响应，统一输出机制，与dispatchMesgHandler输出机制统一
             //busFrontendConnection.write();
         }else if(object instanceof OKPacket){
             OKPacket okPacket = (OKPacket)object;
