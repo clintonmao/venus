@@ -240,29 +240,6 @@ public class ServerInvocation implements Invocation {
         this.parentId = parentId;
     }
 
-    public String getServiceName() {
-        if(service != null){
-            return service.name();
-        }else if(this instanceof ServerInvocation){
-            ServerInvocation rpcInvocation = this;
-            if(rpcInvocation.getEndpointEx() != null && rpcInvocation.getEndpointEx().getService() != null){
-                return rpcInvocation.getEndpointEx().getService().getName();
-            }else{
-                throw new RpcException("get serviceName error.");
-            }
-        }else{
-            throw new RpcException("get serviceName error.");
-        }
-    }
-
-    public VenusFrontendConnection getConn() {
-        return conn;
-    }
-
-    public void setConn(VenusFrontendConnection conn) {
-        this.conn = conn;
-    }
-
     public Tuple<Long, byte[]> getData() {
         return data;
     }
@@ -303,28 +280,12 @@ public class ServerInvocation implements Invocation {
         this.finalSourceIp = finalSourceIp;
     }
 
-    public VenusRouterPacket getRouterPacket() {
-        return routerPacket;
-    }
-
-    public void setRouterPacket(VenusRouterPacket routerPacket) {
-        this.routerPacket = routerPacket;
-    }
-
     public byte getSerializeType() {
         return serializeType;
     }
 
     public void setSerializeType(byte serializeType) {
         this.serializeType = serializeType;
-    }
-
-    public SerializeServiceRequestPacket getRequest() {
-        return request;
-    }
-
-    public void setRequest(SerializeServiceRequestPacket request) {
-        this.request = request;
     }
 
     public Endpoint getEndpointEx() {
@@ -365,5 +326,58 @@ public class ServerInvocation implements Invocation {
 
     public void setRequestContext(RequestContext requestContext) {
         this.requestContext = requestContext;
+    }
+
+    public VenusFrontendConnection getConn() {
+        return conn;
+    }
+
+    public void setConn(VenusFrontendConnection conn) {
+        this.conn = conn;
+    }
+
+    public SerializeServiceRequestPacket getRequest() {
+        return request;
+    }
+
+    public void setRequest(SerializeServiceRequestPacket request) {
+        this.request = request;
+    }
+
+    public VenusRouterPacket getRouterPacket() {
+        return routerPacket;
+    }
+
+    public void setRouterPacket(VenusRouterPacket routerPacket) {
+        this.routerPacket = routerPacket;
+    }
+
+    @Override
+    public String getServiceInterfaceName() {
+        return null;
+    }
+
+    @Override
+    public String getServiceName() {
+        if(service != null){
+            return service.name();
+        }else{
+            ServerInvocation rpcInvocation = this;
+            if(rpcInvocation.getEndpointEx() != null && rpcInvocation.getEndpointEx().getService() != null){
+                return rpcInvocation.getEndpointEx().getService().getName();
+            }else{
+                throw new RpcException("get serviceName error.");
+            }
+        }
+    }
+
+    @Override
+    public String getVersion() {
+        return null;
+    }
+
+    @Override
+    public String getMethodName() {
+        return this.getMethod().getName();
     }
 }

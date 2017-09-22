@@ -9,7 +9,6 @@ import com.meidusa.venus.backend.ErrorPacketWrapperException;
 import com.meidusa.venus.bus.BusInvocation;
 import com.meidusa.venus.bus.dispatch.BusDispatcherProxy;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
-import com.meidusa.venus.bus.registry.ServiceManager;
 import com.meidusa.venus.bus.util.VenusTrafficCollector;
 import com.meidusa.venus.client.VenusRegistryFactory;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
@@ -36,8 +35,6 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
     static {
         Runtime.getRuntime().addShutdownHook(listener);
     }
-
-    private ServiceManager serviceManager;
 
     private VenusRegistryFactory venusRegistryFactory;
 
@@ -111,10 +108,9 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
      * @return
      */
     BusInvocation parseInvocation(BusFrontendConnection srcConn, final byte[] message){
-        VenusTrafficCollector.getInstance().increaseRequest();
-
         BusInvocation busInvocation = new BusInvocation();
 
+        VenusTrafficCollector.getInstance().increaseRequest();
         ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
 
         try {
@@ -128,18 +124,16 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
 
             //解析服务信息
             packetBuffer.skip(PacketConstant.SERVICE_HEADER_SIZE + 8);
-            final String apiName = packetBuffer.readLengthCodedString(PacketConstant.PACKET_CHARSET);
-            final int serviceVersion = packetBuffer.readInt();
-            //TODO 新增serviceInterfaceName、version兼容性处理
+            String apiName = packetBuffer.readLengthCodedString(PacketConstant.PACKET_CHARSET);
             int index = apiName.lastIndexOf(".");
             String serviceName = apiName.substring(0, index);
-            // String methodName = apiName.substring(index + 1);
+            String methodName = apiName.substring(index + 1);
+            //TODO 少serviceInterfaceName属性
             routerPacket.api = apiName;
+            int serviceVersion = packetBuffer.readInt();
+            //TODO version是1而不是1.0.0形式
 
-            /**
-             * 解析traceID
-             * 跳过参数字节
-             */
+            //解析traceID
             packetBuffer.skipLengthCodedBytes();
             byte[] traceId = new byte[16];
             // 兼容3.0.1之前的版本,3.0.2与之后的版本将支持traceID
@@ -174,9 +168,6 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
             return busDispatcherProxy;
         }
         busDispatcherProxy = new BusDispatcherProxy();
-        if(serviceManager != null){
-            busDispatcherProxy.setServiceManager(serviceManager);
-        }
         if(venusRegistryFactory != null){
             busDispatcherProxy.setVenusRegistryFactory(venusRegistryFactory);
         }
@@ -197,14 +188,6 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
         AbstractServicePacket.copyHead(apiPacket, error);
         error.errorCode = VenusExceptionCodeConstant.SERVICE_VERSION_NOT_ALLOWD_EXCEPTION;
         error.message = "Service version not match";
-    }
-
-    public ServiceManager getServiceManager() {
-        return serviceManager;
-    }
-
-    public void setServiceManager(ServiceManager serviceManager) {
-        this.serviceManager = serviceManager;
     }
 
     public VenusRegistryFactory getVenusRegistryFactory() {

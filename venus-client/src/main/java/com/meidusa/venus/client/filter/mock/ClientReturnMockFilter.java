@@ -9,9 +9,16 @@ import org.slf4j.LoggerFactory;
  * 快速返回放通处理
  * Created by Zhangzhihua on 2017/8/1.
  */
-public class ClientReturnMockFilter extends BaseMockFilter implements Filter {
+public class ClientReturnMockFilter implements Filter {
 
     private static Logger logger = LoggerFactory.getLogger(ClientReturnMockFilter.class);
+
+    //降级类型-return
+    static final String MOCK_TYPE_RETURN = "MOCK_TYPE_RETURN ";
+    //降级类型-throw
+    static final String MOCK_TYPE_THROW = "MOCK_TYPE_THROW";
+    //降级类型-callback
+    static final String MOCK_TYPE_CALLBACK = "MOCK_TYPE_CALLBACK";
 
     @Override
     public void init() throws RpcException {
@@ -59,6 +66,17 @@ public class ClientReturnMockFilter extends BaseMockFilter implements Filter {
     boolean isEnableReturnMock(ClientInvocation invocation, URL url){
         String mockType = getMockType(invocation, url);
         return MOCK_TYPE_RETURN.equalsIgnoreCase(mockType);
+    }
+
+    /**
+     * 获取降级类型
+     * @param invocation
+     * @param url
+     * @return
+     */
+    String getMockType(ClientInvocation invocation, URL url){
+        //TODO 获取流控类型
+        return null;//MOCK_TYPE_RETURN;
     }
 
     @Override

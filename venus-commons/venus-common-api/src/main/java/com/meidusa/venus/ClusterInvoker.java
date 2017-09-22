@@ -4,7 +4,7 @@ package com.meidusa.venus;
 import java.util.List;
 
 /**
- * invoker接口
+ * 集群调用接口，封装lb/failover操作，对外部调用透明，由各remoteInvoker调用
  * Created by Zhangzhihua on 2017/7/31.
  */
 public interface ClusterInvoker {

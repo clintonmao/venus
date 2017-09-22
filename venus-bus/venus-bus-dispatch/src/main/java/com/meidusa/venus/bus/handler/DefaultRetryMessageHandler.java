@@ -4,7 +4,6 @@ import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.venus.bus.network.BusBackendConnection;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
-import com.meidusa.venus.bus.registry.ServiceManager;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
@@ -102,16 +101,6 @@ public class DefaultRetryMessageHandler implements RetryMessageHandler{
      * 存放重试消息的队列
      */
     private BlockingQueue<DelayedRouterMessage> retryQueue = new DelayQueue<DelayedRouterMessage>();
-
-    ServiceManager serviceRegisterManager;
-
-    public ServiceManager getServiceRegisterManager() {
-        return serviceRegisterManager;
-    }
-
-    public void setServiceRegisterManager(ServiceManager serviceRegisterManager) {
-        this.serviceRegisterManager = serviceRegisterManager;
-    }
 
     public int getMaxRetryTimes() {
         return maxRetryTimes;

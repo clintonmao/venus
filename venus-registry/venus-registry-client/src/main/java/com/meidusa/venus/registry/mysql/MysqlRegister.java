@@ -479,12 +479,6 @@ public class MysqlRegister implements Register {
 		return os.toLowerCase().startsWith("win");
 	}
 
-//	@Override
-//	public List<VenusServiceDefinitionDO> findServiceList(String interfaceName, String serviceName) throws VenusRegisteException {
-//		return registerService.finderviceDefinitionList(interfaceName, serviceName);
-//	}
-
-	
 	/*public static void main(String args[]) {
 
 		VenusServiceDefinitionDO def1 = new VenusServiceDefinitionDO();

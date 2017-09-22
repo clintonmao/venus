@@ -40,6 +40,8 @@ public class BusDispatcher implements Dispatcher{
 
     private static boolean isInitConnector = false;
 
+    private static boolean isInited = false;
+
     private boolean enableAsync = true;
 
     private int asyncExecutorSize = 10;
@@ -51,6 +53,12 @@ public class BusDispatcher implements Dispatcher{
 
     //TODO set observer
     private BusDispatchMessageHandler messageHandler = new BusDispatchMessageHandler();
+
+    public BusDispatcher(){
+        if(!isInited){
+            init();
+        }
+    }
 
     @Override
     public void init() throws RpcException {
@@ -133,6 +141,7 @@ public class BusDispatcher implements Dispatcher{
      */
     void sendRequest(BusInvocation invocation, ByteBuffer byteBuffer, URL url){
         BusInvocation busInvocation = invocation;
+        //TODO srConn为空，要设值
         BusFrontendConnection srcConn = busInvocation.getSrcConn();
         VenusRouterPacket routerPacket = busInvocation.getRouterPacket();
 
@@ -145,7 +154,8 @@ public class BusDispatcher implements Dispatcher{
             remoteConn = (BusBackendConnection)connectionPool.borrowObject();
             routerPacket.backendRequestID = remoteConn.getNextRequestID();
             remoteConn.addRequest(routerPacket.backendRequestID, routerPacket.frontendConnectionID, routerPacket.frontendRequestID);
-            srcConn.addUnCompleted(routerPacket.frontendRequestID, routerPacket);
+            //TODO 确认addUnCompleted功能
+            //srcConn.addUnCompleted(routerPacket.frontendRequestID, routerPacket);
             //转发消息
             remoteConn.write(VenusRouterPacket.toByteBuffer(routerPacket));
 
@@ -196,7 +206,6 @@ public class BusDispatcher implements Dispatcher{
         if (authenticator != null) {
             nioFactory.setAuthenticator(authenticator);
         }
-        BackendConnectionPool pool = null;
         String[] arr = StringUtil.split(address, ":");
         if (arr.length > 1) {
             nioFactory.setHost(arr[0]);
@@ -205,13 +214,12 @@ public class BusDispatcher implements Dispatcher{
             nioFactory.setHost(arr[0]);
             nioFactory.setPort(PacketConstant.VENUS_DEFAULT_PORT);
         }
-
         //设置connector
         nioFactory.setConnector(getConnector());
         //设置messageHandler
         nioFactory.setMessageHandler(getMessageHandler());
 
-        pool = new PollingBackendConnectionPool(address, nioFactory, DEFAULT_POOL_SIZE);
+        BackendConnectionPool pool = new PollingBackendConnectionPool(address, nioFactory, DEFAULT_POOL_SIZE);
         pool.init();
         return pool;
     }

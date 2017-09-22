@@ -11,9 +11,16 @@ import java.lang.reflect.Method;
  * 回调放通处理
  * Created by Zhangzhihua on 2017/8/1.
  */
-public class ClientCallbackMockFilter extends BaseMockFilter implements Filter {
+public class ClientCallbackMockFilter implements Filter {
 
     private static Logger logger = LoggerFactory.getLogger(ClientCallbackMockFilter.class);
+
+    //降级类型-return
+    static final String MOCK_TYPE_RETURN = "MOCK_TYPE_RETURN ";
+    //降级类型-throw
+    static final String MOCK_TYPE_THROW = "MOCK_TYPE_THROW";
+    //降级类型-callback
+    static final String MOCK_TYPE_CALLBACK = "MOCK_TYPE_CALLBACK";
 
     @Override
     public void init() throws RpcException {
@@ -64,5 +71,16 @@ public class ClientCallbackMockFilter extends BaseMockFilter implements Filter {
     @Override
     public void destroy() throws RpcException {
 
+    }
+
+    /**
+     * 获取降级类型
+     * @param invocation
+     * @param url
+     * @return
+     */
+    String getMockType(ClientInvocation invocation, URL url){
+        //TODO 获取流控类型
+        return null;//MOCK_TYPE_RETURN;
     }
 }

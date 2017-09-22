@@ -2,8 +2,6 @@ package com.meidusa.venus.bus.dispatch;
 
 import com.meidusa.venus.*;
 import com.meidusa.venus.bus.BusInvocation;
-import com.meidusa.venus.bus.registry.xml.config.BusRemoteConfig;
-import com.meidusa.venus.bus.registry.ServiceManager;
 import com.meidusa.venus.client.cluster.ClusterInvokerFactory;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
@@ -25,12 +23,7 @@ public class BusRemoteDispatcher implements Dispatcher{
     private static Logger logger = LoggerFactory.getLogger(BusRemoteDispatcher.class);
 
     /**
-     * XML注册管理
-     */
-    private ServiceManager serviceManager;
-
-    /**
-     * 远程注册中心注册管理
+     * 注册中心
      */
     private Register register;
 
@@ -60,63 +53,30 @@ public class BusRemoteDispatcher implements Dispatcher{
     }
 
     /**
-     * 寻址
-     * @param invocation
-     * @return
-     */
-    List<URL> lookup(BusInvocation invocation){
-        if(!isDynamicLookup()){
-            return this.lookupByStatic(invocation);
-        }else{
-            return this.lookupByDynamic(invocation);
-        }
-    }
-
-    /**
-     * 判断是本地静态还是注册中心动态寻址
-     * @return
-     */
-    boolean isDynamicLookup(){
-        return register != null;
-    }
-
-    /**
-     *
-     * @param invocation
-     * @return
-     */
-    List<URL> lookupByStatic(BusInvocation invocation){
-        List<URL> urlList = new ArrayList<URL>();
-        List<BusRemoteConfig> remoteConfigList = serviceManager.lookup(invocation.getServiceName());
-        if(CollectionUtils.isEmpty(remoteConfigList)){
-            return urlList;
-        }
-        for(BusRemoteConfig remoteConfig:remoteConfigList){
-            String ipAddressList = remoteConfig.getFactory().getIpAddressList();
-            String[] arr = ipAddressList.split(":");
-            URL url = new URL();
-            url.setHost(arr[0]);
-            url.setPort(Integer.parseInt(arr[1]));
-            url.setRemoteConfig(remoteConfig);
-            urlList.add(url);
-        }
-        return urlList;
-    }
-
-    /**
      * 查找服务地址
      * @return
      */
-    List<URL> lookupByDynamic(BusInvocation invocation){
+    List<URL> lookup(BusInvocation invocation){
         List<URL> urlList = new ArrayList<URL>();
 
         //解析请求Url
         URL requestUrl = parseRequestUrl(invocation);
 
         //查找服务定义
-        List<VenusServiceDefinitionDO> serviceDefinitionDOList = getRegister().lookup(requestUrl);
+        Register register = getRegister();
+        List<VenusServiceDefinitionDO> serviceDefinitionDOList = null;
+        //缓存查找
+        serviceDefinitionDOList = register.lookup(requestUrl);
+        //若缓存为空，则从注册中心查找
         if(CollectionUtils.isEmpty(serviceDefinitionDOList)){
-            throw new RpcException(String.format("not found available service %s providers.",requestUrl.toString()));
+            serviceDefinitionDOList = register.lookup(requestUrl,true);
+            //若注册中心不为空，则订阅服务，否则报服务没有提供节点错误
+            if(CollectionUtils.isNotEmpty(serviceDefinitionDOList)){
+                //TODO 重复订阅、重复注册、lookup时未订阅
+                register.subscrible(requestUrl);
+            }else{
+                throw new RpcException(String.format("not found available service %s providers.",requestUrl.toString()));
+            }
         }
         logger.info("look up service:{} provider group:{}",requestUrl.toString(),serviceDefinitionDOList.size());
 
@@ -140,7 +100,7 @@ public class BusRemoteDispatcher implements Dispatcher{
      * @return
      */
     URL parseRequestUrl(BusInvocation invocation){
-        String path = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
+        String path = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=0.0.0";
         URL serviceUrl = URL.parse(path);
         return serviceUrl;
     }
@@ -162,14 +122,6 @@ public class BusRemoteDispatcher implements Dispatcher{
     @Override
     public void destroy() throws RpcException {
 
-    }
-
-    public ServiceManager getServiceManager() {
-        return serviceManager;
-    }
-
-    public void setServiceManager(ServiceManager serviceManager) {
-        this.serviceManager = serviceManager;
     }
 
     public Register getRegister() {

@@ -1,7 +1,7 @@
 package com.meidusa.venus;
 
 /**
- * result
+ * 统一响应对象
  * Created by Zhangzhihua on 2017/7/31.
  */
 public class Result {

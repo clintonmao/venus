@@ -227,7 +227,7 @@ public class MysqlRegisterService implements RegisterService {
 		List<VenusServiceDO> services = venusServiceDAO.queryServices(url.getInterfaceName(), url.getServiceName(),
 				url.getVersion());
 		for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
-			VenusServiceDO service = (VenusServiceDO) iterator.next();
+			VenusServiceDO service = iterator.next();
 		if (null == service && url.isConsumerCheck()) {// 服务不存在并且配置了检测则抛出异常
 			logger.error("服务订阅异常,原因:服务{}不存在 ", url.getServiceName());
 			throw new VenusRegisteException("服务订阅异常,原因:服务" + url.getServiceName() + "不存在");
@@ -386,8 +386,6 @@ public class MysqlRegisterService implements RegisterService {
 		}
 	}
 	
-	
-	
 //	public List<VenusServiceDefinitionDO> finderviceDefinitionList(String interfaceName, String serviceName)
 //			throws VenusRegisteException {
 //		List<Integer> serverIds = new ArrayList<Integer>();
@@ -458,7 +456,7 @@ public class MysqlRegisterService implements RegisterService {
 		try {
 			List<VenusServiceDO> services = venusServiceDAO.queryServices(interfaceName, serviceName, version);
 			for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
-				VenusServiceDO service = (VenusServiceDO) iterator.next();
+				VenusServiceDO service = iterator.next();
 				int serviceID = service.getId();
 				String host = url.getHost();
 				VenusServerDO server = venusServerDAO.getServer(host, 0);

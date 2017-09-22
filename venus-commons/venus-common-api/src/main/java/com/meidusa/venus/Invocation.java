@@ -6,5 +6,28 @@ package com.meidusa.venus;
  */
 public interface Invocation {
 
-    //TODO 公共方法
+    /**
+     * 获取服务接口名称
+     * @return
+     */
+    String getServiceInterfaceName();
+
+    /**
+     * 获取服务名称
+     * @return
+     */
+    String getServiceName();
+
+    /**
+     * 获取版本号
+     * @return
+     */
+    String getVersion();
+
+    /**
+     * 获取方法名称
+     * @return
+     */
+    String getMethodName();
+
 }

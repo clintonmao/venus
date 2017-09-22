@@ -11,6 +11,7 @@ import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 
 /**
+ * 注册中心服务操作接口
  * Created by Zhangzhihua on 2017/8/16.
  */
 @Service(name = "registerService", version = 1, athenaFlag=false)
@@ -62,17 +63,6 @@ public interface RegisterService {
 	@Endpoint(name = "findServiceDefinition")
 	@PerformanceLevel(printParams=false,printResult = false)
 	List<VenusServiceDefinitionDO> findServiceDefinitions(@Param(name = "url")URL url);
-    
-//    /**
-//     * 根据接口名和服务名查询返回服务定义列表
-//     * @param interfaceName
-//     * @param serviceName
-//     * @return
-//     * @throws VenusRegisteException
-//     */
-//	@Endpoint(name = "finderviceDefinitionList")
-//	@PerformanceLevel(printParams=false,printResult = false)
-//    List<VenusServiceDefinitionDO> finderviceDefinitionList(@Param(name = "interfaceName")String interfaceName, @Param(name = "serviceName")String serviceName) throws VenusRegisteException;
     
     /**
      * 根据URL更新注册接口的心跳时间

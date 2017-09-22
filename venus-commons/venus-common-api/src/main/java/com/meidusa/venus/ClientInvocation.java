@@ -199,19 +199,33 @@ public class ClientInvocation implements Invocation {
         this.parentId = parentId;
     }
 
+    @Override
+    public String getServiceInterfaceName() {
+        return null;
+    }
+
+    @Override
     public String getServiceName() {
         if(service != null){
             return service.name();
-        }else if(this instanceof ClientInvocation){
+        }else{
             ClientInvocation rpcInvocation = this;
             if(rpcInvocation.getEndpoint() != null){
                 return rpcInvocation.getServiceName();
             }else{
                 throw new RpcException("get serviceName error.");
             }
-        }else{
-            throw new RpcException("get serviceName error.");
         }
+    }
+
+    @Override
+    public String getVersion() {
+        return null;
+    }
+
+    @Override
+    public String getMethodName() {
+        return this.getMethod().getName();
     }
 
 }
