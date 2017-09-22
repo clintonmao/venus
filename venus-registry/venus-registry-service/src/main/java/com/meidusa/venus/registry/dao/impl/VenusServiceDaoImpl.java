@@ -199,9 +199,10 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 	}
 	
 	@Override
-	public VenusServiceDO getService(String serviceName) throws DAOException {
-		String sql = SELECT_FIELDS + " from t_venus_service where name=? ";
-		Object[] params = new Object[] {serviceName};
+	public VenusServiceDO getService(String serviceName,String version) throws DAOException {
+		String sql = SELECT_FIELDS + " from t_venus_service where name=? and version=?";
+		
+		Object[] params = new Object[] {serviceName,version};
 		try {
 			return this.jdbcTemplate.query(sql, params, new ResultSetExtractor<VenusServiceDO>() {
 				@Override

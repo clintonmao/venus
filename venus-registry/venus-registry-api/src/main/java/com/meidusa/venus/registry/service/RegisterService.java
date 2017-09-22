@@ -118,10 +118,22 @@ public interface RegisterService {
 	 * 根据服务名添加服务(用于数据同步)
 	 * @param serviceName
 	 * @param description TODO
+	 * @param version TODO
 	 * @return
 	 */
 	@Endpoint(name = "addService")
 	@PerformanceLevel(printParams=false,printResult = false)
-	int addService(@Param(name = "serviceName")String serviceName, @Param(name = "description")String description);
+	int addService(@Param(name = "serviceName")String serviceName, @Param(name = "description")String description, @Param(name = "version")String version);
 
+	/**
+	 * 增加服务映射关系(用于数据同步)
+	 * @param serviceName
+	 * @param description TODO
+	 * @param version TODO
+	 * @return
+	 */
+	@Endpoint(name = "addNewServiceMapping")
+	@PerformanceLevel(printParams=false,printResult = false)
+	void addNewServiceMapping(@Param(name = "hostName")String hostName,@Param(name = "port")int port,@Param(name = "serviceName")String serviceName,@Param(name = "version")String version) ;
+	
 }
