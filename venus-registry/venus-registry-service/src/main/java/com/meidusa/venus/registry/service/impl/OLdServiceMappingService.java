@@ -42,12 +42,9 @@ public class OLdServiceMappingService {
 	public OLdServiceMappingService(String oldConnectUrl, String connectUrl) {
 		this.setOldConnectUrl(oldConnectUrl);
 		init();
-		// GlobalScheduler.getInstance().scheduleAtFixedRate(new
-		// MoveServerRunnable(), 5, 5, TimeUnit.MINUTES);
-		// GlobalScheduler.getInstance().scheduleAtFixedRate(new
-		// MoveServiceRunnable(), 5, 5, TimeUnit.MINUTES);
-		// GlobalScheduler.getInstance().scheduleAtFixedRate(new
-		// MoveServiceMappingRunnable(), 5, 5, TimeUnit.MINUTES);
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveServerRunnable(), 1, 5, TimeUnit.MINUTES);
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveServiceRunnable(), 1, 5, TimeUnit.MINUTES);
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveServiceMappingRunnable(), 1, 5, TimeUnit.MINUTES);
 	}
 
 	public void init() {
@@ -119,22 +116,16 @@ public class OLdServiceMappingService {
 					for (OldServiceDO oldServiceDO : services) {
 						registerService.addService(oldServiceDO.getServiceName(), oldServiceDO.getDescription(),
 								"0.0.0");
-						// List<String> queryOldServiceVersions =
-						// oldServiceMappingDAO
-						// .queryOldServiceVersions(oldServiceDO.getServiceName());
-						// if
-						// (CollectionUtils.isNotEmpty(queryOldServiceVersions))
-						// {
-						// for (Iterator<String> iterator =
-						// queryOldServiceVersions.iterator();
-						// iterator.hasNext();) {
-						// String version = iterator.next();
-						// if (StringUtils.isBlank(version) ||
-						// "null".equals(version)) {
-						// version = null;
-						// }
-						// }
-						// }
+						/*List<String> queryOldServiceVersions = oldServiceMappingDAO
+								.queryOldServiceVersions(oldServiceDO.getServiceName());
+						if (CollectionUtils.isNotEmpty(queryOldServiceVersions)) {
+							for (Iterator<String> iterator = queryOldServiceVersions.iterator(); iterator.hasNext();) {
+								String version = iterator.next();
+								if (StringUtils.isBlank(version) || "null".equals(version)) {
+									version = null;
+								}
+							}
+						}*/
 					}
 				}
 			}
@@ -194,18 +185,6 @@ public class OLdServiceMappingService {
 		this.registerService = registerService;
 	}
 
-/*	public static void main(String args[]) {
-		MysqlRegisterService newDs = new MysqlRegisterService();
-		newDs.setConnectUrl("mysql://localhost:3306/registry_venus?username=root&password=123456");
-		newDs.init();
-
-		OLdServiceMappingService oldDs = new OLdServiceMappingService();
-		oldDs.setRegisterService(newDs);
-		oldDs.setOldConnectUrl("mysql://10.32.173.250:3306/registry?username=registry&password=registry");
-		oldDs.init();
-		oldDs.moveServiceMappings();
-	}*/
-
 	private class MoveServerRunnable implements Runnable {
 
 		@Override
@@ -231,6 +210,18 @@ public class OLdServiceMappingService {
 			moveServiceMappings();
 		}
 
+	}
+	
+	public static void main(String args[]) {
+		MysqlRegisterService newDs = new MysqlRegisterService();
+		newDs.setConnectUrl("mysql://localhost:3306/registry_venus?username=root&password=123456");
+		newDs.init();
+		
+		OLdServiceMappingService oldDs = new OLdServiceMappingService();
+		oldDs.setRegisterService(newDs);
+		oldDs.setOldConnectUrl("mysql://10.32.173.250:3306/registry?username=registry&password=registry");
+		oldDs.init();
+		oldDs.moveServiceMappings();
 	}
 
 }

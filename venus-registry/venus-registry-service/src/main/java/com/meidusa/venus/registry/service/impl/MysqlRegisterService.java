@@ -55,6 +55,7 @@ public class MysqlRegisterService implements RegisterService {
 
 	private JdbcTemplate jdbcTemplate;
 
+	/** 新注册中心数据库地址 */
 	private String connectUrl;
 
 	public MysqlRegisterService() {
