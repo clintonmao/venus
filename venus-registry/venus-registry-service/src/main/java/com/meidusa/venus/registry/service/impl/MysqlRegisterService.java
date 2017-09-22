@@ -369,7 +369,7 @@ public class MysqlRegisterService implements RegisterService {
 			VenusServiceMappingDO venusServiceMappingDO = new VenusServiceMappingDO();
 			VenusServerDO server = venusServerDAO.getServer(hostName, port);
 			if (null != server) {
-				VenusServiceDO service = venusServiceDAO.getService(serviceName,version);/*TODO 版本如何 处理 老数据无版本，新数据都有版本*/
+				VenusServiceDO service = venusServiceDAO.getService(serviceName,RegisteConstant.OPERATOR_REGISTE);
 				if (null != service) {
 					venusServiceMappingDO.setServerId(server.getId());
 					venusServiceMappingDO.setServiceId(service.getId());

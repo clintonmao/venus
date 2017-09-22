@@ -3,6 +3,8 @@ package com.meidusa.venus.registry.data.move;
 import java.io.Serializable;
 import java.util.Date;
 
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+
 public class OldServerDO implements Serializable {
 
 	private static final long serialVersionUID = 5855659524793557821L;
@@ -61,8 +63,7 @@ public class OldServerDO implements Serializable {
 
 	@Override
 	public String toString() {
-		return "OldServerDO [id=" + id + ", hostName=" + hostName + ", port=" + port + ", createTime=" + createTime
-				+ ", updateTime=" + updateTime + "]";
+		return ReflectionToStringBuilder.toString(this); 
 	}
 
 }

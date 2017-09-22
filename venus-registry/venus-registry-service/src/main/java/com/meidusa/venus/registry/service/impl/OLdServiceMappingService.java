@@ -94,12 +94,9 @@ public class OLdServiceMappingService {
 				if (CollectionUtils.isNotEmpty(oldServiceMappings)) {
 					mapId = oldServiceMappings.get(oldServiceMappings.size() - 1).getMapId();
 					for (OldServiceMappingDO oldServiceMappingDO : oldServiceMappings) {
-						System.out.println("mapId=>" + oldServiceMappingDO.getMapId());
-						// TODO 在此更新 新的数据库等操作
-						// registerService.addNewServiceMapping(oldServiceMappingDO.getHostName(),
-						// oldServiceMappingDO.getPort(),
-						// oldServiceMappingDO.getServiceName(),
-						// oldServiceMappingDO.getVersion());
+						registerService.addNewServiceMapping(oldServiceMappingDO.getHostName(),
+								oldServiceMappingDO.getPort(), oldServiceMappingDO.getServiceName(),
+								oldServiceMappingDO.getVersion());
 					}
 				}
 			}
@@ -120,21 +117,24 @@ public class OLdServiceMappingService {
 				if (CollectionUtils.isNotEmpty(services)) {
 					mapId = services.get(services.size() - 1).getId();
 					for (OldServiceDO oldServiceDO : services) {
-						List<String> queryOldServiceVersions = oldServiceMappingDAO
-								.queryOldServiceVersions(oldServiceDO.getServiceName());
-						System.out.println("id=>" + oldServiceDO.getId());
-						if (CollectionUtils.isNotEmpty(queryOldServiceVersions)) {
-							for (Iterator<String> iterator = queryOldServiceVersions.iterator(); iterator.hasNext();) {
-								String version = iterator.next();
-								if (StringUtils.isBlank(version) || "null".equals(version)) {
-									version = null;
-								}
-								// TODO 在此更新 新的数据库等操作
-								// registerService.addService(oldServiceDO.getServiceName(),
-								// oldServiceDO.getDescription(),
-								// version);
-							}
-						}
+						registerService.addService(oldServiceDO.getServiceName(), oldServiceDO.getDescription(),
+								"0.0.0");
+						// List<String> queryOldServiceVersions =
+						// oldServiceMappingDAO
+						// .queryOldServiceVersions(oldServiceDO.getServiceName());
+						// if
+						// (CollectionUtils.isNotEmpty(queryOldServiceVersions))
+						// {
+						// for (Iterator<String> iterator =
+						// queryOldServiceVersions.iterator();
+						// iterator.hasNext();) {
+						// String version = iterator.next();
+						// if (StringUtils.isBlank(version) ||
+						// "null".equals(version)) {
+						// version = null;
+						// }
+						// }
+						// }
 					}
 				}
 			}
@@ -155,9 +155,7 @@ public class OLdServiceMappingService {
 				if (CollectionUtils.isNotEmpty(servers)) {
 					id = servers.get(servers.size() - 1).getId();
 					for (OldServerDO oldServerDO : servers) {
-						System.out.println("id=>" + oldServerDO.getId());
-						// registerService.addServer(oldServerDO.getHostName(),
-						// oldServerDO.getPort());
+						registerService.addServer(oldServerDO.getHostName(), oldServerDO.getPort());
 					}
 				}
 			}
