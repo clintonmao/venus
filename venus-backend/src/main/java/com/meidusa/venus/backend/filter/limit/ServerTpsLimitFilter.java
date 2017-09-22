@@ -55,12 +55,12 @@ public class ServerTpsLimitFilter implements Filter {
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
-        ServerInvocation clientInvocation = (ServerInvocation)invocation;
-        if(!isEnableTpsLimit(clientInvocation, url)){
+        ServerInvocation serverInvocation = (ServerInvocation)invocation;
+        if(!isEnableTpsLimit(serverInvocation, url)){
             return null;
         }
         //获取方法路径及当前并发数
-        String methodPath = VenusPathUtil.getMethodPath(clientInvocation, url);
+        String methodPath = VenusPathUtil.getMethodPath(serverInvocation, url);
         AtomicInteger activeLimit = methodTpsMapping.get(methodPath);
         if(activeLimit == null){
             activeLimit = new AtomicInteger(0);

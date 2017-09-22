@@ -36,7 +36,7 @@ public class ServerAthenaMonitorFilter implements Filter {
         Tuple<Long, byte[]> data = rpcInvocation.getData();
         SerializeServiceRequestPacket request = rpcInvocation.getRequest();
         String apiName = request.apiName;
-        Endpoint endpoint = rpcInvocation.getEndpointEx();
+        Endpoint endpoint = rpcInvocation.getEndpointDef();
         long startTime = TimeUtil.currentTimeMillis();
         VenusThreadContext.set(VenusThreadContext.SERVER_BEGIN_TIME,Long.valueOf(startTime));
 
@@ -59,7 +59,7 @@ public class ServerAthenaMonitorFilter implements Filter {
         ServerInvocation rpcInvocation = (ServerInvocation)invocation;
         SerializeServiceRequestPacket request = rpcInvocation.getRequest();
         String apiName = request.apiName;
-        Endpoint endpoint = rpcInvocation.getEndpointEx();
+        Endpoint endpoint = rpcInvocation.getEndpointDef();
         boolean athenaFlag = endpoint.getService().getAthenaFlag();
         if (athenaFlag) {
             AthenaReporterDelegate.getDelegate().metric(apiName + ".error");
@@ -72,7 +72,7 @@ public class ServerAthenaMonitorFilter implements Filter {
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         ServerInvocation rpcInvocation = (ServerInvocation)invocation;
-        Endpoint endpoint = rpcInvocation.getEndpointEx();
+        Endpoint endpoint = rpcInvocation.getEndpointDef();
         Tuple<Long, byte[]> data = rpcInvocation.getData();
         SerializeServiceRequestPacket request = rpcInvocation.getRequest();
         String apiName = request.apiName;

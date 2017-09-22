@@ -54,7 +54,9 @@ public class ClientActivesLimitFilter implements Filter {
         //+1
         activeLimit.incrementAndGet();
         methodActivesMapping.put(methodPath,activeLimit);
-        logger.info("before invoke methodActivesMapping:{}.",methodActivesMapping);
+        if(logger.isDebugEnabled()){
+            logger.debug("method active mappings of before invoke :{}.",methodActivesMapping);
+        }
         return null;
     }
 
@@ -75,7 +77,9 @@ public class ClientActivesLimitFilter implements Filter {
             //-1
             activeLimit.decrementAndGet();
             methodActivesMapping.put(methodPath,activeLimit);
-            logger.info("after invoke methodActivesMapping:{}.",methodActivesMapping);
+            if(logger.isDebugEnabled()){
+                logger.debug("method active mappings of after invoke :{}.",methodActivesMapping);
+            }
         }
         return null;
     }

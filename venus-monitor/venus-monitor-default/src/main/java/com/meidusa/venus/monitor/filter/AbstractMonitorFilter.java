@@ -2,7 +2,11 @@ package com.meidusa.venus.monitor.filter;
 
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.ClientInvocation;
-import com.meidusa.venus.monitor.reporter.MonitorReporterDelegate;
+import com.meidusa.venus.Invocation;
+import com.meidusa.venus.ServerInvocation;
+import com.meidusa.venus.monitor.reporter.InvocationDetail;
+import com.meidusa.venus.monitor.reporter.InvocationStatistic;
+import com.meidusa.venus.monitor.reporter.AbstractMonitorReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,30 +21,41 @@ import java.util.concurrent.LinkedBlockingQueue;
  * monitor基类
  * Created by Zhangzhihua on 2017/9/4.
  */
-public class BaseMonitorFilter {
+public abstract class AbstractMonitorFilter {
 
-    private static Logger logger = LoggerFactory.getLogger(BaseMonitorFilter.class);
+    private static Logger logger = LoggerFactory.getLogger(AbstractMonitorFilter.class);
 
-    //明细队列 TODO static处理
-    static Queue<InvocationDetail> detailQueue = new LinkedBlockingQueue<InvocationDetail>();
+    //明细队列
+    Queue<InvocationDetail> detailQueue = new LinkedBlockingQueue<InvocationDetail>();
 
     //异常及慢操作明细队列
-    static Queue<InvocationDetail> exceptionDetailQueue = new LinkedBlockingQueue<InvocationDetail>();
+    Queue<InvocationDetail> exceptionDetailQueue = new LinkedBlockingQueue<InvocationDetail>();
 
     //方法调用汇总映射表
-    static Map<String,InvocationStatistic> statisticMap = new ConcurrentHashMap<String,InvocationStatistic>();
+    Map<String,InvocationStatistic> statisticMap = new ConcurrentHashMap<String,InvocationStatistic>();
 
-    static boolean isRunningRunnable = false;
+    boolean isRunningRunnable = false;
 
-    static Executor processExecutor = Executors.newFixedThreadPool(1);
+    Executor processExecutor = Executors.newFixedThreadPool(1);
 
-    static Executor reporterExecutor = Executors.newFixedThreadPool(1);
+    Executor reporterExecutor = Executors.newFixedThreadPool(1);
 
-    MonitorReporterDelegate monitorReporteDelegate = null;
+    AbstractMonitorReporter monitorReporteDelegate = null;
 
-    private AthenaDataService athenaDataService = null;
+    AthenaDataService athenaDataService = null;
 
-    public BaseMonitorFilter(){
+    public AbstractMonitorFilter(){
+    }
+
+    /**
+     * 起动数据计算及上报线程
+     */
+    void startProcessAndReporterTread(){
+        if(!isRunningRunnable){
+            processExecutor.execute(new InvocationDetailProcessRunnable());
+            reporterExecutor.execute(new InvocationDataReportRunnable());
+            isRunningRunnable = true;
+        }
     }
 
     /**
@@ -48,15 +63,10 @@ public class BaseMonitorFilter {
      * @param invocationDetail
      */
     public void pubInvocationDetailQueue(InvocationDetail invocationDetail){
-        //TODO 改初始化时机
-        if(!isRunningRunnable){
-            processExecutor.execute(new InvocationDetailProcessRunnable());
-            reporterExecutor.execute(new InvocationDataReportRunnable());
-            isRunningRunnable = true;
-        }
-
         try {
-            logger.info("add invocation detail queue:{}.",invocationDetail);
+            if(logger.isDebugEnabled()){
+                logger.debug("add invocation detail queue:{}.",invocationDetail);
+            }
             detailQueue.add(invocationDetail);
         } catch (Exception e) {
             //不处理异常，避免影响主流程
@@ -69,19 +79,23 @@ public class BaseMonitorFilter {
      * @return
      */
     String getMethodAndEnvPath(InvocationDetail detail){
-        ClientInvocation invocation = null;
-        if(detail.getInvocation() instanceof ClientInvocation){
-            invocation = (ClientInvocation)detail.getInvocation();
-        }
+        Invocation invocation = detail.getInvocation();
         //请求时间，精确为分钟
-        String requestTimeOfMinutes = getTimeOfMinutes(invocation.getRequestTime());
+        String requestTimeOfMinutes = null;
+        if(invocation instanceof ClientInvocation){
+            ClientInvocation clientInvocation = (ClientInvocation)invocation;
+            requestTimeOfMinutes = getTimeOfMinutes(clientInvocation.getRequestTime());
+        }else if(invocation instanceof ServerInvocation){
+            ServerInvocation serverInvocation = (ServerInvocation)invocation;
+            requestTimeOfMinutes = getTimeOfMinutes(serverInvocation.getRequestTime());
+        }
         //方法路径信息
         String methodAndEnvPath = String.format(
                 "%s/%s?version=%s&method=%s&startTime=%s",
-                invocation.getMethod().getDeclaringClass().getName(),
+                invocation.getServiceInterfaceName(),
                 invocation.getServiceName(),
-                "0.0.0",
-                invocation.getMethod().getName(),
+                invocation.getVersion(),
+                invocation.getMethodName(),
                 requestTimeOfMinutes
         );
         if(logger.isDebugEnabled()){
@@ -174,7 +188,7 @@ public class BaseMonitorFilter {
         public void run() {
             while(true){
                 try {
-                    MonitorReporterDelegate reporteDelegate = getMonitorReporteDelegate();
+                    AbstractMonitorReporter reporteDelegate = getMonitorReporte();
                     if(reporteDelegate == null){
                         logger.error("get reporteDelegate is null.");
                         continue;
@@ -216,7 +230,7 @@ public class BaseMonitorFilter {
 
                 try {
                     //1m上报一次
-                    Thread.sleep(1000*10);
+                    Thread.sleep(1000*30);
                 } catch (InterruptedException e) {
                 }
             }
@@ -229,13 +243,7 @@ public class BaseMonitorFilter {
      * 获取监控上报代理
      * @return
      */
-    MonitorReporterDelegate getMonitorReporteDelegate(){
-        if(monitorReporteDelegate == null){
-            monitorReporteDelegate = new MonitorReporterDelegate();
-            monitorReporteDelegate.setAthenaDataService(this.getAthenaDataService());
-        }
-        return monitorReporteDelegate;
-    }
+    abstract AbstractMonitorReporter getMonitorReporte();
 
     public AthenaDataService getAthenaDataService() {
         return athenaDataService;

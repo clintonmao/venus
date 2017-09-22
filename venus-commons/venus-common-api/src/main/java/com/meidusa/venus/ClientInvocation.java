@@ -201,26 +201,17 @@ public class ClientInvocation implements Invocation {
 
     @Override
     public String getServiceInterfaceName() {
-        return null;
+        return serviceInterface.getName();
     }
 
     @Override
     public String getServiceName() {
-        if(service != null){
-            return service.name();
-        }else{
-            ClientInvocation rpcInvocation = this;
-            if(rpcInvocation.getEndpoint() != null){
-                return rpcInvocation.getServiceName();
-            }else{
-                throw new RpcException("get serviceName error.");
-            }
-        }
+        return service.name();
     }
 
     @Override
     public String getVersion() {
-        return null;
+        return "0.0.0";//TODO 版本号处理
     }
 
     @Override

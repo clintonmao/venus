@@ -2,6 +2,9 @@ package com.meidusa.venus.monitor.filter;
 
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
+import com.meidusa.venus.monitor.reporter.AbstractMonitorReporter;
+import com.meidusa.venus.monitor.reporter.InvocationDetail;
+import com.meidusa.venus.monitor.reporter.ServerMonitorReporter;
 
 import java.util.Date;
 
@@ -9,10 +12,11 @@ import java.util.Date;
  * server监控filter
  * Created by Zhangzhihua on 2017/8/28.
  */
-public class ServerMonitorFilter extends BaseMonitorFilter implements Filter{
+public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter{
 
     public ServerMonitorFilter(AthenaDataService athenaDataService){
         this.setAthenaDataService(athenaDataService);
+        startProcessAndReporterTread();
     }
 
     @Override
@@ -49,5 +53,13 @@ public class ServerMonitorFilter extends BaseMonitorFilter implements Filter{
     @Override
     public void destroy() throws RpcException {
 
+    }
+
+    AbstractMonitorReporter getMonitorReporte(){
+        if(monitorReporteDelegate == null){
+            monitorReporteDelegate = new ServerMonitorReporter();
+            monitorReporteDelegate.setAthenaDataService(this.getAthenaDataService());
+        }
+        return monitorReporteDelegate;
     }
 }

@@ -27,7 +27,7 @@ public class ResponseEntityWrapper {
         ResponseEntityWrapper wrapper = new ResponseEntityWrapper();
         wrapper.setConn(invocation.getConn());
         wrapper.setRouterPacket(invocation.getRouterPacket());
-        wrapper.setEndpoint(invocation.getEndpointEx());
+        wrapper.setEndpoint(invocation.getEndpointDef());
         wrapper.setRequest(invocation.getRequest());
         wrapper.setSerializeType(invocation.getSerializeType());
         wrapper.setResult(result);

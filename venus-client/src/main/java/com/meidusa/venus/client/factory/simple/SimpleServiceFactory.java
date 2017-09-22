@@ -120,6 +120,7 @@ public class SimpleServiceFactory implements ServiceFactory {
      */
     protected <T> T initService(Class<T> t, String host, int port) {
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
+        invocationHandler.setServiceInterface(t);
         invocationHandler.setRemoteConfig(getRemoteConfig(host, port));
 
         if(this.venusExceptionFactory == null){

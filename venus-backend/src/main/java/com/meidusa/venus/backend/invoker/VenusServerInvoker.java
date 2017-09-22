@@ -58,31 +58,21 @@ public class VenusServerInvoker implements Invoker {
 
     private static String ENDPOINT_INVOKED_TIME = "invoked Total Time: ";
 
+    //TODO 删除不用的全局变量定义
     private Endpoint endpoint;
-
     private RequestContext context;
-
     private EndpointInvocation.ResultType resultType;
-
     private byte[] traceID;
-
     private SerializeServiceRequestPacket request;
-
     private short serializeType;
-
     private VenusRouterPacket routerPacket;
-
     //private VenusServerInvocationListener<Serializable> invocationListener;
+    //private VenusFrontendConnection conn;
+    private Tuple<Long, byte[]> data;
+    private String apiName;
+    private String sourceIp;
 
     private VenusExceptionFactory venusExceptionFactory;
-
-    //private VenusFrontendConnection conn;
-
-    private Tuple<Long, byte[]> data;
-
-    private String apiName;
-
-    private String sourceIp;
 
     static {
         Map<Class<?>,ExceptionCode>  map = ClasspathAnnotationScanner.find(Exception.class,ExceptionCode.class);
@@ -108,20 +98,20 @@ public class VenusServerInvoker implements Invoker {
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
-        ServerInvocation rpcInvocation = (ServerInvocation)invocation;
+        ServerInvocation serverInvocation = (ServerInvocation)invocation;
         //获取调用信息
-        Tuple<Long, byte[]> data = rpcInvocation.getData();
-        byte[] message = rpcInvocation.getMessage();
-        byte serializeType = rpcInvocation.getSerializeType();
-        byte packetSerializeType = rpcInvocation.getPacketSerializeType();
-        VenusRouterPacket routerPacket = rpcInvocation.getRouterPacket();
-        SerializeServiceRequestPacket request = rpcInvocation.getRequest();
-        final String apiName = request.apiName;
-        String finalSourceIp = rpcInvocation.getFinalSourceIp();
-        long waitTime = rpcInvocation.getWaitTime();
-        final Endpoint endpoint = rpcInvocation.getEndpointEx();//getServiceManager().getEndpoint(serviceName, methodName, request.parameterMap.keySet().toArray(new String[] {}));
+        Tuple<Long, byte[]> data = serverInvocation.getData();
+        byte[] message = serverInvocation.getMessage();
+        byte serializeType = serverInvocation.getSerializeType();
+        byte packetSerializeType = serverInvocation.getPacketSerializeType();
+        VenusRouterPacket routerPacket = serverInvocation.getRouterPacket();
+        SerializeServiceRequestPacket request = serverInvocation.getRequest();
+        String apiName = request.apiName;
+        String finalSourceIp = serverInvocation.getFinalSourceIp();
+        long waitTime = serverInvocation.getWaitTime();
+        Endpoint endpointDef = serverInvocation.getEndpointDef();
         //构造请求上下文信息
-        RequestContext requestContext = rpcInvocation.getRequestContext();
+        RequestContext requestContext = serverInvocation.getRequestContext();
         /*
         int index = apiName.lastIndexOf(".");
         String serviceName = request.apiName.substring(0, index);
@@ -137,7 +127,7 @@ public class VenusServerInvoker implements Invoker {
             }
             */
             //调用服务实例
-            Object object = doInvokeEndpoint(requestContext,endpoint);
+            Object object = doInvokeEndpoint(requestContext,endpointDef);
             Result result = new Result(object);
             return result;
         } catch (Exception e) {

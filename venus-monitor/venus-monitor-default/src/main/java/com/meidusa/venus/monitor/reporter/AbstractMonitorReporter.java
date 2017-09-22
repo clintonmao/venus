@@ -7,8 +7,6 @@ import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.backend.serializer.JSONSerializer;
-import com.meidusa.venus.monitor.filter.InvocationDetail;
-import com.meidusa.venus.monitor.filter.InvocationStatistic;
 import com.meidusa.venus.util.UUIDUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -22,9 +20,9 @@ import java.util.List;
  * 监控上报代理，目的让接入方避免直接依赖athena-api
  * Created by Zhangzhihua on 2017/9/5.
  */
-public class MonitorReporterDelegate {
+public abstract class AbstractMonitorReporter {
 
-    private static Logger logger = LoggerFactory.getLogger(MonitorReporterDelegate.class);
+    private static Logger logger = LoggerFactory.getLogger(AbstractMonitorReporter.class);
 
     private AthenaDataService athenaDataService;
 
@@ -39,7 +37,9 @@ public class MonitorReporterDelegate {
      */
     public void reportExceptionDetailList(Collection<InvocationDetail> exceptionDetailList){
         AthenaDataService athenaDataService = getAthenaDataService();
-        logger.info("report exception detail size:{}.",exceptionDetailList.size());
+        if(logger.isDebugEnabled()){
+            logger.debug("report exception detail size:{}.",exceptionDetailList.size());
+        }
         if(CollectionUtils.isEmpty(exceptionDetailList)){
             return;
         }
@@ -56,71 +56,12 @@ public class MonitorReporterDelegate {
     }
 
     /**
-     * 转化为detailDo
+     * 明细转换，由各端上报类实现
      * @param detail
      * @return
      */
-    MethodCallDetailDO convertDetail(InvocationDetail detail){
-        ClientInvocation invocation = null;
-        if(detail.getInvocation() instanceof ClientInvocation){
-            invocation = (ClientInvocation)detail.getInvocation();
-        }
-        URL url = detail.getUrl();
-        Result result = detail.getResult();
-        Throwable exception = detail.getException();
+    abstract MethodCallDetailDO convertDetail(InvocationDetail detail);
 
-        MethodCallDetailDO detailDO = new MethodCallDetailDO();
-        //基本信息
-        detailDO.setId(UUIDUtil.create().toString());
-        detailDO.setRpcId(invocation.getRpcId());
-        if(invocation.getAthenaId() != null){
-            detailDO.setTraceId(new String(invocation.getAthenaId()));
-        }
-        if(invocation.getMessageId() != null){
-            detailDO.setMessageId(new String(invocation.getMessageId()));
-        }
-        detailDO.setSourceType(detail.getFrom());
-        //请求信息
-        detailDO.setServiceName(invocation.getServiceName());
-        if(invocation.getServiceInterface() != null){
-            detailDO.setInterfaceName(invocation.getServiceInterface().getName());
-        }
-        if(invocation.getEndpoint() != null){
-            detailDO.setMethodName(invocation.getEndpoint().name());
-        }else if(invocation.getMethod() != null){
-            detailDO.setMethodName(invocation.getMethod().getName());
-        }
-        if(invocation.getArgs() != null){
-            detailDO.setRequestJson(serialize(invocation.getArgs()));
-        }
-        detailDO.setRequestTime(invocation.getRequestTime());
-        detailDO.setConsumerIp(invocation.getConsumerIp());
-        if(url != null){
-            detailDO.setProviderIp(url.getHost());
-        }
-        //响应信息
-        detailDO.setResponseTime(detail.getResponseTime());
-        //响应结果
-        if(result != null){
-            if(result.getErrorCode() == 0){
-                detailDO.setReponseJson(serialize(result.getResult()));
-                detailDO.setStatus(1);
-            }else{
-                detailDO.setReponseJson(serialize(result.getErrorCode()));
-                detailDO.setStatus(1);
-            }
-        } else{
-            //响应异常
-            detailDO.setErrorInfo(serialize(exception));
-            detailDO.setStatus(0);
-        }
-        //耗时
-        long costTime = detail.getResponseTime().getTime()-invocation.getRequestTime().getTime();
-        detailDO.setDurationMillisecond(Integer.parseInt(String.valueOf(costTime)));
-        //TODO 响应地址
-        //状态相关
-        return detailDO;
-    }
 
     /**
      * 序列化对象
@@ -154,10 +95,14 @@ public class MonitorReporterDelegate {
             MethodStaticDO staticDO = convertStatistic(statistic);
             staticDOList.add(staticDO);
         }
-        logger.info("report statistic size:{}.",staticDOList.size());
+        if(logger.isDebugEnabled()){
+            logger.debug("report statistic size:{}.",staticDOList.size());
+        }
         try {
             String statisticDOListOfJson = new JSONSerializer().serialize(staticDOList);
-            logger.info("statisticDOListOfJson:{}.",statisticDOListOfJson);
+            if(logger.isDebugEnabled()){
+                logger.debug("report statistic json:{}.",statisticDOListOfJson);
+            }
         } catch (Exception e) {}
 
         if(isEnableReporte){

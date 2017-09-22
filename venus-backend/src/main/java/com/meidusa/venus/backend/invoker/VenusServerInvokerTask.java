@@ -8,6 +8,7 @@ import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.TimeUtil;
+import com.meidusa.venus.RpcException;
 import com.meidusa.venus.annotations.ExceptionCode;
 import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
@@ -216,23 +217,22 @@ public class VenusServerInvokerTask implements Runnable{
         this.request = request;
         this.routerPacket = invocation.getRouterPacket();
         //设置端点定义
-        Endpoint endpointEx = parseEndpoint(conn, data);
-        invocation.setEndpointEx(endpointEx);
-        //TODO 补全接口服务相关信息
-        if(endpointEx != null){
-            Service service = endpointEx.getService();
-            if(service != null){
-                invocation.setServiceInterface(service.getType());
-            }
-            invocation.setMethod(endpointEx.getMethod());
+        Endpoint endpointDef = parseEndpoint(conn, data);
+        if(endpointDef == null){
+            throw new RpcException("find endpoint def failed.");
         }
-        invocation.setResultType(getResultType(endpointEx));
+        invocation.setEndpointDef(endpointDef);
+        //TODO 补全接口服务相关信息
+        Service service = endpointDef.getService();
+        invocation.setServiceInterface(service.getType());
+        invocation.setMethod(endpointDef.getMethod());
+        invocation.setResultType(getResultType(endpointDef));
         //设置参数
         initParamsForInvocationListener(request,invocation.getConn(),routerPacket,invocation);
         //获取上下文信息
         RequestContext requestContext = getRequestContext(invocation);
         if(requestContext != null){
-            requestContext.setEndPointer(endpointEx);
+            requestContext.setEndPointer(endpointDef);
         }
         invocation.setRequestContext(requestContext);
         ThreadLocalMap.put(VenusTracerUtil.REQUEST_TRACE_ID, traceID);

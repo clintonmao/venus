@@ -147,8 +147,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
     ClientInvocation buildInvocation(Object proxy, Method method, Object[] args){
         ClientInvocation invocation = new ClientInvocation();
         invocation.setServiceInterface(serviceInterface);
-        invocation.setMethod(method);
-        invocation.setArgs(args);
         Endpoint endpoint =  AnnotationUtil.getAnnotation(method.getAnnotations(), Endpoint.class);
         invocation.setEndpoint(endpoint);
         Service service = null;
@@ -160,6 +158,8 @@ public class InvokerInvocationHandler implements InvocationHandler {
                 invocation.setParams(params);
             }
         }
+        invocation.setMethod(method);
+        invocation.setArgs(args);
         invocation.setRequestTime(new Date());
         invocation.setConsumerIp(NetUtil.getLocalIp());
         //是否async

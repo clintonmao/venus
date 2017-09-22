@@ -336,9 +336,13 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
             //TODO 长连接，心跳处理，确认？
             if (conn != null && nioConnPool != null) {
-                logger.info("conn pool active:{}.",nioConnPool.getActive());
+                if(logger.isDebugEnabled()){
+                    logger.debug("conn pool active:{}.",nioConnPool.getActive());
+                }
                 nioConnPool.returnObject(conn);
-                logger.info("conn pool active:{}.",nioConnPool.getActive());
+                if(logger.isDebugEnabled()){
+                    logger.debug("conn pool active:{}.",nioConnPool.getActive());
+                }
             }
         }
     }

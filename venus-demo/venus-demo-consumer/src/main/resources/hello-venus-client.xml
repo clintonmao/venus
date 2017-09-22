@@ -38,7 +38,10 @@
 		<!--
 		<service type="com.saic.framework.message.UniMessageService" remote="UMSRemote"/>
 		-->
+		<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.16.40:16800"/>
+		<!--
 		<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.16.40:15800"/>
+		-->
 		<!--
 		<service type="com.chexiang.venus.demo.provider.HelloService"/>
 		-->

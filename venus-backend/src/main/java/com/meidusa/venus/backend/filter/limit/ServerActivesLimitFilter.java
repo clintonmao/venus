@@ -36,12 +36,12 @@ public class ServerActivesLimitFilter implements Filter {
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
-        ServerInvocation clientInvocation = (ServerInvocation)invocation;
-        if(!isEnableActiveLimit(clientInvocation, url)){
+        ServerInvocation serverInvocation = (ServerInvocation)invocation;
+        if(!isEnableActiveLimit(serverInvocation, url)){
             return null;
         }
         //获取方法路径及当前并发数
-        String methodPath = VenusPathUtil.getMethodPath(clientInvocation, url);
+        String methodPath = VenusPathUtil.getMethodPath(serverInvocation, url);
         AtomicInteger activeLimit = methodActivesMapping.get(methodPath);
         if(activeLimit == null){
             activeLimit = new AtomicInteger(0);
@@ -66,11 +66,11 @@ public class ServerActivesLimitFilter implements Filter {
 
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
-        ServerInvocation clientInvocation = (ServerInvocation)invocation;
-        if(!isEnableActiveLimit(clientInvocation, url)){
+        ServerInvocation serverInvocation = (ServerInvocation)invocation;
+        if(!isEnableActiveLimit(serverInvocation, url)){
             return null;
         }
-        String methodPath = VenusPathUtil.getMethodPath(clientInvocation, url);
+        String methodPath = VenusPathUtil.getMethodPath(serverInvocation, url);
         AtomicInteger activeLimit = methodActivesMapping.get(methodPath);
         if(activeLimit != null){
             //-1

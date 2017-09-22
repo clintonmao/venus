@@ -1,7 +1,10 @@
-package com.meidusa.venus.monitor.filter;
+package com.meidusa.venus.monitor.reporter;
 
 import com.meidusa.venus.ClientInvocation;
+import com.meidusa.venus.Invocation;
 import com.meidusa.venus.Result;
+import com.meidusa.venus.ServerInvocation;
+import com.meidusa.venus.monitor.reporter.InvocationDetail;
 import com.meidusa.venus.util.NetUtil;
 
 import java.util.Calendar;
@@ -58,16 +61,22 @@ public class InvocationStatistic {
     }
 
     public InvocationStatistic(InvocationDetail detail){
-        ClientInvocation invocation = null;
-        if(detail.getInvocation() instanceof ClientInvocation){
-            invocation = (ClientInvocation)detail.getInvocation();
-        }
-        String serviceInterfaceName = invocation.getMethod().getDeclaringClass().getName();
+        Invocation invocation = detail.getInvocation();
+        String serviceInterfaceName = invocation.getServiceInterfaceName();
         String serviceName = invocation.getServiceName();
-        String version = "0.0.0";
-        String methodName = invocation.getMethod().getName();
-        Date beginTime = getBeginTimeOfMinutes(invocation.getRequestTime());
-        Date endTime = getEndTimeOfMinutes(invocation.getRequestTime());
+        String version = invocation.getVersion();
+        String methodName = invocation.getMethodName();
+        Date beginTime = null;
+        Date endTime = null;
+        if(invocation instanceof ClientInvocation){
+            ClientInvocation clientInvocation = (ClientInvocation)detail.getInvocation();
+            beginTime = getBeginTimeOfMinutes(clientInvocation.getRequestTime());
+            endTime = getEndTimeOfMinutes(clientInvocation.getRequestTime());
+        }else if(invocation instanceof ServerInvocation){
+            ServerInvocation serverInvocation = (ServerInvocation)detail.getInvocation();
+            beginTime = getBeginTimeOfMinutes(serverInvocation.getRequestTime());
+            endTime = getEndTimeOfMinutes(serverInvocation.getRequestTime());
+        }
         String host = NetUtil.getLocalIp();
         this.setServiceInterfaceName(serviceInterfaceName);
         this.setServiceName(serviceName);
@@ -144,11 +153,14 @@ public class InvocationStatistic {
      * @return
      */
     long getCostTime(InvocationDetail detail){
-        ClientInvocation invocation = null;
+        Date requestTime = null;
         if(detail.getInvocation() instanceof ClientInvocation){
-            invocation = (ClientInvocation)detail.getInvocation();
+            ClientInvocation clientInvocation = (ClientInvocation)detail.getInvocation();
+            requestTime = clientInvocation.getRequestTime();
+        }else if(detail.getInvocation() instanceof ServerInvocation){
+            ServerInvocation serverInvocation = (ServerInvocation)detail.getInvocation();
+            requestTime = serverInvocation.getRequestTime();
         }
-        Date requestTime = invocation.getRequestTime();
         Date responseTime = detail.getResponseTime();
         if(responseTime == null){
             //TODO 未响应的情况

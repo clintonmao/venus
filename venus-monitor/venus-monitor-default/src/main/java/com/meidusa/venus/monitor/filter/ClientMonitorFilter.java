@@ -2,6 +2,9 @@ package com.meidusa.venus.monitor.filter;
 
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
+import com.meidusa.venus.monitor.reporter.AbstractMonitorReporter;
+import com.meidusa.venus.monitor.reporter.ClientMonitorReporter;
+import com.meidusa.venus.monitor.reporter.InvocationDetail;
 
 import java.util.Date;
 
@@ -9,13 +12,14 @@ import java.util.Date;
  * client监控filter
  * Created by Zhangzhihua on 2017/8/28.
  */
-public class ClientMonitorFilter extends BaseMonitorFilter implements Filter {
+public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter {
 
     public ClientMonitorFilter(){
     }
 
     public ClientMonitorFilter(AthenaDataService athenaDataService){
         this.setAthenaDataService(athenaDataService);
+        startProcessAndReporterTread();
     }
 
     @Override
@@ -58,5 +62,13 @@ public class ClientMonitorFilter extends BaseMonitorFilter implements Filter {
     @Override
     public void destroy() throws RpcException {
 
+    }
+
+    AbstractMonitorReporter getMonitorReporte(){
+        if(monitorReporteDelegate == null){
+            monitorReporteDelegate = new ClientMonitorReporter();
+            monitorReporteDelegate.setAthenaDataService(this.getAthenaDataService());
+        }
+        return monitorReporteDelegate;
     }
 }

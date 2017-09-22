@@ -81,11 +81,9 @@ public class ServerInvocation implements Invocation {
     long waitTime;
 
     /**
-     * 服务端端点配置，非注释配置 TODO 统一
+     * 服务端端点配置，非注释配置 TODO 想办法统一client/server服务定义信息，如两套service/两套endpoinit
      */
-    Endpoint endpointEx;
-
-    //extra
+    Endpoint endpointDef;
 
     String localHost;
 
@@ -288,12 +286,12 @@ public class ServerInvocation implements Invocation {
         this.serializeType = serializeType;
     }
 
-    public Endpoint getEndpointEx() {
-        return endpointEx;
+    public Endpoint getEndpointDef() {
+        return endpointDef;
     }
 
-    public void setEndpointEx(Endpoint endpointEx) {
-        this.endpointEx = endpointEx;
+    public void setEndpointDef(Endpoint endpointDef) {
+        this.endpointDef = endpointDef;
     }
 
     public String getLocalHost() {
@@ -354,26 +352,18 @@ public class ServerInvocation implements Invocation {
 
     @Override
     public String getServiceInterfaceName() {
-        return null;
+        com.meidusa.venus.backend.services.Service service = endpointDef.getService();
+        return service.getType().getName();
     }
 
     @Override
     public String getServiceName() {
-        if(service != null){
-            return service.name();
-        }else{
-            ServerInvocation rpcInvocation = this;
-            if(rpcInvocation.getEndpointEx() != null && rpcInvocation.getEndpointEx().getService() != null){
-                return rpcInvocation.getEndpointEx().getService().getName();
-            }else{
-                throw new RpcException("get serviceName error.");
-            }
-        }
+        return endpointDef.getService().getName();
     }
 
     @Override
     public String getVersion() {
-        return null;
+        return "0.0.0";
     }
 
     @Override
