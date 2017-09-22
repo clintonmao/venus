@@ -2,8 +2,6 @@ package com.meidusa.venus.bus.dispatch;
 
 import com.meidusa.venus.*;
 import com.meidusa.venus.bus.BusInvocation;
-import com.meidusa.venus.bus.registry.xml.config.BusRemoteConfig;
-import com.meidusa.venus.bus.registry.ServiceManager;
 import com.meidusa.venus.client.cluster.ClusterInvokerFactory;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
@@ -25,12 +23,7 @@ public class BusRemoteDispatcher implements Dispatcher{
     private static Logger logger = LoggerFactory.getLogger(BusRemoteDispatcher.class);
 
     /**
-     * XML注册管理
-     */
-    private ServiceManager serviceManager;
-
-    /**
-     * 远程注册中心注册管理
+     * 注册中心
      */
     private Register register;
 
@@ -60,54 +53,10 @@ public class BusRemoteDispatcher implements Dispatcher{
     }
 
     /**
-     * 寻址
-     * @param invocation
-     * @return
-     */
-    List<URL> lookup(BusInvocation invocation){
-        if(!isDynamicLookup()){
-            return this.lookupByStatic(invocation);
-        }else{
-            return this.lookupByDynamic(invocation);
-        }
-    }
-
-    /**
-     * 判断是本地静态还是注册中心动态寻址
-     * @return
-     */
-    boolean isDynamicLookup(){
-        return register != null;
-    }
-
-    /**
-     *
-     * @param invocation
-     * @return
-     */
-    List<URL> lookupByStatic(BusInvocation invocation){
-        List<URL> urlList = new ArrayList<URL>();
-        List<BusRemoteConfig> remoteConfigList = serviceManager.lookup(invocation.getServiceName());
-        if(CollectionUtils.isEmpty(remoteConfigList)){
-            return urlList;
-        }
-        for(BusRemoteConfig remoteConfig:remoteConfigList){
-            String ipAddressList = remoteConfig.getFactory().getIpAddressList();
-            String[] arr = ipAddressList.split(":");
-            URL url = new URL();
-            url.setHost(arr[0]);
-            url.setPort(Integer.parseInt(arr[1]));
-            url.setRemoteConfig(remoteConfig);
-            urlList.add(url);
-        }
-        return urlList;
-    }
-
-    /**
      * 查找服务地址
      * @return
      */
-    List<URL> lookupByDynamic(BusInvocation invocation){
+    List<URL> lookup(BusInvocation invocation){
         List<URL> urlList = new ArrayList<URL>();
 
         //解析请求Url
@@ -173,14 +122,6 @@ public class BusRemoteDispatcher implements Dispatcher{
     @Override
     public void destroy() throws RpcException {
 
-    }
-
-    public ServiceManager getServiceManager() {
-        return serviceManager;
-    }
-
-    public void setServiceManager(ServiceManager serviceManager) {
-        this.serviceManager = serviceManager;
     }
 
     public Register getRegister() {

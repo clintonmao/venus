@@ -49,24 +49,10 @@
 
 	<bean id="messageHandler" class="com.meidusa.venus.bus.handler.BusReceiveMessageHandler">
 		<property name="venusRegistryFactory" ref="venusRegistryFactory"/>
-		<!--
-		<property name="serviceManager" ref="xmlServiceRegisterManager"/>
-		-->
 	</bean>
 
 	<!--
-		基于xml配置的服务注册管理
-	 -->
-	<bean id="xmlServiceRegisterManager" class="com.meidusa.venus.bus.registry.xml.XmlServiceManager" init-method="init">
-		<property name="configFiles">
-			<list>
-				<value>classpath:venusRemoteConfig.xml</value>
-			</list>
-		</property>
-	</bean>
-
-	<!--
-		基于服务注册中心的服务注册管理
+		注册中心配置
 	 -->
 	<bean id="venusRegistryFactory" class="com.meidusa.venus.client.VenusRegistryFactory">
 		<property name="url" value="injvm://localhost"/>

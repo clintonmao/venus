@@ -9,7 +9,6 @@ import com.meidusa.venus.backend.ErrorPacketWrapperException;
 import com.meidusa.venus.bus.BusInvocation;
 import com.meidusa.venus.bus.dispatch.BusDispatcherProxy;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
-import com.meidusa.venus.bus.registry.ServiceManager;
 import com.meidusa.venus.bus.util.VenusTrafficCollector;
 import com.meidusa.venus.client.VenusRegistryFactory;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
@@ -36,8 +35,6 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
     static {
         Runtime.getRuntime().addShutdownHook(listener);
     }
-
-    private ServiceManager serviceManager;
 
     private VenusRegistryFactory venusRegistryFactory;
 
@@ -171,9 +168,6 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
             return busDispatcherProxy;
         }
         busDispatcherProxy = new BusDispatcherProxy();
-        if(serviceManager != null){
-            busDispatcherProxy.setServiceManager(serviceManager);
-        }
         if(venusRegistryFactory != null){
             busDispatcherProxy.setVenusRegistryFactory(venusRegistryFactory);
         }
@@ -194,14 +188,6 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
         AbstractServicePacket.copyHead(apiPacket, error);
         error.errorCode = VenusExceptionCodeConstant.SERVICE_VERSION_NOT_ALLOWD_EXCEPTION;
         error.message = "Service version not match";
-    }
-
-    public ServiceManager getServiceManager() {
-        return serviceManager;
-    }
-
-    public void setServiceManager(ServiceManager serviceManager) {
-        this.serviceManager = serviceManager;
     }
 
     public VenusRegistryFactory getVenusRegistryFactory() {
