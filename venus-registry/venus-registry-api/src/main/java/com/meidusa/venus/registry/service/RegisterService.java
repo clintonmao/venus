@@ -117,8 +117,8 @@ public interface RegisterService {
 	/**
 	 * 根据服务名添加服务(用于数据同步)
 	 * @param serviceName
-	 * @param description TODO
-	 * @param version TODO
+	 * @param description 
+	 * @param version 
 	 * @return
 	 */
 	@Endpoint(name = "addService")
@@ -127,9 +127,10 @@ public interface RegisterService {
 
 	/**
 	 * 增加服务映射关系(用于数据同步)
+	 * @param hostName
+	 * @param port 
 	 * @param serviceName
-	 * @param description TODO
-	 * @param version TODO
+	 * @param version 
 	 * @return
 	 */
 	@Endpoint(name = "addNewServiceMapping")

@@ -218,6 +218,26 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		}
 	}
 	
+	@Override
+	public VenusServiceDO getService(String serviceName,int registeType) throws DAOException {
+		String sql = SELECT_FIELDS + " from t_venus_service where name=? and registe_type=?";
+		
+		Object[] params = new Object[] {serviceName,registeType};
+		try {
+			return this.jdbcTemplate.query(sql, params, new ResultSetExtractor<VenusServiceDO>() {
+				@Override
+				public VenusServiceDO extractData(ResultSet rs) throws SQLException, DataAccessException {
+					if (rs.next()) {
+						return ResultUtils.resultToVenusServiceDO(rs);
+					}
+					return null;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据serviceName:" + serviceName + ",获取venusService异常", e);
+		}
+	}
+	
 	public static Object[] listToArray(List<Object> list) {
 		if (null == list) {
 			return new Object[0];
