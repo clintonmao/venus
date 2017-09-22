@@ -1,8 +1,8 @@
 package com.meidusa.venus.backend.invoker;
 
 import com.meidusa.venus.Result;
-import com.meidusa.venus.backend.invoker.support.ResponseEntityWrapper;
-import com.meidusa.venus.backend.invoker.support.ResponseHandler;
+import com.meidusa.venus.backend.invoker.support.ServerResponseWrapper;
+import com.meidusa.venus.backend.invoker.support.ServerResponseHandler;
 import com.meidusa.venus.ServerInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +33,7 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
 
     private boolean isResponsed = false;
 
-    private ResponseHandler responseHandler;
+    private ServerResponseHandler responseHandler;
 
     public boolean isResponsed() {
         return isResponsed;
@@ -50,7 +50,7 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
 
     @Override
     public void callback(T object) {
-        ResponseEntityWrapper responseEntityWrapper = ResponseEntityWrapper.parse(invocation,new Result(object),false);
+        ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,new Result(object),false);
         try {
             responseHandler.writeResponseForNotify(responseEntityWrapper);
         } catch (Exception e) {
@@ -65,7 +65,7 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
         result.setErrorCode(500);
         result.setErrorMessage(e.getMessage());
         result.setException(e);
-        ResponseEntityWrapper responseEntityWrapper = ResponseEntityWrapper.parse(invocation,result,false);
+        ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
         try {
             responseHandler.writeResponseForNotify(responseEntityWrapper);
         } catch (Exception ex) {
@@ -73,11 +73,11 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
         }
     }
 
-    public ResponseHandler getResponseHandler() {
+    public ServerResponseHandler getResponseHandler() {
         return responseHandler;
     }
 
-    public void setResponseHandler(ResponseHandler responseHandler) {
+    public void setResponseHandler(ServerResponseHandler responseHandler) {
         this.responseHandler = responseHandler;
     }
 

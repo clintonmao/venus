@@ -81,6 +81,7 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
             routerPacket = new VenusRouterPacket();
             routerPacket.original = message;
             routerPacket.init(message);
+            //TODO 提取分发路由信息，统一serviceRequest报文
             type = AbstractServicePacket.getType(routerPacket.data);
             message = routerPacket.data;
             serializeType = routerPacket.serializeType;

@@ -12,9 +12,9 @@ import com.meidusa.venus.RpcException;
 import com.meidusa.venus.annotations.ExceptionCode;
 import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
-import com.meidusa.venus.backend.invoker.support.RequestHandler;
-import com.meidusa.venus.backend.invoker.support.ResponseEntityWrapper;
-import com.meidusa.venus.backend.invoker.support.ResponseHandler;
+import com.meidusa.venus.backend.invoker.support.ServerRequestHandler;
+import com.meidusa.venus.backend.invoker.support.ServerResponseWrapper;
+import com.meidusa.venus.backend.invoker.support.ServerResponseHandler;
 import com.meidusa.venus.ServerInvocation;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.config.PerformanceLogger;
@@ -94,7 +94,7 @@ public class VenusServerInvokerTask implements Runnable{
 
     private String sourceIp;
 
-    private ResponseHandler responseHandler = new ResponseHandler();
+    private ServerResponseHandler responseHandler = new ServerResponseHandler();
 
     private static AthenaDataService athenaDataService;
 
@@ -144,6 +144,7 @@ public class VenusServerInvokerTask implements Runnable{
 
             //通过代理调用服务
             result = getVenusServerInvokerProxy().invoke(invocation, null);
+            logger.info("server response result:{}",result);
         } catch (Exception e) {
             //TODO 处理异常信息丢失、异常信息包装
             result = new Result();
@@ -153,7 +154,7 @@ public class VenusServerInvokerTask implements Runnable{
 
         //输出响应
         try {
-            ResponseEntityWrapper responseEntityWrapper = ResponseEntityWrapper.parse(invocation,result,false);
+            ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
 
             if (invocation.getResultType() == EndpointInvocation.ResultType.RESPONSE) {
                 responseHandler.writeResponseForResponse(responseEntityWrapper);
@@ -459,7 +460,7 @@ public class VenusServerInvokerTask implements Runnable{
     RequestContext getRequestContext(ServerInvocation rpcInvocation){
         byte packetSerializeType = rpcInvocation.getPacketSerializeType();
         //构造请求上下文信息
-        RequestHandler requestHandler = new RequestHandler();
+        ServerRequestHandler requestHandler = new ServerRequestHandler();
         RequestInfo requestInfo = requestHandler.getRequestInfo(packetSerializeType, routerPacket, rpcInvocation);
         RequestContext requestContext = requestHandler.createContext(requestInfo, endpoint, request);
         return requestContext;

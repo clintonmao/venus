@@ -56,7 +56,6 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
     private Map<String,AbstractServicePacket> serviceResponseMap;
 
     public void handle(VenusBackendConnection conn, byte[] message) {
-        Method method = null;//invocation.getMethod();
         Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
 
         int type = AbstractServicePacket.getType(message);

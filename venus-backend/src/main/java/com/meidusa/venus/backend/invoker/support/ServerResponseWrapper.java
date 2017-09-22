@@ -11,7 +11,7 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
  * 响应包装处理对象
  * Created by Zhangzhihua on 2017/8/23.
  */
-public class ResponseEntityWrapper {
+public class ServerResponseWrapper {
     VenusFrontendConnection conn;
     VenusRouterPacket routerPacket;
     Endpoint endpoint;
@@ -20,11 +20,11 @@ public class ResponseEntityWrapper {
     Result result;
     boolean athenaFlag;
 
-    public ResponseEntityWrapper(){
+    public ServerResponseWrapper(){
     }
 
-    public static ResponseEntityWrapper parse(ServerInvocation invocation, Result result, boolean athenaFlag){
-        ResponseEntityWrapper wrapper = new ResponseEntityWrapper();
+    public static ServerResponseWrapper parse(ServerInvocation invocation, Result result, boolean athenaFlag){
+        ServerResponseWrapper wrapper = new ServerResponseWrapper();
         wrapper.setConn(invocation.getConn());
         wrapper.setRouterPacket(invocation.getRouterPacket());
         wrapper.setEndpoint(invocation.getEndpointDef());

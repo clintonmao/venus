@@ -5,12 +5,10 @@ package com.meidusa.venus.backend.invoker.support;
  */
 import com.meidusa.toolkit.net.Connection;
 import com.meidusa.venus.Result;
-import com.meidusa.venus.VenusThreadContext;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.DefaultVenusException;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
-import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionDelegate;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceNofityPacket;
@@ -32,16 +30,16 @@ import java.util.Map;
 /**
  * 服务端响应处理类
  */
-public class ResponseHandler {
+public class ServerResponseHandler {
 
-    private static Logger logger = LoggerFactory.getLogger(ResponseHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(ServerResponseHandler.class);
 
     /**
      * 处理response同步类型调用
      * @param wrapper
      * @throws Exception
      */
-    public void writeResponseForResponse(ResponseEntityWrapper wrapper) throws Exception{
+    public void writeResponseForResponse(ServerResponseWrapper wrapper) throws Exception{
         VenusFrontendConnection conn = wrapper.getConn();
         VenusRouterPacket routerPacket = wrapper.getRouterPacket();
         Endpoint endpoint = wrapper.getEndpoint();
@@ -86,7 +84,7 @@ public class ResponseHandler {
      * @param wrapper
      * @throws Exception
      */
-    public void writeResponseForOk(ResponseEntityWrapper wrapper) throws Exception{
+    public void writeResponseForOk(ServerResponseWrapper wrapper) throws Exception{
         VenusFrontendConnection conn = wrapper.getConn();
         VenusRouterPacket routerPacket = wrapper.getRouterPacket();
         Endpoint endpoint = wrapper.getEndpoint();
@@ -126,7 +124,7 @@ public class ResponseHandler {
      * @param wrapper
      * @throws Exception
      */
-    public void writeResponseForNotify(ResponseEntityWrapper wrapper) throws Exception{
+    public void writeResponseForNotify(ServerResponseWrapper wrapper) throws Exception{
         VenusFrontendConnection conn = wrapper.getConn();
         VenusRouterPacket routerPacket = wrapper.getRouterPacket();
         Endpoint endpoint = wrapper.getEndpoint();

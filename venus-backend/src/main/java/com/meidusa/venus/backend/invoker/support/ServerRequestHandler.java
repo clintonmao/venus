@@ -13,7 +13,7 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 /**
  * Created by GodzillaHua on 7/4/16.
  */
-public class RequestHandler {
+public class ServerRequestHandler {
 
     public RequestInfo getRequestInfo(byte packetSerializeType, VenusRouterPacket routerPacket, ServerInvocation invocation) {
         RequestInfo info = new RequestInfo();
