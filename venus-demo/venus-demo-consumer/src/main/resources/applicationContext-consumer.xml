@@ -47,15 +47,6 @@
 		</property>
 	</bean>
 
-	<!--
-	String host = "10.32.174.22";
-    String host = "10.47.16.58";
-    String host = "10.47.58.63";
-    10.47.58.63:16800
-	<service type="com.athena.service.api.AthenaDataService" remote="monitor-remote"/>
-    <service type="com.athena.service.api.AthenaDataService" ipAddressList="10.32.174.23:16800"/>
-    -->
-
 	<!--将此配置提取整合到venusMonitorFactory.athena中-->
 	<bean name="configManager" class="com.saic.framework.athena.configuration.DefaultClientConfigManager">
 		<property name="appName" value="athena-client"/>
