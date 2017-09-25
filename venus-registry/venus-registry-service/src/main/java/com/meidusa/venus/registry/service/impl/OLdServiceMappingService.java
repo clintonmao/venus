@@ -1,6 +1,5 @@
 package com.meidusa.venus.registry.service.impl;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -39,12 +38,9 @@ public class OLdServiceMappingService {
 
 	}
 
-	public OLdServiceMappingService(String oldConnectUrl, String connectUrl) {
+	public OLdServiceMappingService(String oldConnectUrl) {
 		this.setOldConnectUrl(oldConnectUrl);
 		init();
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveServerRunnable(), 1, 5, TimeUnit.MINUTES);
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveServiceRunnable(), 1, 5, TimeUnit.MINUTES);
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveServiceMappingRunnable(), 1, 5, TimeUnit.MINUTES);
 	}
 
 	public void init() {
@@ -74,6 +70,9 @@ public class OLdServiceMappingService {
 			}
 		}
 
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveServerRunnable(), 1, 5, TimeUnit.MINUTES);
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveServiceRunnable(), 1, 5, TimeUnit.MINUTES);
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveServiceMappingRunnable(), 1, 5, TimeUnit.MINUTES);
 	}
 
 	public void moveServiceMappings() {
@@ -116,16 +115,18 @@ public class OLdServiceMappingService {
 					for (OldServiceDO oldServiceDO : services) {
 						registerService.addService(oldServiceDO.getServiceName(), oldServiceDO.getDescription(),
 								"0.0.0");
-						/*List<String> queryOldServiceVersions = oldServiceMappingDAO
-								.queryOldServiceVersions(oldServiceDO.getServiceName());
-						if (CollectionUtils.isNotEmpty(queryOldServiceVersions)) {
-							for (Iterator<String> iterator = queryOldServiceVersions.iterator(); iterator.hasNext();) {
-								String version = iterator.next();
-								if (StringUtils.isBlank(version) || "null".equals(version)) {
-									version = null;
-								}
-							}
-						}*/
+						/*
+						 * List<String> queryOldServiceVersions =
+						 * oldServiceMappingDAO
+						 * .queryOldServiceVersions(oldServiceDO.getServiceName(
+						 * )); if
+						 * (CollectionUtils.isNotEmpty(queryOldServiceVersions))
+						 * { for (Iterator<String> iterator =
+						 * queryOldServiceVersions.iterator();
+						 * iterator.hasNext();) { String version =
+						 * iterator.next(); if (StringUtils.isBlank(version) ||
+						 * "null".equals(version)) { version = null; } } }
+						 */
 					}
 				}
 			}
@@ -189,7 +190,11 @@ public class OLdServiceMappingService {
 
 		@Override
 		public void run() {
-			moveServers();
+			try {
+				moveServers();
+			} catch (Exception e) {
+				logger.error("moveServers method is error", e);
+			}
 		}
 
 	}
@@ -198,7 +203,11 @@ public class OLdServiceMappingService {
 
 		@Override
 		public void run() {
-			moveServices();
+			try {
+				moveServices();
+			} catch (Exception e) {
+				logger.error("moveServices method is error", e);
+			}
 		}
 
 	}
@@ -207,21 +216,25 @@ public class OLdServiceMappingService {
 
 		@Override
 		public void run() {
-			moveServiceMappings();
+			try {
+				moveServiceMappings();
+			} catch (Exception e) {
+				logger.error("moveServiceMappings method is error", e);
+			}
 		}
 
 	}
-	
+
 	public static void main(String args[]) {
 		MysqlRegisterService newDs = new MysqlRegisterService();
 		newDs.setConnectUrl("mysql://localhost:3306/registry_venus?username=root&password=123456");
 		newDs.init();
-		
+
 		OLdServiceMappingService oldDs = new OLdServiceMappingService();
 		oldDs.setRegisterService(newDs);
 		oldDs.setOldConnectUrl("mysql://10.32.173.250:3306/registry?username=registry&password=registry");
 		oldDs.init();
-		oldDs.moveServiceMappings();
+		oldDs.moveServers();
 	}
 
 }
