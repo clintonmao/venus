@@ -8,7 +8,7 @@ import org.springframework.orm.hibernate5.HibernateExceptionTranslator;
  * Created by songcl on 2017/4/29.
  */
 @Configuration
-public class CustomerConfig {
+public class TomcatCustomerConfig {
 
     @Bean
     public HibernateExceptionTranslator hibernateExceptionTranslator(){
