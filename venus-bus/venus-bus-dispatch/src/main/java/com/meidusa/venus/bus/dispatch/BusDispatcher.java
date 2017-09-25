@@ -1,6 +1,5 @@
 package com.meidusa.venus.bus.dispatch;
 
-import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.*;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.venus.*;
@@ -11,16 +10,12 @@ import com.meidusa.venus.bus.network.BusBackendConnectionFactory;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.io.authenticate.Authenticator;
 import com.meidusa.venus.io.packet.PacketConstant;
-import com.meidusa.venus.io.packet.ServicePacketBuffer;
-import com.meidusa.venus.io.packet.VenusRouterPacket;
-import com.meidusa.venus.util.Range;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -51,11 +46,15 @@ public class BusDispatcher implements Dispatcher{
     private Map<String, BackendConnectionPool> nioPoolMap = new HashMap<String, BackendConnectionPool>();
 
     //TODO set observer
-    private BusDispatchMessageHandler messageHandler = new BusDispatchMessageHandler();
+    private BusDispatchMessageHandler dispatchMessageHandler;
 
-    public BusDispatcher(){
+    public BusDispatcher(Map<String, BusFrontendConnection> requestConnectionMap){
         if(!isInited){
             init();
+            if(dispatchMessageHandler == null){
+                dispatchMessageHandler = new BusDispatchMessageHandler();
+                dispatchMessageHandler.setRequestConnectionMap(requestConnectionMap);
+            }
         }
     }
 
@@ -119,7 +118,7 @@ public class BusDispatcher implements Dispatcher{
      * @return
      */
     ByteBuffer buildRequest(BusInvocation invocation){
-        BusInvocation busInvocation = invocation;
+        /*
         List<Tuple<Range, BackendConnectionPool>> list = busInvocation.getList();
         BusFrontendConnection srcConn = busInvocation.getSrcConn();
         VenusRouterPacket routerPacket = busInvocation.getRouterPacket();
@@ -127,8 +126,10 @@ public class BusDispatcher implements Dispatcher{
         String apiName = busInvocation.getApiName();
         int serviceVersion = busInvocation.getServiceVersion();
         byte[] traceId = busInvocation.getTraceId();
-
         ByteBuffer byteBuffer = VenusRouterPacket.toByteBuffer(routerPacket);
+        */
+        byte[] message = invocation.getMessage();
+        ByteBuffer byteBuffer = ByteBuffer.wrap(message);
         return byteBuffer;
     }
 
@@ -142,7 +143,7 @@ public class BusDispatcher implements Dispatcher{
         BusInvocation busInvocation = invocation;
         //TODO srConn为空，要设值
         BusFrontendConnection srcConn = busInvocation.getSrcConn();
-        VenusRouterPacket routerPacket = busInvocation.getRouterPacket();
+        //VenusRouterPacket routerPacket = busInvocation.getRouterPacket();
 
         //转发
         BackendConnectionPool connectionPool = null;
@@ -151,12 +152,13 @@ public class BusDispatcher implements Dispatcher{
             connectionPool = getConnectionPool(url);
             //TODO 确认BusBackendConnection与backendConnection差异性
             remoteConn = (BusBackendConnection)connectionPool.borrowObject();
-            routerPacket.backendRequestID = remoteConn.getNextRequestID();
-            remoteConn.addRequest(routerPacket.backendRequestID, routerPacket.frontendConnectionID, routerPacket.frontendRequestID);
+            //routerPacket.backendRequestID = remoteConn.getNextRequestID();
+            //remoteConn.addRequest(routerPacket.backendRequestID, routerPacket.frontendConnectionID, routerPacket.frontendRequestID);
             //TODO 确认addUnCompleted功能
             //srcConn.addUnCompleted(routerPacket.frontendRequestID, routerPacket);
             //转发消息
-            remoteConn.write(VenusRouterPacket.toByteBuffer(routerPacket));
+            //remoteConn.write(VenusRouterPacket.toByteBuffer(routerPacket));
+            remoteConn.write(byteBuffer);
 
             //TODO 确认日志输出功能
             //VenusTracerUtil.logRouter(traceId, apiName, srcConn.getInetAddress().getHostAddress(), remoteConn.getHost()+":"+remoteConn.getPort());
@@ -216,7 +218,7 @@ public class BusDispatcher implements Dispatcher{
         //设置connector
         nioFactory.setConnector(getConnector());
         //设置messageHandler
-        nioFactory.setMessageHandler(getMessageHandler());
+        nioFactory.setMessageHandler(getDispatchMessageHandler());
 
         BackendConnectionPool pool = new PollingBackendConnectionPool(address, nioFactory, DEFAULT_POOL_SIZE);
         pool.init();
@@ -245,7 +247,8 @@ public class BusDispatcher implements Dispatcher{
         return asyncExecutorSize;
     }
 
-    public BusDispatchMessageHandler getMessageHandler() {
-        return messageHandler;
+    public BusDispatchMessageHandler getDispatchMessageHandler() {
+        return dispatchMessageHandler;
     }
+
 }

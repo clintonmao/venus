@@ -104,9 +104,20 @@ public class BusRemoteDispatcher implements Dispatcher{
      * @return
      */
     URL parseRequestUrl(BusInvocation invocation){
-        String path = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=0.0.0";
-        URL serviceUrl = URL.parse(path);
-        return serviceUrl;
+        //String path = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=0.0.0";
+        String protocol = "venus";
+        String serviceInterfaceName = invocation.getServiceInterfaceName();
+        String serviceName = invocation.getServiceName();
+        String version = invocation.getVersion();
+        String requestUrl = String.format(
+                "%s://%s/%s?version=%s",
+                protocol,
+                serviceInterfaceName,
+                serviceName,
+                version
+                );
+        URL url = URL.parse(requestUrl);
+        return url;
     }
 
     /**
@@ -118,7 +129,7 @@ public class BusRemoteDispatcher implements Dispatcher{
         if(clusterInvoker == null){
             clusterInvoker =  ClusterInvokerFactory.getClusterInvoker();
             //TODO 根据配置加载invoker
-            clusterInvoker.setInvoker(new BusDispatcher());
+            clusterInvoker.setInvoker(new BusDispatcher(this.requestConnectionMap));
         }
         return clusterInvoker;
     }

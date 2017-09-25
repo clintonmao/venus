@@ -8,6 +8,7 @@ import com.meidusa.venus.RpcException;
 import com.meidusa.venus.bus.network.BusBackendConnection;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.bus.packet.SimpleServiceResponsePacket;
+import com.meidusa.venus.bus.support.BusResponseHandler;
 import com.meidusa.venus.bus.util.VenusTrafficCollector;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceNofityPacket;
@@ -76,7 +77,7 @@ public class BusDispatchMessageHandler extends BusBackendMessageHandler implemen
 
 
     /**
-     * 输出响应
+     * 输出响应 TODO 区分sync/void/callback类型
      * @param object
      */
     void writeResponse(Object object){
@@ -85,19 +86,23 @@ public class BusDispatchMessageHandler extends BusBackendMessageHandler implemen
             ErrorPacket errorPacket = (ErrorPacket)object;
             String rpcId = RpcIdUtil.getRpcId(errorPacket);
             BusFrontendConnection busFrontendConnection = requestConnectionMap.get(rpcId);
+            logger.info("busFrontendConnection:{}.",busFrontendConnection);
             //TODO 输出响应，统一输出机制，与dispatchMesgHandler输出机制统一
-            //busFrontendConnection.write();
+            BusResponseHandler.writeResponseForError(busFrontendConnection,errorPacket);
         }else if(object instanceof OKPacket){
             OKPacket okPacket = (OKPacket)object;
             String rpcId = RpcIdUtil.getRpcId(okPacket);
             BusFrontendConnection busFrontendConnection = requestConnectionMap.get(rpcId);
+            logger.info("busFrontendConnection:{}.",busFrontendConnection);
+            BusResponseHandler.writeResponseForOk(busFrontendConnection,okPacket);
         }else if(object instanceof SerializeServiceResponsePacket){
             SerializeServiceResponsePacket serializeServiceResponsePacket = (SerializeServiceResponsePacket)object;
             String rpcId = RpcIdUtil.getRpcId(serializeServiceResponsePacket);
             BusFrontendConnection busFrontendConnection = requestConnectionMap.get(rpcId);
-
+            logger.info("busFrontendConnection:{}.",busFrontendConnection);
+            BusResponseHandler.writeResponseForResponse(busFrontendConnection,serializeServiceResponsePacket);
         }
-        //RpcIdUtil.getRpcId()
+        logger.info("dispatch end.");
     }
 
     /**
@@ -164,4 +169,11 @@ public class BusDispatchMessageHandler extends BusBackendMessageHandler implemen
         this.clientConnectionObserver = clientConnectionObserver;
     }
 
+    public Map<String, BusFrontendConnection> getRequestConnectionMap() {
+        return requestConnectionMap;
+    }
+
+    public void setRequestConnectionMap(Map<String, BusFrontendConnection> requestConnectionMap) {
+        this.requestConnectionMap = requestConnectionMap;
+    }
 }

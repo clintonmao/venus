@@ -71,6 +71,9 @@ public class BusDispatcherProxy implements Dispatcher {
             Register register = venusRegistryFactory.getRegister();
             busRemoteDispatcher.setRegister(register);
         }
+        if(requestConnectionMap != null){
+            busRemoteDispatcher.setRequestConnectionMap(requestConnectionMap);
+        }
         return busRemoteDispatcher;
     }
 

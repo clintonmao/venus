@@ -3,22 +3,25 @@ package com.meidusa.venus.bus.handler;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.StringUtil;
-import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
 import com.meidusa.venus.bus.BusInvocation;
 import com.meidusa.venus.bus.dispatch.BusDispatcherProxy;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
+import com.meidusa.venus.bus.support.BusResponseHandler;
 import com.meidusa.venus.bus.util.VenusTrafficCollector;
 import com.meidusa.venus.client.VenusRegistryFactory;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.io.packet.*;
+import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
+import com.meidusa.venus.io.serializer.Serializer;
+import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.io.support.ShutdownListener;
 import com.meidusa.venus.io.utils.RpcIdUtil;
-import com.meidusa.venus.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -82,6 +85,8 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
         }
     }
 
+    Serializer serializer = SerializerFactory.getSerializer(PacketConstant.CONTENT_TYPE_JSON);
+
     /**
      * 处理请求消息
      * @param srcConn
@@ -91,12 +96,16 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
         BusInvocation invocation = null;
         Result result = null;
         try {
+            //TODO 内容不需要反序列化?
+            SerializeServiceRequestPacket serviceRequestPacket = new SerializeServiceRequestPacket(serializer, null);
+            serviceRequestPacket.init(message);
+
             //TODO 处理使用过清理问题
-            String rpcId = RpcIdUtil.getRpcId(srcConn.getClientId(),srcConn.getNextRequestID());
+            String rpcId = RpcIdUtil.getRpcId(serviceRequestPacket);
             requestConnectionMap.put(rpcId,srcConn);
 
             //解析请求
-            invocation = parseInvocation(srcConn, message);
+            invocation = parseInvocation(srcConn, message,serviceRequestPacket);
 
             //通过分发代理分发消息 TODO 通过线程池处理
             result = getBusDispatcherProxy().invoke(invocation,null);
@@ -110,23 +119,29 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
 
         //若寻址路由出错或者分发异常等，则直接返回
         if(result != null){
-            //TODO 输出响应，统一输出机制，与dispatchMesgHandler输出机制统一
+            //TODO 细化异常处理
+            ErrorPacket errorPacket = new ErrorPacket();
+            errorPacket.errorCode = result.getErrorCode();
+            errorPacket.message = result.getErrorMessage();
+            srcConn.write(errorPacket.toByteBuffer());
+            BusResponseHandler.writeResponseForError(srcConn,errorPacket);
         }
     }
 
     /**
      * 解析并构造请求对象
-     * @param srcConn
+     * @param conn
      * @param message
      * @return
      */
-    BusInvocation parseInvocation(BusFrontendConnection srcConn, final byte[] message){
-        BusInvocation busInvocation = new BusInvocation();
+    BusInvocation parseInvocation(BusFrontendConnection conn, final byte[] message,SerializeServiceRequestPacket serviceRequestPacket){
+        BusInvocation invocation = new BusInvocation();
 
         VenusTrafficCollector.getInstance().increaseRequest();
         ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
 
         try {
+            /*
             VenusRouterPacket routerPacket = new VenusRouterPacket();
             routerPacket.frontendConnectionID = srcConn.getSequenceID();
             routerPacket.frontendRequestID = srcConn.getNextRequestID();
@@ -134,18 +149,27 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
             routerPacket.srcIP = InetAddressUtil.pack(srcConn.getInetAddress().getAddress());
             routerPacket.startTime = TimeUtil.currentTimeMillis();
             routerPacket.serializeType = srcConn.getSerializeType();
+            */
+            invocation.setSrcConn(conn);
+            invocation.setMessage(message);
+            invocation.setClientId(conn.getSequenceID());
+            invocation.setClientRequestId(conn.getSequenceID());
+            invocation.setSerializeType(conn.getSerializeType());
+            invocation.setRequestTime(new Date());
+            invocation.setConsumerIp(conn.getInetAddress().getHostAddress());
 
             //解析服务信息
             packetBuffer.skip(PacketConstant.SERVICE_HEADER_SIZE + 8);
             String apiName = packetBuffer.readLengthCodedString(PacketConstant.PACKET_CHARSET);
             int index = apiName.lastIndexOf(".");
             String serviceName = apiName.substring(0, index);
+            invocation.setServiceName(serviceName);
             String methodName = apiName.substring(index + 1);
+            invocation.setMethodName(methodName);
             //TODO 少serviceInterfaceName属性
-            routerPacket.api = apiName;
-            int serviceVersion = packetBuffer.readInt();
+            //routerPacket.api = apiName;
+            int version = packetBuffer.readInt();
             //TODO version是1而不是1.0.0形式
-
             //解析traceID
             packetBuffer.skipLengthCodedBytes();
             byte[] traceId = new byte[16];
@@ -155,11 +179,11 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
             } else {
                 traceId = PacketConstant.EMPTY_TRACE_ID;
             }
-            routerPacket.traceId = UUID.toString(traceId);
+            //routerPacket.traceId = UUID.toString(traceId);
 
-            busInvocation.setRouterPacket(routerPacket);
+            //busInvocation.setRouterPacket(routerPacket);
             //List<Tuple<Range, BackendConnectionPool>> list = remoteManager.getRemoteList(serviceName);
-            return busInvocation;
+            return invocation;
         } catch (Exception e) {
             ServiceAPIPacket apiPacket = new ServiceAPIPacket();
             packetBuffer.reset();
@@ -184,6 +208,9 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
         if(venusRegistryFactory != null){
             busDispatcherProxy.setVenusRegistryFactory(venusRegistryFactory);
         }
+        if(requestConnectionMap != null){//TODO 改传值方式
+            busDispatcherProxy.setRequestConnectionMap(requestConnectionMap);
+        }
         return busDispatcherProxy;
     }
 
@@ -194,8 +221,8 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
     void validVersion(BusInvocation invocation){
         // Service version not match
         ServiceAPIPacket apiPacket = new ServiceAPIPacket();
-        invocation.getPacketBuffer().reset();
-        apiPacket.init(invocation.getPacketBuffer());
+        //invocation.getPacketBuffer().reset();
+        //apiPacket.init(invocation.getPacketBuffer());
 
         ErrorPacket error = new ErrorPacket();
         AbstractServicePacket.copyHead(apiPacket, error);

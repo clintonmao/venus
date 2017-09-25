@@ -76,18 +76,16 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
         int type = AbstractServicePacket.getType(message);
         byte serializeType = conn.getSerializeType();
         String sourceIp = conn.getHost();
+        //TODO 提取分发路由信息，统一serviceRequest报文
         if (PacketConstant.PACKET_TYPE_ROUTER == type) {
             VenusRouterPacket routerPacket = new VenusRouterPacket();
             routerPacket.original = message;
             routerPacket.init(message);
-            //TODO 提取分发路由信息，统一serviceRequest报文
             type = AbstractServicePacket.getType(routerPacket.data);
             message = routerPacket.data;
             serializeType = routerPacket.serializeType;
             sourceIp = InetAddressUtil.intToAddress(routerPacket.srcIP);
         }
-        //final byte packetSerializeType = serializeType;
-        //final String finalSourceIp = sourceIp;
 
         switch (type) {
             case PacketConstant.PACKET_TYPE_PING:

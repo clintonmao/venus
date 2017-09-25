@@ -230,7 +230,7 @@ public abstract class AbstractMonitorFilter {
 
                 try {
                     //1m上报一次
-                    Thread.sleep(1000*30);
+                    Thread.sleep(1000*60);
                 } catch (InterruptedException e) {
                 }
             }

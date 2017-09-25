@@ -23,7 +23,13 @@ import java.util.List;
  */
 public class BusInvocation implements Invocation {
 
-    private int clientId;
+    private BusFrontendConnection srcConn;
+
+    private byte[] message;
+
+    private byte serializeType;
+
+    private long clientId;
 
     private long clientRequestId;
 
@@ -39,53 +45,25 @@ public class BusInvocation implements Invocation {
 
     private byte[] messageId;
 
-    private Class<?> serviceInterface;
+    private String apiName;
 
-    private Service service;
+    private String serviceInterfaceName;
 
-    private Endpoint endpoint;
+    private String serviceName ;
 
-    private Method method;
+    private String version;
 
-    private EndpointParameter[] params;
+    private String methodName;
 
-    private Object[] args;
+    private String consumerIp;
 
-    private InvocationListener invocationListener;
-
-    private Type type;
+    private String providerIp;
 
     private Date requestTime;
 
-    //consumerIp
-    private String consumerIp;
+    private Date dispatchTime;
 
-    boolean async;
-
-    //-------------------------ext----------------------
-    BusFrontendConnection srcConn;
-
-    ServicePacketBuffer packetBuffer;
-
-    VenusRouterPacket routerPacket;
-
-    String apiName;
-
-    String serviceName ;
-
-    int serviceVersion;
-
-    List<Tuple<Range, BackendConnectionPool>> list;
-
-    byte[] traceId;
-
-    public VenusRouterPacket getRouterPacket() {
-        return routerPacket;
-    }
-
-    public void setRouterPacket(VenusRouterPacket routerPacket) {
-        this.routerPacket = routerPacket;
-    }
+    private Date responseTime;
 
     public BusFrontendConnection getSrcConn() {
         return srcConn;
@@ -95,55 +73,19 @@ public class BusInvocation implements Invocation {
         this.srcConn = srcConn;
     }
 
-    public ServicePacketBuffer getPacketBuffer() {
-        return packetBuffer;
+    public byte[] getMessage() {
+        return message;
     }
 
-    public void setPacketBuffer(ServicePacketBuffer packetBuffer) {
-        this.packetBuffer = packetBuffer;
+    public void setMessage(byte[] message) {
+        this.message = message;
     }
 
-    public void setServiceName(String serviceName) {
-        this.serviceName = serviceName;
-    }
-
-    public String getApiName() {
-        return apiName;
-    }
-
-    public void setApiName(String apiName) {
-        this.apiName = apiName;
-    }
-
-    public int getServiceVersion() {
-        return serviceVersion;
-    }
-
-    public void setServiceVersion(int serviceVersion) {
-        this.serviceVersion = serviceVersion;
-    }
-
-    public List<Tuple<Range, BackendConnectionPool>> getList() {
-        return list;
-    }
-
-    public void setList(List<Tuple<Range, BackendConnectionPool>> list) {
-        this.list = list;
-    }
-
-    public byte[] getTraceId() {
-        return traceId;
-    }
-
-    public void setTraceId(byte[] traceId) {
-        this.traceId = traceId;
-    }
-
-    public int getClientId() {
+    public long getClientId() {
         return clientId;
     }
 
-    public void setClientId(int clientId) {
+    public void setClientId(long clientId) {
         this.clientId = clientId;
     }
 
@@ -195,76 +137,39 @@ public class BusInvocation implements Invocation {
         this.messageId = messageId;
     }
 
-    public Class<?> getServiceInterface() {
-        return serviceInterface;
+    public String getApiName() {
+        return apiName;
     }
 
-    public void setServiceInterface(Class<?> serviceInterface) {
-        this.serviceInterface = serviceInterface;
+    public void setApiName(String apiName) {
+        this.apiName = apiName;
     }
 
-    public Service getService() {
-        return service;
+    @Override
+    public String getServiceInterfaceName() {
+        return serviceInterfaceName;
     }
 
-    public void setService(Service service) {
-        this.service = service;
+    public void setServiceInterfaceName(String serviceInterfaceName) {
+        this.serviceInterfaceName = serviceInterfaceName;
     }
 
-    public Endpoint getEndpoint() {
-        return endpoint;
+    @Override
+    public String getServiceName() {
+        return serviceName;
     }
 
-    public void setEndpoint(Endpoint endpoint) {
-        this.endpoint = endpoint;
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 
-    public Method getMethod() {
-        return method;
+    @Override
+    public String getVersion() {
+        return version;
     }
 
-    public void setMethod(Method method) {
-        this.method = method;
-    }
-
-    public EndpointParameter[] getParams() {
-        return params;
-    }
-
-    public void setParams(EndpointParameter[] params) {
-        this.params = params;
-    }
-
-    public Object[] getArgs() {
-        return args;
-    }
-
-    public void setArgs(Object[] args) {
-        this.args = args;
-    }
-
-    public InvocationListener getInvocationListener() {
-        return invocationListener;
-    }
-
-    public void setInvocationListener(InvocationListener invocationListener) {
-        this.invocationListener = invocationListener;
-    }
-
-    public Type getType() {
-        return type;
-    }
-
-    public void setType(Type type) {
-        this.type = type;
-    }
-
-    public Date getRequestTime() {
-        return requestTime;
-    }
-
-    public void setRequestTime(Date requestTime) {
-        this.requestTime = requestTime;
+    public void setVersion(String version) {
+        this.version = version;
     }
 
     public String getConsumerIp() {
@@ -275,32 +180,52 @@ public class BusInvocation implements Invocation {
         this.consumerIp = consumerIp;
     }
 
-    public boolean isAsync() {
-        return async;
+    public String getProviderIp() {
+        return providerIp;
     }
 
-    public void setAsync(boolean async) {
-        this.async = async;
+    public void setProviderIp(String providerIp) {
+        this.providerIp = providerIp;
     }
 
-    @Override
-    public String getServiceInterfaceName() {
-        return null;
+    public Date getRequestTime() {
+        return requestTime;
     }
 
-    @Override
-    public String getServiceName() {
-        return serviceName;
+    public void setRequestTime(Date requestTime) {
+        this.requestTime = requestTime;
     }
 
-    @Override
-    public String getVersion() {
-        return null;
+    public Date getDispatchTime() {
+        return dispatchTime;
+    }
+
+    public void setDispatchTime(Date dispatchTime) {
+        this.dispatchTime = dispatchTime;
+    }
+
+    public Date getResponseTime() {
+        return responseTime;
+    }
+
+    public void setResponseTime(Date responseTime) {
+        this.responseTime = responseTime;
     }
 
     @Override
     public String getMethodName() {
-        return null;
+        return this.methodName;
     }
 
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
+
+    public byte getSerializeType() {
+        return serializeType;
+    }
+
+    public void setSerializeType(byte serializeType) {
+        this.serializeType = serializeType;
+    }
 }

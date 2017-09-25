@@ -263,9 +263,9 @@ public class VenusServerInvokerTask implements Runnable{
         final long waitTime = TimeUtil.currentTimeMillis() - data.left;
         byte[] message = data.right;
         int type = AbstractServicePacket.getType(message);
-        VenusRouterPacket routerPacket = null;
         byte serializeType = conn.getSerializeType();
         String sourceIp = conn.getHost();
+        VenusRouterPacket routerPacket = null;
         if (PacketConstant.PACKET_TYPE_ROUTER == type) {
             routerPacket = new VenusRouterPacket();
             routerPacket.original = message;
@@ -275,8 +275,6 @@ public class VenusServerInvokerTask implements Runnable{
             serializeType = routerPacket.serializeType;
             sourceIp = InetAddressUtil.intToAddress(routerPacket.srcIP);
         }
-        final byte packetSerializeType = serializeType;
-        final String finalSourceIp = sourceIp;
 
         SerializeServiceRequestPacket request = null;
         Endpoint ep = null;
@@ -287,7 +285,7 @@ public class VenusServerInvokerTask implements Runnable{
 
             ep = getServiceManager().getEndpoint(apiPacket.apiName);
 
-            Serializer serializer = SerializerFactory.getSerializer(packetSerializeType);
+            Serializer serializer = SerializerFactory.getSerializer(serializeType);
             request = new SerializeServiceRequestPacket(serializer, ep.getParameterTypeDict());
             logger.info("recv request,messageId:{} reqeust:{}.",request.messageId,request);
 
@@ -316,19 +314,19 @@ public class VenusServerInvokerTask implements Runnable{
             error.message = e.getMessage();
 
             if(request != null){
-                logPerformance(ep,request.traceId == null ? UUID.toString(PacketConstant.EMPTY_TRACE_ID) : UUID.toString(request.traceId),apiPacket.apiName,waitTime,0,conn.getHost(),finalSourceIp,request.clientId,request.clientRequestId,request.parameterMap, error);
+                logPerformance(ep,request.traceId == null ? UUID.toString(PacketConstant.EMPTY_TRACE_ID) : UUID.toString(request.traceId),apiPacket.apiName,waitTime,0,conn.getHost(),sourceIp,request.clientId,request.clientRequestId,request.parameterMap, error);
 
                 if (e instanceof VenusExceptionLevel) {
                     if (((VenusExceptionLevel) e).getLevel() != null) {
                         logDependsOnLevel(((VenusExceptionLevel) e).getLevel(), logger, e.getMessage() + " client:{clientID=" + apiPacket.clientId
-                                + ",ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + finalSourceIp + ", apiName=" + apiPacket.apiName
+                                + ",ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + sourceIp + ", apiName=" + apiPacket.apiName
                                 + "}", e);
                     }
                 } else {
-                    logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + finalSourceIp + ", apiName="+ apiPacket.apiName + "]", e);
+                    logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + sourceIp + ", apiName="+ apiPacket.apiName + "]", e);
                 }
             }else{
-                logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + finalSourceIp + ", apiName="+ apiPacket.apiName + "]", e);
+                logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + sourceIp + ", apiName="+ apiPacket.apiName + "]", e);
             }
 
             throw new ErrorPacketWrapperException(error);
