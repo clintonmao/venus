@@ -64,8 +64,6 @@ public class VenusServerInvokerTask implements Runnable{
 
     private Executor executor;
 
-    static Map<Class<?>,Integer> codeMap = new HashMap<Class<?>,Integer>();
-
     private static String ENDPOINT_INVOKED_TIME = "invoked Total Time: ";
 
     private Endpoint endpoint;
@@ -86,6 +84,8 @@ public class VenusServerInvokerTask implements Runnable{
 
     private VenusExceptionFactory venusExceptionFactory;
 
+    static Map<Class<?>,Integer> codeMap = new HashMap<Class<?>,Integer>();
+
     private VenusFrontendConnection conn;
 
     private Tuple<Long, byte[]> data;
@@ -103,6 +103,7 @@ public class VenusServerInvokerTask implements Runnable{
      */
     private static VenusServerInvokerProxy venusServerInvokerProxy;
 
+    /*
     static {
         Map<Class<?>,ExceptionCode>  map = ClasspathAnnotationScanner.find(Exception.class,ExceptionCode.class);
         if(map != null){
@@ -119,6 +120,7 @@ public class VenusServerInvokerTask implements Runnable{
             }
         }
     }
+    */
 
     public VenusServerInvokerTask(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
         this.conn = conn;

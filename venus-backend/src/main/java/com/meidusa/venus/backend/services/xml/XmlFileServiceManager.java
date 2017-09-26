@@ -13,15 +13,13 @@ import com.meidusa.venus.annotations.PerformanceLevel;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
 import com.meidusa.venus.backend.interceptor.Configurable;
 import com.meidusa.venus.backend.interceptor.config.InterceptorConfig;
-import com.meidusa.venus.backend.invoker.support.CodeMapScanner;
+import com.meidusa.venus.exception.VenusExceptionLoader;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.config.*;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanContext;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanUtilsBean;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.VenusConfigException;
-import com.meidusa.venus.io.serializer.SerializerConfigLoader;
-import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.RegisterContext;
 import com.meidusa.venus.util.NetUtil;
@@ -96,7 +94,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         if(beanContext != null){
             VenusContext.getInstance().setBeanContext(beanContext);
         }
-        CodeMapScanner.getCodeMap();
+        //VenusExceptionLoader.getCodeMap();
         //AthenaExtensionResolver.getInstance().resolver();
     }
 

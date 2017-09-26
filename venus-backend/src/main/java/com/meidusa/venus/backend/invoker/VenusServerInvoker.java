@@ -5,11 +5,8 @@ import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.*;
-import com.meidusa.venus.annotations.ExceptionCode;
-import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
 import com.meidusa.venus.ServerInvocation;
-import com.meidusa.venus.backend.invoker.support.*;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.config.PerformanceLogger;
 import com.meidusa.venus.backend.support.Response;
@@ -54,12 +51,11 @@ public class VenusServerInvoker implements Invoker {
 
     private Executor executor;
 
-    static Map<Class<?>,Integer> codeMap = new HashMap<Class<?>,Integer>();
-
     private static String ENDPOINT_INVOKED_TIME = "invoked Total Time: ";
 
     //TODO 删除不用的全局变量定义
     private Endpoint endpoint;
+
     private RequestContext context;
     private EndpointInvocation.ResultType resultType;
     private byte[] traceID;
@@ -74,6 +70,9 @@ public class VenusServerInvoker implements Invoker {
 
     private VenusExceptionFactory venusExceptionFactory;
 
+    static Map<Class<?>,Integer> codeMap = new HashMap<Class<?>,Integer>();
+
+    /*
     static {
         Map<Class<?>,ExceptionCode>  map = ClasspathAnnotationScanner.find(Exception.class,ExceptionCode.class);
         if(map != null){
@@ -90,6 +89,7 @@ public class VenusServerInvoker implements Invoker {
             }
         }
     }
+    */
 
     @Override
     public void init() throws RpcException {
@@ -133,7 +133,7 @@ public class VenusServerInvoker implements Invoker {
         } catch (Exception e) {
             ErrorPacket error = new ErrorPacket();
             AbstractServicePacket.copyHead(request, error);
-            Integer code = CodeMapScanner.getCodeMap().get(e.getClass());
+            Integer code = VenusExceptionLoader.getCodeMap().get(e.getClass());
             if (code != null) {
                 error.errorCode = code;
             } else {
@@ -212,7 +212,7 @@ public class VenusServerInvoker implements Invoker {
                 response.setException(new DefaultVenusException(e.getMessage(), e));
             }
 
-            Integer code = CodeMapScanner.getCodeMap().get(e.getClass());
+            Integer code = VenusExceptionLoader.getCodeMap().get(e.getClass());
 
             if (code != null) {
                 response.setErrorCode(code);
