@@ -20,6 +20,8 @@ import com.meidusa.venus.backend.services.xml.support.BackendBeanContext;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanUtilsBean;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.VenusConfigException;
+import com.meidusa.venus.io.serializer.SerializerConfigLoader;
+import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.RegisterContext;
 import com.meidusa.venus.util.NetUtil;

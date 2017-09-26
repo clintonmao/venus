@@ -18,8 +18,22 @@ public class Application implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        //校验
         valid();
+
+        //初始化
+        init();
+    }
+
+    /**
+     * 初始化
+     */
+    void init(){
         VenusContext.getInstance().setApplication(name);
+
+        //初始化venus协议，protcol不再单独配置，由application内置默认初始化
+        //TODO 通信端口，相关连接配置等，需要单独外部配置
+        VenusProtocol.init();
     }
 
     /**

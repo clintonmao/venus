@@ -34,6 +34,7 @@ import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.io.packet.PacketConstant;
+import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.RegisterContext;
 import com.meidusa.venus.util.FileWatchdog;
@@ -191,7 +192,6 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      */
     void initContext(){
         logger.trace("current Venus Client id=" + PacketConstant.VENUS_CLIENT_ID);
-
         if (venusExceptionFactory == null) {
             XmlVenusExceptionFactory xmlVenusExceptionFactory = new XmlVenusExceptionFactory();
             //3.0.8版本将采用自动扫描的方式获得 exception 相关的配置

@@ -1,4 +1,4 @@
-package com.meidusa.venus.io.utils;
+package com.meidusa.venus.io.serializer;
 
 import java.io.IOException;
 import java.util.Map.Entry;
@@ -18,11 +18,19 @@ import com.meidusa.fastjson.parser.ParserConfig;
 import com.meidusa.fastjson.serializer.SerializeConfig;
 import com.meidusa.toolkit.common.bean.PureJavaReflectionProvider;
 
-public class ExtensionResolver {
-    protected static final Logger logger = LoggerFactory.getLogger(ExtensionResolver.class);
+/**
+ * 序列化配置加载
+ */
+public class SerializerConfigLoader {
+
+    protected static final Logger logger = LoggerFactory.getLogger(SerializerConfigLoader.class);
+
     private static ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
 
-    public static void doScanExtension() {
+    /**
+     * 加载配置
+     */
+    public static void load() {
         try {
             String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + "/META-INF/venus.io.extension.ini";
             Resource[] resources = resourcePatternResolver.getResources(packageSearchPath);

@@ -40,7 +40,13 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
     private static Logger REUEST_LOGGER = LoggerFactory.getLogger("venus.tracer");
 
     static {
+        init();
+    }
+
+    static void init(){
         Runtime.getRuntime().addShutdownHook(listener);
+        //初始化序列化配置 TODO 正常应该由protocol定义初始化
+        SerializerFactory.init();
     }
 
     private VenusRegistryFactory venusRegistryFactory;
