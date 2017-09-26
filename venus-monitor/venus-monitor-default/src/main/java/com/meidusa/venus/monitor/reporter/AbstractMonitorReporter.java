@@ -51,15 +51,15 @@ public abstract class AbstractMonitorReporter {
             detailDOList.add(detailDO);
         }
 
-        /*
         try {
             String detailDoListOfJson = serialize(detailDOList);
             logger.info("report detailDOList json:{}.",detailDoListOfJson);
         } catch (Exception e) {}
-        */
 
         if(isEnableReporte){
-            athenaDataService.reportMethodCallDetail(detailDOList);
+            if(CollectionUtils.isNotEmpty(detailDOList)){
+                athenaDataService.reportMethodCallDetail(detailDOList);
+            }
         }
     }
 
@@ -69,32 +69,6 @@ public abstract class AbstractMonitorReporter {
      * @return
      */
     abstract MethodCallDetailDO convertDetail(InvocationDetail detail);
-
-    /**
-     * 判断是否athena接口
-     * @param invocation
-     * @return
-     */
-    boolean isAthenaInterface(Invocation invocation){
-        String serviceInterfaceName = invocation.getServiceInterfaceName();
-        return ATHENA_INTERFACE_SIMPLE_NAME.equalsIgnoreCase(serviceInterfaceName) || ATHENA_INTERFACE_FULL_NAME.equalsIgnoreCase(serviceInterfaceName);
-    }
-
-
-    /**
-     * 序列化对象
-     * @param object
-     * @return
-     */
-    String serialize(Object object){
-        try {
-            String json = jsonSerializer.serialize(object);
-            return json;
-        } catch (Exception e) {
-            logger.error("serialize error.",e);
-            return "";
-        }
-    }
 
     /**
      * 上报统计数据 TODO 上报放到reporter模块，可选择依赖
@@ -118,15 +92,15 @@ public abstract class AbstractMonitorReporter {
             logger.debug("report statistic size:{}.",staticDOList.size());
         }
 
-        /*
         try {
             String statisticDOListOfJson = serialize(staticDOList);
             logger.info("report staticDOList json:{}.",statisticDOListOfJson);
         } catch (Exception e) {}
-        */
 
         if(isEnableReporte){
-            athenaDataService.reportMethodStatic(staticDOList);
+            if(CollectionUtils.isNotEmpty(staticDOList)){
+                athenaDataService.reportMethodStatic(staticDOList);
+            }
         }
     }
 
@@ -152,6 +126,32 @@ public abstract class AbstractMonitorReporter {
         staticDO.setStartTime(statistic.getBeginTime());
         staticDO.setEndTime(statistic.getEndTime());
         return staticDO;
+    }
+
+    /**
+     * 判断是否athena接口
+     * @param invocation
+     * @return
+     */
+    boolean isAthenaInterface(Invocation invocation){
+        String serviceInterfaceName = invocation.getServiceInterfaceName();
+        return ATHENA_INTERFACE_SIMPLE_NAME.equalsIgnoreCase(serviceInterfaceName) || ATHENA_INTERFACE_FULL_NAME.equalsIgnoreCase(serviceInterfaceName);
+    }
+
+
+    /**
+     * 序列化对象
+     * @param object
+     * @return
+     */
+    String serialize(Object object){
+        try {
+            String json = jsonSerializer.serialize(object);
+            return json;
+        } catch (Exception e) {
+            logger.error("serialize error.",e);
+            return "";
+        }
     }
 
     public AthenaDataService getAthenaDataService() {
