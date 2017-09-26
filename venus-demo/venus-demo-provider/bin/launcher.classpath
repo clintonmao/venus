@@ -1,4 +1,4 @@
-main is com.athena.server.AthenaServerApplication from venus
+main is com.chexiang.venus.demo.provider.DemoProviderApplication from venus
 
 [venus]
 load ${project.home}/lib/*.jar
