@@ -103,25 +103,6 @@ public class VenusServerInvokerTask implements Runnable{
      */
     private static VenusServerInvokerProxy venusServerInvokerProxy;
 
-    /*
-    static {
-        Map<Class<?>,ExceptionCode>  map = ClasspathAnnotationScanner.find(Exception.class,ExceptionCode.class);
-        if(map != null){
-            for(Map.Entry<Class<?>, ExceptionCode> entry:map.entrySet()){
-                codeMap.put(entry.getKey(), entry.getValue().errorCode());
-            }
-        }
-
-        Map<Class<?>,RemoteException> rmap = ClasspathAnnotationScanner.find(Exception.class,RemoteException.class);
-
-        if(rmap != null){
-            for(Map.Entry<Class<?>, RemoteException> entry:rmap.entrySet()){
-                codeMap.put(entry.getKey(), entry.getValue().errorCode());
-            }
-        }
-    }
-    */
-
     public VenusServerInvokerTask(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
         this.conn = conn;
         this.data = data;

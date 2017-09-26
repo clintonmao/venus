@@ -72,25 +72,6 @@ public class VenusServerInvoker implements Invoker {
 
     static Map<Class<?>,Integer> codeMap = new HashMap<Class<?>,Integer>();
 
-    /*
-    static {
-        Map<Class<?>,ExceptionCode>  map = ClasspathAnnotationScanner.find(Exception.class,ExceptionCode.class);
-        if(map != null){
-            for(Map.Entry<Class<?>, ExceptionCode> entry:map.entrySet()){
-                codeMap.put(entry.getKey(), entry.getValue().errorCode());
-            }
-        }
-
-        Map<Class<?>,RemoteException> rmap = ClasspathAnnotationScanner.find(Exception.class,RemoteException.class);
-
-        if(rmap != null){
-            for(Map.Entry<Class<?>, RemoteException> entry:rmap.entrySet()){
-                codeMap.put(entry.getKey(), entry.getValue().errorCode());
-            }
-        }
-    }
-    */
-
     @Override
     public void init() throws RpcException {
 
