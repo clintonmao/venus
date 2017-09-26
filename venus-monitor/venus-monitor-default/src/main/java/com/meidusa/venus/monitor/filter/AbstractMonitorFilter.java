@@ -7,6 +7,7 @@ import com.meidusa.venus.ServerInvocation;
 import com.meidusa.venus.monitor.reporter.InvocationDetail;
 import com.meidusa.venus.monitor.reporter.InvocationStatistic;
 import com.meidusa.venus.monitor.reporter.AbstractMonitorReporter;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -188,8 +189,8 @@ public abstract class AbstractMonitorFilter {
         public void run() {
             while(true){
                 try {
-                    AbstractMonitorReporter reporteDelegate = getMonitorReporte();
-                    if(reporteDelegate == null){
+                    AbstractMonitorReporter monitorReporte = getMonitorReporte();
+                    if(monitorReporte == null){
                         logger.error("get reporteDelegate is null.");
                         continue;
                     }
@@ -207,7 +208,9 @@ public abstract class AbstractMonitorFilter {
                         exceptionDetailList.add(exceptionDetail);
                     }
                     try {
-                        reporteDelegate.reportExceptionDetailList(exceptionDetailList);
+                        if(CollectionUtils.isNotEmpty(exceptionDetailList)){
+                            monitorReporte.reportDetailList(exceptionDetailList);
+                        }
                     } catch (Exception e) {
                         logger.error("report exception detail error.",e);
                     }
@@ -216,7 +219,9 @@ public abstract class AbstractMonitorFilter {
                     logger.info("total statistic size:{}.",statisticMap.size());
                     Collection<InvocationStatistic> statistics = statisticMap.values();
                     try {
-                        reporteDelegate.reportStatisticList(statistics);
+                        if(CollectionUtils.isNotEmpty(statistics)){
+                            monitorReporte.reportStatisticList(statistics);
+                        }
                     } catch (Exception e) {
                         logger.error("report statistic error.",e);
                     }

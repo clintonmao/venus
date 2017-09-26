@@ -4,13 +4,18 @@ import com.athena.domain.MethodCallDetailDO;
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.URL;
+import com.meidusa.venus.monitor.filter.AbstractMonitorFilter;
 import com.meidusa.venus.util.UUIDUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * client监控上报
  * Created by Zhangzhihua on 2017/9/22.
  */
 public class ClientMonitorReporter extends AbstractMonitorReporter {
+
+    private static Logger logger = LoggerFactory.getLogger(ClientMonitorReporter.class);
 
     /**
      * 转化为detailDo
@@ -45,7 +50,11 @@ public class ClientMonitorReporter extends AbstractMonitorReporter {
             detailDO.setMethodName(clientInvocation.getMethod().getName());
         }
         if(clientInvocation.getArgs() != null){
-            detailDO.setRequestJson(serialize(clientInvocation.getArgs()));
+            //Athena上报接口不记输入、输出信息，存在递归拼接问题
+            if(!isAthenaInterface(clientInvocation)){
+                String requestJson = serialize(clientInvocation.getArgs());
+                detailDO.setRequestJson(requestJson);
+            }
         }
         detailDO.setRequestTime(clientInvocation.getRequestTime());
         detailDO.setConsumerIp(clientInvocation.getConsumerIp());
@@ -57,15 +66,27 @@ public class ClientMonitorReporter extends AbstractMonitorReporter {
         //响应结果
         if(result != null){
             if(result.getErrorCode() == 0){
-                detailDO.setReponseJson(serialize(result.getResult()));
+                //Athena上报接口不记输入、输出信息，存在递归拼接问题
+                if(!isAthenaInterface(clientInvocation)){
+                    String responseJson = serialize(result.getResult());
+                    detailDO.setReponseJson(responseJson);
+                }
                 detailDO.setStatus(1);
             }else{
-                detailDO.setReponseJson(serialize(result.getErrorCode()));
+                //Athena上报接口不记输入、输出信息，存在递归拼接问题
+                if(!isAthenaInterface(clientInvocation)){
+                    String responseJson = serialize(result.getErrorCode());
+                    detailDO.setReponseJson(responseJson);
+                }
                 detailDO.setStatus(1);
             }
         } else{
             //响应异常
-            detailDO.setErrorInfo(serialize(exception));
+            //Athena上报接口不记输入、输出信息，存在递归拼接问题
+            if(!isAthenaInterface(clientInvocation)){
+                String responseJsonForException = serialize(exception);
+                detailDO.setErrorInfo(responseJsonForException);
+            }
             detailDO.setStatus(0);
         }
         //耗时
