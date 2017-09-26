@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.invoker.support;
+package com.meidusa.venus.exception;
 
 import com.meidusa.venus.annotations.ExceptionCode;
 import com.meidusa.venus.annotations.RemoteException;
@@ -8,12 +8,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * venus异常定义加载
  * Created by godzillahua on 7/4/16.
  */
-public class CodeMapScanner {
+public class VenusExceptionLoader {
+
     private static Map<Class<?>, Integer> codeMap = new HashMap<Class<?>, Integer>();
 
-    static {
+    public static void init(){
         Map<Class<?>, ExceptionCode> map = ClasspathAnnotationScanner.find(Exception.class, ExceptionCode.class);
         if (map != null) {
             for (Map.Entry<Class<?>, ExceptionCode> entry : map.entrySet()) {

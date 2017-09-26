@@ -3,11 +3,8 @@ package com.meidusa.venus.monitor.reporter;
 import com.athena.domain.MethodCallDetailDO;
 import com.athena.domain.MethodStaticDO;
 import com.athena.service.api.AthenaDataService;
-import com.meidusa.venus.ClientInvocation;
-import com.meidusa.venus.Result;
-import com.meidusa.venus.URL;
+import com.meidusa.venus.Invocation;
 import com.meidusa.venus.backend.serializer.JSONSerializer;
-import com.meidusa.venus.util.UUIDUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +21,10 @@ public abstract class AbstractMonitorReporter {
 
     private static Logger logger = LoggerFactory.getLogger(AbstractMonitorReporter.class);
 
+    //Athena接口名称定义
+    public static final String ATHENA_INTERFACE_SIMPLE_NAME = "AthenaDataService";
+    public static final String ATHENA_INTERFACE_FULL_NAME = "com.athena.service.api.AthenaDataService";
+
     private AthenaDataService athenaDataService;
 
     //TODO 将序列化传输协议无关移到common包中
@@ -32,10 +33,10 @@ public abstract class AbstractMonitorReporter {
     private boolean isEnableReporte = true;
 
     /**
-     * 上报异常明细 TODO 上报放到reporter模块，可选择依赖
+     * 上报明细 TODO 上报放到reporter模块，可选择依赖
      * @param exceptionDetailList
      */
-    public void reportExceptionDetailList(Collection<InvocationDetail> exceptionDetailList){
+    public void reportDetailList(Collection<InvocationDetail> exceptionDetailList){
         AthenaDataService athenaDataService = getAthenaDataService();
         if(logger.isDebugEnabled()){
             logger.debug("report exception detail size:{}.",exceptionDetailList.size());
@@ -50,8 +51,15 @@ public abstract class AbstractMonitorReporter {
             detailDOList.add(detailDO);
         }
 
+        try {
+            String detailDoListOfJson = serialize(detailDOList);
+            logger.info("report detailDOList json:{}.",detailDoListOfJson);
+        } catch (Exception e) {}
+
         if(isEnableReporte){
-            athenaDataService.reportMethodCallDetail(detailDOList);
+            if(CollectionUtils.isNotEmpty(detailDOList)){
+                athenaDataService.reportMethodCallDetail(detailDOList);
+            }
         }
     }
 
@@ -61,21 +69,6 @@ public abstract class AbstractMonitorReporter {
      * @return
      */
     abstract MethodCallDetailDO convertDetail(InvocationDetail detail);
-
-
-    /**
-     * 序列化对象
-     * @param object
-     * @return
-     */
-    String serialize(Object object){
-        try {
-            return jsonSerializer.serialize(object);
-        } catch (Exception e) {
-            logger.error("serialize error.",e);
-            return "";
-        }
-    }
 
     /**
      * 上报统计数据 TODO 上报放到reporter模块，可选择依赖
@@ -98,15 +91,16 @@ public abstract class AbstractMonitorReporter {
         if(logger.isDebugEnabled()){
             logger.debug("report statistic size:{}.",staticDOList.size());
         }
+
         try {
-            String statisticDOListOfJson = new JSONSerializer().serialize(staticDOList);
-            if(logger.isDebugEnabled()){
-                logger.debug("report statistic json:{}.",statisticDOListOfJson);
-            }
+            String statisticDOListOfJson = serialize(staticDOList);
+            logger.info("report staticDOList json:{}.",statisticDOListOfJson);
         } catch (Exception e) {}
 
         if(isEnableReporte){
-            athenaDataService.reportMethodStatic(staticDOList);
+            if(CollectionUtils.isNotEmpty(staticDOList)){
+                athenaDataService.reportMethodStatic(staticDOList);
+            }
         }
     }
 
@@ -132,6 +126,32 @@ public abstract class AbstractMonitorReporter {
         staticDO.setStartTime(statistic.getBeginTime());
         staticDO.setEndTime(statistic.getEndTime());
         return staticDO;
+    }
+
+    /**
+     * 判断是否athena接口
+     * @param invocation
+     * @return
+     */
+    boolean isAthenaInterface(Invocation invocation){
+        String serviceInterfaceName = invocation.getServiceInterfaceName();
+        return ATHENA_INTERFACE_SIMPLE_NAME.equalsIgnoreCase(serviceInterfaceName) || ATHENA_INTERFACE_FULL_NAME.equalsIgnoreCase(serviceInterfaceName);
+    }
+
+
+    /**
+     * 序列化对象
+     * @param object
+     * @return
+     */
+    String serialize(Object object){
+        try {
+            String json = jsonSerializer.serialize(object);
+            return json;
+        } catch (Exception e) {
+            logger.error("serialize error.",e);
+            return "";
+        }
     }
 
     public AthenaDataService getAthenaDataService() {

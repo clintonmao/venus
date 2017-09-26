@@ -4,7 +4,7 @@ import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.util.ClasspathAnnotationScanner;
 
 
-public class Taaa {
+public class ExceptionProcessorTest {
 
 	public static void main(String[] args) {
     	long start = System.currentTimeMillis();

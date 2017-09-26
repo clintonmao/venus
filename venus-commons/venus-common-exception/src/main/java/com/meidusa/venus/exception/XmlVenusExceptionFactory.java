@@ -31,12 +31,29 @@ import com.meidusa.venus.util.ClasspathAnnotationScanner;
 
 @SuppressWarnings("deprecation")
 public class XmlVenusExceptionFactory implements VenusExceptionFactory {
+
     private static Logger logger = LoggerFactory.getLogger(XmlVenusExceptionFactory.class);
+
     private static ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
+
     private static boolean SCANNED = false;
+
+    private static ReflectionProvider reflectionProvider = PureJavaReflectionProvider.getInstance();
+
+    private String[] configFiles;
+
     private static Map<Integer, ExceptionConfig> codeMap = new HashMap<Integer, ExceptionConfig>();
+
     private static Map<Class, ExceptionConfig> classMap = new HashMap<Class, ExceptionConfig>();
+
     static {
+        scanAnnotitionException();
+    }
+
+    /**
+     * 扫描异常注解配置
+     */
+    static void scanAnnotitionException(){
         Map<Class<?>,ExceptionCode> exceptionCodeMap = ClasspathAnnotationScanner.find(Exception.class,ExceptionCode.class);
         for(Map.Entry<Class<?>, ExceptionCode> entry: exceptionCodeMap.entrySet()){
             ExceptionConfig config = new ExceptionConfig();
@@ -45,7 +62,7 @@ public class XmlVenusExceptionFactory implements VenusExceptionFactory {
             codeMap.put(config.getErrorCode(), config);
             classMap.put(entry.getKey(), config);
         }
-        
+
         Map<Class<?>,RemoteException> rMap = ClasspathAnnotationScanner.find(Exception.class,RemoteException.class);
         for(Map.Entry<Class<?>, RemoteException> entry: rMap.entrySet()){
             ExceptionConfig config = new ExceptionConfig();
@@ -54,13 +71,10 @@ public class XmlVenusExceptionFactory implements VenusExceptionFactory {
             codeMap.put(config.getErrorCode(), config);
             classMap.put(entry.getKey(), config);
         }
-        
-    }
-   
-    
-    private static ReflectionProvider reflectionProvider = PureJavaReflectionProvider.getInstance();
-    private String[] configFiles;
 
+        //初始化venus异常定义
+        VenusExceptionLoader.init();
+    }
     public String[] getConfigFiles() {
         return configFiles;
     }
@@ -102,14 +116,14 @@ public class XmlVenusExceptionFactory implements VenusExceptionFactory {
                         } else if (type.length == 2) {
                             if (type[0] == String.class && type[1] == Throwable.class) {
                                 try {
-                                    return (Exception) constructor.newInstance(new Object[] { message, null });
+                                    return (Exception) constructor.newInstance(message, null);
                                 } catch (Exception e) {
                                     logger.error("create exception instance error", e);
                                     return new DefaultVenusException(errcode, "create exception instance error", e);
                                 }
                             } else if (type[0] == Throwable.class && type[1] == String.class) {
                                 try {
-                                    return (Exception) constructor.newInstance(new Object[] { null, message });
+                                    return (Exception) constructor.newInstance(null, message);
                                 } catch (Exception e) {
                                     logger.error("create exception instance error", e);
                                     return new DefaultVenusException(errcode, "create exception instance error", e);
@@ -143,7 +157,57 @@ public class XmlVenusExceptionFactory implements VenusExceptionFactory {
 
     }
 
-    public synchronized void doScanExtension() {
+    public void init() {
+        doScan();
+        //兼容 3.0.8以前版本
+        if(configFiles == null){
+            return;
+        }
+
+        for (String configFile : configFiles) {
+            configFile = (String) ConfigUtil.filter(configFile);
+            configFile = configFile.trim();
+            URL eis = this.getClass().getResource("VenusSystemExceptionRule.xml");
+            if (eis == null) {
+                throw new VenusConfigException("classpath resource 'VenusSystemExceptionRule.xml' not found");
+            }
+            RuleSet ruleSet = new FromXmlRuleSet(eis, new DigesterRuleParser());
+            Digester digester = new Digester();
+            digester.addRuleSet(ruleSet);
+
+            try {
+                InputStream is = null;
+                if (configFile.startsWith("classpath:")) {
+                    configFile = configFile.substring("classpath:".length());
+                    is = this.getClass().getClassLoader().getResourceAsStream(configFile);
+                } else {
+                    is = new FileInputStream(new File(configFile));
+                }
+                List<ExceptionConfig> list = (List<ExceptionConfig>) digester.parse(is);
+                for (ExceptionConfig config : list) {
+
+                    if (config.getErrorCode() == 0) {
+                        Exception exception = (Exception) reflectionProvider.newInstance(config.getType());
+                        if (exception instanceof CodedException) {
+                            config.setErrorCode(((CodedException) exception).getErrorCode());
+                        } else {
+                            throw new VenusConfigException("exception type=" + config.getType()
+                                    + " must implement CodedException or errorCode must not be null");
+                        }
+                    }
+
+                    codeMap.put(config.getErrorCode(), config);
+                    classMap.put(config.getType(), config);
+                }
+            } catch (Exception e) {
+                logger.error("parser VenusSystemExceptionRule.xml error", e);
+            }finally{
+                digester.clear();
+            }
+        }
+    }
+
+    public synchronized void doScan() {
         if(SCANNED){
             return;
         }
@@ -205,54 +269,6 @@ public class XmlVenusExceptionFactory implements VenusExceptionFactory {
         }
     }
     
-    public void init() {
-        doScanExtension();
-        //兼容 3.0.8以前版本
-        if(configFiles == null){
-            return;
-        }
-        
-        for (String configFile : configFiles) {
-            configFile = (String) ConfigUtil.filter(configFile);
-            configFile = configFile.trim();
-            URL eis = this.getClass().getResource("VenusSystemExceptionRule.xml");
-            if (eis == null) {
-                throw new VenusConfigException("classpath resource 'VenusSystemExceptionRule.xml' not found");
-            }
-            RuleSet ruleSet = new FromXmlRuleSet(eis, new DigesterRuleParser());
-            Digester digester = new Digester();
-            digester.addRuleSet(ruleSet);
 
-            try {
-                InputStream is = null;
-                if (configFile.startsWith("classpath:")) {
-                    configFile = configFile.substring("classpath:".length());
-                    is = this.getClass().getClassLoader().getResourceAsStream(configFile);
-                } else {
-                    is = new FileInputStream(new File(configFile));
-                }
-                List<ExceptionConfig> list = (List<ExceptionConfig>) digester.parse(is);
-                for (ExceptionConfig config : list) {
-
-                    if (config.getErrorCode() == 0) {
-                        Exception exception = (Exception) reflectionProvider.newInstance(config.getType());
-                        if (exception instanceof CodedException) {
-                            config.setErrorCode(((CodedException) exception).getErrorCode());
-                        } else {
-                            throw new VenusConfigException("exception type=" + config.getType()
-                                    + " must implement CodedException or errorCode must not be null");
-                        }
-                    }
-
-                    codeMap.put(config.getErrorCode(), config);
-                    classMap.put(config.getType(), config);
-                }
-            } catch (Exception e) {
-                logger.error("parser VenusSystemExceptionRule.xml error", e);
-            }finally{
-                digester.clear();
-            }
-        }
-    }
 
 }
