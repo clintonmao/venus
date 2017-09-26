@@ -4,6 +4,8 @@ import com.chexiang.venus.demo.provider.HelloService;
 import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.notify.InvocationListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -11,9 +13,11 @@ import org.springframework.stereotype.Component;
  */
 public class DefaultHelloService implements HelloService {
 
+    private static Logger logger = LoggerFactory.getLogger(DefaultHelloService.class);
+
     @Override
     public void sayHello(String name, InvocationListener<Hello> invocationListener) {
-        System.out.println("invoke sayHello with listener:" + name);
+        logger.info("invoke sayHello with listener:" + name);
 //        if("jack".equalsIgnoreCase(name)){
 //            throw new RpcException("callback exception.");
 //        }
@@ -30,13 +34,13 @@ public class DefaultHelloService implements HelloService {
 
     @Override
     public void sayHello(String name) {
-        System.out.println("invoke sayHello:" + name);
+        logger.info("invoke sayHello:" + name);
         //throw new RuntimeException("test throw ex.");
     }
 
     @Override
     public Hello getHello(String name) {
-        System.out.println("invoke getHello.");
-        return new Hello("zhangzh","jack");
+        logger.info("invoke getHello.");
+        return new Hello(name,name);
     }
 }

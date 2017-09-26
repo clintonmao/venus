@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,7 +27,6 @@ public class HelloController {
     HelloService helloService;
 
     @RequestMapping("/sayHello")
-    //@ResponseBody
     public Result sayHello(){
         logger.info("testSayHello begin...");
         helloService.sayHello("jack");
@@ -35,7 +35,6 @@ public class HelloController {
     }
 
     @RequestMapping("/sayHelloWithCallback")
-    //@ResponseBody
     public Result sayHelloWithCallback(){
         helloService.sayHello("jack", new InvocationListener<Hello>() {
 
@@ -53,12 +52,11 @@ public class HelloController {
     }
 
     @RequestMapping("/getHello/{name}")
-    //@ResponseBody
-    public Result getHello(String name){
+    public Result getHello(@PathVariable String name){
         Hello hello = null;
         try {
             logger.info("testGetHello begin...");
-            hello = helloService.getHello("jack");
+            hello = helloService.getHello(name);
             logger.info("testGetHello end,result:" + hello);
         } catch (Exception e) {
             logger.error("e:{}.",e);

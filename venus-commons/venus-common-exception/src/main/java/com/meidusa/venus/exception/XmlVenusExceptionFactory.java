@@ -34,9 +34,9 @@ public class XmlVenusExceptionFactory implements VenusExceptionFactory {
 
     private static Logger logger = LoggerFactory.getLogger(XmlVenusExceptionFactory.class);
 
-    private static ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
-
     private static boolean SCANNED = false;
+
+    private static ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
 
     private static ReflectionProvider reflectionProvider = PureJavaReflectionProvider.getInstance();
 
