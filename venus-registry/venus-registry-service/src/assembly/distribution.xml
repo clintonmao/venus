@@ -39,6 +39,7 @@
 			<includes>
 				<include>jvm.properties</include>
 				<include>application.properties</include>
+				<include>logback.xml</include>
 			</includes>
 			<outputDirectory>.</outputDirectory>
 		</fileSet>
