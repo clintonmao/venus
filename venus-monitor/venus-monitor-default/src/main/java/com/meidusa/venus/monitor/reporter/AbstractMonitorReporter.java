@@ -38,9 +38,6 @@ public abstract class AbstractMonitorReporter {
      */
     public void reportDetailList(Collection<InvocationDetail> exceptionDetailList){
         AthenaDataService athenaDataService = getAthenaDataService();
-        if(logger.isDebugEnabled()){
-            logger.debug("report exception detail size:{}.",exceptionDetailList.size());
-        }
         if(CollectionUtils.isEmpty(exceptionDetailList)){
             return;
         }
@@ -51,10 +48,17 @@ public abstract class AbstractMonitorReporter {
             detailDOList.add(detailDO);
         }
 
-        try {
-            String detailDoListOfJson = serialize(detailDOList);
-            logger.info("report detailDOList json:{}.",detailDoListOfJson);
-        } catch (Exception e) {}
+        if(CollectionUtils.isNotEmpty(detailDOList)){
+            /*
+            try {
+                String detailDoListOfJson = serialize(detailDOList);
+                logger.info("report detailDOList json:{}.",detailDoListOfJson);
+            } catch (Exception e) {}
+            */
+            logger.info("report detail size:{}.",detailDOList.size());
+        }else{
+            logger.info("report detail size:{}.",0);
+        }
 
         if(isEnableReporte){
             if(CollectionUtils.isNotEmpty(detailDOList)){
@@ -88,14 +92,18 @@ public abstract class AbstractMonitorReporter {
             MethodStaticDO staticDO = convertStatistic(statistic);
             staticDOList.add(staticDO);
         }
-        if(logger.isDebugEnabled()){
-            logger.debug("report statistic size:{}.",staticDOList.size());
-        }
 
-        try {
-            String statisticDOListOfJson = serialize(staticDOList);
-            logger.info("report staticDOList json:{}.",statisticDOListOfJson);
-        } catch (Exception e) {}
+        if(CollectionUtils.isNotEmpty(staticDOList)){
+            /*
+            try {
+                String statisticDOListOfJson = serialize(staticDOList);
+                logger.info("report staticDOList json:{}.",statisticDOListOfJson);
+            } catch (Exception e) {}
+            */
+            logger.info("report static size:{}.",staticDOList.size());
+        }else{
+            logger.info("report static size:{}.",0);
+        }
 
         if(isEnableReporte){
             if(CollectionUtils.isNotEmpty(staticDOList)){

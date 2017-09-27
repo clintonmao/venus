@@ -3,13 +3,16 @@ package com.meidusa.venus.client;
 import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.exception.VenusConfigException;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 
 /**
  * Venus应用定义
  * Created by Zhangzhihua on 2017/9/15.
  */
-public class Application implements InitializingBean {
+public class Application implements InitializingBean,BeanFactoryPostProcessor {
 
     /**
      * 应用名称
@@ -43,6 +46,10 @@ public class Application implements InitializingBean {
         if(StringUtils.isEmpty(name)){
             throw new VenusConfigException("name not allow empty.");
         }
+    }
+
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
     }
 
     public String getName() {

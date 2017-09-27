@@ -35,6 +35,7 @@ import com.meidusa.venus.io.packet.DummyAuthenPacket;
  * @author structchen
  * 
  */
+//TODO 允许设置多个目标地址
 public class SimpleServiceFactory implements ServiceFactory {
 
     private String host;

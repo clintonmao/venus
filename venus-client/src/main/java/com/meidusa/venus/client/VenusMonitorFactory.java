@@ -2,9 +2,12 @@ package com.meidusa.venus.client;
 
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.RpcException;
+import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
 import com.meidusa.venus.client.factory.xml.support.ServiceFactoryBean;
 import com.meidusa.venus.exception.VenusConfigException;
+import com.saic.framework.athena.configuration.ClientConfigManager;
+import com.saic.framework.athena.configuration.DefaultClientConfigManager;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,12 +38,22 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
 
     private boolean enable;
 
+    /**
+     * athena上报配置管理
+     */
+    private ClientConfigManager clientConfigManager;
+
+    /**
+     * athena上报服务接口
+     */
     private AthenaDataService athenaDataService;
 
     @Override
     public void afterPropertiesSet() throws Exception {
         valid();
-        //初始化athena
+        //初始化configManager
+        initConfigManager();
+        //初始化athenaDataService
         initAthenaDataService(url);
     }
 
@@ -54,11 +67,24 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
     }
 
     /**
+     * 初始化athena配置管理信息
+     */
+    void initConfigManager(){
+        DefaultClientConfigManager clientConfigManager = new DefaultClientConfigManager();
+        String appName = VenusContext.getInstance().getApplication();
+        if(StringUtils.isEmpty(appName)){
+            throw new VenusConfigException("application not inited.");
+        }
+        clientConfigManager.setAppName(appName);
+        clientConfigManager.setMonitorEnabled(enable);
+        this.clientConfigManager = clientConfigManager;
+    }
+
+    /**
      * 初始化athenaDataService
      * @param url
      */
     void initAthenaDataService(String url){
-        //String host = "10.32.174.23";
         String[] arr = url.split(":");
         SimpleServiceFactory factory = new SimpleServiceFactory(arr[0],Integer.parseInt(arr[1]));
         factory.setSoTimeout(16 * 1000);//可选,默认 15秒
@@ -73,7 +99,37 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        //注册configManager
+        registeClientConfigManager(beanFactory);
+
         //注册athenaDataService到上下文
+        registeAthenaDataService(beanFactory);
+    }
+
+    /**
+     * 注册configManager
+     * @param beanFactory
+     */
+    void registeClientConfigManager(ConfigurableListableBeanFactory beanFactory){
+        String beanName = clientConfigManager.getClass().getSimpleName();
+        BeanDefinitionRegistry reg = (BeanDefinitionRegistry) beanFactory;
+        GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+        beanDefinition.setBeanClass(ServiceFactoryBean.class);
+        beanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, beanName));
+        beanDefinition.setScope(BeanDefinition.SCOPE_SINGLETON);
+        ConstructorArgumentValues args = new ConstructorArgumentValues();
+        args.addIndexedArgumentValue(0, this.clientConfigManager);
+        args.addIndexedArgumentValue(1, ClientConfigManager.class);
+        beanDefinition.setConstructorArgumentValues(args);
+        beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
+        reg.registerBeanDefinition(beanName, beanDefinition);
+    }
+
+    /**
+     * 注册athenaDataService
+     * @param beanFactory
+     */
+    void registeAthenaDataService(ConfigurableListableBeanFactory beanFactory){
         String beanName = athenaDataService.getClass().getSimpleName();
         BeanDefinitionRegistry reg = (BeanDefinitionRegistry) beanFactory;
         GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
@@ -84,7 +140,6 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
         args.addIndexedArgumentValue(0, this.athenaDataService);
         args.addIndexedArgumentValue(1, AthenaDataService.class);
         beanDefinition.setConstructorArgumentValues(args);
-
         beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
         reg.registerBeanDefinition(beanName, beanDefinition);
     }

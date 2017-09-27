@@ -193,9 +193,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
         //阻塞等待并处理响应结果
         synchronized (lock){
-            logger.info("lock wait begin...");
+            //logger.info("lock wait begin...");
             lock.wait(15000);//TODO 超时时间
-            logger.info("lock wait end...");
+            //logger.info("lock wait end...");
         }
 
         Result result = fetchResponse(RpcIdUtil.getRpcId(request));

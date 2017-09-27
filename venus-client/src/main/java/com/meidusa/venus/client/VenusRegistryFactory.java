@@ -33,6 +33,8 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
      */
     private String url;
 
+    private String connectUrl;
+
     private Register register;
 
     @Override
@@ -47,7 +49,7 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
      */
     void valid(){
         if(StringUtils.isEmpty(url)){
-            throw new VenusConfigException("url not allow empty.");
+            throw new VenusConfigException("url property not config.");
         }
     }
 
@@ -72,17 +74,9 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
         //根据配置创建registerService实例，本地依赖或venus远程依赖
         RegisterService registerService = null;
         if (isInjvm(url)) {
-            //TODO 配置信息提取
-            try {
-                registerService = (RegisterService) Class.forName("com.meidusa.venus.registry.service.impl.MysqlRegisterService").newInstance();
-            } catch (Exception e) {
-                throw new RpcException(e);
-            }
-            String connectUrl = "mysql://10.32.173.250:3306/registry_new?username=registry&password=registry";
-            registerService.setConnectUrl(connectUrl);
+            registerService = newLocalRegisterService(connectUrl);
         } else {
             registerService = newVenusRegisterService(url);
-            //TODO 设置connectUrl
         }
         if(registerService == null){
             throw new RpcException("init register service failed.");
@@ -97,7 +91,25 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
      * @return
      */
     boolean isInjvm(String url){
-        return url.startsWith("injvm:");
+        return url.startsWith("injvm");
+    }
+
+    /**
+     * 创建本地依赖实例，jvm本地依赖
+     * @param connectUrl
+     * @return
+     */
+    RegisterService newLocalRegisterService(String connectUrl){
+        try {
+            if(StringUtils.isEmpty(connectUrl)){
+                throw new VenusConfigException("connectUrl not config with injvm.");
+            }
+            RegisterService registerService = (RegisterService) Class.forName("com.meidusa.venus.registry.service.impl.MysqlRegisterService").newInstance();
+            registerService.setConnectUrl(connectUrl);
+            return registerService;
+        } catch (Exception e) {
+            throw new RpcException(e);
+        }
     }
 
     /**
@@ -119,6 +131,7 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
             }
         }
 
+        //TODO 允许设置多个目标地址
         HostPort hp = hosts.get(new Random().nextInt(hosts.size()));
         SimpleServiceFactory ssf = new SimpleServiceFactory(hp.getHost(), hp.getPort());
         ssf.setCoTimeout(60000);
@@ -138,6 +151,14 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getConnectUrl() {
+        return connectUrl;
+    }
+
+    public void setConnectUrl(String connectUrl) {
+        this.connectUrl = connectUrl;
     }
 
     public Register getRegister() {

@@ -16,7 +16,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = "classpath:/applicationContext-consumer.xml")
+@ContextConfiguration(locations = "classpath:/conf/applicationContext-consumer.xml")
 public class TestHelloService {
 
     private static Logger logger = LoggerFactory.getLogger(TestHelloService.class);

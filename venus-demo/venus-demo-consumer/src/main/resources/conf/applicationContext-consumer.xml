@@ -14,25 +14,35 @@
 	<context:component-scan base-package="com.saic.framework.*" />
 	<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" />
 
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:application.properties</value>
+			</list>
+		</property>
+	</bean>
+
 	<!--应用配置-->
 	<bean class="com.meidusa.venus.client.Application">
-		<property name="name" value="demo-consumer"/>
+		<property name="name" value="${application.name}"/>
 	</bean>
 
 	<!--注册配置-->
 	<bean id="venusRegistryFactory" class="com.meidusa.venus.client.VenusRegistryFactory">
-		<property name="url" value="injvm://localhost"/>
+		<property name="url" value="${register.url}"/>
+		<property name="connectUrl" value="${register.connectUrl}"/>
 	</bean>
 
 	<!--监控配置-->
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.client.VenusMonitorFactory">
-		<property name="url" value="10.32.174.23:16800"/>
+		<property name="url" value="${monitor.url}"/>
 	</bean>
 
+	<!--服务引用配置-->
 	<bean id="serviceFactory" class="com.meidusa.venus.client.VenusServiceFactory" destroy-method="destroy">
 		<property name="configFiles">
 			<list>
-				<value>classpath:hello-venus-client.xml</value>
+				<value>classpath:conf/hello-venus-client.xml</value>
 			</list>
 		</property>
 		<property name="needPing" value="false"/>
@@ -47,10 +57,4 @@
 		</property>
 	</bean>
 
-	<!--将此配置提取整合到venusMonitorFactory.athena中-->
-	<bean name="configManager" class="com.saic.framework.athena.configuration.DefaultClientConfigManager">
-		<property name="appName" value="athena-client"/>
-		<property name="monitorEnabled"  value="yes" />
-	</bean>
-	
 </beans>

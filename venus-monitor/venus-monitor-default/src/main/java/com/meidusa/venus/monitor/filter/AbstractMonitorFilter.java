@@ -196,7 +196,7 @@ public abstract class AbstractMonitorFilter {
                     }
 
                     //上报异常、慢操作数据
-                    logger.info("total exception detail size:{}.",exceptionDetailQueue.size());
+                    logger.info("total detail size:{}.",exceptionDetailQueue.size());
                     //TODO 改为批量拿 锁必要性？
                     List<InvocationDetail> exceptionDetailList = new ArrayList<InvocationDetail>();
                     int fetchNum = 50;

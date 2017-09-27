@@ -14,6 +14,14 @@
 	<context:component-scan base-package="com.chexiang.*" />
 	<context:component-scan base-package="com.saic.framework.*" />
 
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:application.properties</value>
+			</list>
+		</property>
+	</bean>
+
 	<bean id="helloService" class="com.chexiang.venus.demo.provider.impl.DefaultHelloService"/>
 
 	<import resource="classpath:/spring/applicationContext-service-container.xml"/>
@@ -23,20 +31,21 @@
 	-->
 	<!--应用配置-->
 	<bean class="com.meidusa.venus.client.Application">
-		<property name="name" value="demo-provider"/>
+		<property name="name" value="${application.name}"/>
 	</bean>
 
 	<!--注册配置-->
 	<bean id="venusRegistryFactory" class="com.meidusa.venus.client.VenusRegistryFactory">
-		<property name="url" value="injvm://localhost"/>
+		<property name="url" value="${register.url}"/>
+		<property name="connectUrl" value="${register.connectUrl}"/>
 	</bean>
 
 	<!--监控配置-->
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.client.VenusMonitorFactory">
-		<property name="url" value="10.32.174.23:16800"/>
+		<property name="url" value="${monitor.url}"/>
 	</bean>
 
-	<!--服务配置-->
+	<!--服务发布配置-->
     <bean id="serviceManager" class="com.meidusa.venus.backend.services.xml.XmlFileServiceManager">
         <property name="configFiles">
             <list>
@@ -59,9 +68,4 @@
 		</property>
 	</bean>
 
-	<!--将此配置提取整合到venusMonitorFactory.anthena中-->
-	<bean name="configManager" class="com.saic.framework.athena.configuration.DefaultClientConfigManager">
-		<property name="appName" value="athena-server"/>
-		<property name="monitorEnabled"  value="yes" />
-	</bean>
 </beans>
