@@ -192,16 +192,19 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         sendRequest(invocation, request, url);
 
         //阻塞等待并处理响应结果
+        int timeout = 15000;
         synchronized (lock){
             //logger.info("lock wait begin...");
-            lock.wait(15000);//TODO 超时时间
+            lock.wait(timeout);//TODO 超时时间
             //logger.info("lock wait end...");
         }
 
         Result result = fetchResponse(RpcIdUtil.getRpcId(request));
-        logger.info("fecth response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(request),result);
+        //TODO 改为methodPath
+        String servicePath = url.getPath();
+        logger.info("fecth response,rpcId:{},servicePath:{},response:{}.",RpcIdUtil.getRpcId(request),servicePath,result);
         if(result == null){
-            throw new RpcException(String.format("invoke timeout:%s","3000ms"));
+            throw new RpcException(String.format("invoke service:%s,timeout:%dms",servicePath,timeout));
         }
         return result;
     }

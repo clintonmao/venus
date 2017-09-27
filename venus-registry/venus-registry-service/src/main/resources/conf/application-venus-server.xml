@@ -18,17 +18,18 @@
 
 	<!--应用配置-->
 	<bean class="com.meidusa.venus.client.Application">
-		<property name="name" value="registry-server"/>
+		<property name="name" value="${application.name}"/>
 	</bean>
 
 	<!--注册配置-->
 	<bean id="venusRegistryFactory" class="com.meidusa.venus.client.VenusRegistryFactory">
-		<property name="url" value="injvm://localhost"/>
+		<property name="url" value="${register.url}"/>
+		<property name="connectUrl" value="${register.connectUrl}"/>
 	</bean>
 
 	<!--监控配置-->
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.client.VenusMonitorFactory">
-		<property name="url" value="10.32.174.23:16800"/>
+		<property name="url" value="${monitor.url}"/>
 	</bean>
 
     <bean id="serviceManager" class="com.meidusa.venus.backend.services.xml.XmlFileServiceManager">

@@ -17,7 +17,7 @@
 	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="locations">
 			<list>
-				<value>classpath*:application.properties</value>
+				<value>classpath:application.properties</value>
 			</list>
 		</property>
 	</bean>
@@ -30,7 +30,9 @@
 	<!--注册配置-->
 	<bean id="venusRegistryFactory" class="com.meidusa.venus.client.VenusRegistryFactory">
 		<property name="url" value="${register.url}"/>
+		<!--
 		<property name="connectUrl" value="${register.connectUrl}"/>
+		-->
 	</bean>
 
 	<!--监控配置-->
