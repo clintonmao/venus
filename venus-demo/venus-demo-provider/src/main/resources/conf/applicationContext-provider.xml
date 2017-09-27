@@ -40,7 +40,7 @@
     <bean id="serviceManager" class="com.meidusa.venus.backend.services.xml.XmlFileServiceManager">
         <property name="configFiles">
             <list>
-                <value>classpath:hello-venus-server.xml</value>
+                <value>classpath:/conf/hello-venus-server.xml</value>
             </list>
         </property>
     </bean>

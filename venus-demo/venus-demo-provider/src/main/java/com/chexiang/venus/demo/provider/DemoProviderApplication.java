@@ -9,7 +9,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class DemoProviderApplication {
 
     void run(){
-        ApplicationContext context = new ClassPathXmlApplicationContext("classpath:applicationContext-provider.xml");
+        ApplicationContext context = new ClassPathXmlApplicationContext("classpath:/conf/applicationContext-provider.xml");
         context.containsBean("helloService");
         try {
             Thread.sleep(1000*60*60);

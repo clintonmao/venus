@@ -31,14 +31,15 @@
 			<outputDirectory>/bin</outputDirectory>
 		</fileSet>
 		<fileSet>
-			<directory>${basedir}/src/main/resources</directory>
-			<outputDirectory>.</outputDirectory>
+			<directory>${basedir}/src/main/resources/conf</directory>
+			<outputDirectory>/conf</outputDirectory>
 		</fileSet>
 		<fileSet>
 			<directory>${basedir}/src/main/resources</directory>
 			<includes>
 				<include>jvm.properties</include>
 				<include>application.properties</include>
+				<include>logback.xml</include>
 			</includes>
 			<outputDirectory>.</outputDirectory>
 		</fileSet>
