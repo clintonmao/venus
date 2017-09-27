@@ -117,6 +117,12 @@
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-client</artifactId>
             <version>3.3.1</version>
+            <exclusions>
+            	<exclusion>
+            		<groupId>org.springframework.data</groupId>
+            		<artifactId>spring-data-gemfire</artifactId>
+            	</exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus</groupId>
@@ -128,6 +134,11 @@
             <artifactId>venus-monitor-reporter</artifactId>
             <version>3.3.1</version>
         </dependency>
+       	<dependency>
+			<groupId>org.codehaus.plexus</groupId>
+			<artifactId>plexus-classworlds</artifactId>
+			<version>2.4.4-HEXNOVA</version>
+		</dependency>
     </dependencies>
     
     <build>
