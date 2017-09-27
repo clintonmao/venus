@@ -75,11 +75,6 @@ public class MysqlRegisterService implements RegisterService {
 	}
 
 	public void init() {
-		/*
-		if(StringUtils.isBlank(this.getConnectUrl())){
-			this.setConnectUrl("mysql://10.32.173.250:3306/registry_new?username=registry&password=registry");
-		}
-		*/
 		String url = this.getConnectUrl();
 		if (!url.startsWith("mysql://")) {
 			logger.error("URL 参数异常,非jdbc mysql协议,url=>{}", url);

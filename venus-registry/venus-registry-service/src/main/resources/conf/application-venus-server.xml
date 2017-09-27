@@ -13,6 +13,17 @@
 	<bean id="mysqlRegisterService" class="com.meidusa.venus.registry.service.impl.MysqlRegisterService" init-method="init">
 		<property name="connectUrl" value="${register.connectUrl}"></property>
 	</bean>
+	
+	<bean id="clearInvalidService" class="com.meidusa.venus.registry.service.impl.ClearInvalidService" init-method="init">
+		<property name="registerService" ref="mysqlRegisterService" ></property>
+	</bean>
+	
+	<bean id="oLdServiceMappingService" class="com.meidusa.venus.registry.service.impl.OLdServiceMappingService" init-method="init">
+		<property name="registerService" ref="mysqlRegisterService" ></property>
+		<property name="oldConnectUrl" value="${register.oldConnectUrl}" ></property>
+	</bean>
+	
+	
 	<import resource="classpath:/conf/application-venus-placeholder.xml"/>
 	<import resource="classpath:/spring/applicationContext-service-container.xml"/>
 

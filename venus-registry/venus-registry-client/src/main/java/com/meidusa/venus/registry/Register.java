@@ -46,12 +46,6 @@ public interface Register {
     void heartbeat() throws VenusRegisteException;
 
     /**
-     * 清理注册中心服务提供方、消费方无效地址列表
-     * @throws VenusRegisteException
-     */
-    void clearInvalid() throws VenusRegisteException;
-
-    /**
      * 加载服务定义到本地
      * @throws VenusRegisteException
      */

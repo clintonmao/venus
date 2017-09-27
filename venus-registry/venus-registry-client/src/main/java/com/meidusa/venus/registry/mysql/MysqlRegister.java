@@ -73,9 +73,7 @@ public class MysqlRegister implements Register {
 			subcribePath = "D:\\data\\application\\venusLocalSubcribe.txt";
 		}
 		if (!loadRunning) {
-			clearInvalid();// TODO 注册中心单独跑这个就可以
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 5, 10, TimeUnit.SECONDS);
-			GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 5, 60, TimeUnit.SECONDS); // 清理线程
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefineRunnable(), 10, 60, TimeUnit.SECONDS);
 			loadRunning = true;
 		}
@@ -146,22 +144,6 @@ public class MysqlRegister implements Register {
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new HeartBeatRunnable(), 10, heartBeatSecond,
 					TimeUnit.SECONDS);
 			heartbeatRunning = true;
-		}
-	}
-
-	@Override
-	public void clearInvalid() throws VenusRegisteException {
-		int seconds = 10 * heartBeatSecond;
-		int updateSeconds = 12 * heartBeatSecond;
-		try {
-			Date date = getSubSecond(new Date(), seconds);
-			Date updateDate = getSubSecond(new Date(), updateSeconds);
-			DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			String currentDateTime = format.format(date);
-			String updateTime = format.format(updateDate);
-			registerService.clearInvalidService(currentDateTime, updateTime);
-		} catch (Exception e) {
-			logger.error("ClearInvalidRunnable is error", e);
 		}
 	}
 
@@ -316,22 +298,6 @@ public class MysqlRegister implements Register {
 
 		}
 
-	}
-
-	private class ClearInvalidRunnable implements Runnable {
-
-		@Override
-		public void run() {
-			clearInvalid();
-		}
-
-	}
-
-	public static final Date getSubSecond(Date date, int second) {
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(date);
-		calendar.add(Calendar.SECOND, -second);
-		return calendar.getTime();
 	}
 
 	/**

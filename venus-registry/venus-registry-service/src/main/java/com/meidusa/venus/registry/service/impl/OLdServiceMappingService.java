@@ -225,7 +225,7 @@ public class OLdServiceMappingService {
 
 	}
 
-	public static void main(String args[]) {
+/*	public static void main(String args[]) {
 		MysqlRegisterService newDs = new MysqlRegisterService();
 		newDs.setConnectUrl("mysql://localhost:3306/registry_venus?username=root&password=123456");
 		newDs.init();
@@ -235,6 +235,6 @@ public class OLdServiceMappingService {
 		oldDs.setOldConnectUrl("mysql://10.32.173.250:3306/registry?username=registry&password=registry");
 		oldDs.init();
 		oldDs.moveServers();
-	}
+	}*/
 
 }
