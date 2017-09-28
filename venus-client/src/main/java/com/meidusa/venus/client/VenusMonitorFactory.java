@@ -51,10 +51,8 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
     @Override
     public void afterPropertiesSet() throws Exception {
         valid();
-        //初始化configManager
-        initConfigManager();
-        //初始化athenaDataService
-        initAthenaDataService(url);
+
+        init();
     }
 
     /**
@@ -65,6 +63,15 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
             throw new VenusConfigException("url not allow empty.");
         }
     }
+
+    void init(){
+        //初始化configManager
+        initConfigManager();
+
+        //初始化athenaDataService
+        initAthenaDataService(url);
+    }
+
 
     /**
      * 初始化athena配置管理信息

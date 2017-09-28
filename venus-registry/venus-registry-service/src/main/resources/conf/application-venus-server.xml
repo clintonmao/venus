@@ -22,10 +22,11 @@
 		<property name="registerService" ref="mysqlRegisterService" ></property>
 		<property name="oldConnectUrl" value="${register.oldConnectUrl}" ></property>
 	</bean>
-	
-	
+
 	<import resource="classpath:/conf/application-venus-placeholder.xml"/>
+	<!--
 	<import resource="classpath:/spring/applicationContext-service-container.xml"/>
+	-->
 
 	<!--应用配置-->
 	<bean class="com.meidusa.venus.client.Application">
@@ -36,6 +37,12 @@
 	<bean id="venusRegistryFactory" class="com.meidusa.venus.client.VenusRegistryFactory">
 		<property name="url" value="${register.url}"/>
 		<property name="connectUrl" value="${register.connectUrl}"/>
+	</bean>
+
+	<!--venus协议配置-->
+	<bean id="venusProtocol" class="com.meidusa.venus.backend.VenusProtocol">
+		<property name="port" value="${venus.protocol.port}"/>
+		<property name="authenticateProvider" ref="authenticateProvider"/>
 	</bean>
 
 	<!--监控配置-->

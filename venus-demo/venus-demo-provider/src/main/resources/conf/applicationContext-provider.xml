@@ -24,11 +24,10 @@
 
 	<bean id="helloService" class="com.chexiang.venus.demo.provider.impl.DefaultHelloService"/>
 
-	<import resource="classpath:/spring/applicationContext-service-container.xml"/>
-
 	<!--
-	<import resource="file:${project.home:.}/conf/applicationContext-communication-client.xml"/>
+	<import resource="classpath:/spring/applicationContext-service-container.xml"/>
 	-->
+
 	<!--应用配置-->
 	<bean class="com.meidusa.venus.client.Application">
 		<property name="name" value="${application.name}"/>
@@ -40,6 +39,12 @@
 		<!--
 		<property name="connectUrl" value="${register.connectUrl}"/>
 		-->
+	</bean>
+
+	<!--venus协议配置-->
+	<bean id="venusProtocol" class="com.meidusa.venus.backend.VenusProtocol">
+		<property name="port" value="${venus.protocol.port}"/>
+		<property name="authenticateProvider" ref="authenticateProvider"/>
 	</bean>
 
 	<!--监控配置-->
@@ -56,18 +61,18 @@
         </property>
     </bean>
 
-    <bean id="authenticateProvider" class="com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider">
-    	<property name="useDummy" value="true" />
-		<property name="username" value="111" />
-		<property name="password" value="111" />
-    </bean>
-
     <bean id="venusExceptionFactory" class="com.meidusa.venus.exception.XmlVenusExceptionFactory" init-method="init">
 		<property name="configFiles">
 			<list>
 				<value>classpath:com/meidusa/venus/exception/VenusSystemException.xml</value>
 			</list>
 		</property>
+	</bean>
+
+	<bean id="authenticateProvider" class="com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider">
+		<property name="useDummy" value="true" />
+		<property name="username" value="111" />
+		<property name="password" value="111" />
 	</bean>
 
 </beans>

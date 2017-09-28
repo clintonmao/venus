@@ -29,6 +29,15 @@ public class Application implements InitializingBean,BeanFactoryPostProcessor {
     }
 
     /**
+     * 验证名称有效性
+     */
+    void valid(){
+        if(StringUtils.isEmpty(name)){
+            throw new VenusConfigException("name not allow empty.");
+        }
+    }
+
+    /**
      * 初始化
      */
     void init(){
@@ -37,15 +46,6 @@ public class Application implements InitializingBean,BeanFactoryPostProcessor {
         //初始化venus协议，protcol不再单独配置，由application内置默认初始化
         //TODO 通信端口，相关连接配置等，需要单独外部配置
         VenusProtocol.init();
-    }
-
-    /**
-     * 验证名称有效性
-     */
-    void valid(){
-        if(StringUtils.isEmpty(name)){
-            throw new VenusConfigException("name not allow empty.");
-        }
     }
 
     @Override

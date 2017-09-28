@@ -11,6 +11,8 @@ import com.meidusa.venus.URL;
 import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.annotations.PerformanceLevel;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
+import com.meidusa.venus.backend.VenusProtocol;
+import com.meidusa.venus.backend.VenusProtocolContext;
 import com.meidusa.venus.backend.interceptor.Configurable;
 import com.meidusa.venus.backend.interceptor.config.InterceptorConfig;
 import com.meidusa.venus.exception.VenusExceptionLoader;
@@ -36,10 +38,13 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 
+import javax.annotation.PostConstruct;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -47,7 +52,7 @@ import java.util.*;
 /**
  * 基于XML配置服务管理类
  */
-public class XmlFileServiceManager extends AbstractServiceManager implements InitializingBean, BeanFactoryAware {
+public class XmlFileServiceManager extends AbstractServiceManager implements InitializingBean,BeanFactoryPostProcessor,BeanFactoryAware{
 
     private static Logger logger = LoggerFactory.getLogger(XmlFileServiceManager.class);
 
@@ -61,6 +66,10 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
     private Register register;
 
+    //TODO 注入方式
+    @Autowired
+    private VenusProtocol venusProtocol;
+
     public Resource[] getConfigFiles() {
         return configFiles;
     }
@@ -71,6 +80,27 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        //校验
+        valid();
+
+        //初始化
+        init();
+    }
+
+    /**
+     * 校验
+     */
+    void valid(){
+        //VenusProtocol venusProtocol = VenusProtocolContext.getInstance().getVenusProtocol();
+        if(venusProtocol == null){
+            throw new VenusConfigException("venus protocol not config.");
+        }
+    }
+
+    /**
+     * 初始化
+     */
+    void init(){
         //初始化上下文
         initContext();
 
@@ -79,7 +109,12 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
         //初始化配置
         initConfiguration();
+
+        //向venusProtol注册serviceManager配置定义 TODO 注入时机
+        //VenusProtocol venusProtocol = VenusProtocolContext.getInstance().getVenusProtocol();
+        //venusProtocol.registeServiceManager(this);
     }
+
 
     /**
      * 初始化上下文
@@ -414,6 +449,10 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         this.beanFactory = beanFactory;
     }
 
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+    }
+
     /**
      * 获取注册中心
      * @return
@@ -422,4 +461,11 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         return register;
     }
 
+    public VenusProtocol getVenusProtocol() {
+        return venusProtocol;
+    }
+
+    public void setVenusProtocol(VenusProtocol venusProtocol) {
+        this.venusProtocol = venusProtocol;
+    }
 }
