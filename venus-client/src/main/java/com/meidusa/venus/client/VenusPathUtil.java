@@ -27,7 +27,9 @@ public class VenusPathUtil {
                 invocation.getVersion(),
                 invocation.getMethodName()
         );
-        logger.info("methodPath:{}.", methodPath);
+        if(logger.isDebugEnabled()){
+            logger.debug("methodPath:{}.", methodPath);
+        }
         return methodPath;
     }
 }
