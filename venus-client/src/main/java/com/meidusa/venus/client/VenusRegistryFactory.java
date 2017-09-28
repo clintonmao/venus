@@ -81,7 +81,6 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
         if(registerService == null){
             throw new RpcException("init register service failed.");
         }
-        registerService.init();
         return registerService;
     }
 
@@ -106,6 +105,7 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
             }
             RegisterService registerService = (RegisterService) Class.forName("com.meidusa.venus.registry.service.impl.MysqlRegisterService").newInstance();
             registerService.setConnectUrl(connectUrl);
+            registerService.init();
             return registerService;
         } catch (Exception e) {
             throw new RpcException(e);
