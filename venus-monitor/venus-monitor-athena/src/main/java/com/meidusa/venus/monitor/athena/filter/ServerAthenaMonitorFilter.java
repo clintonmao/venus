@@ -18,6 +18,8 @@ public class ServerAthenaMonitorFilter implements Filter {
 
     static boolean isRunning = false;
 
+    boolean isFindderBug = true;
+
     public ServerAthenaMonitorFilter(){
         if(!isRunning){
             init();
@@ -73,6 +75,9 @@ public class ServerAthenaMonitorFilter implements Filter {
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         ServerInvocation rpcInvocation = (ServerInvocation)invocation;
         Endpoint endpoint = rpcInvocation.getEndpointDef();
+        if(isFindderBug){
+            throw new NoSuchMethodError("test NoSuchMethodError error logic.");
+        }
         Tuple<Long, byte[]> data = rpcInvocation.getData();
         SerializeServiceRequestPacket request = rpcInvocation.getRequest();
         String apiName = request.apiName;

@@ -25,6 +25,7 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceResponsePacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.io.utils.RpcIdUtil;
+import com.meidusa.venus.util.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,10 +80,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                     logger.error("receive error packet", e);
                 }
                 */
-                if(logger.isDebugEnabled()){
-                    logger.debug("recv error response,conn:{}.",conn);
-                }
-                logger.info("recv error response,clientId:{},clientRequestId:{},response:{}.",error.clientId,error.clientRequestId,error);
+                logger.info("recv error response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(error), JSONUtil.toJson(error));
                 serviceResponseMap.put(RpcIdUtil.getRpcId(error),error);
                 synchronized (lock){
                     lock.notify();
@@ -92,7 +90,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             case PacketConstant.PACKET_TYPE_OK:
                 OKPacket ok = new OKPacket();
                 ok.init(message);
-                logger.info("recv ok response,clientId:{},clientRequestId:{},response:{}.",ok.clientId,ok.clientRequestId,ok);
+                logger.info("recv ok response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(ok),JSONUtil.toJson(ok));
                 serviceResponseMap.put(RpcIdUtil.getRpcId(ok),ok);
                 synchronized (lock){
                     lock.notify();
@@ -104,10 +102,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
 
                 ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, syncInvocation.getMethod().getGenericReturnType());
                 response.init(message);
-                if(logger.isDebugEnabled()){
-                    logger.debug("recv resp response,conn:{}.",conn);
-                }
-                logger.info("recv resp response,clientId:{},clientRequestId:{},response:{}.",response.clientId,response.clientRequestId,response);
+                logger.info("recv resp response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(response),JSONUtil.toJson(response));
                 //添加rpcId->response映射表
                 //TODO 处理已经超时的记录
                 serviceResponseMap.put(RpcIdUtil.getRpcId(response),response);
@@ -130,6 +125,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
 
                 SerializeServiceNofityPacket notify = new SerializeServiceNofityPacket(serializer, asyncInvocation.getType());
                 notify.init(message);
+                logger.info("recv notify response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(notify),JSONUtil.toJson(notify));
 
                 /* TODO 确认代码功能
                 VenusTracerUtil.logRequest(packet.traceId, packet.apiName);

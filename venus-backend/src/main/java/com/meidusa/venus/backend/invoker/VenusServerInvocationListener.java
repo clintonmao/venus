@@ -4,6 +4,7 @@ import com.meidusa.venus.Result;
 import com.meidusa.venus.backend.invoker.support.ServerResponseWrapper;
 import com.meidusa.venus.backend.invoker.support.ServerResponseHandler;
 import com.meidusa.venus.ServerInvocation;
+import com.meidusa.venus.util.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,8 +51,10 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
 
     @Override
     public void callback(T object) {
-        ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,new Result(object),false);
+        Result result = new Result(object);
+        ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
         try {
+            logger.info("write notify response,result:{}", JSONUtil.toJson(result));
             responseHandler.writeResponseForNotify(responseEntityWrapper);
         } catch (Exception e) {
             logger.error("response callback error.",e);
@@ -67,6 +70,7 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
         result.setException(e);
         ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
         try {
+            logger.info("write notify response,result:{}", JSONUtil.toJson(result));
             responseHandler.writeResponseForNotify(responseEntityWrapper);
         } catch (Exception ex) {
             logger.error("response onException error.",ex);

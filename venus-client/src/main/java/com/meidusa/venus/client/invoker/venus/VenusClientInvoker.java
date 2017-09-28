@@ -23,6 +23,7 @@ import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
+import com.meidusa.venus.util.JSONUtil;
 import com.meidusa.venus.util.VenusAnnotationUtils;
 import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
@@ -202,7 +203,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         Result result = fetchResponse(RpcIdUtil.getRpcId(request));
         //TODO 改为methodPath
         String servicePath = url.getPath();
-        logger.info("fecth response,rpcId:{},servicePath:{},response:{}.",RpcIdUtil.getRpcId(request),servicePath,result);
+        logger.info("fecth response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(request),JSONUtil.toJson(result));
         if(result == null){
             throw new RpcException(String.format("invoke service:%s,timeout:%dms",servicePath,timeout));
         }
@@ -286,7 +287,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
             }
         }
-        logger.info("send request,clientId:{},clientRequestId:{}.",serviceRequestPacket.clientId,serviceRequestPacket.clientRequestId);
         return serviceRequestPacket;
     }
 
@@ -318,7 +318,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
             //发送请求消息，响应由handler类处理
             conn.write(buffer);
-            logger.info("send request,conn:{}.",conn);
+            logger.info("send request,rpcId:{},message:{}.",RpcIdUtil.getRpcId(serviceRequestPacket), JSONUtil.toJson(serviceRequestPacket));
             /* TODO tracer log
             VenusTracerUtil.logRequest(traceID, serviceRequestPacket.apiName, JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
             */

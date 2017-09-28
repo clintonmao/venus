@@ -26,10 +26,12 @@ import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
+import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.util.*;
+import com.saic.framework.athena.site.helper.JsonUtils;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,13 +123,15 @@ public class VenusServerInvokerTask implements Runnable{
     public void handle(VenusFrontendConnection conn, Tuple<Long, byte[]> data) {
         ServerInvocation invocation = null;
         Result result = null;
+        String rpcId = null;
         try {
             //解析请求对象
             invocation = parseInvocation(conn, data);
+            rpcId = RpcIdUtil.getRpcId(invocation.getClientId(),invocation.getClientRequestId());
+            logger.info("recv request,rpcId:{},message:{}.", rpcId,JSONUtil.toJson(invocation));
 
             //通过代理调用服务
             result = getVenusServerInvokerProxy().invoke(invocation, null);
-            logger.info("server response result:{}",result);
         } catch (Exception e) {
             //TODO 处理异常信息丢失、异常信息包装
             result = new Result();
@@ -140,12 +144,16 @@ public class VenusServerInvokerTask implements Runnable{
             ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
 
             if (invocation.getResultType() == EndpointInvocation.ResultType.RESPONSE) {
+                //TODO toJson
+                logger.info("write normal response,rpcId:{},result:{}",rpcId,JSONUtil.toJson(result));
                 responseHandler.writeResponseForResponse(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
+                logger.info("write ok response,rpcId:{},result:{}",rpcId,JSONUtil.toJson(result));
                 responseHandler.writeResponseForOk(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.NOTIFY) {
                 //callback回调异常情况
                 if(result.getErrorCode() != 0){
+                    logger.info("write notify response,rpcId:{},result:{}",rpcId,JSONUtil.toJson(result));
                     responseHandler.writeResponseForNotify(responseEntityWrapper);
                 }
             }
