@@ -68,8 +68,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
      */
     private Register register;
 
-    private static AthenaDataService athenaDataService;
-
     private ClientInvokerProxy clientInvokerProxy;
 
     private static AtomicLong sequenceId = new AtomicLong(1);
@@ -113,29 +111,15 @@ public class InvokerInvocationHandler implements InvocationHandler {
     public ClientInvokerProxy getClientInvokerProxy() {
         if(clientInvokerProxy == null){
             clientInvokerProxy = new ClientInvokerProxy();
+            //TODO auth/exceptionFactory通过懒加载注入
             clientInvokerProxy.setAuthenticator(getAuthenticator());
             clientInvokerProxy.setVenusExceptionFactory(getVenusExceptionFactory());
             //TODO 传递要优化
             clientInvokerProxy.setRegister(register);
             clientInvokerProxy.setRemoteConfig(getRemoteConfig());
-            clientInvokerProxy.setAthenaDataService(getAthenaDataService());
         }
         return clientInvokerProxy;
     }
-
-    /**
-     * 初始化athenaDataService
-     * @return
-     */
-    AthenaDataService getAthenaDataService(){
-        if(athenaDataService != null){
-            return athenaDataService;
-        }
-        athenaDataService = AthenaContext.getInstance().getAthenaDataService();
-        return athenaDataService;
-    }
-
-
 
     /**
      * 构造请求
@@ -230,7 +214,4 @@ public class InvokerInvocationHandler implements InvocationHandler {
         this.serviceFactory = serviceFactory;
     }
 
-    public void setAthenaDataService(AthenaDataService athenaDataService) {
-        InvokerInvocationHandler.athenaDataService = athenaDataService;
-    }
 }

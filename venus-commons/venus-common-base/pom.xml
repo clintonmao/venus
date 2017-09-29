@@ -62,6 +62,10 @@
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.meidusa.toolkit</groupId>
+            <artifactId>fastjson</artifactId>
+        </dependency>
     </dependencies>
 
 	<build>

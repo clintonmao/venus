@@ -6,7 +6,7 @@ import com.meidusa.venus.io.serializer.SerializerFactory;
  * venus协议，初始化protocol、remoting相关定义
  * Created by Zhangzhihua on 2017/9/26.
  */
-public class VenusProtocol {
+public class VenusSerializerFactory {
 
     private static boolean isInited = false;
 

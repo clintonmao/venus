@@ -91,7 +91,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * 校验
      */
     void valid(){
-        //VenusProtocol venusProtocol = VenusProtocolContext.getInstance().getVenusProtocol();
+        //VenusSerializerFactory venusProtocol = VenusProtocolContext.getInstance().getVenusProtocol();
         if(venusProtocol == null){
             throw new VenusConfigException("venus protocol not config.");
         }
@@ -111,7 +111,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         initConfiguration();
 
         //向venusProtol注册serviceManager配置定义 TODO 注入时机
-        //VenusProtocol venusProtocol = VenusProtocolContext.getInstance().getVenusProtocol();
+        //VenusSerializerFactory venusProtocol = VenusProtocolContext.getInstance().getVenusProtocol();
         //venusProtocol.registeServiceManager(this);
     }
 

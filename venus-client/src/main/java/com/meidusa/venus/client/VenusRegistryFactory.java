@@ -37,6 +37,8 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
 
     private Register register;
 
+    private Application application;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         valid();
@@ -167,5 +169,13 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
 
     public void setRegister(Register register) {
         this.register = register;
+    }
+
+    public Application getApplication() {
+        return application;
+    }
+
+    public void setApplication(Application application) {
+        this.application = application;
     }
 }

@@ -45,7 +45,7 @@ public class Application implements InitializingBean,BeanFactoryPostProcessor {
 
         //初始化venus协议，protcol不再单独配置，由application内置默认初始化
         //TODO 通信端口，相关连接配置等，需要单独外部配置
-        VenusProtocol.init();
+        VenusSerializerFactory.init();
     }
 
     @Override

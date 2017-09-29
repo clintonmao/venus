@@ -9,8 +9,6 @@ import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.RpcException;
-import com.meidusa.venus.annotations.ExceptionCode;
-import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.backend.ErrorPacketWrapperException;
 import com.meidusa.venus.backend.invoker.support.ServerRequestHandler;
 import com.meidusa.venus.backend.invoker.support.ServerResponseWrapper;
@@ -31,7 +29,6 @@ import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.util.*;
-import com.saic.framework.athena.site.helper.JsonUtils;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,8 +95,6 @@ public class VenusServerInvokerTask implements Runnable{
 
     private ServerResponseHandler responseHandler = new ServerResponseHandler();
 
-    private static AthenaDataService athenaDataService;
-
     /**
      * 服务调用代理
      */
@@ -128,7 +123,8 @@ public class VenusServerInvokerTask implements Runnable{
             //解析请求对象
             invocation = parseInvocation(conn, data);
             rpcId = RpcIdUtil.getRpcId(invocation.getClientId(),invocation.getClientRequestId());
-            logger.info("recv request,rpcId:{},message:{}.", rpcId,JSONUtil.toJson(invocation));
+            //TODO 日志输出导致字节流被提前读取
+            //logger.info("recv request,rpcId:{},message:{}.", rpcId,JSONUtil.toJSONString(invocation));
 
             //通过代理调用服务
             result = getVenusServerInvokerProxy().invoke(invocation, null);
@@ -145,15 +141,15 @@ public class VenusServerInvokerTask implements Runnable{
 
             if (invocation.getResultType() == EndpointInvocation.ResultType.RESPONSE) {
                 //TODO toJson
-                logger.info("write normal response,rpcId:{},result:{}",rpcId,JSONUtil.toJson(result));
+                logger.info("write normal response,rpcId:{},result:{}",rpcId,JSONUtil.toJSONString(result));
                 responseHandler.writeResponseForResponse(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
-                logger.info("write ok response,rpcId:{},result:{}",rpcId,JSONUtil.toJson(result));
+                logger.info("write ok response,rpcId:{},result:{}",rpcId,JSONUtil.toJSONString(result));
                 responseHandler.writeResponseForOk(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.NOTIFY) {
                 //callback回调异常情况
                 if(result.getErrorCode() != 0){
-                    logger.info("write notify response,rpcId:{},result:{}",rpcId,JSONUtil.toJson(result));
+                    logger.info("write notify response,rpcId:{},result:{}",rpcId,JSONUtil.toJSONString(result));
                     responseHandler.writeResponseForNotify(responseEntityWrapper);
                 }
             }
@@ -169,23 +165,9 @@ public class VenusServerInvokerTask implements Runnable{
     VenusServerInvokerProxy getVenusServerInvokerProxy(){
         if(venusServerInvokerProxy == null){
             venusServerInvokerProxy = new VenusServerInvokerProxy();
-            venusServerInvokerProxy.setAthenaDataService(getAthenaDataService());
         }
         return venusServerInvokerProxy;
     }
-
-    /**
-     * 初始化athenaDataService
-     * @return
-     */
-    AthenaDataService getAthenaDataService(){
-        if(athenaDataService != null){
-            return athenaDataService;
-        }
-        athenaDataService = AthenaContext.getInstance().getAthenaDataService();
-        return athenaDataService;
-    }
-
 
     /**
      * 解析并构造请求对象 TODO 统一接口invocation定义
@@ -278,7 +260,6 @@ public class VenusServerInvokerTask implements Runnable{
 
             Serializer serializer = SerializerFactory.getSerializer(serializeType);
             request = new SerializeServiceRequestPacket(serializer, ep.getParameterTypeDict());
-            logger.info("recv request,messageId:{} reqeust:{}.",request.messageId,request);
 
             packetBuffer.setPosition(0);
             request.init(packetBuffer);

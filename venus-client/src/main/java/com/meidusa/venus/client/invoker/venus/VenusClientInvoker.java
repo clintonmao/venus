@@ -203,7 +203,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         Result result = fetchResponse(RpcIdUtil.getRpcId(request));
         //TODO 改为methodPath
         String servicePath = url.getPath();
-        logger.info("fecth response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(request),JSONUtil.toJson(result));
+        logger.info("fecth response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(request),JSONUtil.toJSONString(result));
         if(result == null){
             throw new RpcException(String.format("invoke service:%s,timeout:%dms",servicePath,timeout));
         }
@@ -318,7 +318,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
             //发送请求消息，响应由handler类处理
             conn.write(buffer);
-            logger.info("send request,rpcId:{},message:{}.",RpcIdUtil.getRpcId(serviceRequestPacket), JSONUtil.toJson(serviceRequestPacket));
+            logger.info("send request,rpcId:{},buff len:{},message:{}.",RpcIdUtil.getRpcId(serviceRequestPacket), buffer.limit(),JSONUtil.toJSONString(serviceRequestPacket));
             /* TODO tracer log
             VenusTracerUtil.logRequest(traceID, serviceRequestPacket.apiName, JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
             */

@@ -7,6 +7,8 @@ import com.meidusa.toolkit.net.authenticate.server.AuthenticateProvider;
 import com.meidusa.toolkit.net.factory.FrontendConnectionFactory;
 import com.meidusa.venus.backend.handler.VenusServerInvokerMessageHandler;
 import com.meidusa.venus.backend.services.ServiceManager;
+import com.meidusa.venus.client.VenusMonitorFactory;
+import com.meidusa.venus.client.VenusRegistryFactory;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.io.network.VenusBackendFrontendConnectionFactory;
 import org.apache.commons.lang.StringUtils;
@@ -33,10 +35,13 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
 
     private MessageHandler messageHandler;
 
-    //@Autowired
+    private ServiceManager serviceManager;
+
     private AuthenticateProvider authenticateProvider;
 
-    private ServiceManager serviceManager;
+    private VenusRegistryFactory venusRegistryFactory;
+
+    private VenusMonitorFactory venusMonitorFactory;
 
     //自定义属性设置 TODO 其它
     private String port;
@@ -80,8 +85,9 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
     ConnectionAcceptor createConnectionAcceptor() throws InitialisationException {
         ConnectionAcceptor connectionAcceptor = new ConnectionAcceptor();
         connectionAcceptor.setName("Service socket Server");
-        connectionAcceptor.setPort(16800);
-        connectionAcceptor.setExecutorSize(32);
+        connectionAcceptor.setPort(Integer.parseInt(port));
+        //TODO 线程数目设定
+        connectionAcceptor.setExecutorSize(1);
         connectionAcceptor.setConnectionFactory(createConnectionFactory());
         return connectionAcceptor;
     }
@@ -92,8 +98,8 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
      */
     FrontendConnectionFactory createConnectionFactory() throws InitialisationException {
         VenusBackendFrontendConnectionFactory connectionFactory = new VenusBackendFrontendConnectionFactory();
-        connectionFactory.setSendBufferSize(16);
-        connectionFactory.setReceiveBufferSize(8);
+        //connectionFactory.setSendBufferSize(16);
+        //connectionFactory.setReceiveBufferSize(8);
         MessageHandler messageHandler = createMessageHandler();
         this.messageHandler = messageHandler;
         connectionFactory.setMessageHandler(messageHandler);
@@ -108,7 +114,8 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
     MessageHandler createMessageHandler() throws InitialisationException {
         //TODO 属性设置
         VenusServerInvokerMessageHandler messageHandler = new VenusServerInvokerMessageHandler();
-        messageHandler.setMaxExecutionThread(128);
+        //TODO 线程数量设定@@@
+        messageHandler.setMaxExecutionThread(1);
         messageHandler.setExecutorProtected(false);
         messageHandler.setExecutorEnabled(false);
         messageHandler.setUseThreadLocalExecutor(false);
@@ -172,5 +179,21 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
 
     public void setAuthenticateProvider(AuthenticateProvider authenticateProvider) {
         this.authenticateProvider = authenticateProvider;
+    }
+
+    public VenusRegistryFactory getVenusRegistryFactory() {
+        return venusRegistryFactory;
+    }
+
+    public void setVenusRegistryFactory(VenusRegistryFactory venusRegistryFactory) {
+        this.venusRegistryFactory = venusRegistryFactory;
+    }
+
+    public VenusMonitorFactory getVenusMonitorFactory() {
+        return venusMonitorFactory;
+    }
+
+    public void setVenusMonitorFactory(VenusMonitorFactory venusMonitorFactory) {
+        this.venusMonitorFactory = venusMonitorFactory;
     }
 }

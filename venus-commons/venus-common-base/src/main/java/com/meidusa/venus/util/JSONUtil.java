@@ -1,12 +1,11 @@
 package com.meidusa.venus.util;
 
+import com.meidusa.fastjson.JSON;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 
 /**
  * JSONUtil,TODO 复用原来JSONUtils
@@ -16,8 +15,9 @@ public class JSONUtil {
 
     private static Logger logger = LoggerFactory.getLogger(JSONUtil.class);
 
-    private static ObjectMapper objectMapper;
+    //private static ObjectMapper objectMapper;
 
+    /*
     static {
         objectMapper = new ObjectMapper();
         // mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
@@ -29,19 +29,15 @@ public class JSONUtil {
         SerializationConfig serializationConfig = objectMapper.getSerializationConfig();
         serializationConfig.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
     }
+    */
 
     /**
      * 转换为字符串
-     * @param o
+     * @param object
      * @return
      * @throws Exception
      */
-    public static String toJson(Object o) {
-        try {
-            return objectMapper.writeValueAsString(o);
-        } catch (IOException e) {
-            logger.error("toJson error.",e);
-            return "toJSON error.";
-        }
+    public static String toJSONString(Object object) {
+        return JSON.toJSONString(object);
     }
 }

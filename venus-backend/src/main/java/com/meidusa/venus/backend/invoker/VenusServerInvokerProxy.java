@@ -3,6 +3,7 @@ package com.meidusa.venus.backend.invoker;
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
 import com.meidusa.venus.backend.filter.valid.ServerValidFilter;
+import com.meidusa.venus.client.AthenaContext;
 import com.meidusa.venus.monitor.athena.filter.ServerAthenaMonitorFilter;
 import com.meidusa.venus.monitor.filter.ServerMonitorFilter;
 
@@ -28,10 +29,11 @@ public class VenusServerInvokerProxy implements Invoker {
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
+        Result result = null;
         try {
             //前置操作，校验、认证、流控、降级
             for(Filter filter : getBeforeFilters()){
-                Result result = filter.beforeInvoke(invocation,null);
+                 result = filter.beforeInvoke(invocation,null);
                 if(result != null){
                     VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
                     return result;
@@ -39,24 +41,30 @@ public class VenusServerInvokerProxy implements Invoker {
             }
 
             //处理调用请求
-            Result result = venusServerInvoker.invoke(invocation,url);
+            result = venusServerInvoker.invoke(invocation,url);
             VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
             return result;
         } catch (Throwable e) {
             VenusThreadContext.set(VenusThreadContext.RESPONSE_EXCEPTION,e);
             //调用异常切面
             for(Filter filter : getThrowFilters()){
-                Result result = filter.throwInvoke(invocation,null,e);
+                result = filter.throwInvoke(invocation,null,e);
                 if(result != null){
                     VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
                     return result;
                 }
             }
+            //TODO catch中异常处理
             throw new RpcException(e);
         } finally {
             //调用后切面
-            for(Filter filter : getAfterFilters()){
-                filter.afterInvoke(invocation, url);
+            try {
+                for(Filter filter : getAfterFilters()){
+                    filter.afterInvoke(invocation, url);
+                }
+            } catch (Throwable e) {
+                //TODO finally异常处理
+                throw new RpcException(e);
             }
         }
     }
@@ -116,10 +124,7 @@ public class VenusServerInvokerProxy implements Invoker {
     }
 
     public AthenaDataService getAthenaDataService() {
-        return athenaDataService;
+        return AthenaContext.getInstance().getAthenaDataService();
     }
 
-    public void setAthenaDataService(AthenaDataService athenaDataService) {
-        this.athenaDataService = athenaDataService;
-    }
 }

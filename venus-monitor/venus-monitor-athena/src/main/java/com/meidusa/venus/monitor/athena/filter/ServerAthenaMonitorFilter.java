@@ -18,7 +18,7 @@ public class ServerAthenaMonitorFilter implements Filter {
 
     static boolean isRunning = false;
 
-    boolean isFindderBug = true;
+    boolean isFindderBug = false;
 
     public ServerAthenaMonitorFilter(){
         if(!isRunning){

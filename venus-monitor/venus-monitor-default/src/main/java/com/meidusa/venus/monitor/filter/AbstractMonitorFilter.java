@@ -196,7 +196,7 @@ public abstract class AbstractMonitorFilter {
                     }
 
                     //上报异常、慢操作数据
-                    logger.info("total detail size:{}.",exceptionDetailQueue.size());
+                    logger.info("monitor detail queue size:{}.",exceptionDetailQueue.size());
                     //TODO 改为批量拿 锁必要性？
                     List<InvocationDetail> exceptionDetailList = new ArrayList<InvocationDetail>();
                     int fetchNum = 50;
@@ -216,7 +216,7 @@ public abstract class AbstractMonitorFilter {
                     }
 
                     //上报服务调用汇总数据 TODO 要不要锁？
-                    logger.info("total statistic size:{}.",statisticMap.size());
+                    logger.info("monitor statistic queue size:{}.",statisticMap.size());
                     Collection<InvocationStatistic> statistics = statisticMap.values();
                     try {
                         if(CollectionUtils.isNotEmpty(statistics)){

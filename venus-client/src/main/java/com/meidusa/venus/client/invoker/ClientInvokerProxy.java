@@ -5,6 +5,7 @@ import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.ClientInvocation;
+import com.meidusa.venus.client.AthenaContext;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.filter.limit.ClientActivesLimitFilter;
@@ -39,11 +40,6 @@ public class ClientInvokerProxy implements Invoker {
      * 认证配置
      */
     private DummyAuthenticator authenticator;
-
-    /**
-     * Athena上报服务
-     */
-    private AthenaDataService athenaDataService;
 
     /**
      * 静态配置地址
@@ -268,10 +264,7 @@ public class ClientInvokerProxy implements Invoker {
     }
 
     public AthenaDataService getAthenaDataService() {
-        return athenaDataService;
+        return AthenaContext.getInstance().getAthenaDataService();
     }
 
-    public void setAthenaDataService(AthenaDataService athenaDataService) {
-        this.athenaDataService = athenaDataService;
-    }
 }

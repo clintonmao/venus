@@ -22,6 +22,8 @@ import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
+import com.meidusa.venus.client.VenusMonitorFactory;
+import com.meidusa.venus.client.VenusRegistryFactory;
 import com.meidusa.venus.client.factory.ServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.factory.xml.config.ServiceConfig;
@@ -114,6 +116,10 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      * 注册中心
      */
     private Register register;
+
+    private VenusRegistryFactory venusRegistryFactory;
+
+    private VenusMonitorFactory venusMonitorFactory;
 
     //private boolean enableReload = false;
     //private int asyncExecutorSize = 10;
@@ -523,4 +529,19 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         this.configFiles = configFiles;
     }
 
+    public VenusRegistryFactory getVenusRegistryFactory() {
+        return venusRegistryFactory;
+    }
+
+    public void setVenusRegistryFactory(VenusRegistryFactory venusRegistryFactory) {
+        this.venusRegistryFactory = venusRegistryFactory;
+    }
+
+    public VenusMonitorFactory getVenusMonitorFactory() {
+        return venusMonitorFactory;
+    }
+
+    public void setVenusMonitorFactory(VenusMonitorFactory venusMonitorFactory) {
+        this.venusMonitorFactory = venusMonitorFactory;
+    }
 }
