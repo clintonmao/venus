@@ -22,12 +22,12 @@ public class ClearInvalidService {
 	private RegisterService registerService;
 
 	public void init() throws Exception {
+		logger.info("ClearInvalidService init ");
 		clearInvalid();
 		GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 5, 60, TimeUnit.SECONDS);
 	}
 
 	public void clearInvalid() throws VenusRegisteException {
-		logger.info("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 		int seconds = 10 * heartBeatSecond;
 		int updateSeconds = 12 * heartBeatSecond;
 		try {
