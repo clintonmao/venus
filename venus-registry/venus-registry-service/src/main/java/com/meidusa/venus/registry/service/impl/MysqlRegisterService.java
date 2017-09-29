@@ -94,11 +94,21 @@ public class MysqlRegisterService implements RegisterService {
 				if (jdbcTemplate == null) {
 					jdbcTemplate = new JdbcTemplate(dataSource);
 				}
-				this.setVenusApplicationDAO(new VenusApplicationDaoImpl(jdbcTemplate));
-				this.setVenusServerDAO(new VenusServerDaoImpl(jdbcTemplate));
-				this.setVenusServiceConfigDAO(new VenusServiceConfigDaoImpl(jdbcTemplate));
-				this.setVenusServiceDAO(new VenusServiceDaoImpl(jdbcTemplate));
-				this.setVenusServiceMappingDAO(new VenusServiceMappingDaoImpl(jdbcTemplate));
+				if (null == this.getVenusApplicationDAO()) {
+					this.setVenusApplicationDAO(new VenusApplicationDaoImpl(jdbcTemplate));
+				}
+				if (null == this.getVenusServerDAO()) {
+					this.setVenusServerDAO(new VenusServerDaoImpl(jdbcTemplate));
+				}
+				if (null == this.getVenusServiceConfigDAO()) {
+					this.setVenusServiceConfigDAO(new VenusServiceConfigDaoImpl(jdbcTemplate));
+				}
+				if (null == this.getVenusServiceDAO()) {
+					this.setVenusServiceDAO(new VenusServiceDaoImpl(jdbcTemplate));
+				}
+				if (null == this.getVenusServiceMappingDAO()) {
+					this.setVenusServiceMappingDAO(new VenusServiceMappingDaoImpl(jdbcTemplate));
+				}
 			}
 		}
 	}
@@ -142,9 +152,10 @@ public class MysqlRegisterService implements RegisterService {
 			serviceId = venusServiceDAO.addService(venusServiceDO);
 		} else {
 			serviceId = service.getId();
-			if (StringUtils.isNotBlank(url.getMethods())) {
-				venusServiceDAO.updateService(url.getMethods(), false, serviceId);
+			if (StringUtils.isBlank(url.getMethods())) {
+				url.setMethods("");
 			}
+			venusServiceDAO.updateService(url.getMethods(), false, serviceId, appId);
 		}
 
 		VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(serverId, serviceId,
