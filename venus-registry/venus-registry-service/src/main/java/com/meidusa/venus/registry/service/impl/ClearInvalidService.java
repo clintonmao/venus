@@ -13,23 +13,34 @@ import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.service.RegisterService;
 
+/**
+ * 服务注册中心清理无效数据服务
+ */
 public class ClearInvalidService {
 
 	private static Logger logger = LoggerFactory.getLogger(ClearInvalidService.class);
 
-	private int heartBeatSecond = 10;
+	//服务提供方、消费方心跳上报间隔时间
+	private int heartBeatInterval = 5;
+
+	//清理定时器间隔时间
+	private int clearTimerInterval = 5;
 
 	private RegisterService registerService;
 
 	public void init() throws Exception {
 		logger.info("ClearInvalidService init ");
 		clearInvalid();
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 5, 60, TimeUnit.SECONDS);
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 5, clearTimerInterval, TimeUnit.SECONDS);
 	}
 
+	/**
+	 * 清理操作
+	 * @throws VenusRegisteException
+	 */
 	public void clearInvalid() throws VenusRegisteException {
-		int seconds = 10 * heartBeatSecond;
-		int updateSeconds = 12 * heartBeatSecond;
+		int seconds = 10 * heartBeatInterval;
+		int updateSeconds = 12 * heartBeatInterval;
 		try {
 			Date date = getSubSecond(new Date(), seconds);
 			Date updateDate = getSubSecond(new Date(), updateSeconds);
@@ -57,12 +68,12 @@ public class ClearInvalidService {
 		this.registerService = registerService;
 	}
 
-	public int getHeartBeatSecond() {
-		return heartBeatSecond;
+	public int getHeartBeatInterval() {
+		return heartBeatInterval;
 	}
 
-	public void setHeartBeatSecond(int heartBeatSecond) {
-		this.heartBeatSecond = heartBeatSecond;
+	public void setHeartBeatInterval(int heartBeatInterval) {
+		this.heartBeatInterval = heartBeatInterval;
 	}
 
 	private class ClearInvalidRunnable implements Runnable {

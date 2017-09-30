@@ -5,8 +5,6 @@ import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.domain.RouterRule;
-import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.registry.service.RegisterService;
 import com.meidusa.venus.registry.VenusRegisteException;
@@ -16,8 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -49,7 +45,14 @@ public class MysqlRegister implements Register {
 
 	private boolean heartbeatRunning = false;
 
-	private int heartBeatSecond = 10;
+	//心跳间隔时间,单位m
+	private int heartBeatInterval = 5;
+
+	//服务定义加载间隔时间
+	private int srvDefLoaderInterval = 10;
+
+	//失败重试间隔时间
+	private int failRetryInterval = 30;
 
 	private RegisterService registerService = null;
 
@@ -73,8 +76,8 @@ public class MysqlRegister implements Register {
 			subcribePath = "D:\\data\\application\\venusLocalSubcribe.txt";
 		}
 		if (!loadRunning) {
-			GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 5, 10, TimeUnit.SECONDS);
-			GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefineRunnable(), 10, 60, TimeUnit.SECONDS);
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 10, failRetryInterval, TimeUnit.SECONDS);
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefLoaderRunnable(), 10, srvDefLoaderInterval, TimeUnit.SECONDS);
 			loadRunning = true;
 		}
 	}
@@ -114,9 +117,7 @@ public class MysqlRegister implements Register {
 			heartbeat();
 		} catch (Exception e) {
 			subscribleFailUrls.add(url);
-			//FIXME 若抛异常，就不要打印error信息了，否则日志会打印两次error
 			logger.error("服务{}订阅异常 ,异常原因：{}", url.getServiceName(), e);
-			//FIXME 此处异常要处理，就不要抛出了，否则会中止流程
 		}
 		subscribleUrls.add(url);
 		load();
@@ -141,7 +142,7 @@ public class MysqlRegister implements Register {
 	@Override
 	public void heartbeat() throws VenusRegisteException {
 		if (!heartbeatRunning) {
-			GlobalScheduler.getInstance().scheduleAtFixedRate(new HeartBeatRunnable(), 10, heartBeatSecond,
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new HeartBeatRunnable(), 10, heartBeatInterval,
 					TimeUnit.SECONDS);
 			heartbeatRunning = true;
 		}
@@ -149,8 +150,6 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public List<VenusServiceDefinitionDO> lookup(URL url) throws VenusRegisteException {
-//		 ServiceDefineRunnable run = new ServiceDefineRunnable();
-//		 run.run();//测试接口时用
 		// 接口名 服务名 版本号 加载服务的server信息及serviceConfig信息
 		// 根据本地 VenusServiceDefinitionDO 列表去查找
 		String key = getKeyFromUrl(url);
@@ -201,15 +200,13 @@ public class MysqlRegister implements Register {
 			for (URL url : subscribleUrls) {
 				String key = getKeyFromUrl(url);
 				try {
-					//FIXME 可能查多条记录，mapping映射结构要改
 					List<VenusServiceDefinitionDO> serviceDefinitions = registerService.findServiceDefinitions(url);
 					if (CollectionUtils.isNotEmpty(serviceDefinitions)) {
-						logger.info("srvDef:{}", serviceDefinitions);
 						subscribleServiceDefinitionMap.put(key, serviceDefinitions);
 						jsons.add(JSON.toJSONString(serviceDefinitions));
 					}
 				} catch (Exception e) {
-					logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
+					logger.error("服务{}ServiceDefLoaderRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
 				}
 			}
 			if (CollectionUtils.isNotEmpty(jsons)) {
@@ -237,11 +234,10 @@ public class MysqlRegister implements Register {
 		subscribleServiceDefinitionMap.clear();
 	}
 
-	private class ServiceDefineRunnable implements Runnable {
+	private class ServiceDefLoaderRunnable implements Runnable {
 		public void run() {
 			load();
 		}
-
 	}
 
 	private class HeartBeatRunnable implements Runnable {

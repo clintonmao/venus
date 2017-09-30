@@ -124,7 +124,7 @@ public class VenusServerInvokerTask implements Runnable{
             invocation = parseInvocation(conn, data);
             rpcId = RpcIdUtil.getRpcId(invocation.getClientId(),invocation.getClientRequestId());
             //TODO 日志输出导致字节流被提前读取
-            //logger.info("recv request,rpcId:{},message:{}.", rpcId,JSONUtil.toJSONString(invocation));
+            logger.info("recv request,rpcId:{},message size:{}.", rpcId,data.getRight().length);
 
             //通过代理调用服务
             result = getVenusServerInvokerProxy().invoke(invocation, null);

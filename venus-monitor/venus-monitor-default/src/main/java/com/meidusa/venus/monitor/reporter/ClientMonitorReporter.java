@@ -29,6 +29,7 @@ public class ClientMonitorReporter extends AbstractMonitorReporter {
         Throwable exception = detail.getException();
 
         MethodCallDetailDO detailDO = new MethodCallDetailDO();
+        //TODO 设置application
         //基本信息
         detailDO.setId(UUIDUtil.create().toString());
         detailDO.setRpcId(clientInvocation.getRpcId());

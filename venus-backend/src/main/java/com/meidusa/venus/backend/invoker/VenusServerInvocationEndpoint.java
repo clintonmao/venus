@@ -7,6 +7,7 @@ import com.meidusa.venus.backend.services.RequestContext;
 import com.meidusa.venus.backend.support.UtilTimerStack;
 import com.meidusa.venus.exception.ServiceInvokeException;
 import com.meidusa.venus.notify.InvocationListener;
+import com.meidusa.venus.util.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +114,7 @@ public class VenusServerInvocationEndpoint implements EndpointInvocation {
                     }
                 }
                 result = ep.getMethod().invoke(ep.getService().getInstance(), parameters);
-                logger.info("result:{}.",result);
+                logger.info("invoke result:{}.", JSONUtil.toJSONString(result));
             } catch (IllegalArgumentException e) {
                 throw new ServiceInvokeException(e);
             } catch (InvocationTargetException e) {

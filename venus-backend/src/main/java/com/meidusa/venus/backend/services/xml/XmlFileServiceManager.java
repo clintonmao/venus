@@ -66,8 +66,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
     private Register register;
 
-    //TODO 注入方式
-    @Autowired
     private VenusProtocol venusProtocol;
 
     public Resource[] getConfigFiles() {
@@ -322,19 +320,21 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @return
      */
     URL parseRegisterUrl(ServiceConfig serviceConfig, Service service){
+        String application = VenusContext.getInstance().getApplication();
         String protocol = "venus";//TODO
         String serviceInterfaceName = serviceConfig.getType().getName();
         String serviceName = service.getName();
         String version = "0.0.0";//TODO
         String host = NetUtil.getLocalIp();
-        String port = "16800";//TODO
+        String port = "16800";//TODO 动态端口
         String methods = "sayHello[java.lang.String]";//TODO
         String registerUrl = String.format(
-                "%s://%s/%s?version=%s&host=%s&port=%s&methods=%s",
+                "%s://%s/%s?version=%s&application=%s&host=%s&port=%s&methods=%s",
                 protocol,
                 serviceInterfaceName,
                 serviceName,
                 version,
+                application,
                 host,
                 port,
                 methods

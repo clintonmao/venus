@@ -5,6 +5,7 @@ import com.meidusa.toolkit.net.ConnectionAcceptor;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.authenticate.server.AuthenticateProvider;
 import com.meidusa.toolkit.net.factory.FrontendConnectionFactory;
+import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.backend.handler.VenusServerInvokerMessageHandler;
 import com.meidusa.venus.backend.services.ServiceManager;
 import com.meidusa.venus.client.VenusMonitorFactory;
@@ -13,15 +14,10 @@ import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.io.network.VenusBackendFrontendConnectionFactory;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-
-import javax.annotation.PostConstruct;
 
 /**
  * venus协议，启动/销毁remoting、设置message handler相关操作
@@ -71,6 +67,7 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
      * 初始化venus协议
      */
     void init() throws Exception{
+        VenusContext.getInstance().setPort(port);
         if(connectionAcceptor == null){
             connectionAcceptor = createConnectionAcceptor();
             //TODO 在serviceManager未初始化之前应关闭接收，处理先后关系
