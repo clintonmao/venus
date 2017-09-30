@@ -28,16 +28,13 @@
 	</bean>
 
 	<!--注册配置-->
-	<bean id="venusRegistryFactory" class="com.meidusa.venus.client.VenusRegistryFactory">
-		<property name="url" value="${register.url}"/>
-		<!--
-		<property name="connectUrl" value="${register.connectUrl}"/>
-		-->
+	<bean id="venusRegistryFactory" class="com.meidusa.venus.registry.VenusRegistryFactory">
+		<property name="registerUrl" value="${register.registerUrl}"/>
 	</bean>
 
 	<!--监控配置-->
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.client.VenusMonitorFactory">
-		<property name="url" value="${monitor.url}"/>
+		<property name="url" value="${monitor.registerUrl}"/>
 	</bean>
 
 	<!--服务引用配置-->

@@ -128,7 +128,7 @@
         <repository>
             <id>saic-framework</id>
             <name>SAIC FRAMEWORK Releases</name>
-            <url>http://maven.dds.com/nexus/content/repositories/saic_framework/</url>
+         registerUrl<url>http://maven.dds.com/nexus/content/repositories/saic_frameworregisterUrl/url>
         </repository>
     </distributionManagement> -->
 </project>

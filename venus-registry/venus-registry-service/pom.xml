@@ -22,11 +22,6 @@
 			<version>3.3.1</version>
 		</dependency>
 		<dependency>
-			<groupId>com.meidusa.venus</groupId>
-			<artifactId>venus-backend</artifactId>
-			<version>3.3.1</version>
-		</dependency>
-		<dependency>
 			<groupId>com.gagu</groupId>
 			<artifactId>gagu-ucm-agent</artifactId>
 			<version>${gagu.ucm.version}</version>
@@ -53,16 +48,8 @@
 	</dependencies>
 
 	<build>
-<!--     <resources>
-        <resource>
-            <directory>src/main/resources</directory>
-            <excludes>
-            	<exclude>logback.xml</exclude>
-            </excludes>
-            <filtering>false</filtering>
-        </resource>
-        </resources> -->
 		<plugins>
+			<!--
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
@@ -84,6 +71,7 @@
 					</execution>
 				</executions>
 			</plugin>
+			-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>

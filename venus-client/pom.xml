@@ -55,6 +55,6 @@
             <artifactId>athena-client</artifactId>
             <version>RELEASE</version>
         </dependency>
-    </dependencies>
+	</dependencies>
 
 </project>

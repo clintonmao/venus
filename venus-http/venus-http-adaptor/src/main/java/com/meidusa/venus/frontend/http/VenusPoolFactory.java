@@ -51,7 +51,7 @@ import com.meidusa.toolkit.common.poolable.ObjectPool;
 import com.meidusa.toolkit.common.poolable.PoolableObjectPool;
 import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.toolkit.util.StringUtil;
-import com.meidusa.venus.client.factory.ServiceFactory;
+import com.meidusa.venus.ServiceFactory;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.io.network.VenusBIOConnectionFactory;
 import com.meidusa.venus.io.packet.PacketConstant;

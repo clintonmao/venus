@@ -63,7 +63,7 @@
     <repositories>
         <repository>
             <id>hexnova-open</id>
-            <url>http://maven.hexnova.com/nexus/content/groups/hexnova-open</url>
+         registerUrl<url>http://maven.hexnova.com/nexus/content/groups/hexnova-opregisterUrl/url>
             <releases>
                 <enabled>true</enabled>
                 <updatePolicy>never</updatePolicy>
@@ -77,7 +77,7 @@
     <pluginRepositories>
         <pluginRepository>
             <id>hexnova-open</id>
-            <url>http://maven.hexnova.com/nexus/content/groups/hexnova-open</url>
+         registerUrl<url>http://maven.hexnova.com/nexus/content/groups/hexnova-opregisterUrl/url>
             <releases>
                 <enabled>true</enabled>
                 <updatePolicy>never</updatePolicy>

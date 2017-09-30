@@ -52,13 +52,20 @@ public interface Register {
     void load() throws VenusRegisteException;
 
     /**
-     * 从本地查找服务定义 TODO 统一查找输入、输出签名
+     * 查找服务定义
      * @param url
      * @return
      * @throws VenusRegisteException
      */
     List<VenusServiceDefinitionDO> lookup(URL url) throws VenusRegisteException;
-    
+
+    /**
+     * 查找服务定义
+     * @param url
+     * @param isQueryFromRegister
+     * @return
+     * @throws VenusRegisteException
+     */
     List<VenusServiceDefinitionDO> lookup(URL url,boolean isQueryFromRegister) throws VenusRegisteException;
 
     /**

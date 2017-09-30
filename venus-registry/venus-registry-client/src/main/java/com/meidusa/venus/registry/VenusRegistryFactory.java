@@ -1,13 +1,12 @@
-package com.meidusa.venus.client;
+package com.meidusa.venus.registry;
 
 import com.meidusa.venus.RpcException;
-import com.meidusa.venus.client.factory.simple.SimpleServiceFactory;
+import com.meidusa.venus.ServiceFactory;
 import com.meidusa.venus.exception.VenusConfigException;
-import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.RegisterContext;
 import com.meidusa.venus.registry.domain.HostPort;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
 import com.meidusa.venus.registry.service.RegisterService;
+import com.meidusa.venus.registry.service.impl.MysqlRegisterService;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,13 +30,23 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
     /**
      * 注册中心url
      */
-    private String url;
+    private String registerUrl;
 
+    /**
+     * 注册中心连接Url
+     */
     private String connectUrl;
 
+    /**
+     * 服务调用工厂
+     */
+    private ServiceFactory serviceFactory;
+
+    /**
+     * 注册服务
+     */
     private Register register;
 
-    private Application application;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -50,8 +59,8 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
      * 校验有效性
      */
     void valid(){
-        if(StringUtils.isEmpty(url)){
-            throw new VenusConfigException("url property not config.");
+        if(StringUtils.isEmpty(registerUrl) && StringUtils.isEmpty(registerUrl)){
+            throw new VenusConfigException("registerUrl or connectUrl property not config.");
         }
     }
 
@@ -64,7 +73,6 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
 
         //实例化register
         Register register = new MysqlRegister(registerService);
-        this.register = register;
         RegisterContext.getInstance().setRegister(register);
     }
 
@@ -73,26 +81,17 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
      * @return
      */
     RegisterService newRegisterService(){
-        //根据配置创建registerService实例，本地依赖或venus远程依赖
         RegisterService registerService = null;
-        if (isInjvm(url)) {
+        //根据配置创建registerService实例，本地依赖或venus远程依赖
+        if(StringUtils.isNotEmpty(registerUrl)){
+            registerService = newVenusRegisterService(registerUrl);
+        }else{
             registerService = newLocalRegisterService(connectUrl);
-        } else {
-            registerService = newVenusRegisterService(url);
         }
         if(registerService == null){
             throw new RpcException("init register service failed.");
         }
         return registerService;
-    }
-
-    /**
-     * 判断是否本地依赖RegisterService
-     * @param url
-     * @return
-     */
-    boolean isInjvm(String url){
-        return url.startsWith("injvm");
     }
 
     /**
@@ -105,9 +104,7 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
             if(StringUtils.isEmpty(connectUrl)){
                 throw new VenusConfigException("connectUrl not config with injvm.");
             }
-            RegisterService registerService = (RegisterService) Class.forName("com.meidusa.venus.registry.service.impl.MysqlRegisterService").newInstance();
-            registerService.setConnectUrl(connectUrl);
-            registerService.init();
+            RegisterService registerService = new MysqlRegisterService(connectUrl);
             return registerService;
         } catch (Exception e) {
             throw new RpcException(e);
@@ -135,10 +132,16 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
 
         //TODO 允许设置多个目标地址
         HostPort hp = hosts.get(new Random().nextInt(hosts.size()));
+        /*
         SimpleServiceFactory ssf = new SimpleServiceFactory(hp.getHost(), hp.getPort());
         ssf.setCoTimeout(60000);
         ssf.setSoTimeout(60000);
         RegisterService registerService = ssf.getService(RegisterService.class);
+        */
+        if(serviceFactory == null){
+            throw new VenusConfigException("serviceFactory not inited.");
+        }
+        RegisterService registerService = serviceFactory.getService(RegisterService.class);
         return registerService;
     }
 
@@ -147,20 +150,20 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
 
     }
 
-    public String getUrl() {
-        return url;
+    public String getRegisterUrl() {
+        return registerUrl;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setRegisterUrl(String registerUrl) {
+        this.registerUrl = registerUrl;
     }
 
-    public String getConnectUrl() {
-        return connectUrl;
+    public ServiceFactory getServiceFactory() {
+        return serviceFactory;
     }
 
-    public void setConnectUrl(String connectUrl) {
-        this.connectUrl = connectUrl;
+    public void setServiceFactory(ServiceFactory serviceFactory) {
+        this.serviceFactory = serviceFactory;
     }
 
     public Register getRegister() {
@@ -171,11 +174,11 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
         this.register = register;
     }
 
-    public Application getApplication() {
-        return application;
+    public String getConnectUrl() {
+        return connectUrl;
     }
 
-    public void setApplication(Application application) {
-        this.application = application;
+    public void setConnectUrl(String connectUrl) {
+        this.connectUrl = connectUrl;
     }
 }

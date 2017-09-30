@@ -16,7 +16,7 @@
 	<!--监控配置-->
 	<!--
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.client.VenusMonitorFactory">
-		<property name="url" value="10.32.174.23:16800"/>
+		<property naregisterUrl"url" value="10.32.174.23:16800"/>
 	</bean>
 	-->
 
@@ -66,8 +66,8 @@
 	<!--
 		注册中心配置
 	 -->
-	<bean id="venusRegistryFactory" class="com.meidusa.venus.client.VenusRegistryFactory">
-		<property name="url" value="injvm://localhost"/>
+	<bean id="venusRegistryFactory" class="com.meidusa.venus.registry.VenusRegistryFactory">
+		<property name="registerUrl" value="injvm://localhost"/>
 	</bean>
 
 	<!--异常配置-->

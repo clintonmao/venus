@@ -7,7 +7,7 @@ import java.util.Map;
 
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.venus.annotations.Endpoint;
-import com.meidusa.venus.client.factory.ServiceFactory;
+import com.meidusa.venus.ServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.exception.CodedException;

@@ -34,8 +34,7 @@
 	</bean>
 
 	<!--注册配置-->
-	<bean id="venusRegistryFactory" class="com.meidusa.venus.client.VenusRegistryFactory">
-		<property name="url" value="${register.url}"/>
+	<bean id="venusRegistryFactory" class="com.meidusa.venus.registry.VenusRegistryFactory">
 		<property name="connectUrl" value="${register.connectUrl}"/>
 	</bean>
 

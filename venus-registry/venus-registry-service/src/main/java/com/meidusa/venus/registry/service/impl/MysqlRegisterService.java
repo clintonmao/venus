@@ -59,7 +59,6 @@ public class MysqlRegisterService implements RegisterService {
 	private String connectUrl;
 
 	public MysqlRegisterService() {
-		
 	}
 
 	/**

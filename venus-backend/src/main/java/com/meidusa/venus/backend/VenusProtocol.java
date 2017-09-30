@@ -9,7 +9,7 @@ import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.backend.handler.VenusServerInvokerMessageHandler;
 import com.meidusa.venus.backend.services.ServiceManager;
 import com.meidusa.venus.client.VenusMonitorFactory;
-import com.meidusa.venus.client.VenusRegistryFactory;
+import com.meidusa.venus.registry.VenusRegistryFactory;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.io.network.VenusBackendFrontendConnectionFactory;
 import org.apache.commons.lang.StringUtils;

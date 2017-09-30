@@ -1,15 +1,13 @@
 package com.meidusa.venus.client.proxy;
 
-import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
-import com.meidusa.venus.client.AthenaContext;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
-import com.meidusa.venus.client.factory.ServiceFactory;
+import com.meidusa.venus.ServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.invoker.ClientInvokerProxy;
 import com.meidusa.venus.exception.VenusExceptionFactory;

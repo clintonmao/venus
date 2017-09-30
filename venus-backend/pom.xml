@@ -65,26 +65,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.meidusa.venus</groupId>
-			<artifactId>venus-remoting</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.meidusa.venus</groupId>
-			<artifactId>venus-registry-client</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.meidusa.venus</groupId>
-			<artifactId>venus-monitor-default</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.meidusa.venus</groupId>
-			<artifactId>venus-monitor-athena</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.meidusa.venus</groupId>
 			<artifactId>venus-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
