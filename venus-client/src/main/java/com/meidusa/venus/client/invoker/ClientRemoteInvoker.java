@@ -10,6 +10,7 @@ import com.meidusa.venus.client.router.condition.ConditionRouter;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.RegisterContext;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
+import com.meidusa.venus.util.JSONUtil;
 import com.meidusa.venus.util.NetUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -52,6 +53,7 @@ public class ClientRemoteInvoker implements Invoker{
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
         //寻址，静态或动态
         List<URL> urlList = lookup(clientInvocation);
+        printProviders(urlList);
 
         //路由规则过滤 TODO 版本号访问控制
         urlList = router.filte(clientInvocation, urlList);
@@ -59,6 +61,21 @@ public class ClientRemoteInvoker implements Invoker{
         //集群容错调用 TODO 若只有一个
         Result result = getClusterInvoker().invoke(invocation, urlList);
         return result;
+    }
+
+    /**
+     * 打印寻址信息
+     * @param urlList
+     */
+    void printProviders(List<URL> urlList){
+        List<String> targets = new ArrayList<String>();
+        if(CollectionUtils.isNotEmpty(urlList)){
+            for(URL url:urlList){
+                String target = String.format("%s:%s",url.getHost(),String.valueOf(url.getPort()));
+                targets.add(target);
+            }
+        }
+        logger.info("lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
     }
 
     @Override
