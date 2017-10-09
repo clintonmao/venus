@@ -1,10 +1,8 @@
 package com.meidusa.venus.registry;
 
 import com.meidusa.venus.RpcException;
-import com.meidusa.venus.ServiceFactory;
 import com.meidusa.venus.ServiceFactoryExtra;
 import com.meidusa.venus.exception.VenusConfigException;
-import com.meidusa.venus.registry.domain.HostPort;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
 import com.meidusa.venus.registry.service.RegisterService;
 import com.meidusa.venus.registry.service.impl.MysqlRegisterService;
@@ -16,11 +14,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
 
 /**
  * Venus注册中心工厂类，负责初始化注册中心
@@ -120,6 +113,7 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
      * @return
      */
     RegisterService newVenusRegisterService(String registerUrl){
+        /*
         String[] split = registerUrl.split(";");
         List<HostPort> hosts = new ArrayList<HostPort>();
         for (int i = 0; i < split.length; i++) {
@@ -132,9 +126,8 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
                 hosts.add(hp);
             }
         }
-
-        //TODO 允许设置多个目标地址
         HostPort hp = hosts.get(new Random().nextInt(hosts.size()));
+        */
         /*
         SimpleServiceFactory ssf = new SimpleServiceFactory(hp.getHost(), hp.getPort());
         ssf.setCoTimeout(60000);
@@ -143,9 +136,9 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
         */
         if(serviceFactoryExtra == null){
             initSimpleServiceFactory();
-            String address = String.format("%s:%s",hp.getHost(),String.valueOf(hp.getPort()));
-            String[] addressArr = {address};
+            //String address = String.format("%s:%s",hp.getHost(),String.valueOf(hp.getPort()));
             //List<String> addressList = Arrays.asList(addresses);
+            String[] addressArr = registerUrl.split(";");
             serviceFactoryExtra.setAddressList(addressArr);
         }
         RegisterService registerService = serviceFactoryExtra.getService(RegisterService.class);
