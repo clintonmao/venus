@@ -130,9 +130,9 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
         factory.setCoTimeout(5 * 1000);//可选,默认5秒
         AthenaDataService athenaDataService = factory.getService(AthenaDataService.class);
         */
-        String[] address = {url};
-        List<String> addressList = Arrays.asList(address);
-        serviceFactoryExtra.setAddressList(addressList);
+        String[] addressArr = {url};
+        //List<String> addressList = Arrays.asList(address);
+        serviceFactoryExtra.setAddressList(addressArr);
         AthenaDataService athenaDataService = serviceFactoryExtra.getService(AthenaDataService.class);
 
         if(athenaDataService == null){

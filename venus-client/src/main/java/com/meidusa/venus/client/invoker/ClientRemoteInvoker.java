@@ -125,14 +125,16 @@ public class ClientRemoteInvoker implements Invoker{
      */
     List<URL> lookupByStatic(ClientInvocation invocation){
         List<URL> urlList = new ArrayList<URL>();
-        //TODO 确认及处理多个地址格式
         String ipAddressList = remoteConfig.getFactory().getIpAddressList();
-        String[] arr = ipAddressList.split(":");
-        URL url = new URL();
-        url.setHost(arr[0]);
-        url.setPort(Integer.parseInt(arr[1]));
-        url.setRemoteConfig(remoteConfig);
-        urlList.add(url);
+        String[] addressArr = ipAddressList.split(";");
+        for(String address:addressArr){
+            String[] arr = address.split(":");
+            URL url = new URL();
+            url.setHost(arr[0]);
+            url.setPort(Integer.parseInt(arr[1]));
+            url.setRemoteConfig(remoteConfig);
+            urlList.add(url);
+        }
         return urlList;
     }
 

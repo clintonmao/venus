@@ -3,13 +3,11 @@ package com.meidusa.venus.client.factory.simple;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.venus.ServiceFactoryExtra;
 import com.meidusa.venus.annotations.Endpoint;
-import com.meidusa.venus.ServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.exception.CodedException;
@@ -20,6 +18,7 @@ import com.meidusa.venus.io.authenticate.Authenticator;
 import com.meidusa.venus.io.authenticate.DummyAuthenticator;
 import com.meidusa.venus.io.packet.DummyAuthenPacket;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * 
@@ -39,12 +38,12 @@ import org.apache.commons.collections.CollectionUtils;
  * @author structchen
  * 
  */
-//TODO 允许设置多个目标地址
 public class SimpleServiceFactory implements ServiceFactoryExtra {
 
-    private String host;
-
-    private int port;
+    /**
+     * 地址列表，如:"192.168.0.1:9000;192.168.0.2:9000"
+     */
+    private String ipAddressList;
 
     /**
      * 读取返回数据包的超时时间
@@ -60,26 +59,23 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
 
     private Authenticator authenticator;
 
+    //TODO 版本号相关信息
     private Map<Class<?>, Tuple<Object, InvokerInvocationHandler>> servicesMap = new HashMap<Class<?>, Tuple<Object, InvokerInvocationHandler>>();
 
     public SimpleServiceFactory() {
     }
 
     public SimpleServiceFactory(String host, int port) {
-        this.host = host;
-        this.port = port;
+        String address = String.format("%s:%s",host,String.valueOf(port));
+        this.ipAddressList = address;
     }
 
     @Override
-    public void setAddressList(List<String> addressList) {
-        if(CollectionUtils.isEmpty(addressList)){
-            throw new VenusConfigException("addressList is empty.");
+    public void setAddressList(String[] addressArr) {
+        if(addressArr == null || addressArr.length == 0){
+            throw new VenusConfigException("addressArr is empty.");
         }
-        //TODO 暂时处理一个地址
-        String address = addressList.get(0);
-        String[] arr = address.split(":");
-        this.host = arr[0];
-        this.port = Integer.parseInt(arr[1]);
+        this.ipAddressList = StringUtils.join(addressArr,";");
     }
 
     public Authenticator getAuthenticator() {
@@ -121,7 +117,7 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
             synchronized (servicesMap) {
                 object = servicesMap.get(t);
                 if (object == null) {
-                    T obj = initService(t, host, port);
+                    T obj = initService(t);
                     return obj;
                 }
             }
@@ -133,15 +129,13 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
     /**
      * 初始化服务代理
      * @param t
-     * @param host
-     * @param port
      * @param <T>
      * @return
      */
-    protected <T> T initService(Class<T> t, String host, int port) {
+    protected <T> T initService(Class<T> t) {
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
         invocationHandler.setServiceInterface(t);
-        invocationHandler.setRemoteConfig(getRemoteConfig(host, port));
+        invocationHandler.setRemoteConfig(ClientRemoteConfig.newInstace(ipAddressList));
 
         if(this.venusExceptionFactory == null){
         	XmlVenusExceptionFactory venusExceptionFactory = new XmlVenusExceptionFactory();
@@ -176,16 +170,6 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
         return object;
     }
 
-    /**
-     * 获取远程配置
-     * @return
-     */
-    ClientRemoteConfig getRemoteConfig(String host, int port){
-        String ipAddress = String.format("%s:%d",host,port);
-        ClientRemoteConfig remoteConfig = ClientRemoteConfig.newInstace(ipAddress);
-        return remoteConfig;
-    }
-
     @Override
     public void destroy() {
         // TODO
@@ -195,4 +179,12 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
 	public <T> T getService(String name, Class<T> t) {
 		return getService(t);
 	}
+
+    public String getIpAddressList() {
+        return ipAddressList;
+    }
+
+    public void setIpAddressList(String ipAddressList) {
+        this.ipAddressList = ipAddressList;
+    }
 }
