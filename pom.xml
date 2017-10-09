@@ -197,31 +197,6 @@
 				<artifactId>venus-common-exception</artifactId>
 				<version>${venus.version}</version>
 			</dependency>
-			<dependency>
-				<groupId>com.meidusa.venus</groupId>
-				<artifactId>venus-client</artifactId>
-				<version>${venus.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.meidusa.venus</groupId>
-				<artifactId>venus-backend</artifactId>
-				<version>${venus.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.meidusa.venus</groupId>
-				<artifactId>venus-http-adaptor</artifactId>
-				<version>${venus.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.meidusa.venus</groupId>
-				<artifactId>venus-http-backend</artifactId>
-				<version>${venus.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.meidusa.venus</groupId>
-				<artifactId>venus-http-filter</artifactId>
-				<version>${venus.version}</version>
-			</dependency>
 			<!-- toolkit -->
 			<dependency>
 				<groupId>com.meidusa.toolkit.commons</groupId>
@@ -275,7 +250,6 @@
 				<artifactId>toolkit-common-pool</artifactId>
 				<version>1.2.8</version>
 			</dependency>
-
 			<dependency>
 				<groupId>com.meidusa.toolkit</groupId>
 				<artifactId>fastmark</artifactId>

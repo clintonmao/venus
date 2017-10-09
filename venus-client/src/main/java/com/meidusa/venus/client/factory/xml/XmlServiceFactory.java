@@ -22,7 +22,7 @@ import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.annotations.util.AnnotationUtil;
-import com.meidusa.venus.client.VenusMonitorFactory;
+import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.registry.VenusRegistryFactory;
 import com.meidusa.venus.ServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
@@ -31,7 +31,7 @@ import com.meidusa.venus.client.factory.xml.config.VenusClientConfig;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanContext;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanUtilsBean;
 import com.meidusa.venus.client.factory.xml.support.ServiceDefinedBean;
-import com.meidusa.venus.client.factory.xml.support.ServiceFactoryBean;
+import com.meidusa.venus.ServiceFactoryBean;
 import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.*;
@@ -221,6 +221,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      * @return
      */
     void initRegister(){
+        //TODO 改由注册工厂获取，这样不存在加载顺序问题
         Register register = RegisterContext.getInstance().getRegister();//MysqlRegister.getInstance(true,null);
         if(register == null){
             throw new RpcException("init register failed.");

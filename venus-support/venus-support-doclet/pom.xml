@@ -111,12 +111,12 @@
         <repository>
             <id>release-open</id>
             <name>Internal Releases</name>
-            <registerUrl>http://maven.hexnova.com/nexus/content/repositories/release-open</registerUrl>
+            <url>http://maven.hexnova.com/nexus/content/repositories/release-open</url>
         </repository>
         <snapshotRepository>
             <id>snapshot-open</id>
             <name>Internal snapshots</name>
-            <registerUrl>http://maven.hexnova.com/nexus/content/repositories/snapshot-open</registerUrl>
+            <url>http://maven.hexnova.com/nexus/content/repositories/snapshot-open</url>
         </snapshotRepository>
     </distributionManagement>
 </project>

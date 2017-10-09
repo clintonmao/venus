@@ -14,7 +14,7 @@
     <modules>
         <module>venus-monitor-athena</module>
         <module>venus-monitor-default</module>
-        <module>venus-monitor-reporter</module>
+        <module>venus-monitor-delegate</module>
     </modules>
 
     <dependencies>
@@ -35,5 +35,12 @@
             <artifactId>venus-common-exception</artifactId>
             <version>3.3.1</version>
         </dependency>
+        <!--
+        <dependency>
+            <groupId>com.saike.athena</groupId>
+            <artifactId>athena-client</artifactId>
+            <version>RELEASE</version>
+        </dependency>
+        -->
     </dependencies>
 </project>

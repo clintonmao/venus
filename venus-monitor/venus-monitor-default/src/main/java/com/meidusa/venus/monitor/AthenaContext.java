@@ -1,4 +1,4 @@
-package com.meidusa.venus.client;
+package com.meidusa.venus.monitor;
 
 import com.athena.service.api.AthenaDataService;
 

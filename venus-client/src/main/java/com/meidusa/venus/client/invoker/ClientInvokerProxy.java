@@ -5,7 +5,7 @@ import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.ClientInvocation;
-import com.meidusa.venus.client.AthenaContext;
+import com.meidusa.venus.monitor.AthenaContext;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.filter.limit.ClientActivesLimitFilter;

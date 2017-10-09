@@ -15,7 +15,7 @@
 
 	<!--监控配置-->
 	<!--
-	<bean id="venusMonitorFactory" class="com.meidusa.venus.client.VenusMonitorFactory">
+	<bean id="venusMonitorFactory" clacom.meidusa.venus.monitor.VenusMonitorFactorytory">
 		<property naregisterUrl"url" value="10.32.174.23:16800"/>
 	</bean>
 	-->

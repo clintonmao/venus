@@ -50,11 +50,6 @@
 			<artifactId>venus-monitor-athena</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-        <dependency>
-            <groupId>com.saike.athena</groupId>
-            <artifactId>athena-client</artifactId>
-            <version>RELEASE</version>
-        </dependency>
 	</dependencies>
 
 </project>

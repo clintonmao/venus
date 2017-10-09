@@ -14,6 +14,8 @@
 
 package com.meidusa.venus;
 
+import java.util.List;
+
 /**
  * 
  * service interface factory used by client
@@ -28,4 +30,5 @@ public interface ServiceFactory {
     <T> T getService(String name, Class<T> t);
 
     void destroy();
+
 }

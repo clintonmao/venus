@@ -3,19 +3,23 @@ package com.meidusa.venus.client.factory.simple;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.meidusa.toolkit.common.util.Tuple;
+import com.meidusa.venus.ServiceFactoryExtra;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.ServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
 import com.meidusa.venus.exception.CodedException;
+import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.exception.XmlVenusExceptionFactory;
 import com.meidusa.venus.io.authenticate.Authenticator;
 import com.meidusa.venus.io.authenticate.DummyAuthenticator;
 import com.meidusa.venus.io.packet.DummyAuthenPacket;
+import org.apache.commons.collections.CollectionUtils;
 
 /**
  * 
@@ -36,7 +40,7 @@ import com.meidusa.venus.io.packet.DummyAuthenPacket;
  * 
  */
 //TODO 允许设置多个目标地址
-public class SimpleServiceFactory implements ServiceFactory {
+public class SimpleServiceFactory implements ServiceFactoryExtra {
 
     private String host;
 
@@ -58,9 +62,24 @@ public class SimpleServiceFactory implements ServiceFactory {
 
     private Map<Class<?>, Tuple<Object, InvokerInvocationHandler>> servicesMap = new HashMap<Class<?>, Tuple<Object, InvokerInvocationHandler>>();
 
+    public SimpleServiceFactory() {
+    }
+
     public SimpleServiceFactory(String host, int port) {
         this.host = host;
         this.port = port;
+    }
+
+    @Override
+    public void setAddressList(List<String> addressList) {
+        if(CollectionUtils.isEmpty(addressList)){
+            throw new VenusConfigException("addressList is empty.");
+        }
+        //TODO 暂时处理一个地址
+        String address = addressList.get(0);
+        String[] arr = address.split(":");
+        this.host = arr[0];
+        this.port = Integer.parseInt(arr[1]);
     }
 
     public Authenticator getAuthenticator() {

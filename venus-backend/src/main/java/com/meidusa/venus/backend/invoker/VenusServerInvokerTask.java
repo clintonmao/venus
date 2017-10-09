@@ -1,6 +1,5 @@
 package com.meidusa.venus.backend.invoker;
 
-import com.athena.service.api.AthenaDataService;
 import com.meidusa.fastbson.exception.SerializeException;
 import com.meidusa.fastjson.JSON;
 import com.meidusa.fastjson.JSONException;
@@ -17,7 +16,6 @@ import com.meidusa.venus.ServerInvocation;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.config.PerformanceLogger;
 import com.meidusa.venus.backend.support.Response;
-import com.meidusa.venus.client.AthenaContext;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.*;

@@ -2,11 +2,13 @@ package com.meidusa.venus.registry;
 
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.ServiceFactory;
+import com.meidusa.venus.ServiceFactoryExtra;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.registry.domain.HostPort;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
 import com.meidusa.venus.registry.service.RegisterService;
 import com.meidusa.venus.registry.service.impl.MysqlRegisterService;
+import com.meidusa.venus.util.ReftorUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +18,7 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -38,9 +41,9 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
     private String connectUrl;
 
     /**
-     * 服务调用工厂
+     * simple服务调用工厂
      */
-    private ServiceFactory serviceFactory;
+    private ServiceFactoryExtra serviceFactoryExtra;
 
     /**
      * 注册服务
@@ -107,7 +110,7 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
             RegisterService registerService = new MysqlRegisterService(connectUrl);
             return registerService;
         } catch (Exception e) {
-            throw new RpcException(e);
+                throw new RpcException(e);
         }
     }
 
@@ -138,10 +141,14 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
         ssf.setSoTimeout(60000);
         RegisterService registerService = ssf.getService(RegisterService.class);
         */
-        if(serviceFactory == null){
-            throw new VenusConfigException("serviceFactory not inited.");
+        if(serviceFactoryExtra == null){
+            initSimpleServiceFactory();
+            String address = String.format("%s:%s",hp.getHost(),String.valueOf(hp.getPort()));
+            String[] addresses = {address};
+            List<String> addressList = Arrays.asList(addresses);
+            serviceFactoryExtra.setAddressList(addressList);
         }
-        RegisterService registerService = serviceFactory.getService(RegisterService.class);
+        RegisterService registerService = serviceFactoryExtra.getService(RegisterService.class);
         return registerService;
     }
 
@@ -158,13 +165,19 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
         this.registerUrl = registerUrl;
     }
 
-    public ServiceFactory getServiceFactory() {
-        return serviceFactory;
+    /**
+     * 初始化simpleServiceFactory
+     */
+    void initSimpleServiceFactory(){
+        String className = "com.meidusa.venus.client.factory.simple.SimpleServiceFactory";
+        Object obj = ReftorUtil.newInstance(className);
+        if(obj == null){
+            throw new VenusConfigException("init simpleServiceFactory failed.");
+        }
+        this.serviceFactoryExtra = (ServiceFactoryExtra)obj;
     }
 
-    public void setServiceFactory(ServiceFactory serviceFactory) {
-        this.serviceFactory = serviceFactory;
-    }
+
 
     public Register getRegister() {
         return register;

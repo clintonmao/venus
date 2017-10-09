@@ -39,8 +39,8 @@
 	</bean>
 
 	<!--监控配置-->
-	<bean id="venusMonitorFactory" class="com.meidusa.venus.client.VenusMonitorFactory">
-		<property name="url" value="${monitor.registerUrl}"/>
+	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
+		<property name="url" value="${monitor.url}"/>
 	</bean>
 
 	<!--venus协议配置-->

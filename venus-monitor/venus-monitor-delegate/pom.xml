@@ -10,7 +10,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>venus-monitor-reporter</artifactId>
+    <artifactId>venus-monitor-delegate</artifactId>
 
     <dependencies>
         <dependency>
