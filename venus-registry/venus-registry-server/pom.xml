@@ -10,7 +10,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>venus-registry-server</artifactId>
-
+	<properties>
+		<project.home>${basedir}</project.home>
+		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+	</properties>
+	
     <dependencies>
         <dependency>
             <groupId>com.meidusa.venus</groupId>
