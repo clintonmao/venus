@@ -5,7 +5,6 @@ import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.monitor.config.ClientConfigManagerDelegate;
 import com.saic.framework.athena.configuration.ClientConfigManager;
 import com.saic.framework.athena.configuration.DefaultClientConfigManager;
-import com.sun.deploy.util.SessionState;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
