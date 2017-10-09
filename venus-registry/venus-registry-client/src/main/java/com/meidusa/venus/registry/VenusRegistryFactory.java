@@ -62,7 +62,7 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
      * 校验有效性
      */
     void valid(){
-        if(StringUtils.isEmpty(registerUrl) && StringUtils.isEmpty(registerUrl)){
+        if(StringUtils.isEmpty(registerUrl) && StringUtils.isEmpty(connectUrl)){
             throw new VenusConfigException("registerUrl or connectUrl property not config.");
         }
     }
