@@ -144,9 +144,9 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
         if(serviceFactoryExtra == null){
             initSimpleServiceFactory();
             String address = String.format("%s:%s",hp.getHost(),String.valueOf(hp.getPort()));
-            String[] addresses = {address};
-            List<String> addressList = Arrays.asList(addresses);
-            serviceFactoryExtra.setAddressList(addressList);
+            String[] addressArr = {address};
+            //List<String> addressList = Arrays.asList(addresses);
+            serviceFactoryExtra.setAddressList(addressArr);
         }
         RegisterService registerService = serviceFactoryExtra.getService(RegisterService.class);
         return registerService;
