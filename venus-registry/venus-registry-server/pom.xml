@@ -13,6 +13,7 @@
 	<properties>
 		<project.home>${basedir}</project.home>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+		<gagu.ucm.version>0.0.1-SNAPSHOT</gagu.ucm.version>
 	</properties>
 	
     <dependencies>
@@ -40,6 +41,25 @@
 		  <groupId>org.springframework</groupId>
 		  <artifactId>spring-expression</artifactId>
 		  <version>3.2.4.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>com.gagu</groupId>
+			<artifactId>gagu-ucm-agent</artifactId>
+			<version>${gagu.ucm.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>spring-beans</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>spring-context</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>spring-core</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
     </dependencies>
 
