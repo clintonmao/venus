@@ -4,6 +4,7 @@ import com.athena.domain.MethodCallDetailDO;
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.URL;
+import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.monitor.filter.AbstractMonitorFilter;
 import com.meidusa.venus.util.UUIDUtil;
 import org.slf4j.Logger;
@@ -41,6 +42,7 @@ public class ClientMonitorReporter extends AbstractMonitorReporter {
         }
         detailDO.setSourceType(detail.getFrom());
         //请求信息
+        //String appName = VenusContext.getInstance().getApplication();
         detailDO.setServiceName(clientInvocation.getServiceName());
         if(clientInvocation.getServiceInterface() != null){
             detailDO.setInterfaceName(clientInvocation.getServiceInterface().getName());
