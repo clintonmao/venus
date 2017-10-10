@@ -339,6 +339,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         if(StringUtils.isNotEmpty(serviceConfig.getRemote()) || StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
             return;
         }
+        String application = VenusContext.getInstance().getApplication();
         String serviceInterfaceName = null;
         if(serviceConfig.getType() != null){
             serviceInterfaceName = serviceConfig.getType().getName();
@@ -348,14 +349,15 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         String consumerHost = NetUtil.getLocalIp();
 
         String subscribleUrl = String.format(
-                "subscrible://%s/%s?version=%s&host=%s",
+                "subscrible://%s/%s?version=%s&application=%s&host=%s",
                 serviceInterfaceName,
                 serivceName,
                 version,
+                application,
                 consumerHost
                 );
         com.meidusa.venus.URL url = com.meidusa.venus.URL.parse(subscribleUrl);
-        logger.info("sbuscrible service:{}",url);
+        logger.info("subscrible service:{}",url);
         register.subscrible(url);
     }
 

@@ -113,31 +113,8 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
      * @return
      */
     RegisterService newVenusRegisterService(String registerUrl){
-        /*
-        String[] split = registerUrl.split(";");
-        List<HostPort> hosts = new ArrayList<HostPort>();
-        for (int i = 0; i < split.length; i++) {
-            String str = split[i];
-            String[] split2 = str.split(":");
-            if (split2.length > 1) {
-                String host = split2[0];
-                String port = split2[1];
-                HostPort hp = new HostPort(host, Integer.parseInt(port));
-                hosts.add(hp);
-            }
-        }
-        HostPort hp = hosts.get(new Random().nextInt(hosts.size()));
-        */
-        /*
-        SimpleServiceFactory ssf = new SimpleServiceFactory(hp.getHost(), hp.getPort());
-        ssf.setCoTimeout(60000);
-        ssf.setSoTimeout(60000);
-        RegisterService registerService = ssf.getService(RegisterService.class);
-        */
         if(serviceFactoryExtra == null){
             initSimpleServiceFactory();
-            //String address = String.format("%s:%s",hp.getHost(),String.valueOf(hp.getPort()));
-            //List<String> addressList = Arrays.asList(addresses);
             String[] addressArr = registerUrl.split(";");
             serviceFactoryExtra.setAddressList(addressArr);
         }
@@ -169,7 +146,6 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
         }
         this.serviceFactoryExtra = (ServiceFactoryExtra)obj;
     }
-
 
 
     public Register getRegister() {
