@@ -346,8 +346,8 @@
 			</plugin>
 		</plugins>
 	</build>
-
-<!-- 	<repositories>
+<!--
+ 	<repositories>
 		<repository>
 			<id>release-open</id>
 			<url>http://maven.hexnova.com/nexus/content/groups/hexnova-open</url>
@@ -390,6 +390,21 @@
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories> -->
+	
+	 <repositories>
+		<repository>
+			<id>release-open</id>
+			<url>http://maven.dds.com/nexus/content/repositories/saic_framework_snapshot</url>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
+		</repository>
+	</repositories>
 	
 	<distributionManagement>
 	  <repository>
