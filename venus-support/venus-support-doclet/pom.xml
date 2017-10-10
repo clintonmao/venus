@@ -5,7 +5,7 @@
     <parent>
         <artifactId>venus-support</artifactId>
         <groupId>com.meidusa.venus</groupId>
-        <version>3.3.1</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -91,7 +91,7 @@
         <dependency>
             <groupId>com.meidusa.venus.commons</groupId>
             <artifactId>venus-common-annotation</artifactId>
-            <version>3.3.1</version>
+            <version>4.0.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <build>
@@ -107,7 +107,7 @@
             </plugin>
         </plugins>
     </build>
-    <distributionManagement>
+<!--     <distributionManagement>
         <repository>
             <id>release-open</id>
             <name>Internal Releases</name>
@@ -118,5 +118,5 @@
             <name>Internal snapshots</name>
             <url>http://maven.hexnova.com/nexus/content/repositories/snapshot-open</url>
         </snapshotRepository>
-    </distributionManagement>
+    </distributionManagement> -->
 </project>

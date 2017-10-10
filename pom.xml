@@ -4,13 +4,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.meidusa.venus</groupId>
 	<artifactId>venus</artifactId>
-	<version>3.3.1</version>
+	<version>4.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	
 	<name>${project.artifactId} v${project.version}</name>
 	<properties>
 		<spring.version>3.2.4.RELEASE</spring.version>
-		<venus.version>3.3.1</venus.version>
+		<venus.version>4.0.0-SNAPSHOT</venus.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.5</slf4j.version>
 		<logback.version>1.0.13</logback.version>
@@ -347,11 +347,10 @@
 		</plugins>
 	</build>
 
-	<!--
-	<repositories>
+<!-- 	<repositories>
 		<repository>
 			<id>release-open</id>
-registerUrl<url>http://maven.hexnova.com/nexus/content/groups/hexnova-opregisterUrl/url>
+			<url>http://maven.hexnova.com/nexus/content/groups/hexnova-open</url>
 			<releases>
 				<enabled>true</enabled>
 				<updatePolicy>never</updatePolicy>
@@ -362,26 +361,25 @@ registerUrl<url>http://maven.hexnova.com/nexus/content/groups/hexnova-opregister
 			</snapshots>
 		</repository>
 	</repositories>
-	-->
 
-	<!--
+	
 	<distributionManagement>
 		<repository>
 			<id>release-open</id>
 			<name>Internal Releases</name>
-registerUrl<url>http://maven.hexnova.com/nexus/content/repositories/release-opregisterUrl/url>
+			<url>http://maven.hexnova.com/nexus/content/repositories/release-open</url>
 		</repository>
 		<snapshotRepository>
 			<id>release-open</id>
 			<name>Internal snapshots</name>
-registerUrl<url>http://maven.hexnova.com/nexus/content/repositories/snapshot-opregisterUrl/url>
+			<url>http://maven.hexnova.com/nexus/content/repositories/snapshot-open</url>
 		</snapshotRepository>
 	</distributionManagement>
 
 	<pluginRepositories>
 		<pluginRepository>
 			<id>hexnova-open</id>
-registerUrl<url>http://maven.hexnova.com/nexus/content/groups/hexnova-opregisterUrl/url>
+			<url>http://maven.hexnova.com/nexus/content/groups/hexnova-open</url>
 			<releases>
 				<enabled>true</enabled>
 				<updatePolicy>never</updatePolicy>
@@ -391,6 +389,17 @@ registerUrl<url>http://maven.hexnova.com/nexus/content/groups/hexnova-opregister
 				<updatePolicy>always</updatePolicy>
 			</snapshots>
 		</pluginRepository>
-	</pluginRepositories>
-	-->
+	</pluginRepositories> -->
+	
+	<distributionManagement>
+	  <repository>
+	    <id>releases</id>
+	    <url>http://maven.dds.com/nexus/content/repositories/saic_framework</url>
+	  </repository>
+	   <snapshotRepository>
+	    <id>snapshots</id>
+	    <url>http://maven.dds.com/nexus/content/repositories/saic_framework_snapshot/</url>
+	  </snapshotRepository>
+	</distributionManagement>
+	
 </project>

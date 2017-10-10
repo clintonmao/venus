@@ -5,7 +5,7 @@
     <parent>
         <artifactId>venus-bus</artifactId>
         <groupId>com.meidusa.venus</groupId>
-        <version>3.3.1</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -67,32 +67,32 @@
         <dependency>
             <groupId>com.meidusa.venus.commons</groupId>
             <artifactId>venus-common-base</artifactId>
-            <version>3.3.1</version>
+            <version>4.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus.commons</groupId>
             <artifactId>venus-common-exception</artifactId>
-            <version>3.3.1</version>
+            <version>4.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus.commons</groupId>
             <artifactId>venus-common-validator</artifactId>
-            <version>3.3.1</version>
+            <version>4.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-bus-remoting</artifactId>
-            <version>3.3.1</version>
+            <version>4.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-backend</artifactId>
-            <version>3.3.1</version>
+            <version>4.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-client</artifactId>
-            <version>3.3.1</version>
+            <version>4.0.0-SNAPSHOT</version>
         </dependency>
         <!--运行依赖-->
         <dependency>
@@ -103,8 +103,8 @@
         <!--运行依赖-->
         <dependency>
             <groupId>com.meidusa.venus</groupId>
-            <artifactId>venus-monitor-reporter</artifactId>
-            <version>3.3.1</version>
+            <artifactId>venus-monitor-delegate</artifactId>
+            <version>4.0.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

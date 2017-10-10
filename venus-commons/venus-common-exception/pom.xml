@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.meidusa.venus.commons</groupId>
 		<artifactId>venus-commons</artifactId>
-		<version>3.3.1</version>
+		<version>4.0.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>venus-common-exception</artifactId>
@@ -22,12 +22,12 @@
 		<dependency>
 			<groupId>com.meidusa.venus.commons</groupId>
 			<artifactId>venus-common-annotation</artifactId>
-			<version>3.3.1</version>
+			<version>4.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.meidusa.venus.commons</groupId>
 			<artifactId>venus-common-base</artifactId>
-			<version>3.3.1</version>
+			<version>4.0.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 
