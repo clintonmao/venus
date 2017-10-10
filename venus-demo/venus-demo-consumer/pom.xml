@@ -145,6 +145,12 @@
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-registry-service</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+            	<exclusion>
+            		<groupId>javax.servlet</groupId>
+            		<artifactId>servlet-api</artifactId>
+            	</exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus</groupId>
