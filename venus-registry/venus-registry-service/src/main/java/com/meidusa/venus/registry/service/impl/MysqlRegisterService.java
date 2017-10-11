@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import com.meidusa.fastjson.JSON;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.dao.VenusApplicationDAO;
@@ -350,13 +351,18 @@ public class MysqlRegisterService implements RegisterService {
 				}
 			}
 			if (CollectionUtils.isNotEmpty(hostPortSet)) {
+				VenusApplicationDO application = venusApplicationDAO.getApplication(service.getAppId());
 				VenusServiceDefinitionDO def = new VenusServiceDefinitionDO();
 				def.setInterfaceName(interfaceName);
 				def.setName(serviceName);
 				def.setIpAddress(hostPortSet);
 				def.setActive(true);
 				def.setDescription(service.getDescription());
-				def.setVersionRange(version);
+				def.setVersion(service.getVersion());
+				def.setVersionRange(service.getVersion());
+				if (null != application) {
+					def.setProvider(application.getAppCode());
+				}
 				List<VenusServiceConfigDO> serviceConfigs = venusServiceConfigDAO.getServiceConfigs(serviceId);
 				ResultUtils.setServiceConfigs(serviceConfigs);
 				def.setServiceConfigs(serviceConfigs);
@@ -532,6 +538,7 @@ public class MysqlRegisterService implements RegisterService {
 			}
 
 			if (CollectionUtils.isNotEmpty(delete_mapping_ids)) {
+				logger.info("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@=>" + currentDateTime + ",delete_mapping_ids=>" + JSON.toJSONString(delete_mapping_ids, true));
 				venusServiceMappingDAO.deleteServiceMappings(delete_mapping_ids);
 			}
 
