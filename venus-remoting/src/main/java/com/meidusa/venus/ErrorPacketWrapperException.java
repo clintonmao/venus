@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend;
+package com.meidusa.venus;
 
 import com.meidusa.venus.io.packet.ErrorPacket;
 

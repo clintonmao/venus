@@ -2,7 +2,7 @@ package com.meidusa.venus.backend.filter.valid;
 
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.venus.*;
-import com.meidusa.venus.backend.ErrorPacketWrapperException;
+import com.meidusa.venus.ErrorPacketWrapperException;
 import com.meidusa.venus.ServerInvocation;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.services.Service;

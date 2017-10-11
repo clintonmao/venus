@@ -3,7 +3,7 @@ package com.meidusa.venus.bus.handler;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.venus.Result;
-import com.meidusa.venus.backend.ErrorPacketWrapperException;
+import com.meidusa.venus.ErrorPacketWrapperException;
 import com.meidusa.venus.bus.BusInvocation;
 import com.meidusa.venus.bus.dispatch.BusDispatcherProxy;
 import com.meidusa.venus.bus.network.BusFrontendConnection;

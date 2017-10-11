@@ -8,7 +8,7 @@ import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.RpcException;
-import com.meidusa.venus.backend.ErrorPacketWrapperException;
+import com.meidusa.venus.ErrorPacketWrapperException;
 import com.meidusa.venus.backend.invoker.support.ServerRequestHandler;
 import com.meidusa.venus.backend.invoker.support.ServerResponseWrapper;
 import com.meidusa.venus.backend.invoker.support.ServerResponseHandler;
