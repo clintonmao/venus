@@ -2,6 +2,7 @@ package com.meidusa.venus.client;
 
 import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.exception.VenusConfigException;
+import com.meidusa.venus.io.serializer.SerializerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -18,6 +19,8 @@ public class Application implements InitializingBean,BeanFactoryPostProcessor {
      * 应用名称
      */
     private String name;
+
+    private static boolean isInitedSerializer = false;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -45,7 +48,17 @@ public class Application implements InitializingBean,BeanFactoryPostProcessor {
 
         //初始化venus协议，protcol不再单独配置，由application内置默认初始化
         //TODO 通信端口，相关连接配置等，需要单独外部配置
-        VenusSerializerFactory.init();
+        initSerializer();
+    }
+
+    /**
+     * 初始化序列化
+     */
+    void initSerializer(){
+        if(!isInitedSerializer){
+            //初始化序列化配置
+            SerializerFactory.init();
+        }
     }
 
     @Override

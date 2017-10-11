@@ -1,4 +1,4 @@
-package com.meidusa.venus.client;
+package com.meidusa.venus.support;
 
 import com.meidusa.venus.Invocation;
 import com.meidusa.venus.URL;
