@@ -9,7 +9,9 @@ public interface VenusServiceMappingDAO {
 
 	boolean addServiceMapping(VenusServiceMappingDO venusServiceMappingDO) throws DAOException;
 
-	boolean updateServiceMapping(int id, boolean active, boolean isDelete) throws DAOException;
+	boolean updateSubcribeServiceMapping(int id,int consumerAppId,boolean active, boolean isDelete) throws DAOException;
+	
+	boolean updateProviderServiceMapping(int id, boolean active, boolean isDelete,int providerAppId) throws DAOException;
 
 	boolean updateServiceMappingHeartBeatTime(int serverId, int serviceId, String version, String role)
 			throws DAOException;

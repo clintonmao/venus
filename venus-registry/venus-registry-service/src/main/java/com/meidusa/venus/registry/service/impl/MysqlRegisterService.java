@@ -173,7 +173,7 @@ public class MysqlRegisterService implements RegisterService {
 			venusServiceMappingDO.setIsDelete(false);
 			venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
 		} else {
-			venusServiceMappingDAO.updateServiceMapping(serviceMapping.getId(), true, false);
+			venusServiceMappingDAO.updateProviderServiceMapping(serviceMapping.getId(), true, false,appId);
 			String oldVersion = serviceMapping.getVersion();// 有区间的version需特殊处理
 
 		}
@@ -292,7 +292,7 @@ public class MysqlRegisterService implements RegisterService {
 			venusServiceMappingDO.setConsumerAppId(appId);
 			venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
 		} else {
-			venusServiceMappingDAO.updateServiceMapping(serviceMapping.getId(), true, false);
+			venusServiceMappingDAO.updateSubcribeServiceMapping(serviceMapping.getId(),appId, true, false);
 		}
 		}
 	}

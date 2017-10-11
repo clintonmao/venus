@@ -142,7 +142,7 @@ public class MysqlRegister implements Register {
 	@Override
 	public void heartbeat() throws VenusRegisteException {
 		if (!heartbeatRunning) {
-			GlobalScheduler.getInstance().scheduleAtFixedRate(new HeartBeatRunnable(), 10, heartBeatInterval,
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new HeartBeatRunnable(), 5, heartBeatInterval,
 					TimeUnit.SECONDS);
 			heartbeatRunning = true;
 		}
