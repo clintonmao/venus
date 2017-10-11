@@ -28,9 +28,19 @@ public class VenusServiceDefinitionDO implements ServiceDefinitionDO {
 	private String interfaceName;
 
 	/**
-	 * 服务版本范围
+	 * 版本号
+	 */
+	private String version;
+
+	/**
+	 * 服务版本范围 TODO 兼容性处理
 	 */
 	private String versionRange;
+
+	/**
+	 * 服务提供方
+	 */
+	private String provider;
 
 	/**
 	 * 是否激活状态
@@ -42,10 +52,10 @@ public class VenusServiceDefinitionDO implements ServiceDefinitionDO {
 	 */
 	private Set<String> ipAddress;
 
-	private String description;
-
 	/** 服务配置信息 */
 	private List<VenusServiceConfigDO> serviceConfigs = new ArrayList<VenusServiceConfigDO>();
+
+	private String description;
 
 	public String getName() {
 		return name;
@@ -93,6 +103,22 @@ public class VenusServiceDefinitionDO implements ServiceDefinitionDO {
 
 	public void setServiceConfigs(List<VenusServiceConfigDO> serviceConfigs) {
 		this.serviceConfigs = serviceConfigs;
+	}
+
+	public String getVersion() {
+		return version;
+	}
+
+	public void setVersion(String version) {
+		this.version = version;
+	}
+
+	public String getProvider() {
+		return provider;
+	}
+
+	public void setProvider(String provider) {
+		this.provider = provider;
 	}
 
 	public int hashCode() {

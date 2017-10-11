@@ -58,6 +58,10 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
         invocationDetail.setResponseTime(new Date());
         invocationDetail.setResult(result);
         invocationDetail.setException(e);
+        String consumerApp = VenusContext.getInstance().getApplication();
+        logger.info("consumerApp:{}.",consumerApp);
+        String providerApp = url.getApplication();
+        logger.info("providerApp:{}.",providerApp);
 
         putInvocationDetailQueue(invocationDetail);
         return null;

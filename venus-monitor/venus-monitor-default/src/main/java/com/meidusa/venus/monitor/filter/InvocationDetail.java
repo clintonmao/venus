@@ -25,6 +25,16 @@ public class InvocationDetail {
     int from;
 
     /**
+     * 消费应用名称
+     */
+    String consumerApp;
+
+    /**
+     * 提供应用名称
+     */
+    String providerApp;
+
+    /**
      * 请求对象
      */
     Invocation invocation;
@@ -95,5 +105,21 @@ public class InvocationDetail {
 
     public void setException(Throwable exception) {
         this.exception = exception;
+    }
+
+    public String getConsumerApp() {
+        return consumerApp;
+    }
+
+    public void setConsumerApp(String consumerApp) {
+        this.consumerApp = consumerApp;
+    }
+
+    public String getProviderApp() {
+        return providerApp;
+    }
+
+    public void setProviderApp(String providerApp) {
+        this.providerApp = providerApp;
     }
 }
