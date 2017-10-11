@@ -222,7 +222,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      */
     void initRegister(){
         //TODO 改由注册工厂获取，这样不存在加载顺序问题
-        Register register = RegisterContext.getInstance().getRegister();//MysqlRegister.getInstance(true,null);
+        Register register = RegisterContext.getInstance().getRegister();
         if(register == null){
             throw new RpcException("init register failed.");
         }

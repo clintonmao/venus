@@ -1,12 +1,9 @@
 package com.meidusa.venus.client.factory.simple;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.meidusa.toolkit.common.util.Tuple;
+import com.meidusa.venus.RpcException;
 import com.meidusa.venus.ServiceFactoryExtra;
+import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
@@ -17,8 +14,17 @@ import com.meidusa.venus.exception.XmlVenusExceptionFactory;
 import com.meidusa.venus.io.authenticate.Authenticator;
 import com.meidusa.venus.io.authenticate.DummyAuthenticator;
 import com.meidusa.venus.io.packet.DummyAuthenPacket;
-import org.apache.commons.collections.CollectionUtils;
+import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.registry.RegisterContext;
+import com.meidusa.venus.util.NetUtil;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 
@@ -39,6 +45,8 @@ import org.apache.commons.lang.StringUtils;
  * 
  */
 public class SimpleServiceFactory implements ServiceFactoryExtra {
+
+    private static Logger logger = LoggerFactory.getLogger(SimpleServiceFactory.class);
 
     /**
      * 地址列表，如:"192.168.0.1:9000;192.168.0.2:9000"
@@ -61,6 +69,11 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
 
     //TODO 版本号相关信息
     private Map<Class<?>, Tuple<Object, InvokerInvocationHandler>> servicesMap = new HashMap<Class<?>, Tuple<Object, InvokerInvocationHandler>>();
+
+    /**
+     * 注册中心client
+     */
+    private Register register;
 
     public SimpleServiceFactory() {
     }
@@ -127,21 +140,46 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
     }
 
     /**
-     * 初始化服务代理
+     * 初始化服务
      * @param t
      * @param <T>
      * @return
      */
     protected <T> T initService(Class<T> t) {
+        //初始化服务代理
+        T serviceProxy = initServiceProxy(t);
+
+        //若需要订阅服务，TODO 订阅了服务但不使用服务的地址发现功能
+        if(isNeedSubscribleService(t)){
+            try {
+                //初始化注册中心
+                initRegister();
+
+                //订阅服务
+                subscribleService(t);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return serviceProxy;
+    }
+
+    /**
+     * 初始化服务代理
+     * @param t
+     * @param <T>
+     * @return
+     */
+    <T> T initServiceProxy(Class<T> t) {
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
         invocationHandler.setServiceInterface(t);
         invocationHandler.setRemoteConfig(ClientRemoteConfig.newInstace(ipAddressList));
 
         if(this.venusExceptionFactory == null){
-        	XmlVenusExceptionFactory venusExceptionFactory = new XmlVenusExceptionFactory();
-        	venusExceptionFactory.setConfigFiles(new String[]{"classpath:com/meidusa/venus/exception/VenusSystemException.xml"});
-        	venusExceptionFactory.init();
-        	this.venusExceptionFactory = venusExceptionFactory;
+            XmlVenusExceptionFactory venusExceptionFactory = new XmlVenusExceptionFactory();
+            venusExceptionFactory.setConfigFiles(new String[]{"classpath:com/meidusa/venus/exception/VenusSystemException.xml"});
+            venusExceptionFactory.init();
+            this.venusExceptionFactory = venusExceptionFactory;
         }
         invocationHandler.setVenusExceptionFactory(this.getVenusExceptionFactory());
 
@@ -168,6 +206,54 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
         Tuple<Object, InvokerInvocationHandler> serviceTuple = new Tuple<Object, InvokerInvocationHandler>(object, invocationHandler);
         servicesMap.put(t, serviceTuple);
         return object;
+    }
+
+    /**
+     * 判断是否需要订阅服务，TODO 对于提供方不走注册中心的服务，有问题？
+     * @param clz
+     * @return
+     */
+    boolean isNeedSubscribleService(Class clz){
+        return false;
+    }
+
+    /**
+     * 获取注册中心
+     * @return
+     */
+    void initRegister(){
+        if(this.register != null){
+            return;
+        }
+        //TODO 改由注册工厂获取，这样不存在加载顺序问题
+        Register register = RegisterContext.getInstance().getRegister();
+        if(register == null){
+            throw new RpcException("init register failed.");
+        }
+        this.register = register;
+    }
+
+    /**
+     * 订阅服务
+     */
+    void subscribleService(Class serviceClazz){
+        String application = VenusContext.getInstance().getApplication();
+        String serviceInterfaceName = serviceClazz.getClass().getName();
+        String serivceName = "null";//TODO 服务名称为空
+        String version = "0.0.0";//TODO
+        String consumerHost = NetUtil.getLocalIp();
+
+        String subscribleUrl = String.format(
+                "subscrible://%s/%s?version=%s&application=%s&host=%s",
+                serviceInterfaceName,
+                serivceName,
+                version,
+                application,
+                consumerHost
+        );
+        com.meidusa.venus.URL url = com.meidusa.venus.URL.parse(subscribleUrl);
+        logger.info("subscrible service:{}",url);
+        register.subscrible(url);
     }
 
     @Override
