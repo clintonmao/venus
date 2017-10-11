@@ -83,6 +83,7 @@ public class ResultUtils {
 		venusServiceMapping.setCreateTime(rs.getTimestamp("create_time"));
 		venusServiceMapping.setUpdateTime(rs.getTimestamp("update_time"));
 		venusServiceMapping.setRegisteTime(rs.getTimestamp("registe_time"));
+		venusServiceMapping.setHeartbeatTime(rs.getTimestamp("heartbeat_time"));
 		return venusServiceMapping;
 	}
 
