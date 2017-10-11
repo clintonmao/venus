@@ -42,11 +42,39 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	}
 
 	@Override
-	public boolean updateServiceMapping(int id, boolean active, boolean isDelete) throws DAOException {
-		String sql = "update t_venus_service_mapping set active = ?,is_delete=?,update_time=now(),registe_time=now(),heartbeat_time=now() where id = ?";
+	public boolean updateSubcribeServiceMapping(int id,int consumerAppId, boolean active, boolean isDelete) throws DAOException {
+		String sql = "update t_venus_service_mapping set active = ?,is_delete=?,update_time=now(),registe_time=now(),heartbeat_time=now()";
+		if (consumerAppId > 0) {
+			sql = sql + ",consumer_app_id=? ";
+		}
+		sql = sql + " where id = ? ";
 		int update = 0;
 		try {
-			update = this.jdbcTemplate.update(sql, active, isDelete, id);
+			if (consumerAppId > 0) {
+				update = this.jdbcTemplate.update(sql, active, isDelete,consumerAppId,id);
+			}else{
+				update = this.jdbcTemplate.update(sql, active, isDelete, id);
+			}
+		} catch (Exception e) {
+			throw new DAOException("更新映射关系异常", e);
+		}
+		return update > 0;
+	}
+	
+	public boolean updateProviderServiceMapping(int id, boolean active, boolean isDelete,int providerAppId) throws DAOException {
+		String sql = "update t_venus_service_mapping set active = ?,is_delete=?,update_time=now(),registe_time=now(),heartbeat_time=now()"
+				;
+		if (providerAppId > 0) {
+			sql = sql + ",provider_app_id=? ";
+		}
+		sql = sql + " where id = ?";
+		int update = 0;
+		try {
+			if (providerAppId > 0) {
+				update = this.jdbcTemplate.update(sql, active, isDelete, providerAppId,id);
+			}else{
+				update = this.jdbcTemplate.update(sql, active, isDelete, id);
+			}
 		} catch (Exception e) {
 			throw new DAOException("更新映射关系异常", e);
 		}
