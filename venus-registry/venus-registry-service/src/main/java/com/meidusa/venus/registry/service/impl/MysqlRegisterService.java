@@ -538,7 +538,7 @@ public class MysqlRegisterService implements RegisterService {
 			}
 
 			if (CollectionUtils.isNotEmpty(delete_mapping_ids)) {
-				logger.info("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@=>" + currentDateTime + ",delete_mapping_ids=>" + JSON.toJSONString(delete_mapping_ids, true));
+				logger.info("@@@@@@currentDateTime=>{},delete_mapping_ids=>{},serviceMappings=>{}@@@@@@@",currentDateTime,JSON.toJSONString(delete_mapping_ids, true),JSON.toJSONString(serviceMappings));
 				venusServiceMappingDAO.deleteServiceMappings(delete_mapping_ids);
 			}
 
