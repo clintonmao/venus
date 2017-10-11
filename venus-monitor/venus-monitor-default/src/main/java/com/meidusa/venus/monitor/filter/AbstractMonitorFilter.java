@@ -235,6 +235,7 @@ public abstract class AbstractMonitorFilter {
         for(InvocationDetail detail:detailList){
             MethodCallDetailDO detailDO = convertDetail(detail);
             detailDOList.add(detailDO);
+            logger.info("report detailDO:{}.",JSONUtil.toJSONString(detailDO));
         }
         return detailDOList;
     }

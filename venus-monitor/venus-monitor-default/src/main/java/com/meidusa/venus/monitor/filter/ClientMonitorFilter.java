@@ -3,8 +3,10 @@ package com.meidusa.venus.monitor.filter;
 import com.athena.domain.MethodCallDetailDO;
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
+import com.meidusa.venus.io.utils.StringUtil;
 import com.meidusa.venus.monitor.reporter.VenusMonitorReporter;
 import com.meidusa.venus.util.UUIDUtil;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,10 +60,6 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
         invocationDetail.setResponseTime(new Date());
         invocationDetail.setResult(result);
         invocationDetail.setException(e);
-        String consumerApp = VenusContext.getInstance().getApplication();
-        logger.info("consumerApp:{}.",consumerApp);
-        String providerApp = url.getApplication();
-        logger.info("providerApp:{}.",providerApp);
 
         putInvocationDetailQueue(invocationDetail);
         return null;
@@ -104,7 +102,6 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
         Throwable exception = detail.getException();
 
         MethodCallDetailDO detailDO = new MethodCallDetailDO();
-        //TODO 设置application
         //基本信息
         detailDO.setId(UUIDUtil.create().toString());
         detailDO.setRpcId(clientInvocation.getRpcId());
@@ -115,12 +112,12 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
             detailDO.setMessageId(new String(clientInvocation.getMessageId()));
         }
         detailDO.setSourceType(detail.getFrom());
+
         //请求信息
-        //String appName = VenusContext.getInstance().getApplication();
-        detailDO.setServiceName(clientInvocation.getServiceName());
         if(clientInvocation.getServiceInterface() != null){
             detailDO.setInterfaceName(clientInvocation.getServiceInterface().getName());
         }
+        detailDO.setServiceName(clientInvocation.getServiceName());
         if(clientInvocation.getEndpoint() != null){
             detailDO.setMethodName(clientInvocation.getEndpoint().name());
         }else if(clientInvocation.getMethod() != null){
@@ -134,10 +131,11 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
             }
         }
         detailDO.setRequestTime(clientInvocation.getRequestTime());
+        detailDO.setProviderDomain(url.getApplication());
+        detailDO.setProviderIp(url.getHost());
+        detailDO.setConsumerDomain(clientInvocation.getConsumerApp());
         detailDO.setConsumerIp(clientInvocation.getConsumerIp());
-        if(url != null){
-            detailDO.setProviderIp(url.getHost());
-        }
+
         //响应信息
         detailDO.setResponseTime(detail.getResponseTime());
         //响应结果

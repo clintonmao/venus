@@ -49,7 +49,10 @@ public class ClientInvocation implements Invocation {
 
     private Date requestTime;
 
-    //consumerIp
+    //消费方应用名称
+    private String consumerApp;
+
+    //消费方ip
     private String consumerIp;
 
     boolean async;
@@ -78,6 +81,13 @@ public class ClientInvocation implements Invocation {
         this.rpcId = rpcId;
     }
 
+    public String getConsumerApp() {
+        return consumerApp;
+    }
+
+    public void setConsumerApp(String consumerApp) {
+        this.consumerApp = consumerApp;
+    }
 
     public String getConsumerIp() {
         return consumerIp;

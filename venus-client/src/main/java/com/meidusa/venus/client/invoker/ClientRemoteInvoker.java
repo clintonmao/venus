@@ -13,6 +13,7 @@ import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.util.JSONUtil;
 import com.meidusa.venus.util.NetUtil;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -165,6 +166,9 @@ public class ClientRemoteInvoker implements Invoker{
                 url.setHost(arr[0]);
                 url.setPort(Integer.parseInt(arr[1]));
                 url.setServiceDefinition(srvDef);
+                if(StringUtils.isNotEmpty(srvDef.getProvider())){
+                    url.setApplication(srvDef.getProvider());
+                }
                 urlList.add(url);
             }
         }
