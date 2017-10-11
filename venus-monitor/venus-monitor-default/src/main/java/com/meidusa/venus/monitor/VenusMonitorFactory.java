@@ -23,9 +23,6 @@ import org.springframework.beans.factory.support.AutowireCandidateQualifier;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * venus监控工厂类
  * Created by Zhangzhihua on 2017/9/11.

@@ -1,10 +1,12 @@
 package com.meidusa.venus.monitor.filter;
 
+import com.athena.domain.MethodCallDetailDO;
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
-import com.meidusa.venus.monitor.reporter.AbstractMonitorReporter;
-import com.meidusa.venus.monitor.reporter.ClientMonitorReporter;
-import com.meidusa.venus.monitor.reporter.InvocationDetail;
+import com.meidusa.venus.monitor.reporter.VenusMonitorReporter;
+import com.meidusa.venus.util.UUIDUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 
@@ -13,6 +15,8 @@ import java.util.Date;
  * Created by Zhangzhihua on 2017/8/28.
  */
 public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter {
+
+    private static Logger logger = LoggerFactory.getLogger(ClientMonitorFilter.class);
 
     public ClientMonitorFilter(){
     }
@@ -55,8 +59,115 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
         invocationDetail.setResult(result);
         invocationDetail.setException(e);
 
-        pubInvocationDetailQueue(invocationDetail);
+        putInvocationDetailQueue(invocationDetail);
         return null;
+    }
+
+    /**
+     * 获取调用方法及调用环境标识路径
+     * @return
+     */
+    String getMethodAndEnvPath(InvocationDetail detail){
+        Invocation invocation = detail.getInvocation();
+        //请求时间，精确为分钟
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
+        String requestTimeOfMinutes = getTimeOfMinutes(clientInvocation.getRequestTime());
+
+        //方法路径信息
+        String methodAndEnvPath = String.format(
+                "%s/%s?version=%s&method=%s&startTime=%s",
+                invocation.getServiceInterfaceName(),
+                invocation.getServiceName(),
+                invocation.getVersion(),
+                invocation.getMethodName(),
+                requestTimeOfMinutes
+        );
+        if(logger.isDebugEnabled()){
+            logger.debug("methodAndEnvPath:{}.", methodAndEnvPath);
+        }
+        return methodAndEnvPath;
+    }
+
+    /**
+     * 转化为detailDo
+     * @param detail
+     * @return
+     */
+    MethodCallDetailDO convertDetail(InvocationDetail detail){
+        ClientInvocation clientInvocation = (ClientInvocation)detail.getInvocation();
+        URL url = detail.getUrl();
+        Result result = detail.getResult();
+        Throwable exception = detail.getException();
+
+        MethodCallDetailDO detailDO = new MethodCallDetailDO();
+        //TODO 设置application
+        //基本信息
+        detailDO.setId(UUIDUtil.create().toString());
+        detailDO.setRpcId(clientInvocation.getRpcId());
+        if(clientInvocation.getAthenaId() != null){
+            detailDO.setTraceId(new String(clientInvocation.getAthenaId()));
+        }
+        if(clientInvocation.getMessageId() != null){
+            detailDO.setMessageId(new String(clientInvocation.getMessageId()));
+        }
+        detailDO.setSourceType(detail.getFrom());
+        //请求信息
+        //String appName = VenusContext.getInstance().getApplication();
+        detailDO.setServiceName(clientInvocation.getServiceName());
+        if(clientInvocation.getServiceInterface() != null){
+            detailDO.setInterfaceName(clientInvocation.getServiceInterface().getName());
+        }
+        if(clientInvocation.getEndpoint() != null){
+            detailDO.setMethodName(clientInvocation.getEndpoint().name());
+        }else if(clientInvocation.getMethod() != null){
+            detailDO.setMethodName(clientInvocation.getMethod().getName());
+        }
+        if(clientInvocation.getArgs() != null){
+            //Athena上报接口不记输入、输出信息，存在递归拼接问题
+            if(!isAthenaInterface(clientInvocation)){
+                String requestJson = serialize(clientInvocation.getArgs());
+                detailDO.setRequestJson(requestJson);
+            }
+        }
+        detailDO.setRequestTime(clientInvocation.getRequestTime());
+        detailDO.setConsumerIp(clientInvocation.getConsumerIp());
+        if(url != null){
+            detailDO.setProviderIp(url.getHost());
+        }
+        //响应信息
+        detailDO.setResponseTime(detail.getResponseTime());
+        //响应结果
+        if(result != null){
+            if(result.getErrorCode() == 0){
+                //Athena上报接口不记输入、输出信息，存在递归拼接问题
+                if(!isAthenaInterface(clientInvocation)){
+                    String responseJson = serialize(result.getResult());
+                    detailDO.setReponseJson(responseJson);
+                }
+                detailDO.setStatus(1);
+            }else{
+                //Athena上报接口不记输入、输出信息，存在递归拼接问题
+                if(!isAthenaInterface(clientInvocation)){
+                    String responseJson = serialize(result.getErrorCode());
+                    detailDO.setReponseJson(responseJson);
+                }
+                detailDO.setStatus(1);
+            }
+        } else{
+            //响应异常
+            //Athena上报接口不记输入、输出信息，存在递归拼接问题
+            if(!isAthenaInterface(clientInvocation)){
+                String responseJsonForException = serialize(exception);
+                detailDO.setErrorInfo(responseJsonForException);
+            }
+            detailDO.setStatus(0);
+        }
+        //耗时
+        long costTime = detail.getResponseTime().getTime()-clientInvocation.getRequestTime().getTime();
+        detailDO.setDurationMillisecond(Integer.parseInt(String.valueOf(costTime)));
+        //TODO 响应地址
+        //状态相关
+        return detailDO;
     }
 
     @Override
@@ -64,11 +175,4 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
 
     }
 
-    AbstractMonitorReporter getMonitorReporte(){
-        if(monitorReporteDelegate == null){
-            monitorReporteDelegate = new ClientMonitorReporter();
-            monitorReporteDelegate.setAthenaDataService(this.getAthenaDataService());
-        }
-        return monitorReporteDelegate;
-    }
 }

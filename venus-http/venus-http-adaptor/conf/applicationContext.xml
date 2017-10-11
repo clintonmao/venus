@@ -11,7 +11,7 @@
 	default-autowire="byName">
 	
 	
-	<!-- use venus placeholder config process -->
+	<!-- use venus placeholdelegatenfig process -->
 	<bean class="com.meidusa.venus.spring.VenusPropertyPlaceholderConfigurer">
         <property name="locations">
             <list>
