@@ -40,14 +40,14 @@ public class ClearInvalidService {
 	 */
 	public void clearInvalid() throws VenusRegisteException {
 		int seconds = 10 * heartBeatInterval;
-		int updateSeconds = 12 * heartBeatInterval;
+		//int updateSeconds = 12 * heartBeatInterval;
 		try {
 			Date date = getSubSecond(new Date(), seconds);
-			Date updateDate = getSubSecond(new Date(), updateSeconds);
+			//Date updateDate = getSubSecond(new Date(), updateSeconds);
 			DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			String currentDateTime = format.format(date);
-			String updateTime = format.format(updateDate);
-			registerService.clearInvalidService(currentDateTime, updateTime);
+			//String updateTime = format.format(updateDate);
+			registerService.clearInvalidService(currentDateTime, seconds);
 		} catch (Exception e) {
 			logger.error("ClearInvalidRunnable is error", e);
 		}

@@ -87,7 +87,7 @@ public interface RegisterService {
      */
 	@Endpoint(name = "clearInvalidService")
 	@PerformanceLevel(printParams=false,printResult = false)
-    void clearInvalidService(@Param(name = "currentDateTime")String currentDateTime,@Param(name = "updateTime")String updateTime);
+    void clearInvalidService(@Param(name = "currentDateTime")String currentDateTime,@Param(name = "second")int second);
 
     /**
      * 设置连接Url

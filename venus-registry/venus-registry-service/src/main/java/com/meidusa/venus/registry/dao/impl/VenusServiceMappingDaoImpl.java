@@ -193,11 +193,13 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 		}
 	}
 
-	public List<VenusServiceMappingDO> getServiceMappings(String dateStr) throws DAOException {
-		String sql = SELECT_FIELDS_TABLE + " where heartbeat_time <= ? ";
+	public List<VenusServiceMappingDO> getServiceMappings(String dateStr,int second) throws DAOException {
+//		String sql = SELECT_FIELDS_TABLE + " where heartbeat_time <= subdate(now(),interval "+second+" second) ";
+		String sql="select m.id, m.server_id, m.service_id, m.version, m.active, m.sync,m.role,m.provider_app_id,m.consumer_app_id,m.is_delete,m.create_time, m.update_time,m.registe_time,m.heartbeat_time from t_venus_service_mapping as m "
+				+ "left join t_venus_service as v on m.service_id=v.id where v.registe_type=1 and m.heartbeat_time <= subdate(now(),interval "+second+" second) ";
 
 		try {
-			return this.jdbcTemplate.query(sql, new Object[] { dateStr},
+			return this.jdbcTemplate.query(sql, new Object[] {},
 					new ResultSetExtractor<List<VenusServiceMappingDO>>() {
 						@Override
 						public List<VenusServiceMappingDO> extractData(ResultSet rs)
@@ -211,7 +213,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 						}
 					});
 		} catch (Exception e) {
-			throw new DAOException("根据大于等于heartbeat_time＝>" + dateStr + "获取服务映射关系列表异常", e);
+			throw new DAOException("根据heartbeat_time小于等于当前时间减去" + second + "秒获取服务映射关系列表异常", e);
 		}
 	}
 
