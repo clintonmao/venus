@@ -138,5 +138,16 @@ public class VenusServerDaoImpl implements VenusServerDAO {
 			throw new DAOException("根据host获取venusServer异常", e);
 		}
 	}
+	
+	public boolean deleteServer(int id) throws DAOException {
+		String sql = "delete from t_venus_server where id =? ";
+		int update = 0;
+		try {
+			update = this.jdbcTemplate.update(sql,id);
+		} catch (Exception e) {
+			throw new DAOException("逻辑删除更新映射关系异常", e);
+		}
+		return update > 0;
+	}
 
 }

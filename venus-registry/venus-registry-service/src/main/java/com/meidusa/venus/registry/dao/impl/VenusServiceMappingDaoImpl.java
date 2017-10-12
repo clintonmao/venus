@@ -320,4 +320,16 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 		}
 	}
 	
+	public int getMappingCountByServerId(int serverId) throws DAOException {
+		String sql = "SELECT count(map.id) as records FROM t_venus_service_mapping as map where map.server_id="
+				+ serverId;
+		try {
+			return this.jdbcTemplate.queryForObject(sql, Integer.class);
+		} catch (Exception e) {
+			throw new DAOException("根据serverId＝>" + serverId + ",获取服务映射关系个数异常", e);
+		}
+	}
+	
+	
+	
 }

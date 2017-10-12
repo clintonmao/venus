@@ -46,5 +46,13 @@ public interface VenusServiceMappingDAO {
 	 * @throws DAOException
 	 */
 	boolean existServiceMapping(String hostName, int port, String serviceName, String version) throws DAOException;
+	
+	/**
+	 * 根据serverId查询在mapping表中的个数
+	 * @param serverId
+	 * @return
+	 * @throws DAOException
+	 */
+	int getMappingCountByServerId(int serverId) throws DAOException;
 
 }
