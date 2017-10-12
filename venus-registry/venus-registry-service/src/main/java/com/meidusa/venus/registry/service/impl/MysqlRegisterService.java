@@ -371,8 +371,8 @@ public class MysqlRegisterService implements RegisterService {
 			}
 			}
 		} catch (Exception e) {
-			logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
-			throw new VenusRegisteException("ServiceDefineRunnable 运行异常,服务名：" + url.getServiceName(), e);
+			logger.error("findServiceDefinitions调用异常,url=>{},异常原因：{}", url, e);
+			throw new VenusRegisteException("findServiceDefinitions调用异常,服务名：" + url.getServiceName(), e);
 		}
 		return returnList;
 	}
@@ -469,17 +469,21 @@ public class MysqlRegisterService implements RegisterService {
 		String serviceName = url.getServiceName();
 		String version = url.getVersion();
 		try {
-			List<VenusServiceDO> services = venusServiceDAO.queryServices(interfaceName, serviceName, version);
-			for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
-				VenusServiceDO service = iterator.next();
-				int serviceID = service.getId();
-				String host = url.getHost();
-				VenusServerDO server = venusServerDAO.getServer(host, 0);
-				int serverID = server.getId();
-				boolean updateServiceMappingHeartBeatTime = venusServiceMappingDAO.updateServiceMappingHeartBeatTime(serverID, serviceID, version,
-						RegisteConstant.CONSUMER);
-				logger.info("heartbeatSubcribe updateServiceMappingHeartBeatTime serverID=>{},serviceID=>{},version=>{},isSuccess=>{},currentDate=>{},url=>{}",serverID,serviceID,version,updateServiceMappingHeartBeatTime,new Date(),url);
-			}
+			/*
+			 * List<VenusServiceDO> services =
+			 * venusServiceDAO.queryServices(interfaceName, serviceName,
+			 * version); for (Iterator<VenusServiceDO> iterator =
+			 * services.iterator(); iterator.hasNext();) { VenusServiceDO
+			 * service = iterator.next(); int serviceID = service.getId(); }
+			 */
+			String host = url.getHost();
+			VenusServerDO server = venusServerDAO.getServer(host, 0);
+			int serverID = server.getId();
+			boolean update = venusServiceMappingDAO.updateHeartBeatTime(serverID,
+					RegisteConstant.CONSUMER);
+			logger.info(
+					"heartbeatSubcribe updateServiceMappingHeartBeatTime serverID=>{},role=>{},isSuccess=>{},currentDate=>{},url=>{}",
+					serverID, RegisteConstant.CONSUMER, update, new Date(), url);
 		} catch (Exception e) {
 			logger.error("服务{}subscrible更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);
 			throw new VenusRegisteException("subscrible更新heartBeatTime异常,服务名：" + url.getServiceName(), e);
@@ -493,17 +497,22 @@ public class MysqlRegisterService implements RegisterService {
 		String version = url.getVersion();
 
 		try {
-			List<VenusServiceDO> services = venusServiceDAO.queryServices(interfaceName, serviceName, version);
-			for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
-				VenusServiceDO service = iterator.next();
-				int serviceID = service.getId();
-				String host = url.getHost();
-				int port = url.getPort();
-				VenusServerDO server = venusServerDAO.getServer(host, port);
+			/*
+			 * List<VenusServiceDO> services =
+			 * venusServiceDAO.queryServices(interfaceName, serviceName,
+			 * version); for (Iterator<VenusServiceDO> iterator =
+			 * services.iterator(); iterator.hasNext();) { VenusServiceDO
+			 * service = iterator.next(); int serviceID = service.getId(); }
+			 */
+			String host = url.getHost();
+			int port = url.getPort();
+			VenusServerDO server = venusServerDAO.getServer(host, port);
+			if (null != server) {
 				int serverID = server.getId();
-				boolean updateServiceMappingHeartBeatTime = venusServiceMappingDAO.updateServiceMappingHeartBeatTime(serverID, serviceID, version,
+				boolean update = venusServiceMappingDAO.updateHeartBeatTime(serverID,
 						RegisteConstant.PROVIDER);
-				logger.info("heartbeatRegister updateServiceMappingHeartBeatTime serverID=>{},serviceID=>{},version=>{},isSuccess=>{},currentDate=>{},url=>{}",serverID,serviceID,version,updateServiceMappingHeartBeatTime,new Date(),url);
+				logger.info("heartbeatRegister serverID=>{},role=>{},isSuccess=>{},currentDate=>{},url=>{}", serverID,
+						RegisteConstant.PROVIDER, update, new Date(), url);
 			}
 		} catch (Exception e) {
 			logger.error("服务{}registe更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);

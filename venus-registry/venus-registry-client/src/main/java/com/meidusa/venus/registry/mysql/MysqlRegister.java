@@ -4,7 +4,10 @@ import com.meidusa.fastjson.JSON;
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.URL;
+import com.meidusa.venus.exception.AbstractVenusException;
 import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.registry.domain.RouterRule;
+import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.registry.service.RegisterService;
 import com.meidusa.venus.registry.VenusRegisteException;
@@ -194,19 +197,28 @@ public class MysqlRegister implements Register {
 	public void load() throws VenusRegisteException {
 		if (CollectionUtils.isNotEmpty(subscribleUrls)) {
 			List<String> jsons = new ArrayList<String>();
+			boolean hasException=false;
 			for (URL url : subscribleUrls) {
 				try {
 					List<VenusServiceDefinitionDO> serviceDefinitions = registerService.findServiceDefinitions(url);
+					String key = getKeyFromUrl(url);
 					if (CollectionUtils.isNotEmpty(serviceDefinitions)) {
-						String key = getKeyFromUrl(url);
 						subscribleServiceDefinitionMap.put(key, serviceDefinitions);
 						jsons.add(JSON.toJSONString(serviceDefinitions));
+					}else{
+						subscribleServiceDefinitionMap.remove(key);
 					}
 				} catch (Exception e) {
+					if(e instanceof VenusRegisteException || e instanceof AbstractVenusException){
+						hasException=true;
+					}
 					logger.error("服务{}ServiceDefLoaderRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
 				}
 			}
 
+			if(hasException){//查询接口有异常 不写本地缓存
+				return;
+			}
 			//若开启本地文件缓存，则写文件
 			if (isEnableFileCache()) {
 				saveSrvDefListToFileCache(jsons);
@@ -228,9 +240,7 @@ public class MysqlRegister implements Register {
 	 * @param jsons
 	 */
 	void saveSrvDefListToFileCache(List<String> jsons){
-		if (CollectionUtils.isNotEmpty(jsons)) {
-			writeFile(fileCachePath, jsons);
-		}
+		writeFile(fileCachePath, jsons);
 	}
 
 	/**
@@ -289,6 +299,7 @@ public class MysqlRegister implements Register {
 					} catch (Exception e) {
 						logger.error("服务{}registe更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);
 					}
+					break;
 				}
 			}
 			if (CollectionUtils.isNotEmpty(subscribleUrls)) {
@@ -299,6 +310,7 @@ public class MysqlRegister implements Register {
 					} catch (Exception e) {
 						logger.error("服务{}subscrible更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);
 					}
+					break;
 				}
 			}
 		}
@@ -404,10 +416,24 @@ public class MysqlRegister implements Register {
 			return;
 		}
 		if (CollectionUtils.isEmpty(jsons)) {
+			File f = new File(filePath);
+			try {
+				if(f.exists()){
+					f.delete();
+				}
+				if (f.createNewFile()) {
+					f.setExecutable(true);
+					f.setReadable(true);
+					f.setWritable(true);
+				}
+			} catch (IOException e) {
+				//ingore
+			}
 			return;
 		}
-		List<String> readFiles = readFile(filePath);
-		List<String> need_write_list = get_write_list(readFiles, jsons);
+		//List<String> readFiles = readFile(filePath);
+		//List<String> need_write_list = get_write_list(readFiles, jsons);
+		List<String> need_write_list = jsons;
 		if (CollectionUtils.isEmpty(need_write_list)) {
 			return;
 		}
@@ -507,6 +533,7 @@ public class MysqlRegister implements Register {
 		jsons.add(JSON.toJSONString(list1));
 		jsons.add(JSON.toJSONString(list2));
 		String filePath = "D:\\soft\\b\\a.txt";
+		writeFile(filePath,  new ArrayList<String>() );
 		writeFile(filePath, jsons);
 		List<String> readFile = readFile(filePath);
 		for (String str : readFile) {
