@@ -224,7 +224,9 @@ public class MysqlRegisterService implements RegisterService {
 				VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(serverId, serviceId,
 						RegisteConstant.PROVIDER);
 				if (null != serviceMapping) {
-					return venusServiceMappingDAO.deleteServiceMapping(serviceMapping.getId());
+					 boolean deleteServiceMapping = venusServiceMappingDAO.deleteServiceMapping(serviceMapping.getId());
+					 deleteServer(serverId);
+					 return deleteServiceMapping;
 				}
 			}
 		}
@@ -310,7 +312,9 @@ public class MysqlRegisterService implements RegisterService {
 					VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(server.getId(),
 							service.getId(), RegisteConstant.CONSUMER);
 					if (null != serviceMapping) {
-						return venusServiceMappingDAO.deleteServiceMapping(serviceMapping.getId());
+						 boolean deleteServiceMapping = venusServiceMappingDAO.deleteServiceMapping(serviceMapping.getId());
+						 deleteServer(server.getId());
+						 return deleteServiceMapping;
 					}
 				}
 			}
@@ -549,14 +553,21 @@ public class MysqlRegisterService implements RegisterService {
 			}*/
 			
 			List<Integer> delete_mapping_ids = new ArrayList<Integer>();
+			List<Integer> server_ids = new ArrayList<Integer>();
 			for (Iterator<VenusServiceMappingDO> iterator = serviceMappings.iterator(); iterator.hasNext();) {
 				VenusServiceMappingDO mapping = iterator.next();
 				delete_mapping_ids.add(mapping.getId());
+				server_ids.add(mapping.getServerId());
 			}
 
 			if (CollectionUtils.isNotEmpty(delete_mapping_ids)) {
 				logger.info("@@@@@@currentDateTime=>{},delete_mapping_ids=>{},serviceMappings=>{}@@@@@@@",currentDateTime,JSON.toJSONString(delete_mapping_ids, true),JSON.toJSONString(serviceMappings));
 				venusServiceMappingDAO.deleteServiceMappings(delete_mapping_ids);
+			}
+			
+			for (Iterator<Integer> iterator = server_ids.iterator(); iterator.hasNext();) {
+				Integer serverId = iterator.next();
+				deleteServer(serverId);
 			}
 
 			// TODO
@@ -586,6 +597,13 @@ public class MysqlRegisterService implements RegisterService {
 					}
 				}
 			}*/
+		}
+	}
+
+	private void deleteServer(Integer serverId) {
+		int mappingCountByServerId = venusServiceMappingDAO.getMappingCountByServerId(serverId);
+		if (mappingCountByServerId <= 0) {
+			venusServerDAO.deleteServer(serverId);
 		}
 	}
 

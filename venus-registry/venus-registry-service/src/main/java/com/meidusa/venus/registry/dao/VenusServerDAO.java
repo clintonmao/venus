@@ -18,5 +18,7 @@ public interface VenusServerDAO {
 	VenusServerDO getServer(Integer id) throws DAOException;
 	
 	List<VenusServerDO> getServers(List<Integer> ids) throws DAOException;
+	
+	boolean deleteServer(int id) throws DAOException;
 
 }
