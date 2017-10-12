@@ -360,9 +360,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      */
     public BackendConnectionPool getNioConnPool(URL url,ClientRemoteConfig remoteConfig) throws Exception {
         String address = String.format("%s:%s",url.getHost(),String.valueOf(url.getPort()));
-        if(address.contains("10.47.16.172")){
-            logger.info("get 10.47.16.172 connection pool.");
-        }
         //若存在，则直接使用连接池
         if(nioPoolMap.get(address) != null){
             return nioPoolMap.get(address);
@@ -414,7 +411,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             BeanUtils.copyProperties(nioPool, poolConfig);
         }
         nioPool.init();
-        //若连接池创建失败，则释放连接池（fix 此时心跳检测已启动）
+        //若连接池初始化失败，则释放连接池（fix 此时心跳检测已启动）
         boolean isValid = nioPool.isValid();
         if(!isValid){
             boolean isClosed = nioPool.isClosed();

@@ -56,7 +56,11 @@ public class MysqlRegister implements Register {
 
 	private RegisterService registerService = null;
 
-	private String subcribePath = "/data/application/venusLocalSubcribe.txt";
+	//FIXME 将linux/windows统一改为系统目录下存储
+	private String fileCachePath = "/data/application/venusLocalSubcribe.txt";
+
+	//是否开启本地文件缓存
+	private static boolean isEnableFileCache = false;
 
 	public MysqlRegister(RegisterService registerService) {
 		this.registerService = registerService;
@@ -73,7 +77,7 @@ public class MysqlRegister implements Register {
 	 */
 	void init() throws Exception {
 		if (isWindows()) {
-			subcribePath = "D:\\data\\application\\venusLocalSubcribe.txt";
+			fileCachePath = "D:\\data\\application\\venusLocalSubcribe.txt";
 		}
 		if (!loadRunning) {
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 10, failRetryInterval, TimeUnit.SECONDS);
@@ -155,20 +159,13 @@ public class MysqlRegister implements Register {
 		String key = getKeyFromUrl(url);
 		List<VenusServiceDefinitionDO> serviceDefinitions = subscribleServiceDefinitionMap.get(key);
 		if (CollectionUtils.isEmpty(serviceDefinitions)) {
-			List<String> readFileJsons = readFile(subcribePath);
-			Map<String, List<VenusServiceDefinitionDO>> map = new HashMap<String, List<VenusServiceDefinitionDO>>();
-			if (CollectionUtils.isNotEmpty(readFileJsons)) {
-				for (String str : readFileJsons) {
-					List<VenusServiceDefinitionDO> parseObject = JSON.parseArray(str, VenusServiceDefinitionDO.class);
-					if (CollectionUtils.isNotEmpty(parseObject)) {
-						map.put(getKey(parseObject.get(0)), parseObject);
-					}
-				}
+			if(isEnableFileCache()){
+				serviceDefinitions = findSrvDefListFromFileCache(key);
 			}
-			serviceDefinitions = map.get(key);
 		}
 		return serviceDefinitions;
 	}
+
 
 	@Override
 	public List<VenusServiceDefinitionDO> lookup(URL url, boolean isQueryFromRegister) throws VenusRegisteException {
@@ -198,10 +195,10 @@ public class MysqlRegister implements Register {
 		if (CollectionUtils.isNotEmpty(subscribleUrls)) {
 			List<String> jsons = new ArrayList<String>();
 			for (URL url : subscribleUrls) {
-				String key = getKeyFromUrl(url);
 				try {
 					List<VenusServiceDefinitionDO> serviceDefinitions = registerService.findServiceDefinitions(url);
 					if (CollectionUtils.isNotEmpty(serviceDefinitions)) {
+						String key = getKeyFromUrl(url);
 						subscribleServiceDefinitionMap.put(key, serviceDefinitions);
 						jsons.add(JSON.toJSONString(serviceDefinitions));
 					}
@@ -209,10 +206,51 @@ public class MysqlRegister implements Register {
 					logger.error("服务{}ServiceDefLoaderRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
 				}
 			}
-			if (CollectionUtils.isNotEmpty(jsons)) {
-				writeFile(subcribePath, jsons);
+
+			//若开启本地文件缓存，则写文件
+			if (isEnableFileCache()) {
+				saveSrvDefListToFileCache(jsons);
+			}
+
+		}
+	}
+
+	/**
+	 * 是否开启本地文件缓存
+	 * @return
+	 */
+	boolean isEnableFileCache(){
+		return isEnableFileCache;
+	}
+
+	/**
+	 * 保存服务定义清单到本地文件缓存
+	 * @param jsons
+	 */
+	void saveSrvDefListToFileCache(List<String> jsons){
+		if (CollectionUtils.isNotEmpty(jsons)) {
+			writeFile(fileCachePath, jsons);
+		}
+	}
+
+	/**
+	 * 从本地文件缓存查找服务定义信息
+	 * @param key
+	 * @return
+	 */
+	List<VenusServiceDefinitionDO> findSrvDefListFromFileCache(String key){
+		List<String> readFileJsons = readFile(fileCachePath);
+		Map<String, List<VenusServiceDefinitionDO>> map = new HashMap<String, List<VenusServiceDefinitionDO>>();
+		if (CollectionUtils.isNotEmpty(readFileJsons)) {
+			for (String str : readFileJsons) {
+				List<VenusServiceDefinitionDO> parseObject = JSON.parseArray(str, VenusServiceDefinitionDO.class);
+				if (CollectionUtils.isNotEmpty(parseObject)) {
+					map.put(getKey(parseObject.get(0)), parseObject);
+				}
 			}
 		}
+		List<VenusServiceDefinitionDO> serviceDefinitions = map.get(key);
+		return serviceDefinitions;
 	}
 
 	@Override
