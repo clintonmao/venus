@@ -198,11 +198,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
     void initContext(){
         logger.trace("current Venus Client id=" + PacketConstant.VENUS_CLIENT_ID);
         if (venusExceptionFactory == null) {
-            XmlVenusExceptionFactory xmlVenusExceptionFactory = new XmlVenusExceptionFactory();
-            //3.0.8版本将采用自动扫描的方式获得 exception 相关的配置
-            //xmlVenusExceptionFactory.setConfigFiles(new String[] { "classpath:com/meidusa/venus/exception/VenusSystemException.xml" });
-            xmlVenusExceptionFactory.init();
-            this.venusExceptionFactory = xmlVenusExceptionFactory;
+            this.venusExceptionFactory = initXmlVenusExceptionFactory();
         }
 
         if(applicationContext != null){
@@ -214,6 +210,18 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             VenusContext.getInstance().setBeanContext(beanContext);
         }
         VenusBeanUtilsBean.setInstance(new ClientBeanUtilsBean(new ConvertUtilsBean(), new PropertyUtilsBean(), beanContext));
+    }
+
+    /**
+     * 初始化XML异常配置工厂
+     * @return
+     */
+    XmlVenusExceptionFactory initXmlVenusExceptionFactory(){
+        XmlVenusExceptionFactory xmlVenusExceptionFactory = new XmlVenusExceptionFactory();
+        //3.0.8版本将采用自动扫描的方式获得 exception 相关的配置
+        //xmlVenusExceptionFactory.setConfigFiles(new String[] { "classpath:com/meidusa/venus/exception/VenusSystemException.xml" });
+        xmlVenusExceptionFactory.init();
+        return xmlVenusExceptionFactory;
     }
 
     /**

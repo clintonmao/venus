@@ -44,16 +44,6 @@
 				<value>classpath:conf/hello-venus-client.xml</value>
 			</list>
 		</property>
-		<property name="needPing" value="false"/>
-		<property name="venusExceptionFactory" ref="venusExceptionFactory"/>
-	</bean>
-
-	<bean id="venusExceptionFactory" class="com.meidusa.venus.exception.XmlVenusExceptionFactory" init-method="init">
-		<property name="configFiles">
-			<list>
-				<value>classpath:com/meidusa/venus/exception/VenusSystemException.xml</value>
-			</list>
-		</property>
 	</bean>
 
 </beans>

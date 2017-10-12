@@ -26,9 +26,11 @@
 			</pool>
 			
 			<!-- 采用 Dummy方式 认证 -->
+			<!--
 			<authenticator class="com.meidusa.venus.client.authenticate.DummyAuthenticator">
 				<property name="serializeType">0</property>
 			</authenticator>
+			-->
 		</remote>
 	</remotes>
 

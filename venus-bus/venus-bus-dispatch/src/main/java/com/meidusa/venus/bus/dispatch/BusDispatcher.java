@@ -220,9 +220,24 @@ public class BusDispatcher implements Dispatcher{
         //设置messageHandler
         nioFactory.setMessageHandler(getDispatchMessageHandler());
 
-        BackendConnectionPool pool = new PollingBackendConnectionPool(address, nioFactory, DEFAULT_POOL_SIZE);
-        pool.init();
-        return pool;
+        BackendConnectionPool nioPool = new PollingBackendConnectionPool(address, nioFactory, DEFAULT_POOL_SIZE);
+        nioPool.init();
+        //若连接池初始化失败，则释放连接池（fix 此时心跳检测已启动）
+        boolean isValid = nioPool.isValid();
+        if(!isValid){
+            boolean isClosed = nioPool.isClosed();
+            if(!isClosed){
+                logger.warn("connection pool is invalid,close connection pool.");
+                try {
+                    nioPool.close();
+                } catch (Exception e) {
+                    //捕获关闭异常，避免影响处理流程
+                    logger.error("close invalid connection pool error.");
+                }
+            }
+            throw new RpcException("init connection pool failed.");
+        }
+        return nioPool;
     }
 
     @Override

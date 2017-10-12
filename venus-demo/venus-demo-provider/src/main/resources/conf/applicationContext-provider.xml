@@ -58,14 +58,6 @@
         </property>
     </bean>
 
-    <bean id="venusExceptionFactory" class="com.meidusa.venus.exception.XmlVenusExceptionFactory" init-method="init">
-		<property name="configFiles">
-			<list>
-				<value>classpath:com/meidusa/venus/exception/VenusSystemException.xml</value>
-			</list>
-		</property>
-	</bean>
-
 	<bean id="authenticateProvider" class="com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider">
 		<property name="useDummy" value="true" />
 		<property name="username" value="111" />
