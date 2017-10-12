@@ -12,7 +12,6 @@
 	
 	<!-- import server side spring context file -->
 	<context:component-scan base-package="com.chexiang.*" />
-	<context:component-scan base-package="com.saic.framework.*" />
 
 	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="locations">
@@ -23,10 +22,6 @@
 	</bean>
 
 	<bean id="helloService" class="com.chexiang.venus.demo.provider.impl.DefaultHelloService"/>
-
-	<!--
-	<import resource="classpath:/spring/applicationContext-service-container.xml"/>
-	-->
 
 	<!--应用配置-->
 	<bean class="com.meidusa.venus.client.Application">

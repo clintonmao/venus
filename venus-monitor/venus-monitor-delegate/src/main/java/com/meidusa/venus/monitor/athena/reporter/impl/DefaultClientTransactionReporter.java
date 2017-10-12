@@ -42,23 +42,22 @@ public class DefaultClientTransactionReporter extends AbstractTransactionReporte
     /**
      * 初始化athena
      */
-    void initAthena(){
-        ApplicationContext context = VenusContext.getInstance().getApplicationContext();
-        if(context != null){
-            //初始化AthenaUtils
-            AthenaUtils athenaUtils = new AthenaUtils();
-            athenaUtils.setApplicationContext(context);
-            //初始化AthenaImpl
-            try {
-                if(context.getBean(Athena.class) == null){
-                    VenusContext.getInstance().getBeanContext().createBean(com.saic.framework.athena.client.AthenaImpl.class);
-                }
-            } catch (Exception e) {
-                logger.error("init AthenaClient failed on consumer.",e);
-            }
-        }
-
-
-    }
+//    void initAthena(){
+//        ApplicationContext context = VenusContext.getInstance().getApplicationContext();
+//        if(context != null){
+//            //初始化AthenaUtils
+//            AthenaUtils athenaUtils = new AthenaUtils();
+//            athenaUtils.setApplicationContext(context);
+//            //初始化AthenaImpl
+//            try {
+//                if(context.getBean(Athena.class) == null){
+//                    VenusContext.getInstance().getBeanContext().createBean(com.saic.framework.athena.client.AthenaImpl.class);
+//                }
+//            } catch (Exception e) {
+//                logger.error("init AthenaClient failed on consumer.",e);
+//            }
+//        }
+//
+//    }
 
 }

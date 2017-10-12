@@ -42,6 +42,7 @@ public class ServerAthenaMonitorFilter implements Filter {
         long startTime = TimeUtil.currentTimeMillis();
         VenusThreadContext.set(VenusThreadContext.SERVER_BEGIN_TIME,Long.valueOf(startTime));
 
+        //TODO 考虑服务端更新，客户端没有更新，athena相关信息为空情况
         //调用服务
         boolean athenaFlag = endpoint.getService().getAthenaFlag();
         if (athenaFlag) {

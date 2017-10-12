@@ -7,6 +7,8 @@ import com.meidusa.venus.ServiceFactoryExtra;
 import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.monitor.config.ClientConfigManagerDelegate;
+import com.meidusa.venus.monitor.support.CustomScanAndRegisteUtil;
+import com.meidusa.venus.monitor.support.ApplicationContextHolder;
 import com.meidusa.venus.util.ReftorUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -22,12 +24,20 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.AutowireCandidateQualifier;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
+import java.util.Set;
 
 /**
  * venus监控工厂类
  * Created by Zhangzhihua on 2017/9/11.
  */
-public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostProcessor {
+public class VenusMonitorFactory implements InitializingBean, ApplicationContextAware,BeanFactoryPostProcessor {
 
     private static Logger logger = LoggerFactory.getLogger(VenusMonitorFactory.class);
 
@@ -55,6 +65,10 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
 
     private ServiceFactoryExtra serviceFactoryExtra;
 
+    private ApplicationContext applicationContext;
+
+    private  ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
+
     @Override
     public void afterPropertiesSet() throws Exception {
         valid();
@@ -72,6 +86,9 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
     }
 
     void init(){
+        //手动扫描athena以注解定义的包
+        scanAndRegisteAthenaPackage();
+
         //初始化simpleServiceFactory
         initSimpleServiceFactory();
 
@@ -80,6 +97,40 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
 
         //初始化athenaDataService
         initAthenaDataService(url);
+    }
+
+
+    void scanAthenaPackageByResource(){
+        //String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + "/com/saic/framework/**/*.class";
+        /*
+        try {
+            Resource[] resources = resourcePatternResolver.getResources(packageSearchPath);
+            for (Resource resource : resources) {
+                logger.info("resource:{}.",resource);
+            }
+        } catch (IOException e) {
+            logger.error("scan athena client package error.",e);
+        }
+        */
+    }
+
+    /**
+     * 手动扫描athena client包并注册到spring上下文
+     */
+    void scanAndRegisteAthenaPackage(){
+        ApplicationContextHolder contextHolder = new ApplicationContextHolder();
+        contextHolder.setApplicationContext(applicationContext);
+
+        CustomScanAndRegisteUtil scanner = new CustomScanAndRegisteUtil();
+        String[] confPkgs = {"/com/saic/framework"};
+        Class[] annotationTags = {Component.class,Service.class};
+        Set<Class<?>> classSet = scanner.scan(confPkgs,annotationTags);
+        for(Class cls:classSet){
+            if(logger.isDebugEnabled()){
+                logger.debug("cls:{}.",cls);
+            }
+        }
+        scanner.regist(classSet);
     }
 
     /**
@@ -211,5 +262,10 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
 
     public void setAthenaDataService(AthenaDataService athenaDataService) {
         this.athenaDataService = athenaDataService;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }
