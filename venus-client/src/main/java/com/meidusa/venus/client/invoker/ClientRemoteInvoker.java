@@ -155,11 +155,11 @@ public class ClientRemoteInvoker implements Invoker{
         if(CollectionUtils.isEmpty(serviceDefinitionDOList)){
             throw new RpcException(String.format("not found available service %s providers.",requestUrl.toString()));
         }
-        logger.info("look up service:{} provider group:{}",requestUrl.toString(),serviceDefinitionDOList.size());
+        logger.info("lookup service:{} provider group:{}",requestUrl.toString(),serviceDefinitionDOList.size());
 
         //TODO group/urls关系
         for(VenusServiceDefinitionDO srvDef:serviceDefinitionDOList){
-            logger.info("look up service:{} provider size:{}",requestUrl.toString(),srvDef.getIpAddress().size());
+            logger.info("lookup service:{} provider size:{}",requestUrl.toString(),srvDef.getIpAddress().size());
             for(String addresss:srvDef.getIpAddress()){
                 String[] arr = addresss.split(":");
                 URL url = new URL();

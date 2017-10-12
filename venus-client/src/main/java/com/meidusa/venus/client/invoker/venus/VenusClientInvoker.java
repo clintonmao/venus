@@ -359,12 +359,16 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @param url
      */
     public BackendConnectionPool getNioConnPool(URL url,ClientRemoteConfig remoteConfig) throws Exception {
-        //若存在，则直接使用，否则新建
         String address = String.format("%s:%s",url.getHost(),String.valueOf(url.getPort()));
+        if(address.contains("10.47.16.172")){
+            logger.info("get 10.47.16.172 connection pool.");
+        }
+        //若存在，则直接使用连接池
         if(nioPoolMap.get(address) != null){
             return nioPoolMap.get(address);
         }
 
+        //若不存在，则创建连接池
         BackendConnectionPool backendConnectionPool = createNioPool(url,new ClientRemoteConfig());
         nioPoolMap.put(address,backendConnectionPool);
         return backendConnectionPool;
@@ -381,7 +385,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     }
 
     /**
-     * 创建连接池 TODO 验证，存在重复初始化问题
+     * 创建连接池
      * @param url
      * @param remoteConfig
      * @return
@@ -392,6 +396,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         VenusBackendConnectionFactory nioFactory = new VenusBackendConnectionFactory();
         nioFactory.setHost(url.getHost());
         nioFactory.setPort(Integer.valueOf(url.getPort()));
+        //TODO auth信息
         if (remoteConfig.getAuthenticator() != null) {
             nioFactory.setAuthenticator(remoteConfig.getAuthenticator());
         }
@@ -409,6 +414,21 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             BeanUtils.copyProperties(nioPool, poolConfig);
         }
         nioPool.init();
+        //若连接池创建失败，则释放连接池（fix 此时心跳检测已启动）
+        boolean isValid = nioPool.isValid();
+        if(!isValid){
+            boolean isClosed = nioPool.isClosed();
+            if(!isClosed){
+                logger.warn("connection pool is invalid,close connection pool.");
+                try {
+                    nioPool.close();
+                } catch (Exception e) {
+                    //捕获关闭异常，避免影响处理流程
+                    logger.error("close invalid connection pool error.");
+                }
+            }
+            throw new RpcException("init connection pool failed.");
+        }
         return nioPool;
     }
 
