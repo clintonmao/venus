@@ -2,6 +2,8 @@ package com.meidusa.venus.registry.domain;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 
+import com.meidusa.fastjson.annotation.JSONField;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -27,14 +29,18 @@ public class VenusServiceMappingDO implements Serializable {
 
 	private boolean sync;
 
+	@JSONField(format="yyyy-MM-dd HH:mm:ss")
 	private Date createTime;
 
+	@JSONField(format="yyyy-MM-dd HH:mm:ss")
 	private Date updateTime;
 
 	/** 注册时间 */
+	@JSONField(format="yyyy-MM-dd HH:mm:ss")
 	private Date registeTime;
 
 	/** 心跳更新时间 */
+	@JSONField(format="yyyy-MM-dd HH:mm:ss")
 	private Date heartbeatTime;
 
 	/** 是否删除 */

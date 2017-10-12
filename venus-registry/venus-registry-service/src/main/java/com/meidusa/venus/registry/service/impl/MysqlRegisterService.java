@@ -1,6 +1,7 @@
 package com.meidusa.venus.registry.service.impl;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -475,8 +476,9 @@ public class MysqlRegisterService implements RegisterService {
 				String host = url.getHost();
 				VenusServerDO server = venusServerDAO.getServer(host, 0);
 				int serverID = server.getId();
-				venusServiceMappingDAO.updateServiceMappingHeartBeatTime(serverID, serviceID, version,
+				boolean updateServiceMappingHeartBeatTime = venusServiceMappingDAO.updateServiceMappingHeartBeatTime(serverID, serviceID, version,
 						RegisteConstant.CONSUMER);
+				logger.info("heartbeatSubcribe updateServiceMappingHeartBeatTime serverID=>{},serviceID=>{},version=>{},isSuccess=>{},currentDate=>{},url=>{}",serverID,serviceID,version,updateServiceMappingHeartBeatTime,new Date(),url);
 			}
 		} catch (Exception e) {
 			logger.error("服务{}subscrible更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);
@@ -491,17 +493,18 @@ public class MysqlRegisterService implements RegisterService {
 		String version = url.getVersion();
 
 		try {
-			VenusServiceDO service = venusServiceDAO.getService(interfaceName, serviceName, version);
-			if (null != service && service.getIsDelete()) {
-				return;
+			List<VenusServiceDO> services = venusServiceDAO.queryServices(interfaceName, serviceName, version);
+			for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
+				VenusServiceDO service = iterator.next();
+				int serviceID = service.getId();
+				String host = url.getHost();
+				int port = url.getPort();
+				VenusServerDO server = venusServerDAO.getServer(host, port);
+				int serverID = server.getId();
+				boolean updateServiceMappingHeartBeatTime = venusServiceMappingDAO.updateServiceMappingHeartBeatTime(serverID, serviceID, version,
+						RegisteConstant.PROVIDER);
+				logger.info("heartbeatRegister updateServiceMappingHeartBeatTime serverID=>{},serviceID=>{},version=>{},isSuccess=>{},currentDate=>{},url=>{}",serverID,serviceID,version,updateServiceMappingHeartBeatTime,new Date(),url);
 			}
-			int serviceID = service.getId();
-			String host = url.getHost();
-			int port = url.getPort();
-			VenusServerDO server = venusServerDAO.getServer(host, port);
-			int serverID = server.getId();
-			venusServiceMappingDAO.updateServiceMappingHeartBeatTime(serverID, serviceID, version,
-					RegisteConstant.PROVIDER);
 		} catch (Exception e) {
 			logger.error("服务{}registe更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);
 			throw new VenusRegisteException("registe更新heartBeatTime异常,服务名：" + url.getServiceName(), e);
@@ -509,12 +512,11 @@ public class MysqlRegisterService implements RegisterService {
 
 	}
 
-	public void clearInvalidService(String currentDateTime, String updateTime) {
-		List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMappings(currentDateTime);// 订阅方
-																													// 提供方
-																													// 都清理
+	public void clearInvalidService(String currentDateTime, int second) {
+		/* 订阅方提供方都清理 */
+		List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMappings(currentDateTime,second);
 		if (CollectionUtils.isNotEmpty(serviceMappings)) {
-			Map<Integer, Integer> map = new HashMap<Integer, Integer>();
+			/*Map<Integer, Integer> map = new HashMap<Integer, Integer>();
 			for (Iterator<VenusServiceMappingDO> iterator = serviceMappings.iterator(); iterator.hasNext();) {
 				VenusServiceMappingDO mapping = iterator.next();
 				map.put(mapping.getId(), mapping.getServiceId());
@@ -535,6 +537,12 @@ public class MysqlRegisterService implements RegisterService {
 						}
 					}
 				}
+			}*/
+			
+			List<Integer> delete_mapping_ids = new ArrayList<Integer>();
+			for (Iterator<VenusServiceMappingDO> iterator = serviceMappings.iterator(); iterator.hasNext();) {
+				VenusServiceMappingDO mapping = iterator.next();
+				delete_mapping_ids.add(mapping.getId());
 			}
 
 			if (CollectionUtils.isNotEmpty(delete_mapping_ids)) {
@@ -543,7 +551,7 @@ public class MysqlRegisterService implements RegisterService {
 			}
 
 			// TODO
-			List<VenusServiceMappingDO> deleteServiceMappings = venusServiceMappingDAO
+			/*List<VenusServiceMappingDO> deleteServiceMappings = venusServiceMappingDAO
 					.getDeleteServiceMappings(updateTime, RegisteConstant.PROVIDER, true);// 取两分钟内删除的服务提供者
 			Set<Integer> serviceIds = new HashSet<Integer>();
 			if (CollectionUtils.isNotEmpty(deleteServiceMappings)) {
@@ -568,7 +576,7 @@ public class MysqlRegisterService implements RegisterService {
 						}
 					}
 				}
-			}
+			}*/
 		}
 	}
 
@@ -620,5 +628,9 @@ public class MysqlRegisterService implements RegisterService {
 		this.connectUrl = connectUrl;
 	}
 
+	public static void main(String args[]){
+		Date d=new Date(1506498850000L);
+		System.out.println(d);
+	}
 
 }
