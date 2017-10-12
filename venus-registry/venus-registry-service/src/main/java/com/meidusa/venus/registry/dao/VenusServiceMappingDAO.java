@@ -13,8 +13,7 @@ public interface VenusServiceMappingDAO {
 	
 	boolean updateProviderServiceMapping(int id, boolean active, boolean isDelete,int providerAppId) throws DAOException;
 
-	boolean updateServiceMappingHeartBeatTime(int serverId, int serviceId, String version, String role)
-			throws DAOException;
+	boolean updateHeartBeatTime(int serverId, String role) throws DAOException;
 
 	boolean deleteServiceMapping(int id) throws DAOException;
 

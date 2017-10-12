@@ -82,12 +82,12 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	}
 
 	@Override
-	public boolean updateServiceMappingHeartBeatTime(int serverId, int serviceId, String version, String role)
+	public boolean updateHeartBeatTime(int serverId, String role)
 			throws DAOException {
-		String sql = "update t_venus_service_mapping set heartbeat_time = now() where server_id = ? and service_id = ? and version=? and role=? ";
+		String sql = "update t_venus_service_mapping set heartbeat_time = now() where server_id = ? and role=? ";
 		int update = 0;
 		try {
-			update = this.jdbcTemplate.update(sql, serverId, serviceId, version, role);
+			update = this.jdbcTemplate.update(sql, serverId, role);
 		} catch (Exception e) {
 			throw new DAOException("更新映射关系heartbeat_time时间异常", e);
 		}
