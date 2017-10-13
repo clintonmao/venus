@@ -1,25 +1,34 @@
 package com.chexiang.venus.demo.provider;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 
 /**
- * Created by Zhangzhihua on 2017/8/15.
+ * Created by Zhangzhihua on 2017/9/21.
  */
+//@EnableAutoConfiguration
+@Configuration
+//@SpringBootApplication
+@SpringBootApplication(exclude= {
+                DataSourceAutoConfiguration.class,
+                HibernateJpaAutoConfiguration.class
+        })
+//@EnableAspectJAutoProxy(proxyTargetClass = true)
+//@ComponentScan(basePackages = "com.chexiang")
+@ComponentScan
+@ImportResource("classpath:conf/applicationContext-provider.xml")
 public class DemoProviderApplication {
 
-    void run(){
-        ApplicationContext context = new ClassPathXmlApplicationContext("classpath:/conf/applicationContext-provider.xml");
-        context.containsBean("helloService");
-        //TODO 改为springboot启动
-        try {
-            Thread.sleep(1000*60*60*60);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
+    public static final Logger logger = LoggerFactory.getLogger(DemoProviderApplication.class);
 
-    public static void main(String[] args){
-        new DemoProviderApplication().run();
+    public static void main(String[] args) {
+        SpringApplication.run(DemoProviderApplication.class, args);
     }
 }
