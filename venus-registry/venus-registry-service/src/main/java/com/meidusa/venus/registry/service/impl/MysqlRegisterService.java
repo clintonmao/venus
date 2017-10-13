@@ -482,12 +482,13 @@ public class MysqlRegisterService implements RegisterService {
 			 */
 			String host = url.getHost();
 			VenusServerDO server = venusServerDAO.getServer(host, 0);
-			int serverID = server.getId();
-			boolean update = venusServiceMappingDAO.updateHeartBeatTime(serverID,
-					RegisteConstant.CONSUMER);
-			logger.info(
-					"heartbeatSubcribe updateServiceMappingHeartBeatTime serverID=>{},role=>{},isSuccess=>{},currentDate=>{},url=>{}",
-					serverID, RegisteConstant.CONSUMER, update, new Date(), url);
+			if (null != server) {
+				int serverID = server.getId();
+				boolean update = venusServiceMappingDAO.updateHeartBeatTime(serverID, RegisteConstant.CONSUMER);
+				logger.info(
+						"heartbeatSubcribe updateServiceMappingHeartBeatTime serverID=>{},role=>{},isSuccess=>{},currentDate=>{},url=>{}",
+						serverID, RegisteConstant.CONSUMER, update, new Date(), url);
+			}
 		} catch (Exception e) {
 			logger.error("服务{}subscrible更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);
 			throw new VenusRegisteException("subscrible更新heartBeatTime异常,服务名：" + url.getServiceName(), e);

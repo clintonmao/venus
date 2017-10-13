@@ -296,6 +296,7 @@ public class MysqlRegister implements Register {
 	private class HeartBeatRunnable implements Runnable {
 		@Override
 		public void run() {
+			logger.info(registeUrls.size()+"HeartBeatRunnable run() start");
 			if (CollectionUtils.isNotEmpty(registeUrls)) {
 				for (Iterator<URL> iterator = registeUrls.iterator(); iterator.hasNext();) {
 					URL url = iterator.next();
@@ -318,6 +319,7 @@ public class MysqlRegister implements Register {
 					break;
 				}
 			}
+			logger.info(subscribleUrls.size()+"HeartBeatRunnable run() end");	
 		}
 	}
 
