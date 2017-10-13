@@ -8,7 +8,7 @@ import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.annotations.RemoteException;
-import com.meidusa.venus.annotations.util.AnnotationUtil;
+import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.backend.invoker.support.LogHandler;
 import com.meidusa.venus.backend.serializer.MediaTypes;
 import com.meidusa.venus.backend.services.RequestInfo;

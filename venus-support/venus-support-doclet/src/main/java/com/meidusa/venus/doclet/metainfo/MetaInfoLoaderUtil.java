@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Param;
 import com.meidusa.venus.annotations.Service;
-import com.meidusa.venus.annotations.util.AnnotationUtil;
+import com.meidusa.venus.metainfo.AnnotationUtil;
 
 
 /**

@@ -187,7 +187,7 @@ public class ClientRemoteInvoker implements Invoker{
         }
         String serviceName = "null";
         if(invocation.getService() != null){
-            serviceName = invocation.getService().name();
+            serviceName = invocation.getService().getName();
         }
         String version = "0.0.0";//TODO
         String serviceUrl = String.format(

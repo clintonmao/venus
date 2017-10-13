@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.meidusa.venus.annotations.util;
+package com.meidusa.venus.metainfo;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
@@ -59,5 +59,7 @@ public class AnnotationUtil {
         }
         return annotatedClasses.toArray(new Class[0]);
     }
+
+
 
 }

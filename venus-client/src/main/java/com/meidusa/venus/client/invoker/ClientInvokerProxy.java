@@ -19,6 +19,8 @@ import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.monitor.athena.filter.ClientAthenaMonitorFilter;
 import com.meidusa.venus.monitor.filter.ClientMonitorFilter;
 import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.support.EndpointWrapper;
+import com.meidusa.venus.support.ServiceWrapper;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,10 +118,10 @@ public class ClientInvokerProxy implements Invoker {
      * @return
      */
     boolean isInjvmInvoke(ClientInvocation invocation){
-        Service service = invocation.getService();
-        Endpoint endpoint = invocation.getEndpoint();
+        ServiceWrapper service = invocation.getService();
+        EndpointWrapper endpoint = invocation.getEndpoint();
         if (endpoint != null && service != null) {
-            return !StringUtils.isEmpty(service.implement());
+            return !StringUtils.isEmpty(service.getImplement());
         }else{
             //本地调用
             //TODO 确认endpoint为空情况

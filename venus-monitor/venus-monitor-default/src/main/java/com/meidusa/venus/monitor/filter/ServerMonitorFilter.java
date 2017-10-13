@@ -108,7 +108,7 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
             detailDO.setInterfaceName(serverInvocation.getServiceInterface().getName());
         }
         if(serverInvocation.getEndpoint() != null){
-            detailDO.setMethodName(serverInvocation.getEndpoint().name());
+            detailDO.setMethodName(serverInvocation.getEndpoint().getName());
         }else if(serverInvocation.getMethod() != null){
             detailDO.setMethodName(serverInvocation.getMethod().getName());
         }

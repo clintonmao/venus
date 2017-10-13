@@ -23,6 +23,9 @@ import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
+import com.meidusa.venus.support.EndpointWrapper;
+import com.meidusa.venus.support.ServiceWrapper;
+import com.meidusa.venus.support.VenusUtil;
 import com.meidusa.venus.util.JSONUtil;
 import com.meidusa.venus.util.VenusAnnotationUtils;
 import org.apache.commons.beanutils.BeanUtils;
@@ -237,8 +240,8 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      */
     SerializeServiceRequestPacket buildRequest(ClientInvocation invocation){
         Method method = invocation.getMethod();
-        Service service = invocation.getService();
-        Endpoint endpoint = invocation.getEndpoint();
+        ServiceWrapper service = invocation.getService();
+        EndpointWrapper endpoint = invocation.getEndpoint();
         EndpointParameter[] params = invocation.getParams();
         Object[] args = invocation.getArgs();
 
@@ -259,8 +262,8 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         if (invocation.getMessageId() != null) {
             serviceRequestPacket.messageId = invocation.getMessageId();
         }
-        serviceRequestPacket.apiName = VenusAnnotationUtils.getApiname(method, service, endpoint);
-        serviceRequestPacket.serviceVersion = service.version();
+        serviceRequestPacket.apiName = VenusUtil.getApiName(method,service,endpoint);//VenusAnnotationUtils.getApiname(method, service, endpoint);
+        serviceRequestPacket.serviceVersion = service.getVersion();
         serviceRequestPacket.parameterMap = new HashMap<String, Object>();
         if (params != null) {
             for (int i = 0; i < params.length; i++) {
@@ -299,9 +302,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @throws Exception
      */
     void sendRequest(ClientInvocation invocation, SerializeServiceRequestPacket serviceRequestPacket, URL url) throws Exception{
-        byte[] traceID = invocation.getTraceID();
-        Service service = invocation.getService();
-        Endpoint endpoint = invocation.getEndpoint();
+        //byte[] traceID = invocation.getTraceID();
+        //ServiceWrapper service = invocation.getService();
+        //EndpointWrapper endpoint = invocation.getEndpoint();
 
         long start = TimeUtil.currentTimeMillis();
         long borrowed = start;

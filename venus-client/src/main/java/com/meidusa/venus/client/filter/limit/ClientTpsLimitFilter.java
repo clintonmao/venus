@@ -1,7 +1,7 @@
 package com.meidusa.venus.client.filter.limit;
 
 import com.meidusa.venus.*;
-import com.meidusa.venus.support.VenusPathUtil;
+import com.meidusa.venus.support.VenusUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +59,7 @@ public class ClientTpsLimitFilter implements Filter {
             return null;
         }
         //获取方法路径及当前并发数
-        String methodPath = VenusPathUtil.getMethodPath(clientInvocation, url);
+        String methodPath = VenusUtil.getMethodPath(clientInvocation, url);
         AtomicInteger activeLimit = methodTpsMapping.get(methodPath);
         if(activeLimit == null){
             activeLimit = new AtomicInteger(0);

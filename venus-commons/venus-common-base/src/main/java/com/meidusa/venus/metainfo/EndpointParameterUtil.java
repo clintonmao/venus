@@ -7,9 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.meidusa.venus.annotations.Param;
-import com.meidusa.venus.annotations.util.AnnotationUtil;
 
 public class EndpointParameterUtil {
+
     private static Map<Method, EndpointParameter[]> parameterMap = new HashMap<Method, EndpointParameter[]>();
 
     public static EndpointParameter[] getPrameters(Method method) {

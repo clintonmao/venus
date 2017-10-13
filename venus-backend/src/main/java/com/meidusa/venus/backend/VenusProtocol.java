@@ -123,20 +123,21 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
     }
 
     @Override
-    public void destroy() throws Exception {
-        if(connectionAcceptor != null){
-            connectionAcceptor.shutdown();
-        }
-    }
-
-    @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
     }
 
-
     public String getPort() {
         return port;
+    }
+
+
+    //TODO 资源释放时机，application or protocol or invoker？同时consumer&provider都要释放
+    @Override
+    public void destroy() throws Exception {
+        if(connectionAcceptor != null){
+            connectionAcceptor.shutdown();
+        }
     }
 
     public void setPort(String port) {

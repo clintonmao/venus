@@ -3,7 +3,7 @@ package com.meidusa.venus.client.proxy;
 import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
-import com.meidusa.venus.annotations.util.AnnotationUtil;
+import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.invoker.ClientInvokerProxy;
@@ -13,6 +13,8 @@ import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.metainfo.EndpointParameterUtil;
 import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.support.EndpointWrapper;
+import com.meidusa.venus.support.ServiceWrapper;
 import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusTracerUtil;
 import org.apache.commons.lang.StringUtils;
@@ -127,11 +129,11 @@ public class InvokerInvocationHandler implements InvocationHandler {
         ClientInvocation invocation = new ClientInvocation();
         invocation.setServiceInterface(serviceInterface);
         Endpoint endpoint =  AnnotationUtil.getAnnotation(method.getAnnotations(), Endpoint.class);
-        invocation.setEndpoint(endpoint);
+        invocation.setEndpoint(EndpointWrapper.wrapper(endpoint));
         Service service = null;
         if (endpoint != null) {
             service = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
-            invocation.setService(service);
+            invocation.setService(ServiceWrapper.wrapper(service));
             if (service != null && StringUtils.isEmpty(service.implement())) {
                 EndpointParameter[] params = EndpointParameterUtil.getPrameters(method);
                 invocation.setParams(params);

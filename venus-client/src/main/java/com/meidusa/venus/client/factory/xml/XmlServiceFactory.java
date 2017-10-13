@@ -21,7 +21,7 @@ import com.meidusa.venus.RpcException;
 import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
-import com.meidusa.venus.annotations.util.AnnotationUtil;
+import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.registry.VenusRegistryFactory;
 import com.meidusa.venus.ServiceFactory;

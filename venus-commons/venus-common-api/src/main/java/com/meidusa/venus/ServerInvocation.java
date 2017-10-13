@@ -10,6 +10,8 @@ import com.meidusa.venus.io.packet.VenusRouterPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
+import com.meidusa.venus.support.EndpointWrapper;
+import com.meidusa.venus.support.ServiceWrapper;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -39,9 +41,9 @@ public class ServerInvocation implements Invocation {
 
     private Class<?> serviceInterface;
 
-    private Service service;
+    private ServiceWrapper service;
 
-    private com.meidusa.venus.annotations.Endpoint endpoint;
+    private EndpointWrapper endpoint;
 
     private Method method;
 
@@ -150,19 +152,19 @@ public class ServerInvocation implements Invocation {
         this.serviceInterface = serviceInterface;
     }
 
-    public Service getService() {
+    public ServiceWrapper getService() {
         return service;
     }
 
-    public void setService(Service service) {
+    public void setService(ServiceWrapper service) {
         this.service = service;
     }
 
-    public com.meidusa.venus.annotations.Endpoint getEndpoint() {
+    public EndpointWrapper getEndpoint() {
         return endpoint;
     }
 
-    public void setEndpoint(com.meidusa.venus.annotations.Endpoint endpoint) {
+    public void setEndpoint(EndpointWrapper endpoint) {
         this.endpoint = endpoint;
     }
 

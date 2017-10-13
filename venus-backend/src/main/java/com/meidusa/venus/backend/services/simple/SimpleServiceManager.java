@@ -17,7 +17,7 @@ import org.springframework.beans.factory.InitializingBean;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.meidusa.venus.annotations.util.AnnotationUtil;
+import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.exception.ConvertException;
 import com.meidusa.venus.exception.ServiceDefinitionException;
 import com.meidusa.venus.exception.VenusConfigException;

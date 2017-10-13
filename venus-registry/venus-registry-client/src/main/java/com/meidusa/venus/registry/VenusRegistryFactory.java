@@ -11,6 +11,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -19,7 +20,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
  * Venus注册中心工厂类，负责初始化注册中心
  * Created by Zhangzhihua on 2017/9/15.
  */
-public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostProcessor {
+public class VenusRegistryFactory implements InitializingBean, DisposableBean,BeanFactoryPostProcessor {
 
     private static Logger logger = LoggerFactory.getLogger(VenusRegistryFactory.class);
 
@@ -69,6 +70,7 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
 
         //实例化register
         Register register = new MysqlRegister(registerService);
+        this.register = register;
         RegisterContext.getInstance().setRegister(register);
     }
 
@@ -124,6 +126,25 @@ public class VenusRegistryFactory implements InitializingBean, BeanFactoryPostPr
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+
+    }
+
+    //TODO 进程正常关闭及非正常关闭情况处理
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread(){
+            @Override
+            public void run() {
+                logger.warn("process exit,release source...");
+            }
+        });
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        //释放注册服务资源
+        if(register != null){
+            register.destroy();
+        }
 
     }
 

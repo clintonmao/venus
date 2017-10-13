@@ -265,6 +265,10 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public void destroy() throws VenusRegisteException {
+		//TODO 因service/endpoinit注解在destroy时无法解释，导致NPE异常，无法
+		// 执行InvokerInvocationHandler.invoke方法，暂注掉
+
+		/*
 		if (CollectionUtils.isNotEmpty(registeUrls)) {
 			for (URL url : registeUrls) {
 				unregiste(url);
@@ -275,6 +279,7 @@ public class MysqlRegister implements Register {
 				unsubscrible(url);
 			}
 		}
+		*/
 		registeUrls.clear();
 		subscribleUrls.clear();
 		registeFailUrls.clear();

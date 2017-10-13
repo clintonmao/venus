@@ -18,7 +18,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * bus调用对象，TODO 统一invocation
+ * bus调用对象
  * Created by Zhangzhihua on 2017/8/2.
  */
 public class BusInvocation implements Invocation {

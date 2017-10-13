@@ -15,7 +15,7 @@ import org.apache.commons.cli.TypeHandler;
 import org.apache.commons.lang.ArrayUtils;
 
 import com.meidusa.toolkit.util.StringUtil;
-import com.meidusa.venus.annotations.util.AnnotationUtil;
+import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.exception.ConvertException;
 import com.meidusa.venus.exception.EndPointNotFoundException;
 import com.meidusa.venus.exception.ServiceNotFoundException;

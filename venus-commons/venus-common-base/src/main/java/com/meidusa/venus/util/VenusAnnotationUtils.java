@@ -7,6 +7,7 @@ import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 
 public class VenusAnnotationUtils {
+
     public static String getApiname(Method method, Service service, Endpoint endpoint) {
         String serviceName = null;
         if (service == null || StringUtil.isEmpty(service.name())) {
@@ -24,4 +25,5 @@ public class VenusAnnotationUtils {
 
         return serviceName + "." + methodName;
     }
+
 }

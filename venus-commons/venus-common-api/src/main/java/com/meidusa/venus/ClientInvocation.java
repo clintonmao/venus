@@ -4,6 +4,8 @@ import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
+import com.meidusa.venus.support.EndpointWrapper;
+import com.meidusa.venus.support.ServiceWrapper;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -33,9 +35,9 @@ public class ClientInvocation implements Invocation {
 
     private Class<?> serviceInterface;
 
-    private Service service;
+    private ServiceWrapper service;
 
-    private Endpoint endpoint;
+    private EndpointWrapper endpoint;
 
     private Method method;
 
@@ -121,19 +123,19 @@ public class ClientInvocation implements Invocation {
         this.serviceInterface = serviceInterface;
     }
 
-    public Service getService() {
+    public ServiceWrapper getService() {
         return service;
     }
 
-    public void setService(Service service) {
+    public void setService(ServiceWrapper service) {
         this.service = service;
     }
 
-    public Endpoint getEndpoint() {
+    public EndpointWrapper getEndpoint() {
         return endpoint;
     }
 
-    public void setEndpoint(Endpoint endpoint) {
+    public void setEndpoint(EndpointWrapper endpoint) {
         this.endpoint = endpoint;
     }
 
@@ -216,7 +218,7 @@ public class ClientInvocation implements Invocation {
 
     @Override
     public String getServiceName() {
-        return service.name();
+        return service.getName();
     }
 
     @Override

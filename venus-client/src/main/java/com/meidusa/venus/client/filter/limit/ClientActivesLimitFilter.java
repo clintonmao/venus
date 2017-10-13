@@ -1,7 +1,7 @@
 package com.meidusa.venus.client.filter.limit;
 
 import com.meidusa.venus.*;
-import com.meidusa.venus.support.VenusPathUtil;
+import com.meidusa.venus.support.VenusUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +40,7 @@ public class ClientActivesLimitFilter implements Filter {
             return null;
         }
         //获取方法路径及当前并发数
-        String methodPath = VenusPathUtil.getMethodPath(clientInvocation, url);
+        String methodPath = VenusUtil.getMethodPath(clientInvocation, url);
         AtomicInteger activeLimit = methodActivesMapping.get(methodPath);
         if(activeLimit == null){
             activeLimit = new AtomicInteger(0);
@@ -71,8 +71,18 @@ public class ClientActivesLimitFilter implements Filter {
         if(!isEnableActiveLimit(clientInvocation, url)){
             return null;
         }
-        String methodPath = VenusPathUtil.getMethodPath(clientInvocation, url);
-        AtomicInteger activeLimit = methodActivesMapping.get(methodPath);
+        String methodPath = null;
+        try {
+            methodPath = VenusUtil.getMethodPath(clientInvocation, url);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        AtomicInteger activeLimit = null;
+        try {
+            activeLimit = methodActivesMapping.get(methodPath);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         if(activeLimit != null){
             //-1
             activeLimit.decrementAndGet();

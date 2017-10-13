@@ -5,6 +5,7 @@ import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.client.invoker.AbstractClientInvoker;
+import com.meidusa.venus.support.ServiceWrapper;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -27,24 +28,25 @@ public class InjvmClientInvoker extends AbstractClientInvoker implements Invoker
     public Result doInvoke(ClientInvocation invocation, URL url) throws RpcException {
         Method method = invocation.getMethod();
         Object[] args = invocation.getArgs();
-        Service service = invocation.getService();
-        Endpoint endpoint = invocation.getEndpoint();
+        ServiceWrapper service = invocation.getService();
+        //Endpoint endpoint = invocation.getEndpoint();
+        String interfaceName = service.getImplement();
 
         try {
             Object serviceImpl = null;
-            if (service.singleton()) {
-                serviceImpl = singletonServiceMap.get(service.implement());
+            if (service.isSingleton()) {
+                serviceImpl = singletonServiceMap.get(interfaceName);
                 if (serviceImpl == null) {
                     synchronized (singletonServiceMap) {
-                        serviceImpl = singletonServiceMap.get(service.implement());
+                        serviceImpl = singletonServiceMap.get(interfaceName);
                         if (serviceImpl == null) {
-                            serviceImpl = Class.forName(service.implement(), true, Thread.currentThread().getContextClassLoader()).newInstance();
-                            singletonServiceMap.put(service.implement(), serviceImpl);
+                            serviceImpl = Class.forName(interfaceName, true, Thread.currentThread().getContextClassLoader()).newInstance();
+                            singletonServiceMap.put(interfaceName, serviceImpl);
                         }
                     }
                 }
             } else {
-                serviceImpl = Class.forName(service.implement(), true, Thread.currentThread().getContextClassLoader()).newInstance();
+                serviceImpl = Class.forName(interfaceName, true, Thread.currentThread().getContextClassLoader()).newInstance();
             }
 
             return new Result(method.invoke(serviceImpl, args));

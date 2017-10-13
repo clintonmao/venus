@@ -119,7 +119,7 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
         }
         detailDO.setServiceName(clientInvocation.getServiceName());
         if(clientInvocation.getEndpoint() != null){
-            detailDO.setMethodName(clientInvocation.getEndpoint().name());
+            detailDO.setMethodName(clientInvocation.getEndpoint().getName());
         }else if(clientInvocation.getMethod() != null){
             detailDO.setMethodName(clientInvocation.getMethod().getName());
         }

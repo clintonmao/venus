@@ -5,6 +5,9 @@ import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.exception.CodedException;
+import com.meidusa.venus.support.EndpointWrapper;
+import com.meidusa.venus.support.ServiceWrapper;
+import com.meidusa.venus.support.VenusUtil;
 import com.meidusa.venus.util.VenusAnnotationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +29,8 @@ public abstract class AbstractClientInvoker implements Invoker {
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
         VenusThreadContext.set(VenusThreadContext.REQUEST_URL,url);
         Method method = clientInvocation.getMethod();
-        Service service = clientInvocation.getService();
-        Endpoint endpoint = clientInvocation.getEndpoint();
+        ServiceWrapper service = clientInvocation.getService();
+        EndpointWrapper endpoint = clientInvocation.getEndpoint();
 
         try {
             //初始化
@@ -39,11 +42,13 @@ public abstract class AbstractClientInvoker implements Invoker {
         } catch (Throwable e) {
             if (!(e instanceof CodedException)) {
                 if (exceptionLogger.isInfoEnabled()) {
-                    exceptionLogger.info("invoke service error,api=" + VenusAnnotationUtils.getApiname(method, service, endpoint), e);
+                    //exceptionLogger.info("invoke service error,api=" + VenusAnnotationUtils.getApiname(method, service, endpoint), e);
+                    exceptionLogger.info("invoke service error,api=" + VenusUtil.getApiName(method,service,endpoint), e);
                 }
             } else {
                 if (exceptionLogger.isDebugEnabled()) {
-                    exceptionLogger.debug("invoke service error,api=" + VenusAnnotationUtils.getApiname(method, service, endpoint), e);
+                    //exceptionLogger.debug("invoke service error,api=" + VenusAnnotationUtils.getApiname(method, service, endpoint), e);
+                    exceptionLogger.debug("invoke service error,api=" + VenusUtil.getApiName(method,service,endpoint), e);
                 }
             }
             throw new RpcException(e);
