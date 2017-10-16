@@ -121,6 +121,12 @@
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-client</artifactId>
             <version>4.0.0-SNAPSHOT</version>
+            <exclusions>
+            	<exclusion>
+            		<groupId>org.springframework.data</groupId>
+            		<artifactId>spring-data-gemfire</artifactId>
+            	</exclusion>
+            </exclusions>
         </dependency>
         <!--运行期依赖-->
         <dependency>

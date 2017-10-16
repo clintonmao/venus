@@ -138,6 +138,12 @@
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-monitor-delegate</artifactId>
             <version>4.0.0-SNAPSHOT</version>
+            <exclusions>
+            	<exclusion>
+            		<groupId>org.springframework.data</groupId>
+            		<artifactId>spring-data-gemfire</artifactId>
+            	</exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus</groupId>
