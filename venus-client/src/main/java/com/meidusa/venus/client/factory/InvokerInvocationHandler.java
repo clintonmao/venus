@@ -161,6 +161,9 @@ public class InvokerInvocationHandler implements InvocationHandler {
             traceID = VenusTracerUtil.randomTracerID();
         }
         invocation.setTraceID(traceID);
+        if(register != null){
+            invocation.setLookupType(1);
+        }
         return invocation;
     }
 

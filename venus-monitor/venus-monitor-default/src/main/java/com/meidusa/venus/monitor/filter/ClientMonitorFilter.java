@@ -3,10 +3,7 @@ package com.meidusa.venus.monitor.filter;
 import com.athena.domain.MethodCallDetailDO;
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
-import com.meidusa.venus.io.utils.StringUtil;
-import com.meidusa.venus.monitor.reporter.VenusMonitorReporter;
 import com.meidusa.venus.util.UUIDUtil;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +42,11 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
+        //若不走注册中心，则跳过
+        if(!isNeedReport(clientInvocation)){
+            return null;
+        }
+
         //请求url
         url = (URL)VenusThreadContext.get(VenusThreadContext.REQUEST_URL);
         //响应结果
@@ -63,6 +65,15 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
 
         putInvocationDetailQueue(invocationDetail);
         return null;
+    }
+
+    /**
+     * 判断是否需要监控上报
+     * @param clientInvocation
+     * @return
+     */
+    boolean isNeedReport(ClientInvocation clientInvocation){
+        return clientInvocation.getLookupType() != 0;
     }
 
     /**

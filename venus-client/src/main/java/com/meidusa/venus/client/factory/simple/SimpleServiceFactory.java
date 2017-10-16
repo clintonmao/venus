@@ -162,7 +162,7 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
         invocationHandler.setServiceInterface(t);
         //TODO serviceName、version
 
-        if(StringUtils.isEmpty(ipAddressList)){
+        if(StringUtils.isNotEmpty(ipAddressList)){
             invocationHandler.setRemoteConfig(ClientRemoteConfig.newInstace(ipAddressList));
         }else{
             invocationHandler.setRegister(this.getRegister());

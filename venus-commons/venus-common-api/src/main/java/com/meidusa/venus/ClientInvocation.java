@@ -59,6 +59,8 @@ public class ClientInvocation implements Invocation {
 
     boolean async;
 
+    private int lookupType = 0;//0:本地;1:注册中心
+
     public int getClientId() {
         return clientId;
     }
@@ -231,4 +233,11 @@ public class ClientInvocation implements Invocation {
         return this.getMethod().getName();
     }
 
+    public int getLookupType() {
+        return lookupType;
+    }
+
+    public void setLookupType(int lookupType) {
+        this.lookupType = lookupType;
+    }
 }
