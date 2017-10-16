@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * JSONUtil,TODO 复用原来JSONUtils
+ * JSONUtil
  * Created by Zhangzhihua on 2017/9/28.
  */
 public class JSONUtil {

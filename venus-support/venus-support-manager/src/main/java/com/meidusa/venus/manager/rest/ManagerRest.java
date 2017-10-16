@@ -11,7 +11,6 @@ public class ManagerRest {
     }
 
     void queryAllInfos(){
-        //TODO 查询所有相关信息
     }
 
 }

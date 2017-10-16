@@ -29,7 +29,7 @@ public interface RegisterService {
     /**
      * 服务反注册
      * @param url
-     * @return TODO
+     * @return
      * @throws VenusRegisteException
      */
 	@Endpoint(name = "unregiste")
@@ -48,7 +48,7 @@ public interface RegisterService {
     /**
      * 服务反订阅
      * @param url
-     * @return TODO
+     * @return
      * @throws VenusRegisteException
      */
 	@Endpoint(name = "unsubscrible")

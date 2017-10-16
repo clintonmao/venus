@@ -296,7 +296,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     /**
      * 发送远程调用消息
      * @param invocation
-     * @param serviceRequestPacket TODO 想办法合并invocation/request
+     * @param serviceRequestPacket
      * @param url 目标地址
      * @return
      * @throws Exception

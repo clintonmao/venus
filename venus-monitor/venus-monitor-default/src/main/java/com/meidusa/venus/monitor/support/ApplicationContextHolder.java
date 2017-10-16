@@ -63,8 +63,6 @@ public class ApplicationContextHolder implements ApplicationContextAware {
         if(simpleNameString.contains(".")){
             simpleNameString=simpleNameString.substring(simpleNameString.lastIndexOf(".")+1);
         }
-        //TODO StringUtil工具类
-        //simpleNameString=StringUtil.lowerFirstChar(simpleNameString);
         registerBean(simpleNameString,beanDefinition);
     }
 

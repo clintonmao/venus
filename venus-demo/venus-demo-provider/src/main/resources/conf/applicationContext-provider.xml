@@ -44,19 +44,19 @@
 		<property name="authenticateProvider" ref="authenticateProvider"/>
 	</bean>
 
+	<bean id="authenticateProvider" class="com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider">
+		<property name="useDummy" value="true" />
+		<property name="username" value="111" />
+		<property name="password" value="111" />
+	</bean>
+
 	<!--服务发布配置-->
-    <bean id="serviceManager" class="com.meidusa.venus.backend.services.xml.XmlFileServiceManager">
+	<bean id="serviceManager" class="com.meidusa.venus.backend.services.xml.XmlFileServiceManager">
         <property name="configFiles">
             <list>
                 <value>classpath:/conf/hello-venus-server.xml</value>
             </list>
         </property>
     </bean>
-
-	<bean id="authenticateProvider" class="com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider">
-		<property name="useDummy" value="true" />
-		<property name="username" value="111" />
-		<property name="password" value="111" />
-	</bean>
 
 </beans>

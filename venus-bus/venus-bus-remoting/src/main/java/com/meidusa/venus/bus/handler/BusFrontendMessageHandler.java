@@ -5,6 +5,7 @@ import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.bus.util.VenusTrafficCollector;
+import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.support.ShutdownListener;
 import com.meidusa.venus.io.support.VenusStatus;
@@ -57,7 +58,6 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
 
             // ignore this packet
             case PacketConstant.PACKET_TYPE_PONG:
-
                 break;
             case PacketConstant.PACKET_TYPE_VENUS_STATUS_REQUEST:
                 VenusStatusRequestPacket sr = new VenusStatusRequestPacket();
@@ -68,12 +68,9 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                 response.status = VenusStatus.getInstance().getStatus();
                 srcConn.write(response.toByteBuffer());
                 break;
-            case PacketConstant.PACKET_TYPE_SERVICE_REQUEST: {
-                //TODO 由业务实现
+            case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:
                 break;
-            }
             case PacketConstant.AUTHEN_TYPE_PASSWORD:
-
                 break;
             default:
                 StringBuilder buffer = new StringBuilder("receive unknown type packet from ");

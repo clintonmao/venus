@@ -45,7 +45,6 @@ public class VenusMonitorAgent extends LoopingThread{
 
 	
 	public void sendMonitorEntity(){
-		//TODO 发布服务
 		//SimpleServiceFactory factory = new SimpleServiceFactory(host,port);
 	}
     /**

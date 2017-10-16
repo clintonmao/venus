@@ -236,7 +236,6 @@ public class MysqlRegisterService implements RegisterService {
 
 	@Override
 	public void subscrible(URL url) throws VenusRegisteException {
-		//FIXME 改为返回多条记录
 		List<VenusServiceDO> services = venusServiceDAO.queryServices(url.getInterfaceName(), url.getServiceName(),
 				url.getVersion());
 		for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {

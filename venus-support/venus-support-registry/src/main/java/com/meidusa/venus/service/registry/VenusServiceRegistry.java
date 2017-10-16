@@ -10,7 +10,6 @@ import java.util.*;
  */
 public class VenusServiceRegistry implements ServiceRegistry{
 
-    //TODO service注入
     Map<String, Service> services = new HashMap<String, Service>();
 
     public VenusServiceRegistry(Map<String, Service> services){

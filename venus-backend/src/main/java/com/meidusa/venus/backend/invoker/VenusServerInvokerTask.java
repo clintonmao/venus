@@ -136,7 +136,6 @@ public class VenusServerInvokerTask implements Runnable{
             ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
 
             if (invocation.getResultType() == EndpointInvocation.ResultType.RESPONSE) {
-                //TODO toJson
                 logger.info("write normal response,rpcId:{},result:{}",rpcId,JSONUtil.toJSONString(result));
                 responseHandler.writeResponseForResponse(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
@@ -166,7 +165,7 @@ public class VenusServerInvokerTask implements Runnable{
     }
 
     /**
-     * 解析并构造请求对象 TODO 统一接口invocation定义
+     * 解析并构造请求对象
      * @return
      */
     ServerInvocation parseInvocation(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
@@ -198,7 +197,6 @@ public class VenusServerInvokerTask implements Runnable{
             throw new RpcException("find endpoint def failed.");
         }
         invocation.setEndpointDef(endpointDef);
-        //TODO 补全接口服务相关信息
         invocation.setRpcId(RpcIdUtil.getRpcId(request));
         Service service = endpointDef.getService();
         invocation.setServiceInterface(service.getType());

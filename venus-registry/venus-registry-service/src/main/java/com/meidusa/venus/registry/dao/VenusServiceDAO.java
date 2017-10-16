@@ -18,7 +18,7 @@ public interface VenusServiceDAO {
 	 * 
 	 * @param interfaceName 可为空
 	 * @param serviceName 不能为空
-	 * @param version TODO
+	 * @param version
 	 * @return
 	 * @throws DAOException
 	 */

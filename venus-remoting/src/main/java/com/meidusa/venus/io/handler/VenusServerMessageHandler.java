@@ -79,8 +79,7 @@ public class VenusServerMessageHandler implements MessageHandler<VenusFrontendCo
 
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:
-                //远程调用消息处理
-                //TODO 不支持，需要子类实现 requestMessageHandler.handle(conn, data);
+                //远程调用消息处理，由协议层实现
                 break;
             default:
                 StringBuilder buffer = new StringBuilder("receive unknown packet type=" + type + "  from ");
