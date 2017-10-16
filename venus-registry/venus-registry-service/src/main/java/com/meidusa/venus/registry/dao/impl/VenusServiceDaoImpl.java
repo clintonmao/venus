@@ -19,6 +19,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.dao.VenusServiceDAO;
+import com.meidusa.venus.registry.data.move.OldServiceDO;
 import com.meidusa.venus.registry.domain.RegisteConstant;
 import com.meidusa.venus.registry.domain.VenusServiceDO;
 
@@ -162,6 +163,17 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 			update = this.jdbcTemplate.update(sql, isDelete, id);
 		} catch (Exception e) {
 			throw new DAOException("更新venusService异常", e);
+		}
+		return update > 0;
+	}
+	
+	public boolean updateServiceAppId(int id, int appId) throws DAOException {
+		String sql = "update t_venus_service set app_id=?,update_time=now() where id=?";
+		int update = 0;
+		try {
+			update = this.jdbcTemplate.update(sql, appId, id);
+		} catch (Exception e) {
+			throw new DAOException("更新venusService appId异常", e);
 		}
 		return update > 0;
 	}
@@ -360,6 +372,41 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 			});
 		} catch (Exception e) {
 			throw new DAOException("获取venusService异常", e);
+		}
+	}
+	
+	@Override
+	public Integer getServiceCount() throws DAOException {
+		String sql = "SELECT count(id) as records FROM t_venus_service ";
+		try {
+			return this.jdbcTemplate.queryForObject(sql, Integer.class);
+		} catch (Exception e) {
+			throw new DAOException("根据sql=>" + sql + ";获取服务记录数异常", e);
+		}
+	}
+	
+	@Override
+	public List<VenusServiceDO> queryServices(Integer pageSize, Integer id) throws DAOException {
+		String sql = SELECT_FIELDS + " from t_venus_service ";
+
+		if (null != id) {
+			sql = sql + " where id>" + id;
+		}
+		sql = sql + " order by id asc limit " + pageSize;
+
+		try {
+			return this.jdbcTemplate.query(sql, new Object[] {}, new ResultSetExtractor<List<VenusServiceDO>>() {
+				@Override
+				public List<VenusServiceDO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<VenusServiceDO> returnList = new ArrayList<VenusServiceDO>();
+					while (rs.next()) {
+						returnList.add(ResultUtils.resultToVenusServiceDO(rs));
+					}
+					return returnList;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据sql=>" + sql + ";获取服务列表异常", e);
 		}
 	}
 
