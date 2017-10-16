@@ -13,6 +13,8 @@ public interface VenusServiceDAO {
 	boolean updateService(String methods, boolean isDelete, int id, Integer appId) throws DAOException;
 	
 	boolean updateService(int id, boolean isDelete) throws DAOException;
+	
+	boolean updateServiceAppId(int id, int appId) throws DAOException;
 
 	/**
 	 * 
@@ -35,5 +37,9 @@ public interface VenusServiceDAO {
 	VenusServiceDO getService(String serviceName,int registeType) throws DAOException;
 	
 	List<VenusServiceDO> getServices(Collection<Integer> ids) throws DAOException;
+	
+	Integer getServiceCount() throws DAOException;
+	
+	List<VenusServiceDO> queryServices(Integer pageSize, Integer id) throws DAOException;
 
 }

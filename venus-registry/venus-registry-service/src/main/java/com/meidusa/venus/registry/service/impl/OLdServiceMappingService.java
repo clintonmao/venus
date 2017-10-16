@@ -132,7 +132,8 @@ public class OLdServiceMappingService {
 			}
 		}
 	}
-
+	
+	
 	public void moveServers() {
 		Integer totalCount = oldServiceMappingDAO.getOldServerCount();
 		if (null != totalCount && totalCount > 0) {

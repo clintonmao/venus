@@ -34,6 +34,7 @@ import com.meidusa.venus.registry.dao.impl.VenusServerDaoImpl;
 import com.meidusa.venus.registry.dao.impl.VenusServiceConfigDaoImpl;
 import com.meidusa.venus.registry.dao.impl.VenusServiceDaoImpl;
 import com.meidusa.venus.registry.dao.impl.VenusServiceMappingDaoImpl;
+import com.meidusa.venus.registry.data.move.OldServiceDO;
 import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
 import org.springframework.stereotype.Component;
 
@@ -113,6 +114,7 @@ public class MysqlRegisterService implements RegisterService {
 				}
 			}
 		}
+		//updateServiceAppIds();
 	}
 
 	@Override
@@ -680,6 +682,50 @@ public class MysqlRegisterService implements RegisterService {
 	public static void main(String args[]){
 		Date d=new Date(1506498850000L);
 		System.out.println(d);
+	}
+	
+	public void updateServiceAppIds() {
+		logger.info("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+		Integer totalCount = venusServiceDAO.getServiceCount();
+		int PAGE_SIZE_200 = 200;
+		if (null != totalCount && totalCount > 0) {
+			int mod = totalCount % PAGE_SIZE_200;
+			int count = totalCount / PAGE_SIZE_200;
+			if (mod > 0) {
+				count = count + 1;
+			}
+			Integer mapId = null;
+			for (int i = 0; i < count; i++) {
+				List<VenusServiceDO> services = venusServiceDAO.queryServices(PAGE_SIZE_200, mapId);
+				if (CollectionUtils.isNotEmpty(services)) {
+					mapId = services.get(services.size() - 1).getId();
+					for (VenusServiceDO serviceDO : services) {
+						String appCode = serviceDO.getName() + "_app";
+						int appId = 0;
+						if ((serviceDO.getAppId() ==0 ||serviceDO.getAppId() ==null) && StringUtils.isNotBlank(appCode)) {
+							VenusApplicationDO application = venusApplicationDAO.getApplication(appCode);
+							if (null == application) {// 不存在添加
+								VenusApplicationDO venusApplicationDO = new VenusApplicationDO();
+								venusApplicationDO.setAppCode(appCode);
+								venusApplicationDO.setCreateName(RegisteConstant.PROVIDER);
+								venusApplicationDO.setUpdateName(RegisteConstant.PROVIDER);
+								venusApplicationDO.setProvider(true);
+								venusApplicationDO.setConsumer(false);
+								appId = venusApplicationDAO.addApplication(venusApplicationDO);
+							} else {
+								appId = application.getId();
+								if (null == application.isProvider()
+										|| (null != application.isProvider() && !application.isProvider())) {// 非提供方，更新
+									application.setProvider(true);
+									venusApplicationDAO.updateApplication(application);
+								}
+							}
+							venusServiceDAO.updateServiceAppId(serviceDO.getId(), appId);
+						}
+					}
+				}
+			}
+		}
 	}
 
 }
