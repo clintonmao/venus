@@ -276,10 +276,20 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         //初始化服务代理
         initServiceProxy(serviceConfig,venusClientConfig);
 
-        //订阅服务
-        subscribleService(serviceConfig);
+        //若走注册中心，则订阅服务
+        if(!isLocalLookup(serviceConfig)){
+            subscribleService(serviceConfig);
+        }
     }
 
+    /**
+     * 判断是否
+     * @param serviceConfig
+     * @return
+     */
+    boolean isLocalLookup(ServiceConfig serviceConfig){
+        return StringUtils.isNotEmpty(serviceConfig.getRemote()) || StringUtils.isNotEmpty(serviceConfig.getIpAddressList());
+    }
     /**
      * 初始化服务代理
      * @param serviceConfig
@@ -290,7 +300,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
         invocationHandler.setServiceInterface(serviceConfig.getType());
         //若配置静态地址，以静态为先
-        if(StringUtils.isNotEmpty(serviceConfig.getRemote()) || StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
+        if(isLocalLookup(serviceConfig)){
             ClientRemoteConfig remoteConfig = getRemoteConfig(serviceConfig,venusClientConfig);
             invocationHandler.setRemoteConfig(remoteConfig);
         }else{

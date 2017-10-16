@@ -136,9 +136,19 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
         //初始化服务代理
         T serviceProxy = initServiceProxy(t);
 
-        //订阅服务
-        subscribleService(t);
+        //若走注册中心，则订阅服务
+        if(!isLocalLookup()){
+            subscribleService(t);
+        }
         return serviceProxy;
+    }
+
+    /**
+     * 判断是否本地寻址
+     * @return
+     */
+    boolean isLocalLookup(){
+        return StringUtils.isNotEmpty(ipAddressList);
     }
 
     /**
