@@ -199,9 +199,30 @@ public class MysqlRegisterService implements RegisterService {
 		VenusServiceDO service = venusServiceDAO.getService(serviceName,version);
 		int serviceId = 0;
 		if (null == service) {
+			String oldAppCode=serviceName+"_app";
+			int appId = 0;
+			if (StringUtils.isNotBlank(oldAppCode)) {
+				VenusApplicationDO application = venusApplicationDAO.getApplication(oldAppCode);
+				if (null == application) {// 不存在添加
+					VenusApplicationDO venusApplicationDO = new VenusApplicationDO();
+					venusApplicationDO.setAppCode(oldAppCode);
+					venusApplicationDO.setCreateName(RegisteConstant.PROVIDER);
+					venusApplicationDO.setUpdateName(RegisteConstant.PROVIDER);
+					venusApplicationDO.setProvider(true);
+					venusApplicationDO.setConsumer(false);
+					appId = venusApplicationDAO.addApplication(venusApplicationDO);
+				} else {
+					appId = application.getId();
+					if (null == application.isProvider()
+							|| (null != application.isProvider() && !application.isProvider())) {// 非提供方，更新
+						application.setProvider(true);
+						venusApplicationDAO.updateApplication(application);
+					}
+				}
+			}
 			VenusServiceDO venusServiceDO = new VenusServiceDO();
 			venusServiceDO.setName(serviceName);
-			venusServiceDO.setAppId(null);
+			venusServiceDO.setAppId(appId);
 			venusServiceDO.setVersion(version);
 			venusServiceDO.setRegisteType(RegisteConstant.OPERATOR_REGISTE);
 			venusServiceDO.setMethods(null);
