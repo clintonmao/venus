@@ -17,10 +17,7 @@ import com.meidusa.venus.util.OgnlUtil;
 import com.meidusa.venus.util.PropertyStringGenerator;
 
 /**
- * TODO
- * 
  * @author Struct
- * 
  */
 public class CacheableInterceptor extends AbstractInterceptor implements Configurable {
 

@@ -13,10 +13,7 @@ import com.meidusa.venus.monitor.filter.ServerMonitorFilter;
  */
 public class VenusServerInvokerProxy implements Invoker {
 
-    //TODO 实例化
     private VenusServerInvoker venusServerInvoker = new VenusServerInvoker();
-
-    private AthenaDataService athenaDataService;
 
     private ServerAthenaMonitorFilter serverAthenaMonitorFilter;
 

@@ -38,7 +38,6 @@ public class VenusClientMessageHandler implements MessageHandler<VenusBackendCon
                 conn.write(pong.toByteBuffer());
                 break;
             default:
-                //TODO
         }
     }
 

@@ -36,9 +36,11 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 
 import java.io.InputStream;
@@ -48,7 +50,7 @@ import java.util.*;
 /**
  * 基于XML配置服务管理类
  */
-public class XmlFileServiceManager extends AbstractServiceManager implements InitializingBean,BeanFactoryPostProcessor,BeanFactoryAware{
+public class XmlFileServiceManager extends AbstractServiceManager implements InitializingBean,BeanFactoryPostProcessor,BeanFactoryAware,ApplicationContextAware{
 
     private static Logger logger = LoggerFactory.getLogger(XmlFileServiceManager.class);
 
@@ -62,6 +64,9 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
     private Register register;
 
+    /**
+     * 通过get/set注入
+     */
     private VenusProtocol venusProtocol;
 
     public Resource[] getConfigFiles() {
@@ -85,7 +90,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * 校验
      */
     void valid(){
-        //VenusSerializerFactory venusProtocol = VenusProtocolContext.getInstance().getVenusProtocol();
         if(venusProtocol == null){
             throw new VenusConfigException("venus protocol not config.");
         }
@@ -101,12 +105,11 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         //初始化注册中心
         initRegister();
 
+        //初始化协议
+        initProtocol();
+
         //初始化配置
         initConfiguration();
-
-        //向venusProtol注册serviceManager配置定义 TODO 注入时机
-        //VenusSerializerFactory venusProtocol = VenusProtocolContext.getInstance().getVenusProtocol();
-        //venusProtocol.registeServiceManager(this);
     }
 
 
@@ -136,6 +139,19 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
             throw new RpcException("init register failed.");
         }
         this.register = register;
+    }
+
+    /**
+     * 初始化协议，启动相应协议的监听
+     */
+    void initProtocol(){
+        logger.info("initProtocol:{}.",Thread.currentThread().getName());
+        venusProtocol.setSrvMgr(this);
+        try {
+            venusProtocol.init();
+        } catch (Exception e) {
+            throw new RpcException("init protocol failed.",e);
+        }
     }
 
     /**
@@ -317,12 +333,12 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      */
     URL parseRegisterUrl(ServiceConfig serviceConfig, Service service){
         String application = VenusContext.getInstance().getApplication();
-        String protocol = "venus";//TODO
+        String protocol = "venus";
         String serviceInterfaceName = serviceConfig.getType().getName();
         String serviceName = service.getName();
         String version = "0.0.0";//TODO
         String host = NetUtil.getLocalIp();
-        String port = "16800";//TODO 动态端口
+        String port = venusProtocol.getPort();
         String methods = "sayHello[java.lang.String]";//TODO
         String registerUrl = String.format(
                 "%s://%s/%s?version=%s&application=%s&host=%s&port=%s&methods=%s",
@@ -441,11 +457,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     }
 
     @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-        this.beanFactory = beanFactory;
-    }
-
-    @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
     }
 
@@ -463,5 +474,15 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
     public void setVenusProtocol(VenusProtocol venusProtocol) {
         this.venusProtocol = venusProtocol;
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = beanFactory;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }

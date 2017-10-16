@@ -52,8 +52,6 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
     private VenusExceptionFactory venusExceptionFactory;
 
-    //TODO 改为注入方式
-    //@Autowired
     private ServiceManager serviceManager;
 
     @Override

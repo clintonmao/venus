@@ -24,7 +24,7 @@ import java.net.MalformedURLException;
  * Venus注册中心工厂类，负责初始化注册中心
  * Created by Zhangzhihua on 2017/9/15.
  */
-public class VenusRegistryFactory implements InitializingBean, DisposableBean,ApplicationContextAware,BeanFactoryPostProcessor {
+public class VenusRegistryFactory implements InitializingBean, DisposableBean,BeanFactoryPostProcessor {
 
     private static Logger logger = LoggerFactory.getLogger(VenusRegistryFactory.class);
 
@@ -39,19 +39,15 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean,Ap
     private String connectUrl;
 
     /**
-     * simple服务调用工厂
-     */
-    private ServiceFactoryExtra serviceFactoryExtra;
-
-    /**
      * 注册服务
      */
     private Register register;
 
-
     @Override
     public void afterPropertiesSet() throws Exception {
+        //valid
         valid();
+
         //初始化register
         initRegister();
     }
@@ -179,10 +175,4 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean,Ap
         this.connectUrl = connectUrl;
     }
 
-    ApplicationContext applicationContext;
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
 }

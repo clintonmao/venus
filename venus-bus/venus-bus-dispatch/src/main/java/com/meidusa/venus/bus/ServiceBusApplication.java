@@ -10,18 +10,20 @@ import com.meidusa.toolkit.common.runtime.DefaultApplication;
  * @author structchen
  * 
  */
-public class ServiceBusApplication extends DefaultApplication<ServiceBusApplicationConfig> {
-
-    private ServiceBusApplicationConfig config = new ServiceBusApplicationConfig();
+public class ServiceBusApplication extends Application<ApplicationConfig> {
 
     @Override
     public void doRun() {
-
     }
 
     @Override
-    public ServiceBusApplicationConfig getApplicationConfig() {
-        return config;
+    protected String[] getConfigLocations() {
+        return new String[]{"classpath:applicationContext-bus.xml"};
+    }
+
+    @Override
+    public ApplicationConfig getApplicationConfig() {
+        return null;
     }
 
     public static void main(String[] args) {

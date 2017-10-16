@@ -67,7 +67,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
 
     private ApplicationContext applicationContext;
 
-    private  ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
+    //private ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
 
     @Override
     public void afterPropertiesSet() throws Exception {

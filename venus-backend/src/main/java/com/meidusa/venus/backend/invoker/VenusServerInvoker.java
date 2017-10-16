@@ -12,6 +12,7 @@ import com.meidusa.venus.backend.services.xml.config.PerformanceLogger;
 import com.meidusa.venus.backend.support.Response;
 import com.meidusa.venus.backend.support.UtilTimerStack;
 import com.meidusa.venus.exception.*;
+import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.AbstractServicePacket;
 import com.meidusa.venus.io.packet.ErrorPacket;
 import com.meidusa.venus.io.packet.PacketConstant;
@@ -22,6 +23,7 @@ import com.meidusa.venus.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,30 +49,28 @@ public class VenusServerInvoker implements Invoker {
 
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
 
-    private ServiceManager serviceManager;
-
-    private Executor executor;
-
     private static String ENDPOINT_INVOKED_TIME = "invoked Total Time: ";
 
-    //TODO 删除不用的全局变量定义
+    /* 注释无用变量定义
+    private Executor executor;
     private Endpoint endpoint;
-
     private RequestContext context;
     private EndpointInvocation.ResultType resultType;
     private byte[] traceID;
     private SerializeServiceRequestPacket request;
     private short serializeType;
     private VenusRouterPacket routerPacket;
-    //private VenusServerInvocationListener<Serializable> invocationListener;
-    //private VenusFrontendConnection conn;
+    private VenusServerInvocationListener<Serializable> invocationListener;
+    private VenusFrontendConnection conn;
     private Tuple<Long, byte[]> data;
     private String apiName;
     private String sourceIp;
+    static Map<Class<?>,Integer> codeMap = new HashMap<Class<?>,Integer>();
+    */
+
+    private ServiceManager serviceManager;
 
     private VenusExceptionFactory venusExceptionFactory;
-
-    static Map<Class<?>,Integer> codeMap = new HashMap<Class<?>,Integer>();
 
     @Override
     public void init() throws RpcException {
@@ -174,7 +174,6 @@ public class VenusServerInvoker implements Invoker {
      * @return
      */
     private Object doInvokeEndpoint(RequestContext context, Endpoint endpoint) throws Exception{
-        //TODO 实例化
         VenusServerInvocationEndpoint invocation = new VenusServerInvocationEndpoint(context, endpoint);
         //invocation.addObserver(ObserverScanner.getInvocationObservers());
         try {

@@ -14,23 +14,30 @@ import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.io.network.VenusBackendFrontendConnectionFactory;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 /**
  * venus协议，启动/销毁remoting、设置message handler相关操作
  * Created by Zhangzhihua on 2017/9/28.
  */
-public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,DisposableBean {
+public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,DisposableBean,BeanFactoryAware,ApplicationContextAware {
 
-    private boolean isRunning = false;
+    private static boolean isRunning = false;
 
     private ConnectionAcceptor connectionAcceptor;
 
     private MessageHandler messageHandler;
 
+    /**
+     * 不注入依赖，由srvMgr向venusProtocol设置
+     */
     private ServiceManager serviceManager;
 
     private AuthenticateProvider authenticateProvider;
@@ -39,19 +46,12 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
 
     private VenusMonitorFactory venusMonitorFactory;
 
-    //自定义属性设置 TODO 其它
+    //自定义属性设置
     private String port;
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        if(!isRunning){
-            //校验
-            valid();
-
-            //初始化
-            init();
-            isRunning = true;
-        }
+        valid();
     }
 
     /**
@@ -64,15 +64,18 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
     }
 
     /**
-     * 初始化venus协议
+     * 初始化venus协议，启动venus服务监听
      */
-    void init() throws Exception{
-        VenusContext.getInstance().setPort(port);
-        if(connectionAcceptor == null){
-            connectionAcceptor = createConnectionAcceptor();
-            //TODO 在serviceManager未初始化之前应关闭接收，处理先后关系
-            connectionAcceptor.start();
+    public synchronized void init() throws Exception{
+        if(!isRunning){
+            VenusContext.getInstance().setPort(port);
+            if(connectionAcceptor == null){
+                connectionAcceptor = createConnectionAcceptor();
+                connectionAcceptor.start();
+            }
+            isRunning = true;
         }
+
     }
 
     /**
@@ -111,7 +114,7 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
     MessageHandler createMessageHandler() throws InitialisationException {
         //TODO 属性设置
         VenusServerInvokerMessageHandler messageHandler = new VenusServerInvokerMessageHandler();
-        //TODO 线程数量设定@@@
+        //TODO 线程数量设定
         messageHandler.setMaxExecutionThread(1);
         messageHandler.setExecutorProtected(false);
         messageHandler.setExecutorEnabled(false);
@@ -152,14 +155,6 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
         this.messageHandler = messageHandler;
     }
 
-    public ServiceManager getServiceManager() {
-        return serviceManager;
-    }
-
-    public void setServiceManager(ServiceManager serviceManager) {
-        this.serviceManager = serviceManager;
-    }
-
     /*
     public void registeServiceManager(ServiceManager serviceManager) {
         if(this.messageHandler instanceof VenusServerInvokerMessageHandler){
@@ -193,5 +188,20 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
 
     public void setVenusMonitorFactory(VenusMonitorFactory venusMonitorFactory) {
         this.venusMonitorFactory = venusMonitorFactory;
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+
+    }
+
+    //不使用属性依赖注入，由srvMgr反向注入
+    public void setSrvMgr(ServiceManager serviceManager) {
+        this.serviceManager = serviceManager;
     }
 }
