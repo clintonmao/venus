@@ -132,7 +132,7 @@
         <!--运行期依赖-->
         <dependency>
             <groupId>com.meidusa.venus</groupId>
-            <artifactId>venus-registry-service</artifactId>
+            <artifactId>venus-registry-client</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

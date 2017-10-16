@@ -57,8 +57,13 @@ public class ServerInvocation implements Invocation {
 
     private Date requestTime;
 
-    //consumerIp
+    private String consumerApp;
+
     private String consumerIp;
+
+    private String providerApp;
+
+    private String providerIp;
 
     boolean async;
 
@@ -371,5 +376,29 @@ public class ServerInvocation implements Invocation {
     @Override
     public String getMethodName() {
         return this.getMethod().getName();
+    }
+
+    public String getConsumerApp() {
+        return consumerApp;
+    }
+
+    public void setConsumerApp(String consumerApp) {
+        this.consumerApp = consumerApp;
+    }
+
+    public String getProviderApp() {
+        return providerApp;
+    }
+
+    public void setProviderApp(String providerApp) {
+        this.providerApp = providerApp;
+    }
+
+    public String getProviderIp() {
+        return providerIp;
+    }
+
+    public void setProviderIp(String providerIp) {
+        this.providerIp = providerIp;
     }
 }

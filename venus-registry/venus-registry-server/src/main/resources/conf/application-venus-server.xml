@@ -9,66 +9,26 @@
 	xmlns:oxm="http://www.springframework.org/schema/oxm"
 	xmlns:p="http://www.springframework.org/schema/p"
 	default-autowire="byName">
-	
+
+	<bean class="com.gagu.ucm.agent.venus.placeholder.VenusPropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:application.properties</value>
+			</list>
+		</property>
+	</bean>
+
 	<bean id="mysqlRegisterService" class="com.meidusa.venus.registry.service.impl.MysqlRegisterService" init-method="init">
 		<property name="connectUrl" value="${register.connectUrl}"></property>
 	</bean>
-	
+
 	<bean id="clearInvalidService" class="com.meidusa.venus.registry.service.impl.ClearInvalidService" init-method="init">
 		<property name="registerService" ref="mysqlRegisterService" ></property>
 	</bean>
-	
+
 	<bean id="oLdServiceMappingService" class="com.meidusa.venus.registry.service.impl.OLdServiceMappingService" init-method="init">
 		<property name="registerService" ref="mysqlRegisterService" ></property>
 		<property name="oldConnectUrl" value="${register.oldConnectUrl}" ></property>
 	</bean>
 
-	<import resource="classpath:/conf/application-venus-placeholder.xml"/>
-	<!--
-	<import resource="classpath:/spring/applicationContext-service-container.xml"/>
-	-->
-
-	<!--应用配置-->
-	<bean class="com.meidusa.venus.client.Application">
-		<property name="name" value="${application.name}"/>
-	</bean>
-
-	<!--注册配置-->
-	<bean id="venusRegistryFactory" class="com.meidusa.venus.registry.VenusRegistryFactory">
-		<property name="connectUrl" value="${register.connectUrl}"/>
-	</bean>
-
-	<!--监控配置-->
-	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
-		<property name="url" value="${monitor.url}"/>
-	</bean>
-
-	<!--venus协议配置-->
-	<bean id="venusProtocol" class="com.meidusa.venus.backend.VenusProtocol">
-		<property name="port" value="${venus.protocol.port}"/>
-		<property name="authenticateProvider" ref="authenticateProvider"/>
-	</bean>
-
-	<!--服务发布配置-->
-    <bean id="serviceManager" class="com.meidusa.venus.backend.services.xml.XmlFileServiceManager">
-        <property name="configFiles">
-            <list>
-                <value>classpath:/conf/application-venus-services.xml</value>
-            </list>
-        </property>
-    </bean>
-    
-    <bean id="authenticateProvider" class="com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider">
-    	<property name="useDummy" value="${venus.authenticate.provider.useDummy}" />
-		<property name="username" value="${venus.authenticate.provider.userName}" />
-		<property name="password" value="${venus.authenticate.provider.passWord}" />
-    </bean>
-    
-    <bean id="venusExceptionFactory" class="com.meidusa.venus.exception.XmlVenusExceptionFactory" init-method="init">
-		<property name="configFiles">
-			<list>
-				<value>classpath:com/meidusa/venus/exception/VenusSystemException.xml</value>
-			</list>
-		</property>
-	</bean>
 </beans>

@@ -87,7 +87,6 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
      */
     MethodCallDetailDO convertDetail(InvocationDetail detail){
         ServerInvocation serverInvocation = (ServerInvocation)detail.getInvocation();
-        URL url = detail.getUrl();
         Result result = detail.getResult();
         Throwable exception = detail.getException();
 
@@ -120,10 +119,10 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
             }
         }
         detailDO.setRequestTime(serverInvocation.getRequestTime());
+        detailDO.setProviderDomain(serverInvocation.getProviderApp());
+        detailDO.setProviderIp(serverInvocation.getProviderIp());
+        detailDO.setConsumerDomain(serverInvocation.getConsumerApp());
         detailDO.setConsumerIp(serverInvocation.getConsumerIp());
-        if(url != null){
-            detailDO.setProviderIp(url.getHost());
-        }
         //响应信息
         detailDO.setResponseTime(detail.getResponseTime());
         //响应结果

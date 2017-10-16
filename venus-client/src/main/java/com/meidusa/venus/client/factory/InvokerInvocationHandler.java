@@ -1,4 +1,4 @@
-package com.meidusa.venus.client.proxy;
+package com.meidusa.venus.client.factory;
 
 import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
@@ -82,7 +82,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * 初始化操作
      */
     void init(){
-        //TODO 若是走注册中心，则订阅服务
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {

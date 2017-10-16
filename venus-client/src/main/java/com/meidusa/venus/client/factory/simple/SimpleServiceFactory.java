@@ -6,7 +6,7 @@ import com.meidusa.venus.ServiceFactoryExtra;
 import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
-import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
+import com.meidusa.venus.client.factory.InvokerInvocationHandler;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
@@ -27,20 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 
- * <b>简单连接服务工厂:</b> <br/>
- * <li>没有连接池,每次请求都将创建连接,请求完毕以后关闭连接.</li> <li>只能针对某个具体的IP,Port而创建,多个地址需要创建不同对象</li> <li>不支持回调</li> <br/>
- * <b>使用场景:</b>
- * 
- * <pre>
- * 访问固定地址,并且使用频率较少的情况下.
- * 相关使用代码:
- * SimpleServiceFactory factory = new SimpleServiceFactory("127.0.0.1",16800);
- * factory.setSoTimeout(16 * 1000);//可选,默认 15秒
- * factory.setCoTimeout(5 * 1000);//可选,默认5秒
- * HelloService helloService = factory.getService(HelloService.class);
- * </pre>
- * 
+ * 基于API方式调用venus服务
  * @author structchen
  * 
  */
@@ -149,18 +136,8 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
         //初始化服务代理
         T serviceProxy = initServiceProxy(t);
 
-        //若需要订阅服务，TODO 订阅了服务但不使用服务的地址发现功能
-        if(isNeedSubscribleService(t)){
-            try {
-                //初始化注册中心
-                initRegister();
-
-                //订阅服务
-                subscribleService(t);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        //订阅服务
+        subscribleService(t);
         return serviceProxy;
     }
 
@@ -173,7 +150,13 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
     <T> T initServiceProxy(Class<T> t) {
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
         invocationHandler.setServiceInterface(t);
-        invocationHandler.setRemoteConfig(ClientRemoteConfig.newInstace(ipAddressList));
+        //TODO serviceName、version
+
+        if(StringUtils.isEmpty(ipAddressList)){
+            invocationHandler.setRemoteConfig(ClientRemoteConfig.newInstace(ipAddressList));
+        }else{
+            invocationHandler.setRegister(this.getRegister());
+        }
 
         if(this.venusExceptionFactory == null){
             XmlVenusExceptionFactory venusExceptionFactory = new XmlVenusExceptionFactory();
@@ -182,7 +165,6 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
             this.venusExceptionFactory = venusExceptionFactory;
         }
         invocationHandler.setVenusExceptionFactory(this.getVenusExceptionFactory());
-
         //TODO 确认认证功能
         if(this.getAuthenticator() == null){
             this.authenticator = new DummyAuthenticator<DummyAuthenPacket>();
@@ -209,28 +191,28 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
     }
 
     /**
-     * 判断是否需要订阅服务，TODO 对于提供方不走注册中心的服务，有问题？
-     * @param clz
+     * 获取注册中心端点
      * @return
      */
-    boolean isNeedSubscribleService(Class clz){
-        return false;
+    Register getRegister(){
+        if(this.register != null){
+            return this.register;
+        }
+        Register register = initRegister();
+        this.register = register;
+        return register;
     }
 
     /**
-     * 获取注册中心
+     * 获取注册中心端点
      * @return
      */
-    void initRegister(){
-        if(this.register != null){
-            return;
-        }
-        //TODO 改由注册工厂获取，这样不存在加载顺序问题
+    Register initRegister(){
         Register register = RegisterContext.getInstance().getRegister();
         if(register == null){
             throw new RpcException("init register failed.");
         }
-        this.register = register;
+        return register;
     }
 
     /**

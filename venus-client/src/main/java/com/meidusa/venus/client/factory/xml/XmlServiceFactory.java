@@ -32,7 +32,7 @@ import com.meidusa.venus.client.factory.xml.support.ClientBeanContext;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanUtilsBean;
 import com.meidusa.venus.client.factory.xml.support.ServiceDefinedBean;
 import com.meidusa.venus.ServiceFactoryBean;
-import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
+import com.meidusa.venus.client.factory.InvokerInvocationHandler;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.io.packet.PacketConstant;

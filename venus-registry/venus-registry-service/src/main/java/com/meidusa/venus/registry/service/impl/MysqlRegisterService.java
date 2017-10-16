@@ -35,6 +35,7 @@ import com.meidusa.venus.registry.dao.impl.VenusServiceConfigDaoImpl;
 import com.meidusa.venus.registry.dao.impl.VenusServiceDaoImpl;
 import com.meidusa.venus.registry.dao.impl.VenusServiceMappingDaoImpl;
 import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
+import org.springframework.stereotype.Component;
 
 /**
  * Created by Zhangzhihua on 2017/8/16.

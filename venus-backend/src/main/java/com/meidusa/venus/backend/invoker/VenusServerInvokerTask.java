@@ -7,12 +7,10 @@ import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.TimeUtil;
-import com.meidusa.venus.RpcException;
-import com.meidusa.venus.ErrorPacketWrapperException;
+import com.meidusa.venus.*;
 import com.meidusa.venus.backend.invoker.support.ServerRequestHandler;
 import com.meidusa.venus.backend.invoker.support.ServerResponseWrapper;
 import com.meidusa.venus.backend.invoker.support.ServerResponseHandler;
-import com.meidusa.venus.ServerInvocation;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.config.PerformanceLogger;
 import com.meidusa.venus.backend.support.Response;
@@ -24,12 +22,12 @@ import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.notify.InvocationListener;
-import com.meidusa.venus.Result;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.util.*;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.nio.ch.Net;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -179,6 +177,12 @@ public class VenusServerInvokerTask implements Runnable{
         invocation.setHost(conn.getHost());
         invocation.setLocalHost(conn.getLocalHost());
         invocation.setRequestTime(new Date());
+        String providerApp = VenusContext.getInstance().getApplication();
+        String providerIp = NetUtil.getLocalIp();
+        String consumerIp = conn.getHost();
+        invocation.setProviderApp(providerApp);
+        invocation.setProviderIp(providerIp);
+        invocation.setConsumerIp(consumerIp);
         //设置请求报文
         SerializeServiceRequestPacket request = parseRequest(conn, data);
         invocation.setRequest(request);
@@ -195,6 +199,7 @@ public class VenusServerInvokerTask implements Runnable{
         }
         invocation.setEndpointDef(endpointDef);
         //TODO 补全接口服务相关信息
+        invocation.setRpcId(RpcIdUtil.getRpcId(request));
         Service service = endpointDef.getService();
         invocation.setServiceInterface(service.getType());
         invocation.setMethod(endpointDef.getMethod());

@@ -92,6 +92,7 @@ public class MysqlRegister implements Register {
 	@Override
 	public void registe(URL url) throws VenusRegisteException {
 		try {
+			logger.info("registe service:{}.",url);
 			registerService.registe(url);
 			heartbeat();
 		} catch (Exception e) {
@@ -104,6 +105,7 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public void unregiste(URL url) throws VenusRegisteException {
+		logger.info("unregiste service:{}.",url);
 		if (StringUtils.isBlank(url.getVersion())) {
 			throw new VenusRegisteException("取消注册异常" + url.getServiceName() + ",version为空");
 		}
@@ -119,6 +121,7 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public void subscrible(URL url) throws VenusRegisteException {
+		logger.info("subscrible service:{}.",url);
 		try {
 			registerService.subscrible(url);
 			heartbeat();
@@ -132,6 +135,7 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public void unsubscrible(URL url) throws VenusRegisteException {
+		logger.info("unsubscrible service:{}.",url);
 		if (StringUtils.isBlank(url.getVersion())) {
 			throw new VenusRegisteException("取消订阅异常" + url.getServiceName() + ",version为空");
 		}
@@ -265,10 +269,6 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public void destroy() throws VenusRegisteException {
-		//TODO 因service/endpoinit注解在destroy时无法解释，导致NPE异常，无法
-		// 执行InvokerInvocationHandler.invoke方法，暂注掉
-
-		/*
 		if (CollectionUtils.isNotEmpty(registeUrls)) {
 			for (URL url : registeUrls) {
 				unregiste(url);
@@ -279,7 +279,6 @@ public class MysqlRegister implements Register {
 				unsubscrible(url);
 			}
 		}
-		*/
 		registeUrls.clear();
 		subscribleUrls.clear();
 		registeFailUrls.clear();
@@ -296,11 +295,12 @@ public class MysqlRegister implements Register {
 	private class HeartBeatRunnable implements Runnable {
 		@Override
 		public void run() {
-			logger.info(registeUrls.size()+"HeartBeatRunnable run() start");
+			//logger.info(registeUrls.size()+"HeartBeatRunnable run() start");
 			if (CollectionUtils.isNotEmpty(registeUrls)) {
 				for (Iterator<URL> iterator = registeUrls.iterator(); iterator.hasNext();) {
 					URL url = iterator.next();
 					try {
+						logger.info("report register heatbeat:{}.",url);
 						registerService.heartbeatRegister(url);
 					} catch (Exception e) {
 						logger.error("服务{}registe更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);
@@ -312,6 +312,7 @@ public class MysqlRegister implements Register {
 				for (Iterator<URL> iterator = subscribleUrls.iterator(); iterator.hasNext();) {
 					URL url = iterator.next();
 					try {
+						logger.info("report subscrible heatbeat:{}.",url);
 						registerService.heartbeatSubcribe(url);
 					} catch (Exception e) {
 						logger.error("服务{}subscrible更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);
@@ -319,7 +320,7 @@ public class MysqlRegister implements Register {
 					break;
 				}
 			}
-			logger.info(subscribleUrls.size()+"HeartBeatRunnable run() end");	
+			//logger.info(subscribleUrls.size()+"HeartBeatRunnable run() end");
 		}
 	}
 

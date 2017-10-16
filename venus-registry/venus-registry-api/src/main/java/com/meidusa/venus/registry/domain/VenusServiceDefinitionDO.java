@@ -15,7 +15,7 @@ import com.meidusa.toolkit.common.util.ObjectUtil;
  * @author structchen
  * 
  */
-public class VenusServiceDefinitionDO implements ServiceDefinitionDO {
+public class VenusServiceDefinitionDO implements ServiceDefinitionDO,java.io.Serializable{
 
 	/**
 	 * 服务名称

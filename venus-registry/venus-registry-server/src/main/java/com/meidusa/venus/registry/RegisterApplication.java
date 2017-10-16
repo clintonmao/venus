@@ -1,4 +1,4 @@
-package com.chexiang.venus.demo.provider;
+package com.meidusa.venus.registry;
 
 import com.meidusa.venus.registry.service.RegisterService;
 import org.slf4j.Logger;
@@ -26,13 +26,13 @@ import org.springframework.remoting.caucho.HessianProxyFactoryBean;
 //@EnableAspectJAutoProxy(proxyTargetClass = true)
 //@ComponentScan(basePackages = "com.chexiang")
 @ComponentScan
-@ImportResource("classpath:conf/applicationContext-provider.xml")
-public class DemoProviderApplication {
+@ImportResource("classpath:conf/application-venus-server.xml")
+public class RegisterApplication {
 
-    public static final Logger logger = LoggerFactory.getLogger(DemoProviderApplication.class);
+    public static final Logger logger = LoggerFactory.getLogger(RegisterApplication.class);
 
     public static void main(String[] args) {
-        SpringApplication.run(DemoProviderApplication.class, args);
+        SpringApplication.run(RegisterApplication.class, args);
     }
 
 }

@@ -1,6 +1,6 @@
 package com.meidusa.venus.client.factory.xml.support;
 
-import com.meidusa.venus.client.proxy.InvokerInvocationHandler;
+import com.meidusa.venus.client.factory.InvokerInvocationHandler;
 
 /**
  * 服务定义实例

@@ -1,12 +1,12 @@
 package com.meidusa.venus.registry;
 
+import com.caucho.hessian.client.HessianProxyFactory;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.ServiceFactoryExtra;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
 import com.meidusa.venus.registry.service.RegisterService;
 import com.meidusa.venus.registry.service.impl.MysqlRegisterService;
-import com.meidusa.venus.util.ReftorUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,12 +15,16 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+
+import java.net.MalformedURLException;
 
 /**
  * Venus注册中心工厂类，负责初始化注册中心
  * Created by Zhangzhihua on 2017/9/15.
  */
-public class VenusRegistryFactory implements InitializingBean, DisposableBean,BeanFactoryPostProcessor {
+public class VenusRegistryFactory implements InitializingBean, DisposableBean,ApplicationContextAware,BeanFactoryPostProcessor {
 
     private static Logger logger = LoggerFactory.getLogger(VenusRegistryFactory.class);
 
@@ -82,7 +86,7 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean,Be
         RegisterService registerService = null;
         //根据配置创建registerService实例，本地依赖或venus远程依赖
         if(StringUtils.isNotEmpty(registerUrl)){
-            registerService = newVenusRegisterService(registerUrl);
+            registerService = newHessianRegisterService(registerUrl);
         }else{
             registerService = newLocalRegisterService(connectUrl);
         }
@@ -114,14 +118,17 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean,Be
      * @param registerUrl
      * @return
      */
-    RegisterService newVenusRegisterService(String registerUrl){
-        if(serviceFactoryExtra == null){
-            initSimpleServiceFactory();
-            String[] addressArr = registerUrl.split(";");
-            serviceFactoryExtra.setAddressList(addressArr);
+    RegisterService newHessianRegisterService(String registerUrl){
+        HessianProxyFactory factory = new HessianProxyFactory();
+        try {
+            RegisterService registerService = (RegisterService) factory.create(RegisterService.class, registerUrl);
+            return registerService;
+        } catch (MalformedURLException e) {
+            logger.error("newHessianRegisterService error.",e);
+            return null;
         }
-        RegisterService registerService = serviceFactoryExtra.getService(RegisterService.class);
-        return registerService;
+
+
     }
 
     @Override
@@ -156,19 +163,6 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean,Be
         this.registerUrl = registerUrl;
     }
 
-    /**
-     * 初始化simpleServiceFactory
-     */
-    void initSimpleServiceFactory(){
-        String className = "com.meidusa.venus.client.factory.simple.SimpleServiceFactory";
-        Object obj = ReftorUtil.newInstance(className);
-        if(obj == null){
-            throw new VenusConfigException("init simpleServiceFactory failed.");
-        }
-        this.serviceFactoryExtra = (ServiceFactoryExtra)obj;
-    }
-
-
     public Register getRegister() {
         return register;
     }
@@ -183,5 +177,12 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean,Be
 
     public void setConnectUrl(String connectUrl) {
         this.connectUrl = connectUrl;
+    }
+
+    ApplicationContext applicationContext;
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }
