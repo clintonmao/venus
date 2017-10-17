@@ -3,6 +3,7 @@ package com.meidusa.venus.bus.dispatch;
 import com.meidusa.venus.*;
 import com.meidusa.venus.bus.BusInvocation;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
+import com.meidusa.venus.client.cluster.ClusterFastfailInvoker;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
 import com.meidusa.venus.registry.Register;
@@ -126,7 +127,7 @@ public class BusRemoteDispatcher implements Dispatcher{
     ClusterInvoker getClusterInvoker(){
         //TODO 根据配置获取clusterInvoker
         if(clusterInvoker == null){
-            clusterInvoker =  ClusterInvokerFactory.getClusterInvoker();
+            clusterInvoker =  new ClusterFastfailInvoker();
             //TODO 根据配置加载invoker
             clusterInvoker.setInvoker(new BusDispatcher(this.requestConnectionMap));
         }
