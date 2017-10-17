@@ -14,7 +14,8 @@ public class RoundLoadbanlance implements Loadbanlance {
 
     @Override
     public URL select(List<URL> urlList) {
-        //TODO 实现及权重因子
+        //TODO 地址记忆
+        //TODO 权重因子
         URL url = urlList.get(index);
         if(index < urlList.size()){
             index++;
