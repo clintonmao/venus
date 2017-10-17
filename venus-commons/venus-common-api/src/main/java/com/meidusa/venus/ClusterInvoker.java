@@ -29,6 +29,10 @@ public interface ClusterInvoker {
     void destroy() throws RpcException;
 
 
+    /**
+     * 获取invoker
+     * @return
+     */
     Invoker getInvoker();
 
     /**

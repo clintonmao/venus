@@ -3,6 +3,7 @@ package com.meidusa.venus.client.factory;
 import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
+import com.meidusa.venus.client.factory.xml.config.ServiceConfig;
 import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
@@ -54,6 +55,11 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * 认证配置
      */
     private DummyAuthenticator authenticator;
+
+    /**
+     * 引用服务配置
+     */
+    private ServiceConfig serviceConfig;
 
     /**
      * 静态配置地址
@@ -164,6 +170,18 @@ public class InvokerInvocationHandler implements InvocationHandler {
         if(register != null){
             invocation.setLookupType(1);
         }
+        //设置集群负载相关
+        if(serviceConfig != null){
+            if(StringUtils.isNotEmpty(serviceConfig.getCluster())){
+                invocation.setCluster(serviceConfig.getCluster());
+            }
+            if(serviceConfig.getRetries() != 0){
+                invocation.setRetries(serviceConfig.getRetries());
+            }
+            if(StringUtils.isNotEmpty(serviceConfig.getLoadbanlance())){
+                invocation.setLoadbanlance(serviceConfig.getLoadbanlance());
+            }
+        }
         return invocation;
     }
 
@@ -215,4 +233,11 @@ public class InvokerInvocationHandler implements InvocationHandler {
         this.serviceFactory = serviceFactory;
     }
 
+    public ServiceConfig getServiceConfig() {
+        return serviceConfig;
+    }
+
+    public void setServiceConfig(ServiceConfig serviceConfig) {
+        this.serviceConfig = serviceConfig;
+    }
 }

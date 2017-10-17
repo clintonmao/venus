@@ -61,6 +61,15 @@ public class ClientInvocation implements Invocation {
 
     private int lookupType = 0;//0:本地;1:注册中心
 
+    //集群容错策略
+    private String cluster = "fastfail";
+
+    //重试次数，若retries不为空，则cluster默认开启failover
+    private int retries = 0;
+
+    //负载均衡策略
+    private String loadbanlance = "random";
+
     public int getClientId() {
         return clientId;
     }
@@ -241,5 +250,27 @@ public class ClientInvocation implements Invocation {
         this.lookupType = lookupType;
     }
 
+    public String getCluster() {
+        return cluster;
+    }
 
+    public void setCluster(String cluster) {
+        this.cluster = cluster;
+    }
+
+    public int getRetries() {
+        return retries;
+    }
+
+    public void setRetries(int retries) {
+        this.retries = retries;
+    }
+
+    public String getLoadbanlance() {
+        return loadbanlance;
+    }
+
+    public void setLoadbanlance(String loadbanlance) {
+        this.loadbanlance = loadbanlance;
+    }
 }

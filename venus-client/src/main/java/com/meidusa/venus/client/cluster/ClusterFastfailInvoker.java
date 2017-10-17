@@ -3,6 +3,8 @@ package com.meidusa.venus.client.cluster;
 import com.meidusa.venus.*;
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -12,6 +14,8 @@ import java.util.List;
  */
 public class ClusterFastfailInvoker extends AbstractClusterInvoker implements ClusterInvoker {
 
+    private static Logger logger = LoggerFactory.getLogger(ClusterFastfailInvoker.class);
+
     @Override
     public void init() throws RpcException {
     }
@@ -19,21 +23,16 @@ public class ClusterFastfailInvoker extends AbstractClusterInvoker implements Cl
     @Override
     public Result invoke(Invocation invocation, List<URL> urlList) throws RpcException {
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
-        Invoker invoker = getInvoker(clientInvocation);
-        return  invoker.invoke(invocation,urlList.get(0));
+        String lb = clientInvocation.getLoadbanlance();
+
+        URL url = getLoadbanlance(lb).select(urlList);
+        logger.info("select service provider:{}.",String.format("%s:%s",url.getHost(),String.valueOf(url.getPort())));
+
+        return  getInvoker().invoke(invocation,url);
     }
 
     @Override
     public void destroy() throws RpcException {
     }
 
-    /**
-     * 获取invoker
-     * @param invocation
-     * @return
-     */
-    Invoker getInvoker(ClientInvocation invocation){
-        //TODO
-        return new VenusClientInvoker();
-    }
 }

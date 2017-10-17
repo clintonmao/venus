@@ -2,16 +2,15 @@ package com.meidusa.venus.client.invoker;
 
 import com.meidusa.venus.*;
 import com.meidusa.venus.ClientInvocation;
-import com.meidusa.venus.client.cluster.ClusterInvokerFactory;
+import com.meidusa.venus.client.cluster.ClusterFailoverInvoker;
+import com.meidusa.venus.client.cluster.ClusterFastfailInvoker;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
 import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.RegisterContext;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.util.JSONUtil;
-import com.meidusa.venus.util.NetUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -28,6 +27,11 @@ public class ClientRemoteInvoker implements Invoker{
 
     private static Logger logger = LoggerFactory.getLogger(ClientRemoteInvoker.class);
 
+    //集群策略-failover
+    private static String CLUSTER_FAILOVER = "failover";
+    //集群策略-fastfail
+    private static String CLUSTER_FASTFAIL = "fastfail";
+
     /**
      * 静态地址配置
      */
@@ -43,7 +47,9 @@ public class ClientRemoteInvoker implements Invoker{
      */
     private Router router = new ConditionRouter();
 
-    private ClusterInvoker clusterInvoker;
+    private ClusterFailoverInvoker clusterFailoverInvoker = new ClusterFailoverInvoker();
+
+    private ClusterFastfailInvoker clusterFastfailInvoker = new ClusterFastfailInvoker();
 
     @Override
     public void init() throws RpcException {
@@ -54,29 +60,14 @@ public class ClientRemoteInvoker implements Invoker{
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
         //寻址，静态或动态
         List<URL> urlList = lookup(clientInvocation);
-        printProviders(urlList);
 
         //路由规则过滤 TODO 版本号访问控制
         urlList = router.filte(clientInvocation, urlList);
 
-        //集群容错调用 TODO 若只有一个
-        Result result = getClusterInvoker().invoke(invocation, urlList);
+        //集群容错调用
+        ClusterInvoker clusterInvoker = getClusterInvoker(clientInvocation,url);
+        Result result = clusterInvoker.invoke(invocation, urlList);
         return result;
-    }
-
-    /**
-     * 打印寻址信息
-     * @param urlList
-     */
-    void printProviders(List<URL> urlList){
-        List<String> targets = new ArrayList<String>();
-        if(CollectionUtils.isNotEmpty(urlList)){
-            for(URL url:urlList){
-                String target = String.format("%s:%s",url.getHost(),String.valueOf(url.getPort()));
-                targets.add(target);
-            }
-        }
-        logger.info("lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
     }
 
     @Override
@@ -90,19 +81,29 @@ public class ClientRemoteInvoker implements Invoker{
      * @return
      */
     List<URL> lookup(ClientInvocation invocation){
+        List<URL> urlList = null;
         if(!isDynamicLookup()){//静态地址
-            List<URL> urlList = lookupByStatic(invocation);
+            urlList = lookupByStatic(invocation);
             if(CollectionUtils.isEmpty(urlList)){
                 throw new RpcException("not found avalid providers.");
             }
-            return urlList;
         }else{//动态注册中心查找
-            List<URL> urlList = lookupByDynamic(invocation);
+            urlList = lookupByDynamic(invocation);
             if(CollectionUtils.isEmpty(urlList)){
                 throw new RpcException("not found avalid providers.");
             }
-            return urlList;
         }
+
+        //输出寻址结果信息
+        List<String> targets = new ArrayList<String>();
+        if(CollectionUtils.isNotEmpty(urlList)){
+            for(URL url:urlList){
+                String target = String.format("%s:%s",url.getHost(),String.valueOf(url.getPort()));
+                targets.add(target);
+            }
+        }
+        logger.info("lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
+        return urlList;
     }
 
     /**
@@ -204,14 +205,23 @@ public class ClientRemoteInvoker implements Invoker{
      * 获取集群容错invoker
      * @return
      */
-    ClusterInvoker getClusterInvoker(){
-        //TODO 根据配置获取clusterInvoker
-        if(clusterInvoker == null){
-            clusterInvoker =  ClusterInvokerFactory.getClusterInvoker();
-            //TODO 根据配置加载invoker
-            clusterInvoker.setInvoker(new VenusClientInvoker());
+    ClusterInvoker getClusterInvoker(ClientInvocation invocation,URL url){
+        String cluster = invocation.getCluster();
+        if(CLUSTER_FAILOVER.equals(cluster) || invocation.getRetries() > 0){
+            if(clusterFailoverInvoker == null){
+                clusterFailoverInvoker =  new ClusterFailoverInvoker();
+            }
+            clusterFailoverInvoker.setInvoker(new VenusClientInvoker());
+            return clusterFailoverInvoker;
+        }else if(CLUSTER_FASTFAIL.equals(cluster)){
+            if(clusterFastfailInvoker == null){
+                clusterFastfailInvoker =  new ClusterFastfailInvoker();
+            }
+            clusterFastfailInvoker.setInvoker(new VenusClientInvoker());
+            return clusterFastfailInvoker;
+        }else{
+            throw new RpcException(String.format("invalid cluster policy:%s.",cluster));
         }
-        return clusterInvoker;
     }
 
     public ClientRemoteConfig getRemoteConfig() {

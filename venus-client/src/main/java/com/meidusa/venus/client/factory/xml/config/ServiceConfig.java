@@ -39,6 +39,21 @@ public class ServiceConfig {
     private int timeWait;
 
     private boolean enabled = true;
+
+    /**
+     * 集群容错策略
+     */
+    private String cluster;
+
+    /**
+     * 重试次数
+     */
+    private int retries;
+
+    /**
+     * 负载均衡策略
+     */
+    private String loadbanlance;
     
     public int getTimeWait() {
         return timeWait;
@@ -104,4 +119,27 @@ public class ServiceConfig {
 		this.enabled = enabled;
 	}
 
+    public String getCluster() {
+        return cluster;
+    }
+
+    public void setCluster(String cluster) {
+        this.cluster = cluster;
+    }
+
+    public String getLoadbanlance() {
+        return loadbanlance;
+    }
+
+    public void setLoadbanlance(String loadbanlance) {
+        this.loadbanlance = loadbanlance;
+    }
+
+    public int getRetries() {
+        return retries;
+    }
+
+    public void setRetries(int retries) {
+        this.retries = retries;
+    }
 }

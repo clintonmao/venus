@@ -307,6 +307,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             invocationHandler.setRegister(register);
         }
         invocationHandler.setVenusExceptionFactory(this.getVenusExceptionFactory());
+        invocationHandler.setServiceConfig(serviceConfig);
         invocationHandler.setServiceFactory(this);
         //TODO 确认相关属性功能
         /*
