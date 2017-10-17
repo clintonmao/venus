@@ -1,6 +1,7 @@
 package com.meidusa.venus.monitor.filter;
 
 import com.athena.domain.MethodCallDetailDO;
+import com.athena.domain.MethodStaticDO;
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
 import com.meidusa.venus.monitor.reporter.VenusMonitorReporter;
@@ -59,6 +60,7 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
      * @return
      */
     String getMethodAndEnvPath(InvocationDetail detail){
+        /*
         Invocation invocation = detail.getInvocation();
         //请求时间，精确为分钟
         ServerInvocation serverInvocation = (ServerInvocation)invocation;
@@ -77,6 +79,9 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
             logger.debug("methodAndEnvPath:{}.", methodAndEnvPath);
         }
         return methodAndEnvPath;
+        */
+        //服务端不做统计上报
+        return null;
     }
 
 
@@ -157,6 +162,17 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
         //TODO 响应地址
         //状态相关
         return detailDO;
+    }
+
+    @Override
+    MethodStaticDO convertStatistic(InvocationStatistic statistic) {
+        //统计上报不在server端上报
+        return null;
+    }
+
+    @Override
+    int getRole() {
+        return ROLE_PROVIDER;
     }
 
     @Override

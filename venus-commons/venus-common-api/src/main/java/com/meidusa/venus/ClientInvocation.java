@@ -240,4 +240,6 @@ public class ClientInvocation implements Invocation {
     public void setLookupType(int lookupType) {
         this.lookupType = lookupType;
     }
+
+
 }

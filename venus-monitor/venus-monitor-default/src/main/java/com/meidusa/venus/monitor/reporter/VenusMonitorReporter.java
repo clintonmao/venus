@@ -23,7 +23,7 @@ public class VenusMonitorReporter {
     private boolean isEnableReporte = true;
 
     /**
-     * 上报明细 TODO 上报放到reporter模块，可选择依赖
+     * 上报明细
      * @param detailDOList
      */
     public void reportDetailList(List<MethodCallDetailDO> detailDOList){
@@ -51,7 +51,7 @@ public class VenusMonitorReporter {
     }
 
     /**
-     * 上报统计数据 TODO 上报放到reporter模块，可选择依赖
+     * 上报统计数据
      * @param staticDOList
      */
     public void reportStatisticList(List<MethodStaticDO> staticDOList){

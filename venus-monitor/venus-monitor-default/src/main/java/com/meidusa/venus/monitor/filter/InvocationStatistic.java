@@ -1,9 +1,6 @@
 package com.meidusa.venus.monitor.filter;
 
-import com.meidusa.venus.ClientInvocation;
-import com.meidusa.venus.Invocation;
-import com.meidusa.venus.Result;
-import com.meidusa.venus.ServerInvocation;
+import com.meidusa.venus.*;
 import com.meidusa.venus.monitor.filter.InvocationDetail;
 import com.meidusa.venus.util.NetUtil;
 
@@ -30,11 +27,11 @@ public class InvocationStatistic {
     //方法名
     private String method;
 
-    //所属应用
-    private String application;
+    //提供方应用
+    private String providerApp;
 
-    //机器
-    private String host;
+    //提供方机器
+    private String providerIp;
 
     //开始时间
     private Date beginTime;
@@ -60,32 +57,29 @@ public class InvocationStatistic {
     public InvocationStatistic(){
     }
 
-    public InvocationStatistic(InvocationDetail detail){
+    /**
+     * 初始化服务统计基本信息
+     * @param detail
+     */
+    public void init(InvocationDetail detail){
         Invocation invocation = detail.getInvocation();
+        URL url = detail.getUrl();
         String serviceInterfaceName = invocation.getServiceInterfaceName();
         String serviceName = invocation.getServiceName();
         String version = invocation.getVersion();
         String methodName = invocation.getMethodName();
-        Date beginTime = null;
-        Date endTime = null;
-        if(invocation instanceof ClientInvocation){
-            ClientInvocation clientInvocation = (ClientInvocation)detail.getInvocation();
-            beginTime = getBeginTimeOfMinutes(clientInvocation.getRequestTime());
-            endTime = getEndTimeOfMinutes(clientInvocation.getRequestTime());
-        }else if(invocation instanceof ServerInvocation){
-            ServerInvocation serverInvocation = (ServerInvocation)detail.getInvocation();
-            beginTime = getBeginTimeOfMinutes(serverInvocation.getRequestTime());
-            endTime = getEndTimeOfMinutes(serverInvocation.getRequestTime());
-        }
-        String host = NetUtil.getLocalIp();
+        Date beginTime = getBeginTimeOfMinutes(invocation.getRequestTime());
+        Date endTime = getEndTimeOfMinutes(invocation.getRequestTime());
         this.setServiceInterfaceName(serviceInterfaceName);
         this.setServiceName(serviceName);
         this.setVersion(version);
         this.setMethod(methodName);
         this.setBeginTime(beginTime);
         this.setEndTime(endTime);
-        this.setHost(host);
-        //SET APPLICATION
+        if(url != null){
+            this.setProviderApp(url.getApplication());
+            this.setProviderIp(url.getHost());
+        }
     }
 
     /**
@@ -181,20 +175,20 @@ public class InvocationStatistic {
         maxCostTime = new AtomicLong(0);
     }
 
-    public String getApplication() {
-        return application;
+    public String getProviderApp() {
+        return providerApp;
     }
 
-    public void setApplication(String application) {
-        this.application = application;
+    public void setProviderApp(String providerApp) {
+        this.providerApp = providerApp;
     }
 
-    public String getHost() {
-        return host;
+    public String getProviderIp() {
+        return providerIp;
     }
 
-    public void setHost(String host) {
-        this.host = host;
+    public void setProviderIp(String providerIp) {
+        this.providerIp = providerIp;
     }
 
     public String getServiceInterfaceName() {

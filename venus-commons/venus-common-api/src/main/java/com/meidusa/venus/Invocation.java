@@ -1,5 +1,7 @@
 package com.meidusa.venus;
 
+import java.util.Date;
+
 /**
  * 请求抽象接口
  * Created by Zhangzhihua on 2017/9/19.
@@ -29,5 +31,11 @@ public interface Invocation {
      * @return
      */
     String getMethodName();
+
+    /**
+     * 获取请求时间
+     * @return
+     */
+    Date getRequestTime();
 
 }

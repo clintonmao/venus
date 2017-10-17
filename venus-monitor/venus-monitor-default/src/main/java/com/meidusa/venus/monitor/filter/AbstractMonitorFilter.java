@@ -28,21 +28,37 @@ public abstract class AbstractMonitorFilter {
     //明细队列
     Queue<InvocationDetail> detailQueue = new LinkedBlockingQueue<InvocationDetail>();
 
-    //异常及慢操作明细队列
-    Queue<InvocationDetail> exceptionDetailQueue = new LinkedBlockingQueue<InvocationDetail>();
+    //待上报明细队列
+    Queue<InvocationDetail> reportDetailQueue = new LinkedBlockingQueue<InvocationDetail>();
 
     //方法调用汇总映射表
     Map<String,InvocationStatistic> statisticMap = new ConcurrentHashMap<String,InvocationStatistic>();
 
-    boolean isRunningRunnable = false;
-
+    //计算线程
     Executor processExecutor = Executors.newFixedThreadPool(1);
 
+    //上报线程
     Executor reporterExecutor = Executors.newFixedThreadPool(1);
+
+    boolean isRunning = false;
 
     VenusMonitorReporter monitorReporter = null;
 
     AthenaDataService athenaDataService = null;
+
+    //一次处理记录条数
+    private static int perDetailProcessNum = 10;
+
+    //一次上报记录条数
+    private static int perDetailReportNum = 50;
+
+    //consumer
+    protected static int ROLE_CONSUMER = 0;
+    //provider
+    protected static int ROLE_PROVIDER = 2;
+
+    //慢操作耗时
+    static int SLOW_COST_TIME = 1;
 
     //Athena接口名称定义
     public static final String ATHENA_INTERFACE_SIMPLE_NAME = "AthenaDataService";
@@ -56,10 +72,10 @@ public abstract class AbstractMonitorFilter {
      * 起动数据计算及上报线程
      */
     void startProcessAndReporterTread(){
-        if(!isRunningRunnable){
+        if(!isRunning){
             processExecutor.execute(new InvocationDataProcessRunnable());
             reporterExecutor.execute(new InvocationDataReportRunnable());
-            isRunningRunnable = true;
+            isRunning = true;
         }
     }
 
@@ -69,9 +85,6 @@ public abstract class AbstractMonitorFilter {
      */
     public void putInvocationDetailQueue(InvocationDetail invocationDetail){
         try {
-            if(logger.isDebugEnabled()){
-                logger.debug("add invocation detail queue:{}.",invocationDetail);
-            }
             detailQueue.add(invocationDetail);
         } catch (Exception e) {
             //不处理异常，避免影响主流程
@@ -106,8 +119,9 @@ public abstract class AbstractMonitorFilter {
      * @return
      */
     boolean isExceptionOperation(InvocationDetail detail){
-        return detail.getException() == null;
+        return detail.getException() != null;
     }
+
 
     /**
      * 判断是否为慢操作
@@ -115,8 +129,11 @@ public abstract class AbstractMonitorFilter {
      * @return
      */
     boolean isSlowOperation(InvocationDetail detail){
-        //TODO 根据配置判断是否为慢操作
-        return true;
+        if(detail.getResponseTime() == null){
+            return true;
+        }
+        long costTime = detail.getResponseTime().getTime() - detail.getInvocation().getRequestTime().getTime();
+        return costTime > SLOW_COST_TIME;
     }
 
 
@@ -128,25 +145,28 @@ public abstract class AbstractMonitorFilter {
         public void run() {
             while(true){
                 try {
-                    //TODO 批量处理
-                    int fetchNum = 10;
+                    int fetchNum = perDetailProcessNum;
                     if(detailQueue.size() < fetchNum){
                         fetchNum = detailQueue.size();
                     }
                     for(int i=0;i<fetchNum;i++){
                         InvocationDetail detail = detailQueue.poll();
-                        //过滤异常、慢操作数据
+                        //1、过滤明细，异常或慢操作
                         if(isExceptionOperation(detail) || isSlowOperation(detail)){
-                            exceptionDetailQueue.add(detail);
+                            reportDetailQueue.add(detail);
                         }
 
-                        //汇总调用统计，查1m内汇总记录，若不存在则新建
-                        String methodAndEnvPath = getMethodAndEnvPath(detail);
-                        if(statisticMap.get(methodAndEnvPath) == null){
-                            statisticMap.put(methodAndEnvPath,new InvocationStatistic(detail));
+                        //2、汇总统计，查1m内汇总记录，若不存在则新建
+                        if(getRole() == ROLE_CONSUMER){//只consumer处理汇总统计
+                            String methodAndEnvPath = getMethodAndEnvPath(detail);
+                            if(statisticMap.get(methodAndEnvPath) == null){
+                                InvocationStatistic statistic = new InvocationStatistic();
+                                statistic.init(detail);
+                                statisticMap.put(methodAndEnvPath,statistic);
+                            }
+                            InvocationStatistic invocationStatistic = statisticMap.get(methodAndEnvPath);
+                            invocationStatistic.append(detail);
                         }
-                        InvocationStatistic invocationStatistic = statisticMap.get(methodAndEnvPath);
-                        invocationStatistic.append(detail);
                     }
                 } catch (Exception e) {
                     logger.error("process invocation detail error.",e);
@@ -163,7 +183,7 @@ public abstract class AbstractMonitorFilter {
     }
 
     /**
-     * 调用数据上报处理
+     * 队列数据上报
      */
     class InvocationDataReportRunnable implements Runnable{
         @Override
@@ -171,44 +191,41 @@ public abstract class AbstractMonitorFilter {
             while(true){
                 try {
                     VenusMonitorReporter monitorReporter = getMonitorReporter();
-                    if(monitorReporter == null){
-                        logger.error("get monitorReporter is null.");
-                        continue;
-                    }
 
-                    //上报异常、慢操作数据
-                    logger.info("monitor detail queue size:{}.",exceptionDetailQueue.size());
-                    //TODO 改为批量拿 锁必要性？
+                    //1、明细上报
+                    logger.info("monitor detail queue size:{}.", reportDetailQueue.size());
                     List<InvocationDetail> detailList = new ArrayList<InvocationDetail>();
-                    int fetchNum = 50;
-                    if(exceptionDetailQueue.size() < fetchNum){
-                        fetchNum = exceptionDetailQueue.size();
+                    int fetchNum = perDetailReportNum;
+                    if(reportDetailQueue.size() < fetchNum){
+                        fetchNum = reportDetailQueue.size();
                     }
                     for(int i=0;i<fetchNum;i++){
-                        InvocationDetail exceptionDetail = exceptionDetailQueue.poll();
+                        InvocationDetail exceptionDetail = reportDetailQueue.poll();
                         detailList.add(exceptionDetail);
                     }
-                    try {
-                        if(CollectionUtils.isNotEmpty(detailList)){
+                    if(CollectionUtils.isNotEmpty(detailList)){
+                        try {
                             monitorReporter.reportDetailList(toDetailDOList(detailList));
+                        } catch (Exception e) {
+                            logger.error("report detail error.",e);
                         }
-                    } catch (Exception e) {
-                        logger.error("report exception detail error.",e);
                     }
 
-                    //上报服务调用汇总数据 TODO 要不要锁？
-                    logger.info("monitor statistic queue size:{}.",statisticMap.size());
-                    Collection<InvocationStatistic> statisticCollection = statisticMap.values();
-                    try {
+                    //2、汇总上报
+                    if(getRole() == ROLE_CONSUMER){//只consumer进行统计上报
+                        logger.info("monitor statistic queue size:{}.",statisticMap.size());
+                        Collection<InvocationStatistic> statisticCollection = statisticMap.values();
                         if(CollectionUtils.isNotEmpty(statisticCollection)){
-                            monitorReporter.reportStatisticList(toStaticDOList(statisticCollection));
+                            try {
+                                monitorReporter.reportStatisticList(toStaticDOList(statisticCollection));
+                            } catch (Exception e) {
+                                logger.error("report statistic error.",e);
+                            }
                         }
-                    } catch (Exception e) {
-                        logger.error("report statistic error.",e);
-                    }
-                    //重置统计信息
-                    for(Map.Entry<String,InvocationStatistic> entry:statisticMap.entrySet()){
-                        entry.getValue().reset();
+                        //重置统计信息
+                        for(Map.Entry<String,InvocationStatistic> entry:statisticMap.entrySet()){
+                            entry.getValue().reset();
+                        }
                     }
                 } catch (Exception e) {
                     logger.error("report error.",e);
@@ -241,7 +258,7 @@ public abstract class AbstractMonitorFilter {
     }
 
     /**
-     * 明细转换，由各端上报类实现
+     * 明细DO转换，client/server转换
      * @param detail
      * @return
      */
@@ -259,34 +276,24 @@ public abstract class AbstractMonitorFilter {
                 continue;
             }
             MethodStaticDO staticDO = convertStatistic(statistic);
+            logger.info("report staticDO:{}.",JSONUtil.toJSONString(staticDO));
             staticDOList.add(staticDO);
         }
         return staticDOList;
     }
 
     /**
-     * 转换为statisticDo
+     * 统计DO转换，client转换
      * @param statistic
      * @return
      */
-    MethodStaticDO convertStatistic(InvocationStatistic statistic){
-        MethodStaticDO staticDO = new MethodStaticDO();
-        staticDO.setInterfaceName(statistic.getServiceInterfaceName());
-        staticDO.setServiceName(statistic.getServiceName());
-        staticDO.setVersion(statistic.getVersion());
-        staticDO.setMethodName(statistic.getMethod());
-        staticDO.setTotalCount((statistic.getTotalNum().intValue()));
-        staticDO.setFailCount(statistic.getFailNum().intValue());
-        staticDO.setSlowCount(statistic.getSlowNum().intValue());
-        staticDO.setAvgDuration(statistic.getAvgCostTime().intValue());
-        staticDO.setMaxDuration(statistic.getMaxCostTime().intValue());
+    abstract MethodStaticDO convertStatistic(InvocationStatistic statistic);
 
-        staticDO.setDomain(statistic.getApplication());
-        staticDO.setSourceIp(statistic.getHost());
-        staticDO.setStartTime(statistic.getBeginTime());
-        staticDO.setEndTime(statistic.getEndTime());
-        return staticDO;
-    }
+    /**
+     * 获取角色
+     * @return
+     */
+    abstract int getRole();
 
     VenusMonitorReporter getMonitorReporter(){
         if(monitorReporter == null){

@@ -1,6 +1,7 @@
 package com.meidusa.venus.monitor.filter;
 
 import com.athena.domain.MethodCallDetailDO;
+import com.athena.domain.MethodStaticDO;
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
 import com.meidusa.venus.util.UUIDUtil;
@@ -82,17 +83,19 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
      */
     String getMethodAndEnvPath(InvocationDetail detail){
         Invocation invocation = detail.getInvocation();
+        URL url = detail.getUrl();
         //请求时间，精确为分钟
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
         String requestTimeOfMinutes = getTimeOfMinutes(clientInvocation.getRequestTime());
 
         //方法路径信息
         String methodAndEnvPath = String.format(
-                "%s/%s?version=%s&method=%s&startTime=%s",
+                "%s/%s?version=%s&method=%s&target=%s&startTime=%s",
                 invocation.getServiceInterfaceName(),
                 invocation.getServiceName(),
                 invocation.getVersion(),
                 invocation.getMethodName(),
+                url.getHost(),
                 requestTimeOfMinutes
         );
         if(logger.isDebugEnabled()){
@@ -181,6 +184,35 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
         //TODO 响应地址
         //状态相关
         return detailDO;
+    }
+
+    /**
+     * 转换为statisticDo
+     * @param statistic
+     * @return
+     */
+    MethodStaticDO convertStatistic(InvocationStatistic statistic){
+        MethodStaticDO staticDO = new MethodStaticDO();
+        staticDO.setInterfaceName(statistic.getServiceInterfaceName());
+        staticDO.setServiceName(statistic.getServiceName());
+        staticDO.setVersion(statistic.getVersion());
+        staticDO.setMethodName(statistic.getMethod());
+        staticDO.setTotalCount((statistic.getTotalNum().intValue()));
+        staticDO.setFailCount(statistic.getFailNum().intValue());
+        staticDO.setSlowCount(statistic.getSlowNum().intValue());
+        staticDO.setAvgDuration(statistic.getAvgCostTime().intValue());
+        staticDO.setMaxDuration(statistic.getMaxCostTime().intValue());
+
+        staticDO.setDomain(statistic.getProviderApp());
+        staticDO.setSourceIp(statistic.getProviderIp());
+        staticDO.setStartTime(statistic.getBeginTime());
+        staticDO.setEndTime(statistic.getEndTime());
+        return staticDO;
+    }
+
+    @Override
+    int getRole() {
+        return ROLE_CONSUMER;
     }
 
     @Override
