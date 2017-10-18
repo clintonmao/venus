@@ -42,8 +42,8 @@ public class URL implements Serializable {
 	/** 端口，如 16800 */
 	private int port;
 
-	/** 机器权重 0~100 */
-	private int weight;
+	//机器权重 1~10，默认为1，若不提供服务，则通过禁止服务来设置
+	private int weight = 1;
 
 	/** 负载策略 */
 	private String loadbanlance;

@@ -15,17 +15,22 @@ public class RoundLoadbanlance implements Loadbanlance {
 
     @Override
     public URL select(List<URL> urlList) {
-        //避免地址列表刷新，导致下标越界
+        //加权设置 1~10，待优
+        for(URL url:urlList){
+            int weight = url.getWeight();
+            if(weight > 1){
+                for(int i=0;i<weight;i++){
+                    urlList.add(url);
+                }
+            }
+        }
+
+        //reset
         if(position >= urlList.size()){
             position = 0;
         }
-        //TODO 加权
         URL url = urlList.get(position);
-        if(position < urlList.size()){
-            position++;
-        }else{
-            position = 0;
-        }
+        position++;
         return url;
     }
 }

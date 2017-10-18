@@ -15,7 +15,15 @@ public class RandomLoadbanlance implements Loadbanlance {
 
     @Override
     public URL select(List<URL> urlList) {
-        //TODO 加权
+        //加权设置 1~10，待优
+        for(URL url:urlList){
+            int weight = url.getWeight();
+            if(weight > 1){
+                for(int i=0;i<weight;i++){
+                    urlList.add(url);
+                }
+            }
+        }
         int index = random.nextInt(urlList.size());
         return urlList.get(index);
     }
