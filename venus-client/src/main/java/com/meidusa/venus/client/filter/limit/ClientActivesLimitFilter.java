@@ -36,6 +36,7 @@ public class ClientActivesLimitFilter implements Filter {
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
+        //TODO 查找服务流控配置，并根据配置进行处理
         if(!isEnableActiveLimit(clientInvocation, url)){
             return null;
         }

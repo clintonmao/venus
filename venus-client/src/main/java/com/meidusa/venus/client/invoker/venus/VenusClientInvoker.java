@@ -392,6 +392,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @throws Exception
      */
     private BackendConnectionPool createNioPool(URL url,ClientRemoteConfig remoteConfig) throws Exception {
+        logger.warn("#########create nio pool#############:{}.",url);
         //初始化连接工厂
         VenusBackendConnectionFactory nioFactory = new VenusBackendConnectionFactory();
         nioFactory.setHost(url.getHost());

@@ -51,6 +51,11 @@ public class ClientRemoteInvoker implements Invoker{
 
     private ClusterFastfailInvoker clusterFastfailInvoker = new ClusterFastfailInvoker();
 
+    /**
+     * venus协议调用invoker
+     */
+    private VenusClientInvoker invoker = new VenusClientInvoker();
+
     @Override
     public void init() throws RpcException {
     }
@@ -211,13 +216,13 @@ public class ClientRemoteInvoker implements Invoker{
             if(clusterFailoverInvoker == null){
                 clusterFailoverInvoker =  new ClusterFailoverInvoker();
             }
-            clusterFailoverInvoker.setInvoker(new VenusClientInvoker());
+            clusterFailoverInvoker.setInvoker(invoker);
             return clusterFailoverInvoker;
         }else if(CLUSTER_FASTFAIL.equals(cluster)){
             if(clusterFastfailInvoker == null){
                 clusterFastfailInvoker =  new ClusterFastfailInvoker();
             }
-            clusterFastfailInvoker.setInvoker(new VenusClientInvoker());
+            clusterFastfailInvoker.setInvoker(invoker);
             return clusterFastfailInvoker;
         }else{
             throw new RpcException(String.format("invalid cluster policy:%s.",cluster));

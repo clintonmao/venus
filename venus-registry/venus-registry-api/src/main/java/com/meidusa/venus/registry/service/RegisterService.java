@@ -83,7 +83,6 @@ public interface RegisterService {
     /**
      * 清理无效的服务映射关系
      * @param currentDateTime
-     * @param updateTime
      */
 	@Endpoint(name = "clearInvalidService")
 	@PerformanceLevel(printParams=false,printResult = false)
