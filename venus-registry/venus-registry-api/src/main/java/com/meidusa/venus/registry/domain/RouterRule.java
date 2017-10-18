@@ -22,6 +22,20 @@ public class RouterRule {
 
 	private boolean active; // 是否开启（0 - 禁止， 1 - 开启）
 
+	public RouterRule() {
+		super();
+	}
+
+	public RouterRule(String method, String express, String desc, String position, int priority, boolean active) {
+		super();
+		this.method = method;
+		this.express = express;
+		this.desc = desc;
+		this.position = position;
+		this.priority = priority;
+		this.active = active;
+	}
+
 	public String getMethod() {
 		return method;
 	}
@@ -73,20 +87,6 @@ public class RouterRule {
 	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this);
-	}
-
-	public RouterRule() {
-		super();
-	}
-
-	public RouterRule(String method, String express, String desc, String position, int priority, boolean active) {
-		super();
-		this.method = method;
-		this.express = express;
-		this.desc = desc;
-		this.position = position;
-		this.priority = priority;
-		this.active = active;
 	}
 
 }

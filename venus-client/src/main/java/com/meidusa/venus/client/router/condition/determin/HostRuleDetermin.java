@@ -1,10 +1,12 @@
-package com.meidusa.venus.client.router.condition;
+package com.meidusa.venus.client.router.condition.determin;
+
+import com.meidusa.venus.client.router.condition.rule.ConditionRule;
 
 /**
- * Host规则判断逻辑
+ * Host语义规则判断逻辑
  * Created by Zhangzhihua on 2017/8/29.
  */
-public class HostRule {
+public class HostRuleDetermin {
 
     public static boolean isReject(String hostExp,String sourceHost,String targetHosts){
         hostExp = hostExp.trim();

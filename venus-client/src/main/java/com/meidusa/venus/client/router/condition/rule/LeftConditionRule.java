@@ -1,14 +1,17 @@
-package com.meidusa.venus.client.router.condition;
+package com.meidusa.venus.client.router.condition.rule;
 
+import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.URL;
-import org.apache.commons.collections.CollectionUtils;
+import com.meidusa.venus.client.router.condition.RuleDef;
+import com.meidusa.venus.client.router.condition.determin.AppRuleDetermin;
+import com.meidusa.venus.client.router.condition.determin.HostRuleDetermin;
 import org.apache.commons.lang.StringUtils;
 
 /**
  * 左侧规则定义，也即消费者规则
  * Created by Zhangzhihua on 2017/8/15.
  */
-public class LeftRule {
+public class LeftConditionRule implements RuleDef {
 
     private String appExp;
 
@@ -20,23 +23,22 @@ public class LeftRule {
 
     /**
      * 判断是否允许访问
-     * @param url
      * @return
      */
-    public boolean isReject(URL url){
+    public boolean isReject(ClientInvocation invocation, URL url){
         if(StringUtils.isNotBlank(appExp) && StringUtils.isNotBlank(appValues)){
-            //获取消费者APP TODO
-            String consumerApp = "TODO";
-            boolean isReject = AppRule.isReject(appExp,consumerApp,appValues);
+            //获取消费者APP
+            String consumerApp = invocation.getConsumerApp();
+            boolean isReject = AppRuleDetermin.isReject(appExp,consumerApp,appValues);
             if(isReject){
                 return true;
             }
         }
 
         if(StringUtils.isNotBlank(hostExp) && StringUtils.isNotBlank(hostValues)){
-            //获取消费者HOST TODO
-            String consumerHost = "10.47.16.40";
-            boolean isReject = HostRule.isReject(hostExp,consumerHost,hostValues);
+            //获取消费者HOST
+            String consumerHost = invocation.getConsumerIp();
+            boolean isReject = HostRuleDetermin.isReject(hostExp,consumerHost,hostValues);
             if(isReject){
                 return true;
             }

@@ -1,10 +1,12 @@
-package com.meidusa.venus.client.router.condition;
+package com.meidusa.venus.client.router.condition.determin;
+
+import com.meidusa.venus.client.router.condition.rule.ConditionRule;
 
 /**
- * Version规则判断逻辑
+ * Version语义规则判断逻辑
  * Created by Zhangzhihua on 2017/8/29.
  */
-public class VersionRule {
+public class VersionRuleDetermin {
 
     public static boolean isReject(String versionExp,String sourceVersion,String targetVersions){
         versionExp = versionExp.trim();

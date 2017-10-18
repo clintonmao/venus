@@ -1,13 +1,18 @@
-package com.meidusa.venus.client.router.condition;
+package com.meidusa.venus.client.router.condition.rule;
 
+import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.URL;
+import com.meidusa.venus.client.router.condition.RuleDef;
+import com.meidusa.venus.client.router.condition.determin.AppRuleDetermin;
+import com.meidusa.venus.client.router.condition.determin.HostRuleDetermin;
+import com.meidusa.venus.client.router.condition.determin.VersionRuleDetermin;
 import org.apache.commons.lang.StringUtils;
 
 /**
  * 右侧规则定义，也即提供者规则
  * Created by Zhangzhihua on 2017/8/15.
  */
-public class RightRule {
+public class RightConditionRule implements RuleDef {
 
     private String appExp;
 
@@ -21,29 +26,29 @@ public class RightRule {
 
     private String versionValues;
 
-    public boolean isReject(URL url){
+    public boolean isReject(ClientInvocation invocation, URL url){
         if(StringUtils.isNotBlank(appExp) && StringUtils.isNotBlank(appValues)){
-            //获取提供者APP TODO
-            String providerApp = "TODO";
-            boolean isReject = AppRule.isReject(appExp,providerApp,appValues);
+            //获取提供者APP
+            String providerApp = url.getApplication();
+            boolean isReject = AppRuleDetermin.isReject(appExp,providerApp,appValues);
             if(isReject){
                 return true;
             }
         }
 
         if(StringUtils.isNotBlank(hostExp) && StringUtils.isNotBlank(hostValues)){
-            //获取提供者HOST TODO
-            String providerHost = "10.47.16.40";
-            boolean isReject = HostRule.isReject(hostExp,providerHost,hostValues);
+            //获取提供者HOST
+            String providerHost = url.getHost();
+            boolean isReject = HostRuleDetermin.isReject(hostExp,providerHost,hostValues);
             if(isReject){
                 return true;
             }
         }
 
         if(StringUtils.isNotBlank(versionExp) && StringUtils.isNotBlank(versionValues)){
-            //获取提供者版本号 TODO
-            String providerVersion = "0.0.0";
-            boolean isReject = VersionRule.isReject(versionExp,providerVersion,versionValues);
+            //获取提供者版本号
+            String providerVersion = url.getVersion();
+            boolean isReject = VersionRuleDetermin.isReject(versionExp,providerVersion,versionValues);
             if(isReject){
                 return true;
             }

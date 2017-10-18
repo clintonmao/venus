@@ -1,6 +1,8 @@
-package com.meidusa.venus.client.router.condition;
+package com.meidusa.venus.client.router.condition.rule;
 
+import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.URL;
+import com.meidusa.venus.client.router.condition.RuleDef;
 
 /**
  * 条件路由规则
@@ -8,7 +10,7 @@ import com.meidusa.venus.URL;
  * consumer.host=192.168.1.1&consumer.app=order => provider.version=2.0.0
  * Created by Zhangzhihua on 2017/8/15.
  */
-public class ConditionRule {
+public class ConditionRule implements RuleDef{
 
     //等于，白名单
     public static final String EQ = "=";
@@ -38,21 +40,20 @@ public class ConditionRule {
     /**
      * 左侧规则定义，即消费者规则
      */
-    private LeftRule leftRule;
+    private LeftConditionRule leftRule;
 
     /**
      * 右侧规则定义，即提供者规则
      */
-    private RightRule rightRule;
+    private RightConditionRule rightRule;
 
 
     /**
      * 判断是否允许访问
-     * @param url
      * @return
      */
-    public boolean isReject(URL url){
-        return leftRule.isReject(url) || rightRule.isReject(url);
+    public boolean isReject(ClientInvocation invocation, URL url){
+        return leftRule.isReject(invocation, url) || rightRule.isReject(invocation, url);
     }
 
     public String getServiceInterfaceName() {
@@ -87,19 +88,19 @@ public class ConditionRule {
         this.rule = rule;
     }
 
-    public LeftRule getLeftRule() {
+    public LeftConditionRule getLeftRule() {
         return leftRule;
     }
 
-    public void setLeftRule(LeftRule leftRule) {
+    public void setLeftRule(LeftConditionRule leftRule) {
         this.leftRule = leftRule;
     }
 
-    public RightRule getRightRule() {
+    public RightConditionRule getRightRule() {
         return rightRule;
     }
 
-    public void setRightRule(RightRule rightRule) {
+    public void setRightRule(RightConditionRule rightRule) {
         this.rightRule = rightRule;
     }
 }

@@ -110,6 +110,10 @@ public class InvokerInvocationHandler implements InvocationHandler {
         }
     }
 
+    /**
+     * 获取client调用代理
+     * @return
+     */
     public ClientInvokerProxy getClientInvokerProxy() {
         if(clientInvokerProxy == null){
             clientInvokerProxy = new ClientInvokerProxy();

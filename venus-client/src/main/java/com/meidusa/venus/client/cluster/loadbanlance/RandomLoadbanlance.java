@@ -18,6 +18,9 @@ public class RandomLoadbanlance implements Loadbanlance {
         //加权设置 1~10，待优
         for(URL url:urlList){
             int weight = url.getWeight();
+            //改无效设置
+            weight = weight < 1?1:weight;
+            weight = weight > 10?10:weight;
             if(weight > 1){
                 for(int i=0;i<weight;i++){
                     urlList.add(url);

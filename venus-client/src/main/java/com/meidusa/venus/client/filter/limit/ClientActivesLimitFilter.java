@@ -71,18 +71,8 @@ public class ClientActivesLimitFilter implements Filter {
         if(!isEnableActiveLimit(clientInvocation, url)){
             return null;
         }
-        String methodPath = null;
-        try {
-            methodPath = VenusUtil.getMethodPath(clientInvocation);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        AtomicInteger activeLimit = null;
-        try {
-            activeLimit = methodActivesMapping.get(methodPath);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        String methodPath = VenusUtil.getMethodPath(clientInvocation);
+        AtomicInteger activeLimit = methodActivesMapping.get(methodPath);
         if(activeLimit != null){
             //-1
             activeLimit.decrementAndGet();

@@ -43,7 +43,7 @@ public class ClientRemoteInvoker implements Invoker{
     private Register register;
 
     /**
-     * 路由服务
+     * 条件路由服务
      */
     private Router router = new ConditionRouter();
 
@@ -61,7 +61,7 @@ public class ClientRemoteInvoker implements Invoker{
         //寻址，静态或动态
         List<URL> urlList = lookup(clientInvocation);
 
-        //路由规则过滤 TODO 版本号访问控制
+        //自定义路由过滤 TODO 版本号访问控制
         urlList = router.filte(clientInvocation, urlList);
 
         //集群容错调用

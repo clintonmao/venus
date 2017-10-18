@@ -1,15 +1,20 @@
 package com.meidusa.venus.client.router.condition;
 
+import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.Invocation;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.client.router.Router;
+import com.meidusa.venus.client.router.condition.rule.ConditionRule;
+import com.meidusa.venus.client.router.condition.rule.LeftConditionRule;
+import com.meidusa.venus.client.router.condition.rule.RightConditionRule;
+import com.meidusa.venus.registry.domain.RouterRule;
+import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
+import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 条件路由
@@ -19,82 +24,120 @@ public class ConditionRouter implements Router {
 
     @Override
     public List<URL> filte(Invocation invocation, List<URL> urlList) {
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
+        //过滤url
         List<URL> alllowUrlList = new ArrayList<URL>();
         for(URL url: urlList){
-            List<ConditionRule> ruleList = getRouteRules(url);
-            if(CollectionUtils.isEmpty(ruleList)){
-                //若路由规则为空，则添加
+            if(!isReject(clientInvocation, url)){
                 alllowUrlList.add(url);
-            }else{
-                //若规则不空，则判断是否匹配
-                if(isReject(url, ruleList)){
-                    continue;
-                }else{
-                    alllowUrlList.add(url);
-                }
             }
         }
         if(CollectionUtils.isEmpty(alllowUrlList)){
-            throw new RpcException("not found avalid providers or not allowed access.");
+            throw new RpcException("no allowed service providers.");
         }
         return alllowUrlList;
     }
 
     /**
      * 判断是否匹配
-     * @param url
-     * @param ruleList
+     * @param clientInvocation
+     * @param  url
      * @return
      */
-    boolean isReject(URL url, List<ConditionRule> ruleList){
-        if(CollectionUtils.isNotEmpty(ruleList)) {
-            for (ConditionRule rule : ruleList) {
-                if (rule.isReject(url)) {
-                    return true;
-                }
+    boolean isReject(ClientInvocation clientInvocation, URL url){
+        //获取服务定义规则列表
+        List<ConditionRule> ruleDefList = getRouteRules(url);
+        //若规则定义为空，则可访问
+        if(CollectionUtils.isEmpty(ruleDefList)){
+            return false;
+        }
+
+        for (ConditionRule rule : ruleDefList) {
+            if (rule.isReject(clientInvocation,url )) {
+                return true;
             }
         }
         return false;
     }
 
     /**
-     * 根据url获取路由规则
-     * @param url
+     * 根据调用请求获取路由规则
+     * @param
      * @return
      */
     List<ConditionRule> getRouteRules(URL url){
-        //TODO 测试构造用，根据请求url解析
-        String serviceUrl = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
-        return getAllRouterRuleMappings().get(URL.parse(serviceUrl));
+        List<ConditionRule> rules = new ArrayList<ConditionRule>();
+
+        VenusServiceDefinitionDO srvDef = (VenusServiceDefinitionDO)url.getServiceDefinition();
+        if(srvDef == null){
+            return rules;
+        }
+        List<VenusServiceConfigDO> srvCfgList = srvDef.getServiceConfigs();
+        if(CollectionUtils.isEmpty(srvCfgList)){
+            return rules;
+        }
+
+        for(VenusServiceConfigDO srvCfg:srvCfgList){
+            RouterRule rule = srvCfg.getRouterRule();
+            if(rule != null){
+                //转化为可解析模型
+                rules.add(toConditionRule(rule));
+            }
+        }
+
+        return rules;
     }
 
     /**
-     * 获取所有规则映射表 TODO 临时构造测试用，从注册中心加载
+     * 将字符串格式转化为可解析的格式
+     * @param ruleDef
      * @return
      */
-    Map<URL,List<ConditionRule>> getAllRouterRuleMappings(){
-        Map<URL,List<ConditionRule>> urlRulesMap = new HashMap<URL, List<ConditionRule>>();
+    ConditionRule toConditionRule(RouterRule ruleDef){
+        //consumer.host!=192.168.1.1,192.168.1.2 => provider.host=192.168.2.1
+        //consumer.host=192.168.1.1&consumer.app=order => provider.version=2.0.0
+        String exp = ruleDef.getExpress();
+        //整条规则
+        ConditionRule rule = new ConditionRule();
+        //左规则
+        LeftConditionRule leftRule = new LeftConditionRule();
+        leftRule.setHostExp(ConditionRule.EQ);
+        //TODO 改动态
+        leftRule.setHostValues("10.47.16.40");
+        rule.setLeftRule(leftRule);
+        //右规则
+        RightConditionRule rightRule = new RightConditionRule();
+        rightRule.setHostExp(ConditionRule.EQ);
+        rightRule.setHostValues("10.47.16.40");
+        rule.setRightRule(rightRule);
+        return rule;
+    }
 
-        //构造Url
-        String serviceUrl = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
-        URL url = URL.parse(serviceUrl);
+    /**
+     * 获取所有规则映射表
+     * @return
+     */
+    List<ConditionRule> getRouteRulesByStatic(URL url){
+        //String serviceUrl = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
 
         //构造rules
         List<ConditionRule> rules = new ArrayList<ConditionRule>();
         //rule1[consumer.host=10.47.16.40 => provider.host=10.47.16.40]
+        //整条规则
         ConditionRule rule = new ConditionRule();
-        LeftRule leftRule = new LeftRule();
+        //左规则
+        LeftConditionRule leftRule = new LeftConditionRule();
         leftRule.setHostExp(ConditionRule.EQ);
         leftRule.setHostValues("10.47.16.40");
         rule.setLeftRule(leftRule);
-        RightRule rightRule = new RightRule();
+        //右规则
+        RightConditionRule rightRule = new RightConditionRule();
         rightRule.setHostExp(ConditionRule.EQ);
         rightRule.setHostValues("10.47.16.40");
         rule.setRightRule(rightRule);
         rules.add(rule);
 
-        urlRulesMap.put(url,rules);
-        return urlRulesMap;
+        return rules;
     }
 
 }

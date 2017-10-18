@@ -1,10 +1,12 @@
-package com.meidusa.venus.client.router.condition;
+package com.meidusa.venus.client.router.condition.determin;
+
+import com.meidusa.venus.client.router.condition.rule.ConditionRule;
 
 /**
- * App规则判断逻辑
+ * App语义规则判断逻辑
  * Created by Zhangzhihua on 2017/8/29.
  */
-public class AppRule {
+public class AppRuleDetermin {
 
     /**
      *
