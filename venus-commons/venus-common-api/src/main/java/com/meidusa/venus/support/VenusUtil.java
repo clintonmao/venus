@@ -2,9 +2,6 @@ package com.meidusa.venus.support;
 
 import com.meidusa.toolkit.common.util.StringUtil;
 import com.meidusa.venus.Invocation;
-import com.meidusa.venus.URL;
-import com.meidusa.venus.annotations.Endpoint;
-import com.meidusa.venus.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,12 +16,26 @@ public class VenusUtil {
     private static Logger logger = LoggerFactory.getLogger(VenusUtil.class);
 
     /**
-     * 获取方法路径
+     * 获取服务路径
      * @param invocation
-     * @param url
      * @return
      */
-    public static String getMethodPath(Invocation invocation, URL url){
+    public static String getServicePath(Invocation invocation){
+        String servicePath = String.format(
+                "%s/%s?version=%s",
+                invocation.getServiceInterfaceName(),
+                invocation.getServiceName(),
+                invocation.getVersion()
+        );
+        return servicePath;
+    }
+
+    /**
+     * 获取方法路径
+     * @param invocation
+     * @return
+     */
+    public static String getMethodPath(Invocation invocation){
         String methodPath = String.format(
                 "%s/%s?version=%s&method=%s",
                 invocation.getServiceInterfaceName(),
@@ -32,9 +43,6 @@ public class VenusUtil {
                 invocation.getVersion(),
                 invocation.getMethodName()
         );
-        if(logger.isDebugEnabled()){
-            logger.debug("methodPath:{}.", methodPath);
-        }
         return methodPath;
     }
 

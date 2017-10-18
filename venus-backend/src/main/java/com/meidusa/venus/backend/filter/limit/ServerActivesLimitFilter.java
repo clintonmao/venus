@@ -40,7 +40,7 @@ public class ServerActivesLimitFilter implements Filter {
             return null;
         }
         //获取方法路径及当前并发数
-        String methodPath = VenusUtil.getMethodPath(serverInvocation, url);
+        String methodPath = VenusUtil.getMethodPath(serverInvocation);
         AtomicInteger activeLimit = methodActivesMapping.get(methodPath);
         if(activeLimit == null){
             activeLimit = new AtomicInteger(0);
@@ -69,7 +69,7 @@ public class ServerActivesLimitFilter implements Filter {
         if(!isEnableActiveLimit(serverInvocation, url)){
             return null;
         }
-        String methodPath = VenusUtil.getMethodPath(serverInvocation, url);
+        String methodPath = VenusUtil.getMethodPath(serverInvocation);
         AtomicInteger activeLimit = methodActivesMapping.get(methodPath);
         if(activeLimit != null){
             //-1

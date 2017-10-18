@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * fastfail集群容错invoker
+ * fastfail集群容错invoker，也即正常调用封装
  * Created by Zhangzhihua on 2017/7/31.
  */
 public class ClusterFastfailInvoker extends AbstractClusterInvoker implements ClusterInvoker {
@@ -25,8 +25,8 @@ public class ClusterFastfailInvoker extends AbstractClusterInvoker implements Cl
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
         String lb = clientInvocation.getLoadbanlance();
 
-        URL url = getLoadbanlance(lb).select(urlList);
-        logger.info("select service provider:{}.",String.format("%s:%s",url.getHost(),String.valueOf(url.getPort())));
+        URL url = getLoadbanlance(lb,clientInvocation).select(urlList);
+        logger.info("select service provider:####{}####.",String.format("%s:%s",url.getHost(),String.valueOf(url.getPort())));
 
         return  getInvoker().invoke(invocation,url);
     }

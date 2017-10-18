@@ -58,7 +58,7 @@ public abstract class AbstractMonitorFilter {
     protected static int ROLE_PROVIDER = 2;
 
     //慢操作耗时
-    static int SLOW_COST_TIME = 1;
+    static int SLOW_COST_TIME = 0;
 
     //Athena接口名称定义
     public static final String ATHENA_INTERFACE_SIMPLE_NAME = "AthenaDataService";

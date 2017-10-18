@@ -6,6 +6,7 @@ import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.support.EndpointWrapper;
 import com.meidusa.venus.support.ServiceWrapper;
+import com.meidusa.venus.support.VenusUtil;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -272,5 +273,21 @@ public class ClientInvocation implements Invocation {
 
     public void setLoadbanlance(String loadbanlance) {
         this.loadbanlance = loadbanlance;
+    }
+
+    /**
+     * 获取服务路径
+     * @return
+     */
+    public String getServicePath(){
+        return VenusUtil.getServicePath(this);
+    }
+
+    /**
+     * 获取方法路径
+     * @return
+     */
+    public String getMethodPath(){
+        return VenusUtil.getMethodPath(this);
     }
 }

@@ -1,5 +1,6 @@
 package com.chexiang.venus.demo.provider.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -8,7 +9,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class TomcatConfig {
 
-    private int port = 9090;
+    @Value("${tomcat.port}")
+    private int port;
 
     private String protocol = "org.apache.coyote.http11.Http11NioProtocol";
 

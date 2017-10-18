@@ -15,7 +15,7 @@ public class RandomLoadbanlance implements Loadbanlance {
 
     @Override
     public URL select(List<URL> urlList) {
-        //TODO 权重因子
+        //TODO 加权
         int index = random.nextInt(urlList.size());
         return urlList.get(index);
     }

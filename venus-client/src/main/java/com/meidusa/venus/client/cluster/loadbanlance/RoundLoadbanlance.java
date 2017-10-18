@@ -10,17 +10,21 @@ import java.util.List;
  */
 public class RoundLoadbanlance implements Loadbanlance {
 
-    private int index = 0;
+    //下标位置
+    private int position = 0;
 
     @Override
     public URL select(List<URL> urlList) {
-        //TODO 地址记忆
-        //TODO 权重因子
-        URL url = urlList.get(index);
-        if(index < urlList.size()){
-            index++;
+        //避免地址列表刷新，导致下标越界
+        if(position >= urlList.size()){
+            position = 0;
+        }
+        //TODO 加权
+        URL url = urlList.get(position);
+        if(position < urlList.size()){
+            position++;
         }else{
-            index = 0;
+            position = 0;
         }
         return url;
     }
