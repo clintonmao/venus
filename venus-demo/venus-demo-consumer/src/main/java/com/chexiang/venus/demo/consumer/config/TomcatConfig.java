@@ -13,17 +13,26 @@ public class TomcatConfig {
     @Value("${tomcat.port}")
     private int port;
 
-    private String protocol = "org.apache.coyote.http11.Http11NioProtocol";
+    @Value("${protocol}")
+    private String protocol;
 
-    private String uriEncoding = "UTF-8";
+    @Value("${uriEncoding}")
+    private String uriEncoding;
 
-    private int connectionTimeout = 20000;
+    @Value("${connectionTimeout}")
+    private int connectionTimeout;
 
-    private int maxConnections = 2000;
+    @Value("${minSpareThreads}")
+    private int minSpareThreads;
 
-    private int maxThreads = 700;
+    @Value("${maxThreads}")
+    private int maxThreads;
 
-    private int acceptCount = 2000;
+    @Value("${acceptCount}")
+    private int acceptCount;
+
+    @Value("${maxConnections}")
+    private int maxConnections;
 
     public int getPort() {
         return port;
@@ -79,5 +88,13 @@ public class TomcatConfig {
 
     public void setAcceptCount(int acceptCount) {
         this.acceptCount = acceptCount;
+    }
+
+    public int getMinSpareThreads() {
+        return minSpareThreads;
+    }
+
+    public void setMinSpareThreads(int minSpareThreads) {
+        this.minSpareThreads = minSpareThreads;
     }
 }

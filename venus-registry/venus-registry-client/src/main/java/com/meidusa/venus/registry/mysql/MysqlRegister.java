@@ -124,7 +124,8 @@ public class MysqlRegister implements Register {
 		logger.info("subscrible service:{}.",url);
 		try {
 			registerService.subscrible(url);
-			heartbeat();
+			//TODO 心跳响应慢
+			//heartbeat();
 		} catch (Exception e) {
 			subscribleFailUrls.add(url);
 			logger.error("服务{}订阅异常 ,异常原因：{}", url.getServiceName(), e);

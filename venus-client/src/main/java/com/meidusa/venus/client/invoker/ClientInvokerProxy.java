@@ -4,6 +4,7 @@ import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.client.invoker.injvm.InjvmClientInvoker;
+import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.monitor.AthenaContext;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
@@ -69,6 +70,7 @@ public class ClientInvokerProxy implements Invoker {
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
+        long bTime = System.currentTimeMillis();
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
         try {
             //调用前切面处理，校验、流控、降级等
@@ -107,6 +109,7 @@ public class ClientInvokerProxy implements Invoker {
             for(Filter filter : getAfterFilters()){
                 filter.afterInvoke(invocation,url);
             }
+            logger.warn("request rpcId:{} cost time:{}.", RpcIdUtil.getRpcId(clientInvocation.getClientId(),clientInvocation.getClientRequestId()),System.currentTimeMillis()-bTime);
         }
     }
 

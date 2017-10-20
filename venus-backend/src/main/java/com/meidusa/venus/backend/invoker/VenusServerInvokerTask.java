@@ -112,15 +112,16 @@ public class VenusServerInvokerTask implements Runnable{
      * @param data
      */
     public void handle(VenusFrontendConnection conn, Tuple<Long, byte[]> data) {
+        long bTime = System.currentTimeMillis();
         ServerInvocation invocation = null;
         Result result = null;
         String rpcId = null;
         try {
             //解析请求对象
             invocation = parseInvocation(conn, data);
-            rpcId = RpcIdUtil.getRpcId(invocation.getClientId(),invocation.getClientRequestId());
+            rpcId = invocation.getRpcId();//RpcIdUtil.getRpcId(invocation.getClientId(),invocation.getClientRequestId());
             //不要打印bytes信息流，会导致后续无法获取
-            logger.info("recv request,rpcId:{},message size:{}.", rpcId,data.getRight().length);
+            logger.warn("recv request,rpcId:{},message size:{}.", rpcId,data.getRight().length);
 
             //通过代理调用服务
             result = getVenusServerInvokerProxy().invoke(invocation, null);
@@ -136,10 +137,10 @@ public class VenusServerInvokerTask implements Runnable{
             ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
 
             if (invocation.getResultType() == EndpointInvocation.ResultType.RESPONSE) {
-                logger.info("write normal response,rpcId:{},result:{}",rpcId,JSONUtil.toJSONString(result));
+                logger.warn("write normal response,rpcId:{},cost time:{},result:{}",rpcId,System.currentTimeMillis()-bTime,JSONUtil.toJSONString(result));
                 responseHandler.writeResponseForResponse(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
-                logger.info("write ok response,rpcId:{},result:{}",rpcId,JSONUtil.toJSONString(result));
+                logger.warn("write normal response,rpcId:{},cost time:{},result:{}",rpcId,System.currentTimeMillis()-bTime,JSONUtil.toJSONString(result));
                 responseHandler.writeResponseForOk(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.NOTIFY) {
                 //callback回调异常情况

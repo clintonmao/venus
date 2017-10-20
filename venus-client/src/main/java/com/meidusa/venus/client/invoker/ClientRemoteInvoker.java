@@ -8,6 +8,7 @@ import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
+import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.util.JSONUtil;
@@ -62,6 +63,7 @@ public class ClientRemoteInvoker implements Invoker{
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
+        long bTime = System.currentTimeMillis();
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
         //寻址，静态或动态
         List<URL> urlList = lookup(clientInvocation);
@@ -72,6 +74,7 @@ public class ClientRemoteInvoker implements Invoker{
         //集群容错调用
         ClusterInvoker clusterInvoker = getClusterInvoker(clientInvocation,url);
         Result result = clusterInvoker.invoke(invocation, urlList);
+        logger.warn("request rpcId:{} cost time:{}.", RpcIdUtil.getRpcId(clientInvocation.getClientId(),clientInvocation.getClientRequestId()),System.currentTimeMillis()-bTime);
         return result;
     }
 

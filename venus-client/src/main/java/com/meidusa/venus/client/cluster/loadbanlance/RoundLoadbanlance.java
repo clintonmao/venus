@@ -11,7 +11,7 @@ import java.util.List;
 public class RoundLoadbanlance implements Loadbanlance {
 
     //下标位置
-    private int position = 0;
+    private Integer position = 0;
 
     @Override
     public URL select(List<URL> urlList) {
@@ -29,11 +29,13 @@ public class RoundLoadbanlance implements Loadbanlance {
         }
 
         //reset
-        if(position >= urlList.size()){
-            position = 0;
+        synchronized (position){
+            if(position >= urlList.size()){
+                position = 0;
+            }
+            URL url = urlList.get(position);
+            position++;
+            return url;
         }
-        URL url = urlList.get(position);
-        position++;
-        return url;
     }
 }

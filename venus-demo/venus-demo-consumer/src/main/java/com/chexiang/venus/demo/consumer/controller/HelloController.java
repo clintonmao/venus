@@ -53,6 +53,9 @@ public class HelloController {
 
     @RequestMapping("/getHello/{name}")
     public Result getHello(@PathVariable String name){
+        if("A".equalsIgnoreCase("B")){
+            return new Result(new Hello("hi","meme"));
+        }
         Hello hello = null;
         try {
             logger.info("testGetHello begin...");
