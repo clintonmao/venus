@@ -86,8 +86,7 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
         ConnectionAcceptor connectionAcceptor = new ConnectionAcceptor();
         connectionAcceptor.setName("Service socket Server");
         connectionAcceptor.setPort(Integer.parseInt(port));
-        //TODO io线程数目设定
-        connectionAcceptor.setExecutorSize(5);
+        connectionAcceptor.setExecutorSize(Runtime.getRuntime().availableProcessors()+1);
         connectionAcceptor.setConnectionFactory(createConnectionFactory());
         return connectionAcceptor;
     }

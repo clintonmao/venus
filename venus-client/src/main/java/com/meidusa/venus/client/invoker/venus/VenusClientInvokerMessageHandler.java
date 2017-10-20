@@ -101,13 +101,16 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
 
                 ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, syncInvocation.getMethod().getGenericReturnType());
                 response.init(message);
-                logger.warn("recv resp response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(response),JSONUtil.toJSONString(response));
+                logger.warn("recv resp response,rpcId:{},thread:{},response:{}.",RpcIdUtil.getRpcId(response),Thread.currentThread(),JSONUtil.toJSONString(response));
                 //添加rpcId->response映射表
                 //TODO 处理已经超时的记录
+                serviceResponseMap.put(RpcIdUtil.getRpcId(response),response);
+                /*
                 synchronized (serviceResponseMap){
                     serviceResponseMap.put(RpcIdUtil.getRpcId(response),response);
                     serviceResponseMap.notifyAll();
                 }
+                */
                 break;
             case PacketConstant.PACKET_TYPE_NOTIFY_PUBLISH:
                 ClientInvocation asyncInvocation = serviceInvocationMap.get(RpcIdUtil.getRpcId(parseServicePacket(message)));

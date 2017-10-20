@@ -37,7 +37,7 @@ import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -74,8 +74,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     private static ConnectionConnector connector;
 
-    private static ConnectionManager connManager;
-
     /**
      * nio连接映射表
      */
@@ -104,6 +102,8 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      */
     private VenusClientInvokerMessageHandler messageHandler = new VenusClientInvokerMessageHandler();
 
+    private ExecutorService executor = Executors.newFixedThreadPool(50);
+
     private static boolean isInitConnector = false;
 
     @Override
@@ -112,26 +112,24 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             if (enableAsync) {//TODO 开启async意义？
                 if (connector == null) {
                     try {
-                        connector = new ConnectionConnector("connection Connector");
+                        connector = new ConnectionConnector("connection Connector@");
+                        //connector.setDaemon(true);
+
+                        int theadGroupCount = 3;
+                        ConnectionManager[] connectionManagers = new ConnectionManager[theadGroupCount];
+                        for(int i=0;i<theadGroupCount;i++){
+                            ConnectionManager connManager = new ConnectionManager("Connection Manager@", Runtime.getRuntime().availableProcessors()+2);
+                            //connManager.setDaemon(true);
+                            connectionManagers[i] = connManager;
+                            connManager.start();
+                        }
+
+                        connector.setProcessors(connectionManagers);
+                        connector.start();
                     } catch (IOException e) {
                         throw new RpcException(e);
                     }
-                    connector.setDaemon(true);
-
                 }
-
-                if (connManager == null) {
-                    try {
-                        connManager = new ConnectionManager("Connection Manager", this.getAsyncExecutorSize());
-                    } catch (IOException e) {
-                        throw new RpcException(e);
-                    }
-                    connManager.setDaemon(true);
-                    connManager.start();
-                }
-
-                connector.setProcessors(new ConnectionManager[]{connManager});
-                connector.start();
             }
 
             isInitConnector = true;
@@ -189,34 +187,78 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      */
     public Result doInvokeWithSync(ClientInvocation invocation, URL url) throws Exception {
         int totalWaitTime = 3000;//TODO 超时时间配置
-        Result result = null;
-        //构造请求消息
-        SerializeServiceRequestPacket request = buildRequest(invocation);
-        //添加rpcId -> invocation映射表
-        serviceInvocationMap.put(RpcIdUtil.getRpcId(request),invocation);
-
-        //发送消息
-        sendRequest(invocation, request, url);
-
         //阻塞等待并处理响应结果
+        /*
         synchronized (serviceResponseMap){
             long bWaitTime = System.currentTimeMillis();
             String rpcId = RpcIdUtil.getRpcId(request);
-            //若无响应数据且未超时，则等待
             while(serviceResponseMap.get(rpcId) == null && !isTimeout(totalWaitTime,bWaitTime)){
                 serviceResponseMap.wait(getRemainWaitTime(totalWaitTime,bWaitTime));
             }
 
             result = fetchResponse(rpcId);
-            logger.warn("build,send,wait->fetch end,request rpcId:{} cost time:{}.", RpcIdUtil.getRpcId(invocation.getClientId(),invocation.getClientRequestId()),System.currentTimeMillis()-bWaitTime);
+            logger.warn("build,send,wait->fetch end,request rpcId:{},thread:{},cost time:{}.", rpcId,Thread.currentThread(),System.currentTimeMillis()-bWaitTime);
         }
+        */
+
+        FutureTask<Result> futureTask = new FutureTask(new RequestTask(invocation,url));
+        Future future = executor.submit(futureTask);
+        Result result = futureTask.get();
+
         //TODO 改为methodPath
         String servicePath = url.getPath();
-        //logger.info("fecth response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(request),JSONUtil.toJSONString(result));
         if(result == null){
             throw new RpcException(String.format("invoke service:%s,timeout:%dms",servicePath,totalWaitTime));
         }
         return result;
+    }
+
+    /**
+     * 请求task
+     */
+    class RequestTask implements Callable<Result>{
+
+        private ClientInvocation invocation;
+
+        private URL url;
+
+        private Object lock = new Object();
+
+        public RequestTask(ClientInvocation invocation,URL url){
+            this.invocation = invocation;
+            this.url = url;
+        }
+
+        @Override
+        public Result call() throws Exception {
+            long totalWaitTime = 3000;
+            long bWaitTime = System.currentTimeMillis();
+            //构造请求消息
+            SerializeServiceRequestPacket request = buildRequest(invocation);
+
+            //添加rpcId -> invocation映射表
+            String rpcId = RpcIdUtil.getRpcId(request);
+            serviceInvocationMap.put(rpcId,invocation);
+
+            //发送消息
+            sendRequest(invocation, request, url);
+
+            /*
+            synchronized (lock){
+                while(serviceResponseMap.get(rpcId) == null && !isTimeout(totalWaitTime,bWaitTime)){
+                    lock.wait(getRemainWaitTime(totalWaitTime,bWaitTime));
+                }
+            }
+            */
+
+            while(serviceResponseMap.get(rpcId) == null && !isTimeout(totalWaitTime,bWaitTime)){
+                //lock.wait(getRemainWaitTime(totalWaitTime,bWaitTime));
+                Thread.sleep(1);
+            }
+            Result result = fetchResponse(rpcId);
+            logger.warn("build,send,wait->fetch end,request rpcId:{},thread:{},cost time:{}.", rpcId,Thread.currentThread(),System.currentTimeMillis()-bWaitTime);
+            return result;
+        }
     }
 
     /**
@@ -633,11 +675,13 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                 connector.shutdown();
             }
         }
+        /*
         if (connManager != null) {
             if (connManager.isAlive()) {
                 connManager.shutdown();
             }
         }
+        */
     }
 
     public int getAsyncExecutorSize() {

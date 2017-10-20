@@ -34,6 +34,8 @@ public class BenchmarkController {
 
     static boolean isEnd = false;
 
+    Random  random = new Random();
+
     @RequestMapping("/start/{threadCount}")
     public Result start(@PathVariable String threadCount){
         logger.info("start...");
@@ -46,13 +48,13 @@ public class BenchmarkController {
                     while(!isEnd){
 
                         try {
+                            long tbTime = System.currentTimeMillis();
                             Hello hello = helloService.getHello("jack");
-                            if(logger.isDebugEnabled()){
-                                logger.debug("result:{}.",hello);
-                            }
                             count.getAndIncrement();
-                            int r = new Random().nextInt(1000);
-                            if(r > 990){
+                            int r = random.nextInt(1000);
+                            long teTime = System.currentTimeMillis();
+                            if(r > 998){
+                                System.out.println("current cost time:" + (teTime - tbTime));
                                 long costTime = (System.currentTimeMillis() - bTime)/1000;
                                 long tps = count.get() / costTime;
                                 System.out.println(String.format("current count:%s,costTime:%s,tps:%s.",count.get(),costTime,tps));
