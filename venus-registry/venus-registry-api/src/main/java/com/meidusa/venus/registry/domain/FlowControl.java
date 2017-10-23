@@ -2,13 +2,15 @@ package com.meidusa.venus.registry.domain;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 
+import java.io.Serializable;
+
 /**
  * 流量控制
  * 
  * @author tangmin
  *
  */
-public class FlowControl {
+public class FlowControl implements Serializable {
 
 	private String method; // 端点（方法）
 

@@ -2,12 +2,14 @@ package com.meidusa.venus.registry.domain;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 
+import java.io.Serializable;
+
 /**
  * 降级配置
  * @author tangmin
  *
  */
-public class MockConfig {
+public class MockConfig implements Serializable {
 	
 	private String method; //端点（方法）
 	

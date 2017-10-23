@@ -2,13 +2,15 @@ package com.meidusa.venus.registry.domain;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 
+import java.io.Serializable;
+
 /**
  * 如有规则
  * 
  * @author tangmin
  *
  */
-public class RouterRule {
+public class RouterRule implements Serializable {
 
 	private String method; // 端点（方法）
 
