@@ -11,6 +11,8 @@ import java.io.Serializable;
  */
 public class MockConfig implements Serializable {
 	
+	private static final long serialVersionUID = 8693638555903500290L;
+
 	private String method; //端点（方法）
 	
 	private String position ; //对象（立场：consumer、provider）

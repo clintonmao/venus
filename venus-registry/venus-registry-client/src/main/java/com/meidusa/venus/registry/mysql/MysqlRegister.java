@@ -1,5 +1,9 @@
 package com.meidusa.venus.registry.mysql;
 
+import com.caucho.hessian.HessianException;
+import com.caucho.hessian.client.HessianRuntimeException;
+import com.caucho.hessian.io.HessianProtocolException;
+import com.caucho.hessian.io.HessianServiceException;
 import com.meidusa.fastjson.JSON;
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.RpcException;
@@ -63,7 +67,7 @@ public class MysqlRegister implements Register {
 	private String fileCachePath = "/data/application/venusLocalSubcribe.txt";
 
 	//是否开启本地文件缓存
-	private static boolean isEnableFileCache = false;
+	private static boolean isEnableFileCache = true;
 
 	public MysqlRegister(RegisterService registerService) {
 		this.registerService = registerService;
@@ -120,17 +124,20 @@ public class MysqlRegister implements Register {
 	}
 
 	@Override
-	public void subscrible(URL url) throws VenusRegisteException {
-		logger.info("subscrible service:{}.",url);
+	public boolean subscrible(URL url) throws VenusRegisteException {
+		logger.info("subscrible service:{}.", url);
+		boolean success = true;
 		try {
 			registerService.subscrible(url);
 			heartbeat();
 		} catch (Exception e) {
 			subscribleFailUrls.add(url);
 			logger.error("服务{}订阅异常 ,异常原因：{}", url.getServiceName(), e);
+			success = false;
 		}
 		subscribleUrls.add(url);
 		load();
+		return success;
 	}
 
 	@Override
@@ -213,8 +220,9 @@ public class MysqlRegister implements Register {
 						subscribleServiceDefinitionMap.remove(key);
 					}
 				} catch (Exception e) {
-					if(e instanceof VenusRegisteException || e instanceof AbstractVenusException){
-						hasException=true;
+					if (e instanceof HessianRuntimeException || e instanceof HessianException
+							|| e instanceof HessianProtocolException || e instanceof HessianServiceException) {
+						hasException = true;
 					}
 					logger.error("服务{}ServiceDefLoaderRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
 				}
@@ -342,8 +350,10 @@ public class MysqlRegister implements Register {
 				for (Iterator<URL> iterator = subscribleFailUrls.iterator(); iterator.hasNext();) {
 					URL url = iterator.next();
 					try {
-						subscrible(url);
-						iterator.remove();
+						boolean subscrible = subscrible(url);
+						if (subscrible) {
+							iterator.remove();
+						}
 					} catch (Exception e) {
 						logger.error("Fail服务{}重新订阅异常 ,异常原因：{}", url.getServiceName(), e);
 					}

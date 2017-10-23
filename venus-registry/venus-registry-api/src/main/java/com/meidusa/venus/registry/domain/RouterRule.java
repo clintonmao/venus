@@ -12,6 +12,8 @@ import java.io.Serializable;
  */
 public class RouterRule implements Serializable {
 
+	private static final long serialVersionUID = 6862542808793923987L;
+
 	private String method; // 端点（方法）
 
 	private String express; // 表达式
