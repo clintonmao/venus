@@ -17,6 +17,8 @@ import com.meidusa.toolkit.common.util.ObjectUtil;
  */
 public class VenusServiceDefinitionDO implements ServiceDefinitionDO,java.io.Serializable{
 
+	private static final long serialVersionUID = -4527715273482256858L;
+
 	/**
 	 * 服务名称
 	 */

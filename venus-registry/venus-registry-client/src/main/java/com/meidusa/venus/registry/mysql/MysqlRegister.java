@@ -1,5 +1,8 @@
 package com.meidusa.venus.registry.mysql;
 
+import com.caucho.hessian.HessianException;
+import com.caucho.hessian.io.HessianProtocolException;
+import com.caucho.hessian.io.HessianServiceException;
 import com.meidusa.fastjson.JSON;
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.RpcException;
@@ -213,7 +216,7 @@ public class MysqlRegister implements Register {
 						subscribleServiceDefinitionMap.remove(key);
 					}
 				} catch (Exception e) {
-					if(e instanceof VenusRegisteException || e instanceof AbstractVenusException){
+					if(e instanceof HessianException || e instanceof HessianProtocolException || e instanceof HessianServiceException){
 						hasException=true;
 					}
 					logger.error("服务{}ServiceDefLoaderRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);

@@ -12,6 +12,8 @@ import java.io.Serializable;
  */
 public class FlowControl implements Serializable {
 
+	private static final long serialVersionUID = 2877053009717448795L;
+
 	private String method; // 端点（方法）
 
 	private String position; // 对象（立场：consumer、provider）
