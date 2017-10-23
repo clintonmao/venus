@@ -66,7 +66,7 @@ public class MysqlRegister implements Register {
 	private String fileCachePath = "/data/application/venusLocalSubcribe.txt";
 
 	//是否开启本地文件缓存
-	private static boolean isEnableFileCache = false;
+	private static boolean isEnableFileCache = true;
 
 	public MysqlRegister(RegisterService registerService) {
 		this.registerService = registerService;
