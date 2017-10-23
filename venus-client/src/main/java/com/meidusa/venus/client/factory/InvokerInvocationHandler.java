@@ -1,5 +1,6 @@
 package com.meidusa.venus.client.factory;
 
+import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
@@ -94,6 +95,9 @@ public class InvokerInvocationHandler implements InvocationHandler {
         try {
             //构造请求
             ClientInvocation invocation = buildInvocation(proxy, method, args);
+            if("A".equalsIgnoreCase("B")){
+                return new Hello("@hi","@ok");
+            }
 
             //通过代理调用服务
             Result result = getClientInvokerProxy().invoke(invocation,null);
@@ -153,7 +157,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
         invocation.setRequestTime(new Date());
         String consumerApp = VenusContext.getInstance().getApplication();
         invocation.setConsumerApp(consumerApp);
-        invocation.setConsumerIp(NetUtil.getLocalIp());
+        invocation.setConsumerIp(NetUtil.getLocalIp(true));
         //是否async
         boolean async = false;
         if (endpoint != null && endpoint.async()) {

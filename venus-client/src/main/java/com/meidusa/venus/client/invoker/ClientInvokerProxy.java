@@ -24,6 +24,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Random;
+
 /**
  * client invoker调用代理类，附加处理校验、流控、降级相关切面操作
  * Created by Zhangzhihua on 2017/8/24.
@@ -64,21 +66,30 @@ public class ClientInvokerProxy implements Invoker {
 
     private ClientMonitorFilter clientMonitorFilter;
 
+    private static boolean isEnableFilter = false;
+
+    Random random = new Random();
+
     @Override
     public void init() throws RpcException {
     }
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
+        if(random.nextInt(1000) > 998){
+            System.out.println(String.format("current thread:%s,instance:%s",Thread.currentThread(),this));
+        }
         long bTime = System.currentTimeMillis();
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
         try {
-            //调用前切面处理，校验、流控、降级等
-            for(Filter filter : getBeforeFilters()){
-                Result result = filter.beforeInvoke(invocation,null);
-                if(result != null){
-                    VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
-                    return result;
+            if(isEnableFilter){
+                //调用前切面处理，校验、流控、降级等
+                for(Filter filter : getBeforeFilters()){
+                    Result result = filter.beforeInvoke(invocation,null);
+                    if(result != null){
+                        VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
+                        return result;
+                    }
                 }
             }
 
@@ -94,20 +105,24 @@ public class ClientInvokerProxy implements Invoker {
             }
         } catch (Throwable e) {
             VenusThreadContext.set(VenusThreadContext.RESPONSE_EXCEPTION,e);
-            //调用异常切面处理
-            for(Filter filter : getThrowFilters()){
-                Result result = filter.throwInvoke(invocation,url,e );
-                if(result != null){
-                    VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
-                    return result;
+            if(isEnableFilter){
+                //调用异常切面处理
+                for(Filter filter : getThrowFilters()){
+                    Result result = filter.throwInvoke(invocation,url,e );
+                    if(result != null){
+                        VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
+                        return result;
+                    }
                 }
             }
             //TODO 本地异常情况
             throw  new RpcException(e);
         }finally {
-            //调用结束切面处理
-            for(Filter filter : getAfterFilters()){
-                filter.afterInvoke(invocation,url);
+            if(isEnableFilter){
+                //调用结束切面处理
+                for(Filter filter : getAfterFilters()){
+                    filter.afterInvoke(invocation,url);
+                }
             }
             logger.warn("request rpcId:{} cost time:{}.", RpcIdUtil.getRpcId(clientInvocation.getClientId(),clientInvocation.getClientRequestId()),System.currentTimeMillis()-bTime);
         }

@@ -17,8 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 /**
  * venus服务端服务调用消息处理
@@ -38,7 +37,11 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
 
-    private int maxExecutionThread;
+    private int coreThread = 20;
+
+    private int maxThread = 29;
+
+    private int maxQueue = 10000;
 
     private int threadLiveTime = 30;
 
@@ -62,9 +65,15 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
         }
         */
         //初始化业务处理线程池
-        //TODO 具体参数功能
         if (executor == null) {
-            executor = Executors.newFixedThreadPool(maxExecutionThread);
+            //executor = Executors.newFixedThreadPool(maxExecutionThread);
+            //executor = new ThreadPoolExecutor(coreThread,maxThread,0,TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(maxQueue),new ThreadPoolExecutor.CallerRunsPolicy());
+            executor = new ThreadPoolExecutor(coreThread,maxThread,0,TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(maxQueue),new RejectedExecutionHandler(){
+                @Override
+                public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+                    logger.error("exceed max process,maxThread:{},maxQueue:{}.",maxThread,maxQueue);
+                }
+            });
         }
     }
 
@@ -143,12 +152,28 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
         this.threadLiveTime = threadLiveTime;
     }
 
-    public int getMaxExecutionThread() {
-        return maxExecutionThread;
+    public int getCoreThread() {
+        return coreThread;
     }
 
-    public void setMaxExecutionThread(int maxExecutionThread) {
-        this.maxExecutionThread = maxExecutionThread;
+    public void setCoreThread(int coreThread) {
+        this.coreThread = coreThread;
+    }
+
+    public int getMaxThread() {
+        return maxThread;
+    }
+
+    public void setMaxThread(int maxThread) {
+        this.maxThread = maxThread;
+    }
+
+    public int getMaxQueue() {
+        return maxQueue;
+    }
+
+    public void setMaxQueue(int maxQueue) {
+        this.maxQueue = maxQueue;
     }
 
     public VenusExceptionFactory getVenusExceptionFactory() {
@@ -175,3 +200,4 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
         this.serviceManager = serviceManager;
     }
 }
+        //TODO 具体参数功能

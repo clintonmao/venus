@@ -113,7 +113,6 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
     MessageHandler createMessageHandler() throws InitialisationException {
         VenusServerInvokerMessageHandler messageHandler = new VenusServerInvokerMessageHandler();
         //TODO 业务线程数量设定
-        messageHandler.setMaxExecutionThread(100);
         messageHandler.setExecutorProtected(false);
         messageHandler.setExecutorEnabled(false);
         messageHandler.setUseThreadLocalExecutor(false);

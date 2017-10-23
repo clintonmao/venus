@@ -1,5 +1,6 @@
 package com.meidusa.venus.client.invoker.venus;
 
+import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.toolkit.net.*;
 import com.meidusa.toolkit.util.TimeUtil;
@@ -69,6 +70,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     private boolean needPing = false;
 
+    //默认连接数
+    private int coreConnections = 20;
+
     //TODO 确认此处线程池用途
     private int asyncExecutorSize = 10;
 
@@ -115,7 +119,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                         connector = new ConnectionConnector("connection Connector@");
                         //connector.setDaemon(true);
 
-                        int theadGroupCount = 3;
+                        int theadGroupCount = 1;
                         ConnectionManager[] connectionManagers = new ConnectionManager[theadGroupCount];
                         for(int i=0;i<theadGroupCount;i++){
                             ConnectionManager connManager = new ConnectionManager("Connection Manager@", Runtime.getRuntime().availableProcessors()+2);
@@ -186,12 +190,24 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @throws Exception
      */
     public Result doInvokeWithSync(ClientInvocation invocation, URL url) throws Exception {
+        Result result = null;
         int totalWaitTime = 3000;//TODO 超时时间配置
+        if("A".equalsIgnoreCase("B")){
+            return new Result(new Hello("hi@","ok2@"));
+        }
+
+        //构造请求消息
+        SerializeServiceRequestPacket request = buildRequest(invocation);
+        //添加rpcId -> invocation映射表
+        String rpcId = RpcIdUtil.getRpcId(request);
+        serviceInvocationMap.put(rpcId,invocation);
+
+        //发送消息
+        sendRequest(invocation, request, url);
+
         //阻塞等待并处理响应结果
-        /*
         synchronized (serviceResponseMap){
             long bWaitTime = System.currentTimeMillis();
-            String rpcId = RpcIdUtil.getRpcId(request);
             while(serviceResponseMap.get(rpcId) == null && !isTimeout(totalWaitTime,bWaitTime)){
                 serviceResponseMap.wait(getRemainWaitTime(totalWaitTime,bWaitTime));
             }
@@ -199,11 +215,12 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             result = fetchResponse(rpcId);
             logger.warn("build,send,wait->fetch end,request rpcId:{},thread:{},cost time:{}.", rpcId,Thread.currentThread(),System.currentTimeMillis()-bWaitTime);
         }
-        */
 
+        /*
         FutureTask<Result> futureTask = new FutureTask(new RequestTask(invocation,url));
         Future future = executor.submit(futureTask);
         Result result = futureTask.get();
+        */
 
         //TODO 改为methodPath
         String servicePath = url.getPath();
@@ -482,7 +499,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         nioFactory.setMessageHandler(messageHandler);
 
         //初始化连接池
-        BackendConnectionPool nioPool = new PollingBackendConnectionPool("N-" + url.getHost(), nioFactory, 8);
+        BackendConnectionPool nioPool = new PollingBackendConnectionPool("N-" + url.getHost(), nioFactory, coreConnections);
         PoolConfig poolConfig = remoteConfig.getPool();
         if (poolConfig != null) {
             BeanUtils.copyProperties(nioPool, poolConfig);

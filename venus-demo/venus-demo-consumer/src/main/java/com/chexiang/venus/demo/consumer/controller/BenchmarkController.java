@@ -57,7 +57,7 @@ public class BenchmarkController {
                                 System.out.println("current cost time:" + (teTime - tbTime));
                                 long costTime = (System.currentTimeMillis() - bTime)/1000;
                                 long tps = count.get() / costTime;
-                                System.out.println(String.format("current count:%s,costTime:%s,tps:%s.",count.get(),costTime,tps));
+                                System.out.println(String.format("current count:%s,total time:%s,tps:%s.",count.get(),costTime,tps));
                             }
                         } catch (Exception e) {
                             //logger.error("occur error.",e);

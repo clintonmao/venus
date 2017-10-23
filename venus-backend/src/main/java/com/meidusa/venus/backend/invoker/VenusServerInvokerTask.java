@@ -9,8 +9,8 @@ import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.*;
 import com.meidusa.venus.backend.invoker.support.ServerRequestHandler;
-import com.meidusa.venus.backend.invoker.support.ServerResponseWrapper;
 import com.meidusa.venus.backend.invoker.support.ServerResponseHandler;
+import com.meidusa.venus.backend.invoker.support.ServerResponseWrapper;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.config.PerformanceLogger;
 import com.meidusa.venus.backend.support.Response;
@@ -27,13 +27,12 @@ import com.meidusa.venus.util.*;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.nio.ch.Net;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executor;
+import java.util.Random;
 
 /**
  * venus服务调用task，多线程执行
@@ -55,27 +54,26 @@ public class VenusServerInvokerTask implements Runnable{
 
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
 
-    private ServiceManager serviceManager;
-
-    private Executor executor;
-
     private static String ENDPOINT_INVOKED_TIME = "invoked Total Time: ";
 
-    private Endpoint endpoint;
-
-    private RequestContext context;
-
+    /*
     private EndpointInvocation.ResultType resultType;
+    private Executor executor;
+    private RequestContext context;
+    private short serializeType;
+    private String apiName;
+    private String sourceIp;
+    */
+
+    private Endpoint endpoint;
 
     private byte[] traceID;
 
     private SerializeServiceRequestPacket request;
 
-    private short serializeType;
-
     private VenusRouterPacket routerPacket;
 
-    //private VenusServerInvocationListener<Serializable> invocationListener;
+    private ServiceManager serviceManager;
 
     private VenusExceptionFactory venusExceptionFactory;
 
@@ -85,16 +83,14 @@ public class VenusServerInvokerTask implements Runnable{
 
     private Tuple<Long, byte[]> data;
 
-    private String apiName;
-
-    private String sourceIp;
-
     private ServerResponseHandler responseHandler = new ServerResponseHandler();
 
     /**
      * 服务调用代理
      */
     private static VenusServerInvokerProxy venusServerInvokerProxy;
+
+    Random random = new Random();
 
     public VenusServerInvokerTask(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
         this.conn = conn;
@@ -151,6 +147,10 @@ public class VenusServerInvokerTask implements Runnable{
             }
         } catch (Exception e) {
             logger.error("write response error.",e);
+        }finally {
+            if(random.nextInt(1000) > 998){
+                System.out.println(String.format("curent thread:%s,instance:%s,cost time:%s.",Thread.currentThread(),this,System.currentTimeMillis()-bTime));
+            }
         }
     }
 

@@ -16,6 +16,10 @@ import java.util.Random;
 
 public interface PacketConstant {
 
+    Random random = new Random();
+
+    //int VENUS_CLIENT_ID = Integer.getInteger("venus.client.id", random.nextInt(Integer.MAX_VALUE));
+
     int VENUS_CLIENT_ID = Integer.getInteger("venus.client.id", new Random().nextInt(Integer.MAX_VALUE));
 
     int VENUS_DEFAULT_PORT = 16800;
