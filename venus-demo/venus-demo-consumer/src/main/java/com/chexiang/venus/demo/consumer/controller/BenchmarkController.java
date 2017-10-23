@@ -51,9 +51,9 @@ public class BenchmarkController {
                             long tbTime = System.currentTimeMillis();
                             Hello hello = helloService.getHello("jack");
                             count.getAndIncrement();
-                            int r = random.nextInt(1000);
+                            int r = random.nextInt(10000);
                             long teTime = System.currentTimeMillis();
-                            if(r > 998){
+                            if(r > 9950){
                                 System.out.println("current cost time:" + (teTime - tbTime));
                                 long costTime = (System.currentTimeMillis() - bTime)/1000;
                                 long tps = count.get() / costTime;

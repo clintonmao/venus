@@ -69,7 +69,7 @@ public class ClientRemoteInvoker implements Invoker{
         List<URL> urlList = lookup(clientInvocation);
 
         //自定义路由过滤 TODO 版本号访问控制
-        urlList = router.filte(clientInvocation, urlList);
+        //urlList = router.filte(clientInvocation, urlList);
 
         //集群容错调用
         ClusterInvoker clusterInvoker = getClusterInvoker(clientInvocation,url);

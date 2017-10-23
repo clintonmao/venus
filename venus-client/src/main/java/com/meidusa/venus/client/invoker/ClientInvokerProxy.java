@@ -76,7 +76,7 @@ public class ClientInvokerProxy implements Invoker {
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
-        if(random.nextInt(1000) > 998){
+        if(random.nextInt(10000) > 9980){
             System.out.println(String.format("current thread:%s,instance:%s",Thread.currentThread(),this));
         }
         long bTime = System.currentTimeMillis();
