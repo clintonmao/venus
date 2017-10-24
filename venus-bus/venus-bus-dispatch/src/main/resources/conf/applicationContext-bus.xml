@@ -67,7 +67,7 @@
 		注册中心配置
 	 -->
 	<bean id="venusRegistryFactory" class="com.meidusa.venus.registry.VenusRegistryFactory">
-		<property name="registerUrl" value="injvm://localhost"/>
+		<property name="registerUrl" value="${register.registerUrl}"/>
 	</bean>
 
 	<!--异常配置-->
