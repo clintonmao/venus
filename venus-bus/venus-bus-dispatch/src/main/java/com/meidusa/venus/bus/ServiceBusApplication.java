@@ -18,7 +18,7 @@ public class ServiceBusApplication extends Application<ApplicationConfig> {
 
     @Override
     protected String[] getConfigLocations() {
-        return new String[]{"classpath:applicationContext-bus.xml"};
+        return new String[]{"classpath:conf/applicationContext-bus.xml"};
     }
 
     @Override

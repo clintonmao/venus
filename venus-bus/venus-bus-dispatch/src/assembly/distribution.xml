@@ -42,14 +42,15 @@
 			<outputDirectory>/lib</outputDirectory>
 		</fileSet>
 		<fileSet>
-			<directory>${basedir}/conf</directory>
+			<directory>${basedir}/src/main/resources/conf</directory>
 			<outputDirectory>/conf</outputDirectory>
 		</fileSet>
 		<fileSet>
-			<directory>${project.home}</directory>
+			<directory>${basedir}/src/main/resources</directory>
 			<includes>
 				<include>application.properties</include>
 				<include>jvm.properties</include>
+				<include>logback.xml</include>
 			</includes>
 			<lineEnding>unix</lineEnding>
 			<outputDirectory>.</outputDirectory>
