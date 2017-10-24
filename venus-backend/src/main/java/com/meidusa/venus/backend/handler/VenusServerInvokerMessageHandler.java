@@ -39,7 +39,7 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
     private int coreThread = 20;
 
-    private int maxThread = 29;
+    private int maxThread = 20;
 
     private int maxQueue = 10000;
 

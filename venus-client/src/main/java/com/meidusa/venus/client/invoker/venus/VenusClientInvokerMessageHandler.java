@@ -55,6 +55,11 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
      */
     private Map<String,AbstractServicePacket> serviceResponseMap;
 
+    /**
+     * rpcId-请求&响应映射表
+     */
+    private Map<String, VenusReqRespWrapper> serviceReqRespMap;
+
     public void handle(VenusBackendConnection conn, byte[] message) {
         Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
 
@@ -96,18 +101,34 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 }
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_RESPONSE:
+                AbstractServicePacket packet = parseServicePacket(message);
+                String rpcId = RpcIdUtil.getRpcId(packet);
                 //获取clientId/clientRequestId，用于获取invocation请求信息
-                ClientInvocation syncInvocation = serviceInvocationMap.get(RpcIdUtil.getRpcId(parseServicePacket(message)));
+                VenusReqRespWrapper reqRespWrapper = serviceReqRespMap.get(rpcId);
+                if(reqRespWrapper != null){
+                    try {
+                        ClientInvocation syncInvocation = reqRespWrapper.getInvocation();
 
-                ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, syncInvocation.getMethod().getGenericReturnType());
-                response.init(message);
-                logger.warn("recv resp response,rpcId:{},thread:{},response:{}.",RpcIdUtil.getRpcId(response),Thread.currentThread(),JSONUtil.toJSONString(response));
-                //添加rpcId->response映射表
-                //TODO 处理已经超时的记录
-                //serviceResponseMap.put(RpcIdUtil.getRpcId(response),response);
-                synchronized (serviceResponseMap){
-                    serviceResponseMap.put(RpcIdUtil.getRpcId(response),response);
-                    serviceResponseMap.notifyAll();
+                        ServiceResponsePacket responsePacket = new SerializeServiceResponsePacket(serializer, syncInvocation.getMethod().getGenericReturnType());
+                        responsePacket.init(message);
+                        logger.warn("recv resp response,rpcId:{},thread:{},response:{}.",rpcId,Thread.currentThread(),JSONUtil.toJSONString(responsePacket));
+
+                        //添加rpcId->response映射表
+                        reqRespWrapper.setPacket(responsePacket);
+                        //TODO 处理已经超时的记录
+                        //serviceResponseMap.put(RpcIdUtil.getRpcId(response),response);
+                        /*
+                        synchronized (serviceResponseMap){
+                            serviceResponseMap.put(RpcIdUtil.getRpcId(response),response);
+                            serviceResponseMap.notifyAll();
+                        }
+                        */
+                    } catch (Exception e) {
+                        logger.error("recv and handle message error.",e);
+                        //TODO 设置错误信息
+                    } finally {
+                        reqRespWrapper.getReqRespLatch().countDown();
+                    }
                 }
                 break;
             case PacketConstant.PACKET_TYPE_NOTIFY_PUBLISH:
@@ -218,4 +239,11 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         this.serviceInvocationMap = serviceInvocationMap;
     }
 
+    public Map<String, VenusReqRespWrapper> getServiceReqRespMap() {
+        return serviceReqRespMap;
+    }
+
+    public void setServiceReqRespMap(Map<String, VenusReqRespWrapper> serviceReqRespMap) {
+        this.serviceReqRespMap = serviceReqRespMap;
+    }
 }

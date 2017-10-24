@@ -22,6 +22,10 @@ public abstract class AbstractClusterInvoker implements ClusterInvoker {
     //负载策略-轮询
     private static String LB_ROUND = "round";
 
+    private RandomLoadbanlance randomLoadbanlance = new RandomLoadbanlance();
+
+    private RoundLoadbanlance roundLoadbanlance = new RoundLoadbanlance();
+
     //服务路径-randomlb映射表
     private static Map<String,RandomLoadbanlance> randomLbMap = new ConcurrentHashMap<String,RandomLoadbanlance>();
 
@@ -50,12 +54,12 @@ public abstract class AbstractClusterInvoker implements ClusterInvoker {
         String servicePath = clientInvocation.getServicePath();
         if(LB_RANDOM.equals(lb)){
             if(randomLbMap.get(servicePath) == null){
-                randomLbMap.put(servicePath,new RandomLoadbanlance());
+                randomLbMap.put(servicePath,randomLoadbanlance);
             }
             return randomLbMap.get(servicePath);
         }else if(LB_ROUND.equals(lb)){
             if(roundLbMap.get(servicePath) == null){
-                roundLbMap.put(servicePath,new RoundLoadbanlance());
+                roundLbMap.put(servicePath,roundLoadbanlance);
             }
             return roundLbMap.get(servicePath);
         }else{

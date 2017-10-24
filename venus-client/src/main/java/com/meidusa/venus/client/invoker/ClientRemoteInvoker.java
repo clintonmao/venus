@@ -1,5 +1,6 @@
 package com.meidusa.venus.client.invoker;
 
+import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.venus.*;
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.client.cluster.ClusterFailoverInvoker;
@@ -67,12 +68,18 @@ public class ClientRemoteInvoker implements Invoker{
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
         //寻址，静态或动态
         List<URL> urlList = lookup(clientInvocation);
+        if("A".equalsIgnoreCase("B")){
+            return new Result(new Hello("hi@","ok{remote-invoke-1}"));
+        }
 
         //自定义路由过滤 TODO 版本号访问控制
         //urlList = router.filte(clientInvocation, urlList);
 
         //集群容错调用
         ClusterInvoker clusterInvoker = getClusterInvoker(clientInvocation,url);
+        if("A".equalsIgnoreCase("B")){
+            return new Result(new Hello("hi@","ok{remote-invoke-2}"));
+        }
         Result result = clusterInvoker.invoke(invocation, urlList);
         logger.warn("request rpcId:{} cost time:{}.", RpcIdUtil.getRpcId(clientInvocation.getClientId(),clientInvocation.getClientRequestId()),System.currentTimeMillis()-bTime);
         return result;
@@ -164,11 +171,11 @@ public class ClientRemoteInvoker implements Invoker{
         if(CollectionUtils.isEmpty(serviceDefinitionDOList)){
             throw new RpcException(String.format("not found available service %s providers.",requestUrl.toString()));
         }
-        logger.info("lookup service:{} provider group:{}",requestUrl.toString(),serviceDefinitionDOList.size());
+        //logger.info("lookup service:{} provider group:{}",requestUrl.toString(),serviceDefinitionDOList.size());
 
         //TODO group/urls关系
         for(VenusServiceDefinitionDO srvDef:serviceDefinitionDOList){
-            logger.info("lookup service:{} provider size:{}",requestUrl.toString(),srvDef.getIpAddress().size());
+            //logger.info("lookup service:{} provider size:{}",requestUrl.toString(),srvDef.getIpAddress().size());
             for(String addresss:srvDef.getIpAddress()){
                 String[] arr = addresss.split(":");
                 URL url = new URL();

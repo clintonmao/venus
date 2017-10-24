@@ -38,6 +38,7 @@ import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -78,23 +79,26 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     private static ConnectionConnector connector;
 
+    //TODO 优化锁对象
+    private Object lock = new Object();
+
     /**
      * nio连接映射表
      */
     private Map<String, BackendConnectionPool> nioPoolMap = new HashMap<String, BackendConnectionPool>();
 
-    //TODO 优化锁对象
-    private Object lock = new Object();
-
-    /**
-     * rpcId-请求映射表 TODO 完成、异常清理问题；及监控大小问题
-     */
     private Map<String, ClientInvocation> serviceInvocationMap = new ConcurrentHashMap<String, ClientInvocation>();
 
     /**
      * rpcId-响应映射表 TODO 完成、异常清理问题；及监控大小问题
      */
+
     private Map<String,AbstractServicePacket> serviceResponseMap = new ConcurrentHashMap<String, AbstractServicePacket>();
+
+    /**
+     * rpcId-请求&响应映射表，TODO 容量、有效期、清理机制
+     */
+    private Map<String, VenusReqRespWrapper> serviceReqRespMap = new ConcurrentHashMap<String, VenusReqRespWrapper>();
 
     /**
      * 调用监听容器
@@ -142,9 +146,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         //TODO 实例化对应关系
         messageHandler.setVenusExceptionFactory(venusExceptionFactory);
         messageHandler.setContainer(this.container);
-        messageHandler.setLock(lock);
         messageHandler.setServiceInvocationMap(serviceInvocationMap);
         messageHandler.setServiceResponseMap(serviceResponseMap);
+        messageHandler.setServiceReqRespMap(serviceReqRespMap);
 
     }
 
@@ -182,6 +186,8 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         return false;
     }
 
+    Random random = new Random();
+
     /**
      * sync同步调用
      * @param invocation
@@ -192,20 +198,45 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     public Result doInvokeWithSync(ClientInvocation invocation, URL url) throws Exception {
         Result result = null;
         int totalWaitTime = 3000;//TODO 超时时间配置
-        if("A".equalsIgnoreCase("B")){
-            return new Result(new Hello("hi@","ok2@"));
-        }
+        long bWaitTime = System.currentTimeMillis();
 
+        if(random.nextInt(100000) > 99990){
+            System.out.println(String.format("##########resRespMap len:%s ###########",serviceReqRespMap.size()));
+        }
         //构造请求消息
+        if("A".equalsIgnoreCase("B")){
+            return new Result(new Hello("hi@","ok{invoker-doInvoke1}"));
+        }
         SerializeServiceRequestPacket request = buildRequest(invocation);
         //添加rpcId -> invocation映射表
         String rpcId = RpcIdUtil.getRpcId(request);
-        serviceInvocationMap.put(rpcId,invocation);
+        VenusReqRespWrapper reqRespWrapper = new VenusReqRespWrapper(invocation);
 
         //发送消息
+        serviceReqRespMap.put(rpcId,reqRespWrapper);
+        if("A".equalsIgnoreCase("B")){
+            return new Result(new Hello("hi@","ok{invoker-doInvoke2}"));
+        }
         sendRequest(invocation, request, url);
 
-        //阻塞等待并处理响应结果
+        //latch阻塞等待
+        if("A".equalsIgnoreCase("B")){
+            return new Result(new Hello("hi@","ok{invoker-doInvoke3}"));
+        }
+        reqRespWrapper.getReqRespLatch().await(totalWaitTime,TimeUnit.MILLISECONDS);
+
+        //处理响应
+        if("A".equalsIgnoreCase("B")){
+            return new Result(new Hello("hi@","ok{invoker-doInvoke4}"));
+        }
+        result = fetchResponse(rpcId);
+
+        if(random.nextInt(10000) > 9990){
+            System.out.println("build,send->fecth cost time:%s:" +(System.currentTimeMillis()-bWaitTime));
+        }
+
+        //sync/wait方式阻塞等待并处理响应结果
+        /*
         synchronized (serviceResponseMap){
             long bWaitTime = System.currentTimeMillis();
             while(serviceResponseMap.get(rpcId) == null && !isTimeout(totalWaitTime,bWaitTime)){
@@ -214,7 +245,12 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
             result = fetchResponse(rpcId);
             logger.warn("build,send,wait->fetch end,request rpcId:{},thread:{},cost time:{}.", rpcId,Thread.currentThread(),System.currentTimeMillis()-bWaitTime);
+
+            if(random.nextInt(10000) > 9990){
+                System.out.println("send->fecth cost time:%s:" +(System.currentTimeMillis()-bsTime));
+            }
         }
+        */
 
         /*
         FutureTask<Result> futureTask = new FutureTask(new RequestTask(invocation,url));
@@ -223,9 +259,8 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         */
 
         //TODO 改为methodPath
-        String servicePath = url.getPath();
         if(result == null){
-            throw new RpcException(String.format("invoke service:%s,timeout:%dms",servicePath,totalWaitTime));
+            throw new RpcException(String.format("invoke service:%s,timeout:%dms",url.getPath(),totalWaitTime));
         }
         return result;
     }
@@ -390,26 +425,28 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @throws Exception
      */
     void sendRequest(ClientInvocation invocation, SerializeServiceRequestPacket serviceRequestPacket, URL url) throws Exception{
-        //long bTime = System.currentTimeMillis();
-        //byte[] traceID = invocation.getTraceID();
-        //ServiceWrapper service = invocation.getService();
-        //EndpointWrapper endpoint = invocation.getEndpoint();
-
-        long start = TimeUtil.currentTimeMillis();
-        long borrowed = start;
+        //long start = TimeUtil.currentTimeMillis();
 
         BackendConnectionPool nioConnPool = null;
         BackendConnection conn = null;
         try {
             //获取连接 TODO 地址变化情况
+            long bTime = System.nanoTime();
             nioConnPool = getNioConnPool(url,null);
             conn = nioConnPool.borrowObject();
-            borrowed = TimeUtil.currentTimeMillis();
+            if(random.nextInt(50000) > 49980){
+                System.out.println(String.format("############get conn cost time:%s.",(System.nanoTime()-bTime)/1000));
+            }
+
+            //发送请求消息，响应由handler类处理
             ByteBuffer buffer = serviceRequestPacket.toByteBuffer();
             VenusThreadContext.set(VenusThreadContext.CLIENT_OUTPUT_SIZE,Integer.valueOf(buffer.limit()));
 
-            //发送请求消息，响应由handler类处理
+            bTime = System.nanoTime();
             conn.write(buffer);
+            if(random.nextInt(50000) > 49980){
+                System.out.println(String.format("#############write buf cost time:%s.",(System.nanoTime()-bTime)/1000));
+            }
             //logger.warn("send buffer cost time:{}.",System.currentTimeMillis()-bTime);
             logger.warn("send request,rpcId:{},buff len:{},message:{}.",RpcIdUtil.getRpcId(serviceRequestPacket), buffer.limit(),JSONUtil.toJSONString(serviceRequestPacket));
             /* TODO tracer log
@@ -432,13 +469,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
             //TODO 长连接，心跳处理，确认？
             if (conn != null && nioConnPool != null) {
-                if(logger.isDebugEnabled()){
-                    logger.debug("conn pool active:{}.",nioConnPool.getActive());
-                }
                 nioConnPool.returnObject(conn);
-                if(logger.isDebugEnabled()){
-                    logger.debug("conn pool active:{}.",nioConnPool.getActive());
-                }
             }
         }
     }
@@ -568,7 +599,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @return
      */
     Result fetchResponse(String rpcId){
-        AbstractServicePacket response = serviceResponseMap.get(rpcId);
+        AbstractServicePacket response = serviceReqRespMap.get(rpcId).getPacket();
         if(response == null){
             return null;
         }
@@ -577,7 +608,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         if(serviceInvocationMap.get(rpcId) != null){
             serviceInvocationMap.remove(rpcId);
         }
-        serviceResponseMap.remove(rpcId);
+        serviceInvocationMap.remove(rpcId);
 
         if(response instanceof OKPacket){//无返回值
             return new Result(null);
