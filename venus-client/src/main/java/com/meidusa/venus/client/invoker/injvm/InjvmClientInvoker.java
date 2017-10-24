@@ -20,6 +20,7 @@ public class InjvmClientInvoker extends AbstractClientInvoker implements Invoker
 
     private Map<String, Object> singletonServiceMap = new HashMap<String, Object>();
 
+
     @Override
     public void init() throws RpcException {
     }

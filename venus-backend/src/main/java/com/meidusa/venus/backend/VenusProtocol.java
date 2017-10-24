@@ -84,7 +84,7 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
      */
     ConnectionAcceptor createConnectionAcceptor() throws InitialisationException {
         ConnectionAcceptor connectionAcceptor = new ConnectionAcceptor();
-        connectionAcceptor.setName("Service socket Server");
+        connectionAcceptor.setName("venus Acceptor-0");
         connectionAcceptor.setPort(Integer.parseInt(port));
         connectionAcceptor.setExecutorSize(Runtime.getRuntime().availableProcessors()+1);
         connectionAcceptor.setConnectionFactory(createConnectionFactory());
@@ -112,7 +112,6 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
      */
     MessageHandler createMessageHandler() throws InitialisationException {
         VenusServerInvokerMessageHandler messageHandler = new VenusServerInvokerMessageHandler();
-        //TODO 业务线程数量设定
         messageHandler.setExecutorProtected(false);
         messageHandler.setExecutorEnabled(false);
         messageHandler.setUseThreadLocalExecutor(false);

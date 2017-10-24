@@ -51,9 +51,9 @@ public class BenchmarkController {
                             long tbTime = System.currentTimeMillis();
                             Hello hello = helloService.getHello("jack");
                             count.getAndIncrement();
-                            int r = random.nextInt(10000);
+                            int r = random.nextInt(50000);
                             long teTime = System.currentTimeMillis();
-                            if(r > 9950){
+                            if(r > 49980){
                                 System.out.println("current cost time:" + (teTime - tbTime));
                                 long costTime = (System.currentTimeMillis() - bTime)/1000;
                                 long tps = count.get() / costTime;
@@ -65,7 +65,7 @@ public class BenchmarkController {
                     }
                 }
             });
-            thread.setName("beanchmark thread.");
+            thread.setName("beanchmark thread-" + i);
             thread.start();
         }
         return new Result("ok");

@@ -33,7 +33,6 @@ public abstract class AbstractClientInvoker implements Invoker {
         EndpointWrapper endpoint = clientInvocation.getEndpoint();
 
         try {
-            //初始化
             init();
 
             //调用相应协议实现

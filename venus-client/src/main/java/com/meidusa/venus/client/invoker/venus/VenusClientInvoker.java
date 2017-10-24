@@ -71,21 +71,16 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     private boolean needPing = false;
 
-    //默认连接数
-    private int coreConnections = 20;
-
     //TODO 确认此处线程池用途
     private int asyncExecutorSize = 10;
 
-    private static ConnectionConnector connector;
-
     //TODO 优化锁对象
-    private Object lock = new Object();
+    //private Object lock = new Object();
 
     /**
      * nio连接映射表
      */
-    private Map<String, BackendConnectionPool> nioPoolMap = new HashMap<String, BackendConnectionPool>();
+    private Map<String, BackendConnectionPool> nioPoolMap = new ConcurrentHashMap<String, BackendConnectionPool>();
 
     private Map<String, ClientInvocation> serviceInvocationMap = new ConcurrentHashMap<String, ClientInvocation>();
 
@@ -112,43 +107,45 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     private ExecutorService executor = Executors.newFixedThreadPool(50);
 
-    private static boolean isInitConnector = false;
+    private static ConnectionConnector connector;
+
+    private boolean isInit = false;
+
+    private Object lock = new Object();
+
+    //默认连接数
+    private int coreConnections = 50;
+
 
     @Override
     public void init() throws RpcException {
-        if(!isInitConnector){
-            if (enableAsync) {//TODO 开启async意义？
-                if (connector == null) {
-                    try {
-                        connector = new ConnectionConnector("connection Connector@");
-                        //connector.setDaemon(true);
-
-                        int theadGroupCount = 1;
-                        ConnectionManager[] connectionManagers = new ConnectionManager[theadGroupCount];
-                        for(int i=0;i<theadGroupCount;i++){
-                            ConnectionManager connManager = new ConnectionManager("Connection Manager@", Runtime.getRuntime().availableProcessors()+2);
-                            //connManager.setDaemon(true);
-                            connectionManagers[i] = connManager;
-                            connManager.start();
-                        }
-
-                        connector.setProcessors(connectionManagers);
-                        connector.start();
-                    } catch (IOException e) {
-                        throw new RpcException(e);
-                    }
+        //避免启动时重复创建
+        if(connector == null){
+            try {
+                connector = new ConnectionConnector("connection connector-0");
+                int connMgrCount = 4;
+                ConnectionManager[] connectionManagers = new ConnectionManager[connMgrCount];
+                for(int i=0;i<connMgrCount;i++){
+                    ConnectionManager connManager = new ConnectionManager("connection manager-" + i, Runtime.getRuntime().availableProcessors()+1);
+                    connectionManagers[i] = connManager;
+                    connManager.start();
                 }
+                connector.setProcessors(connectionManagers);
+                connector.start();
+            } catch (IOException e) {
+                throw new RpcException(e);
             }
-
-            isInitConnector = true;
         }
 
-        //TODO 实例化对应关系
-        messageHandler.setVenusExceptionFactory(venusExceptionFactory);
-        messageHandler.setContainer(this.container);
-        messageHandler.setServiceInvocationMap(serviceInvocationMap);
-        messageHandler.setServiceResponseMap(serviceResponseMap);
-        messageHandler.setServiceReqRespMap(serviceReqRespMap);
+        if(!isInit){
+            messageHandler.setVenusExceptionFactory(venusExceptionFactory);
+            messageHandler.setContainer(this.container);
+            messageHandler.setServiceInvocationMap(serviceInvocationMap);
+            messageHandler.setServiceResponseMap(serviceResponseMap);
+            messageHandler.setServiceReqRespMap(serviceReqRespMap);
+
+            isInit = true;
+        }
 
     }
 
@@ -199,10 +196,10 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         Result result = null;
         int totalWaitTime = 3000;//TODO 超时时间配置
         long bWaitTime = System.currentTimeMillis();
-
         if(random.nextInt(100000) > 99990){
             System.out.println(String.format("##########resRespMap len:%s ###########",serviceReqRespMap.size()));
         }
+
         //构造请求消息
         if("A".equalsIgnoreCase("B")){
             return new Result(new Hello("hi@","ok{invoker-doInvoke1}"));
@@ -231,7 +228,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         }
         result = fetchResponse(rpcId);
 
-        if(random.nextInt(10000) > 9990){
+        if(random.nextInt(50000) > 49980){
             System.out.println("build,send->fecth cost time:%s:" +(System.currentTimeMillis()-bWaitTime));
         }
 
@@ -416,6 +413,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         return serviceRequestPacket;
     }
 
+    //当前实例连接
+    ThreadLocal<BackendConnection> connectionThreadLocal = new ThreadLocal<BackendConnection>();
+
     /**
      * 发送远程调用消息
      * @param invocation
@@ -431,24 +431,30 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         BackendConnection conn = null;
         try {
             //获取连接 TODO 地址变化情况
-            long bTime = System.nanoTime();
-            nioConnPool = getNioConnPool(url,null);
-            conn = nioConnPool.borrowObject();
-            if(random.nextInt(50000) > 49980){
-                System.out.println(String.format("############get conn cost time:%s.",(System.nanoTime()-bTime)/1000));
+            if(connectionThreadLocal.get() == null){
+                nioConnPool = getNioConnPool(url,null);
+                conn = nioConnPool.borrowObject();
+                connectionThreadLocal.set(conn);
+            }else{
+                conn = connectionThreadLocal.get();
+            }
+            if(random.nextInt(100000) > 99995){
+                System.out.println(String.format("current thread:%s,current connection:%s:",Thread.currentThread(),conn));
+                //System.out.println(String.format("############get conn cost time:%s.",(System.nanoTime()-bTime)/1000));
             }
 
             //发送请求消息，响应由handler类处理
+            //String rpcId = RpcIdUtil.getRpcId(serviceRequestPacket);
             ByteBuffer buffer = serviceRequestPacket.toByteBuffer();
-            VenusThreadContext.set(VenusThreadContext.CLIENT_OUTPUT_SIZE,Integer.valueOf(buffer.limit()));
+            //VenusThreadContext.set(VenusThreadContext.CLIENT_OUTPUT_SIZE,Integer.valueOf(buffer.limit()));
 
-            bTime = System.nanoTime();
             conn.write(buffer);
-            if(random.nextInt(50000) > 49980){
-                System.out.println(String.format("#############write buf cost time:%s.",(System.nanoTime()-bTime)/1000));
+            if(random.nextInt(100000) > 99995){
+                System.out.println(String.format("send request,rpcId:%s,thread:%s,instance:%s",RpcIdUtil.getRpcId(serviceRequestPacket),Thread.currentThread(),this));
+                //System.out.println(String.format("#############write buf cost time:%s.",(System.nanoTime()-bTime)/1000));
             }
             //logger.warn("send buffer cost time:{}.",System.currentTimeMillis()-bTime);
-            logger.warn("send request,rpcId:{},buff len:{},message:{}.",RpcIdUtil.getRpcId(serviceRequestPacket), buffer.limit(),JSONUtil.toJSONString(serviceRequestPacket));
+            //logger.warn("send request,rpcId:{},buff len:{},message:{}.",rpcId, buffer.limit(),JSONUtil.toJSONString(serviceRequestPacket));
             /* TODO tracer log
             VenusTracerUtil.logRequest(traceID, serviceRequestPacket.apiName, JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
             */
@@ -469,7 +475,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
             //TODO 长连接，心跳处理，确认？
             if (conn != null && nioConnPool != null) {
-                nioConnPool.returnObject(conn);
+                //nioConnPool.returnObject(conn);
             }
         }
     }
@@ -512,7 +518,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @return
      * @throws Exception
      */
-    private BackendConnectionPool createNioPool(URL url,ClientRemoteConfig remoteConfig) throws Exception {
+    private synchronized BackendConnectionPool createNioPool(URL url,ClientRemoteConfig remoteConfig) throws Exception {
         logger.warn("#########create nio pool#############:{}.",url);
         //初始化连接工厂
         VenusBackendConnectionFactory nioFactory = new VenusBackendConnectionFactory();
@@ -524,19 +530,19 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         }
         FactoryConfig factoryConfig = remoteConfig.getFactory();
         if (factoryConfig != null) {
-            BeanUtils.copyProperties(nioFactory, factoryConfig);
+            //BeanUtils.copyProperties(nioFactory, factoryConfig);
         }
         nioFactory.setConnector(connector);
         nioFactory.setMessageHandler(messageHandler);
 
-        //初始化连接池
+        //初始化连接池 TODO 连接数双倍问题
         BackendConnectionPool nioPool = new PollingBackendConnectionPool("N-" + url.getHost(), nioFactory, coreConnections);
         PoolConfig poolConfig = remoteConfig.getPool();
         if (poolConfig != null) {
-            BeanUtils.copyProperties(nioPool, poolConfig);
+            //BeanUtils.copyProperties(nioPool, poolConfig);
         }
         nioPool.init();
-        //若连接池初始化失败，则释放连接池（fix 此时心跳检测已启动）
+        //若连接池初始化失败，则释放连接池（TODO fix 此时心跳检测已启动）
         boolean isValid = nioPool.isValid();
         if(!isValid){
             boolean isClosed = nioPool.isClosed();

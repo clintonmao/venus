@@ -1,5 +1,6 @@
 package com.meidusa.venus.backend.invoker;
 
+import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.fastbson.exception.SerializeException;
 import com.meidusa.fastjson.JSON;
 import com.meidusa.fastjson.JSONException;
@@ -113,6 +114,7 @@ public class VenusServerInvokerTask implements Runnable{
         Result result = null;
         String rpcId = null;
         try {
+            boolean isTest = false;
             //解析请求对象
             invocation = parseInvocation(conn, data);
             rpcId = invocation.getRpcId();//RpcIdUtil.getRpcId(invocation.getClientId(),invocation.getClientRequestId());
@@ -120,7 +122,11 @@ public class VenusServerInvokerTask implements Runnable{
             logger.warn("recv request,rpcId:{},message size:{}.", rpcId,data.getRight().length);
 
             //通过代理调用服务
-            result = getVenusServerInvokerProxy().invoke(invocation, null);
+            if(isTest){
+                result = new Result(new Hello("@hi","@ok test."));
+            }else{
+                result = getVenusServerInvokerProxy().invoke(invocation, null);
+            }
         } catch (Exception e) {
             //TODO 处理异常信息丢失、异常信息包装
             result = new Result();
@@ -148,7 +154,7 @@ public class VenusServerInvokerTask implements Runnable{
         } catch (Exception e) {
             logger.error("write response error.",e);
         }finally {
-            if(random.nextInt(1000) > 998){
+            if(random.nextInt(50000) > 49990){
                 System.out.println(String.format("curent thread:%s,instance:%s,cost time:%s.",Thread.currentThread(),this,System.currentTimeMillis()-bTime));
             }
         }

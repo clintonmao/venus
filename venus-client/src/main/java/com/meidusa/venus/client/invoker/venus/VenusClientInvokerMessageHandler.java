@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Random;
 
 /**
  * 服务调用NIO消息响应处理
@@ -60,6 +61,8 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
      */
     private Map<String, VenusReqRespWrapper> serviceReqRespMap;
 
+    Random random = new Random();
+
     public void handle(VenusBackendConnection conn, byte[] message) {
         Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
 
@@ -87,7 +90,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 logger.info("recv error response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(error), JSONUtil.toJSONString(error));
                 serviceResponseMap.put(RpcIdUtil.getRpcId(error),error);
                 synchronized (lock){
-                    lock.notify();
+                    lock.notifyAll();
                 }
 
                 break;
@@ -97,7 +100,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 logger.info("recv ok response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(ok),JSONUtil.toJSONString(ok));
                 serviceResponseMap.put(RpcIdUtil.getRpcId(ok),ok);
                 synchronized (lock){
-                    lock.notify();
+                    lock.notifyAll();
                 }
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_RESPONSE:
@@ -113,6 +116,9 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                         responsePacket.init(message);
                         logger.warn("recv resp response,rpcId:{},thread:{},response:{}.",rpcId,Thread.currentThread(),JSONUtil.toJSONString(responsePacket));
 
+                        if(random.nextInt(10000) > 9998){
+                            System.out.println(String.format("recv resp response,rpcId:%s,thread:%s,instance:%s.",rpcId,Thread.currentThread() + "-"+String.valueOf(Thread.currentThread().getId()),this));
+                        }
                         //添加rpcId->response映射表
                         reqRespWrapper.setPacket(responsePacket);
                         //TODO 处理已经超时的记录
