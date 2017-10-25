@@ -68,7 +68,7 @@ public class ClientRemoteInvoker implements Invoker{
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
         //寻址，静态或动态
         List<URL> urlList = lookup(clientInvocation);
-        if("A".equalsIgnoreCase("A")){
+        if("A".equalsIgnoreCase("B")){
             return new Result(new Hello("hi@","ok{remote-invoke-1}"));
         }
 
