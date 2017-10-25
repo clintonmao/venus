@@ -230,13 +230,29 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         }
         */
 
+        /*
         FutureTask<Result> futureTask = new FutureTask(new RequestTask(request,invocation,url,reqRespWrapper));
         Future future = executor.submit(futureTask);
         Result result = futureTask.get();
+        */
+        //latch阻塞等待
+        if("A".equalsIgnoreCase("B")){
+            return new Result(new Hello("hi@","ok{invoker-doInvoke3}"));
+        }
+        reqRespWrapper.getReqRespLatch().await(3000,TimeUnit.MILLISECONDS);
+
+        //处理响应
+        if("A".equalsIgnoreCase("B")){
+            return new Result(new Hello("hi@","ok{invoker-doInvoke4}"));
+        }
+        Result result = fetchResponse(rpcId);
 
         //TODO 改为methodPath
         if(result == null){
             throw new RpcException(String.format("invoke service:%s,timeout:%dms",url.getPath(),totalWaitTime));
+        }
+        if(random.nextInt(50000) > 49980){
+            logger.error("build,send->fecth cost time:{}.",System.currentTimeMillis()-bWaitTime);
         }
         return result;
     }
