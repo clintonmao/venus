@@ -15,7 +15,8 @@ public class RpcIdUtil {
      * @return
      */
     public static String getRpcId(int clientId,long clientRequestId){
-        return String.format("%s-%s",String.valueOf(clientId),String.valueOf(clientRequestId));
+        String rpcId = new StringBuilder().append(clientId).append("-").append(clientRequestId).toString();
+        return rpcId;
     }
 
     /**
@@ -24,6 +25,7 @@ public class RpcIdUtil {
      * @return
      */
     public static String getRpcId(AbstractServicePacket servicePacket){
-        return String.format("%s-%s",String.valueOf(servicePacket.clientId),String.valueOf(servicePacket.clientRequestId));
+        String rpcId = new StringBuilder().append(servicePacket.clientId).append("-").append(servicePacket.clientRequestId).toString();
+        return rpcId;
     }
 }

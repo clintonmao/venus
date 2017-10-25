@@ -141,17 +141,20 @@ public class InvokerInvocationHandler implements InvocationHandler {
     ClientInvocation buildInvocation(Object proxy, Method method, Object[] args){
         ClientInvocation invocation = new ClientInvocation();
         invocation.setServiceInterface(serviceInterface);
+        //TODO 注解信息cache
         Endpoint endpoint =  AnnotationUtil.getAnnotation(method.getAnnotations(), Endpoint.class);
-        invocation.setEndpoint(EndpointWrapper.wrapper(endpoint));
-        Service service = null;
-        if (endpoint != null) {
-            service = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
-            invocation.setService(ServiceWrapper.wrapper(service));
-            if (service != null && StringUtils.isEmpty(service.implement())) {
-                EndpointParameter[] params = EndpointParameterUtil.getPrameters(method);
-                invocation.setParams(params);
-            }
+        EndpointWrapper endpointWrapper = EndpointWrapper.wrapper(endpoint);
+        invocation.setEndpoint(endpointWrapper);
+        Service service = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
+        ServiceWrapper serviceWrapper = ServiceWrapper.wrapper(service);
+        invocation.setService(serviceWrapper);
+        EndpointParameter[] params = EndpointParameterUtil.getPrameters(method);
+        invocation.setParams(params);
+        //TODO 本地实现?
+        /*
+        if (service != null && StringUtils.isEmpty(service.implement())) {
         }
+        */
         invocation.setMethod(method);
         invocation.setArgs(args);
         invocation.setRequestTime(new Date());
@@ -159,16 +162,21 @@ public class InvokerInvocationHandler implements InvocationHandler {
         invocation.setConsumerApp(consumerApp);
         invocation.setConsumerIp(NetUtil.getLocalIp(true));
         //是否async
+        /*
         boolean async = false;
         if (endpoint != null && endpoint.async()) {
             async = true;
         }
-        invocation.setAsync(async);
+        */
+        invocation.setAsync(false);
         //clientId
         invocation.setClientId(PacketConstant.VENUS_CLIENT_ID);
         invocation.setClientRequestId(sequenceId.getAndIncrement());
         //设置rpcId
         invocation.setRpcId(RpcIdUtil.getRpcId(invocation.getClientId(),invocation.getClientRequestId()));
+        if("A".equalsIgnoreCase("B")){
+            return null;
+        }
         //设置traceId
         byte[] traceID = VenusTracerUtil.getTracerID();
         if (traceID == null) {

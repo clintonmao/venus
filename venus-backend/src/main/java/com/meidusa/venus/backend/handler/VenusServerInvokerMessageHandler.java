@@ -37,11 +37,14 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
 
-    private int coreThread = 50;
+    //默认业务处理线程数
+    private int coreThread = 10;
 
-    private int maxThread = 50;
+    //最大业务处理线程数
+    private int maxThread = 100;
 
-    private int maxQueue = 10000;
+    //业务线程队列大小
+    private int maxQueue = 100000;
 
     private int threadLiveTime = 30;
 

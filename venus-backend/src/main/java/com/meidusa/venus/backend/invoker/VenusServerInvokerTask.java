@@ -155,7 +155,7 @@ public class VenusServerInvokerTask implements Runnable{
             logger.error("write response error.",e);
         }finally {
             if(random.nextInt(50000) > 49990){
-                System.out.println(String.format("curent thread:%s,instance:%s,cost time:%s.",Thread.currentThread(),this,System.currentTimeMillis()-bTime));
+                logger.error("curent thread:{},instance:{},cost time:{}.",Thread.currentThread(),this,System.currentTimeMillis()-bTime);
             }
         }
     }

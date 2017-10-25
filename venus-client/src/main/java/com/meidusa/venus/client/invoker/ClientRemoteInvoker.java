@@ -113,7 +113,7 @@ public class ClientRemoteInvoker implements Invoker{
         List<String> targets = new ArrayList<String>();
         if(CollectionUtils.isNotEmpty(urlList)){
             for(URL url:urlList){
-                String target = String.format("%s:%s",url.getHost(),String.valueOf(url.getPort()));
+                String target = new StringBuilder().append(url.getHost()).append(":").append(url.getPort()).toString();
                 targets.add(target);
             }
         }
@@ -206,12 +206,23 @@ public class ClientRemoteInvoker implements Invoker{
             serviceName = invocation.getService().getName();
         }
         String version = "0.0.0";//TODO
+
+        /*
         String serviceUrl = String.format(
                 "venus://%s/%s?version=%s",
                 serviceInterfaceName,
                 serviceName,
                 version
                 );
+        */
+        String serviceUrl = new StringBuilder()
+                .append("venus://")
+                .append(serviceInterfaceName)
+                .append("/")
+                .append(serviceName)
+                .append("?version=")
+                .append(version)
+                .toString();
         URL url = URL.parse(serviceUrl);
         return url;
     }

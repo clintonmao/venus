@@ -58,11 +58,9 @@
         </encoder>
     </appender>
 
-    <root level="WARN">
-       <!--  <appender-ref ref="APP" /> -->
-        <!--
+    <root level="error">
+        <appender-ref ref="APP" />
         <appender-ref ref="stdout" />
-        -->
     </root>
 
     <logger name="venus.report.queue" additivity="false">

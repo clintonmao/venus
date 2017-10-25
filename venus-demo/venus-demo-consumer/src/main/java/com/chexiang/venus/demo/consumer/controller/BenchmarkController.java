@@ -28,49 +28,72 @@ public class BenchmarkController {
     @Autowired
     HelloService helloService;
 
-    static AtomicInteger count = new AtomicInteger(0);
+    AtomicInteger totalCount = new AtomicInteger(0);
 
-    static long bTime;
+    AtomicInteger currentCount = new AtomicInteger(0);
 
-    static boolean isEnd = false;
+    long bTime;
+
+    boolean isEnd = false;
 
     Random  random = new Random();
 
-    @RequestMapping("/start/{threadCount}")
-    public Result start(@PathVariable String threadCount){
-        logger.info("start...");
+    @RequestMapping("/start/{threadCount}/{total}")
+    public Result start(@PathVariable String threadCount,@PathVariable int total){
+        totalCount.set(total);
+        currentCount.set(0);
+        logger.error("start...");
+        try {
+            logger.error("test start...");
+            helloService.getHello("jack");
+            logger.error("test ok.");
+        } catch (Exception e) {
+            logger.error("test failed.",e);
+            Result result = new Result();
+            result.setErrorCode(500);
+            result.setErrorMessage(e.getLocalizedMessage());
+            return result;
+        }
+
+        try {
+            Thread.sleep(1000*3);
+        } catch (InterruptedException e) {}
+
         int thrCount = Integer.parseInt(threadCount);
         bTime = System.currentTimeMillis();
         for(int i=0;i<thrCount;i++){
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    while(!isEnd){
-
+                    while(currentCount.get() < totalCount.get()){
                         try {
                             long tbTime = System.currentTimeMillis();
                             Hello hello = helloService.getHello("jack");
-                            count.getAndIncrement();
+                            currentCount.getAndIncrement();
                             int r = random.nextInt(50000);
                             long teTime = System.currentTimeMillis();
                             if(r > 49980){
-                                System.out.println("current cost time:" + (teTime - tbTime));
+                                logger.error("current cost time:{}.",teTime - tbTime);
                                 long costTime = (System.currentTimeMillis() - bTime)/1000;
-                                long tps = count.get() / costTime;
-                                System.out.println(String.format("current count:%s,total time:%s,tps:%s.",count.get(),costTime,tps));
+                                long tps = currentCount.get() / costTime;
+                                logger.error("#######current count:{},total time:{},tps:{}.",currentCount.get(),costTime,tps);
                             }
                         } catch (Exception e) {
-                            //logger.error("occur error.",e);
+                            logger.error("occur error.",e);
                         }
                     }
+                    logger.error("complete.");
                 }
             });
             thread.setName("beanchmark thread-" + i);
             thread.start();
         }
-        return new Result("ok");
+        Result result = new Result();
+        result.setResult("start ok.");
+        return result;
     }
 
+    /*
     @RequestMapping("/end")
     public Result end(){
         long eTime = System.currentTimeMillis();
@@ -83,6 +106,7 @@ public class BenchmarkController {
         isEnd = true;
         return new Result(result);
     }
+    */
 
 
 }

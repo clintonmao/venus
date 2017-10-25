@@ -76,9 +76,11 @@ public class ClientInvokerProxy implements Invoker {
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
+        /*
         if(random.nextInt(50000) > 49980){
-            System.out.println(String.format("current thread:%s,instance:%s",Thread.currentThread(),this));
+            logger.error("current thread:{},instance:{}",Thread.currentThread(),this);
         }
+        */
         long bTime = System.currentTimeMillis();
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
         try {
@@ -137,7 +139,7 @@ public class ClientInvokerProxy implements Invoker {
         ServiceWrapper service = invocation.getService();
         EndpointWrapper endpoint = invocation.getEndpoint();
         if (endpoint != null && service != null) {
-            return !StringUtils.isEmpty(service.getImplement());
+            return StringUtils.isNotEmpty(service.getImplement());
         }else{
             //本地调用
             //TODO 确认endpoint为空情况

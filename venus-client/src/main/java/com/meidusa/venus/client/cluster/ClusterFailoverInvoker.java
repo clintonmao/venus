@@ -31,7 +31,7 @@ public class ClusterFailoverInvoker extends AbstractClusterInvoker implements Cl
             try {
                 //选择地址
                 URL url = getLoadbanlance(lb,clientInvocation).select(urlList);
-                logger.info("select service provider:===={}====.",String.format("%s:%s",url.getHost(),String.valueOf(url.getPort())));
+                logger.info("select service provider:===={}====.",new StringBuilder().append(url.getHost()).append(":").append(url.getPort()));
 
                 // 调用
                 return  getInvoker().invoke(invocation, url);

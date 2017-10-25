@@ -86,7 +86,8 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
         ConnectionAcceptor connectionAcceptor = new ConnectionAcceptor();
         connectionAcceptor.setName("venus Acceptor-0");
         connectionAcceptor.setPort(Integer.parseInt(port));
-        connectionAcceptor.setExecutorSize(Runtime.getRuntime().availableProcessors()+1);
+        int theadGroups = Runtime.getRuntime().availableProcessors();
+        connectionAcceptor.setExecutorSize(theadGroups);
         connectionAcceptor.setConnectionFactory(createConnectionFactory());
         return connectionAcceptor;
     }

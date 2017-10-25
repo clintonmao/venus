@@ -21,12 +21,21 @@ public class VenusUtil {
      * @return
      */
     public static String getServicePath(Invocation invocation){
+        /*
         String servicePath = String.format(
                 "%s/%s?version=%s",
                 invocation.getServiceInterfaceName(),
                 invocation.getServiceName(),
                 invocation.getVersion()
         );
+        */
+        String servicePath = new StringBuilder()
+                .append(invocation.getServiceInterfaceName())
+                .append("/")
+                .append(invocation.getServiceName())
+                .append("?version=")
+                .append(invocation.getVersion())
+                .toString();
         return servicePath;
     }
 
@@ -36,6 +45,7 @@ public class VenusUtil {
      * @return
      */
     public static String getMethodPath(Invocation invocation){
+        /*
         String methodPath = String.format(
                 "%s/%s?version=%s&method=%s",
                 invocation.getServiceInterfaceName(),
@@ -43,6 +53,16 @@ public class VenusUtil {
                 invocation.getVersion(),
                 invocation.getMethodName()
         );
+        */
+        String methodPath = new StringBuilder()
+                .append(invocation.getServiceInterfaceName())
+                .append("/")
+                .append(invocation.getServiceName())
+                .append("?version=")
+                .append(invocation.getVersion())
+                .append("&method=")
+                .append(invocation.getMethodName())
+                .toString();
         return methodPath;
     }
 

@@ -45,10 +45,8 @@
         </encoder>
     </appender>
 
-    <root level="WARN">
+    <root level="error">
         <appender-ref ref="APP" />
-        <!--
         <appender-ref ref="stdout" />
-        -->
     </root>
 </configuration>
