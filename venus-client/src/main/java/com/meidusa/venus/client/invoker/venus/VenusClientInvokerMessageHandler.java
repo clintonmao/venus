@@ -114,10 +114,14 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
 
                         ServiceResponsePacket responsePacket = new SerializeServiceResponsePacket(serializer, syncInvocation.getMethod().getGenericReturnType());
                         responsePacket.init(message);
-                        logger.warn("recv resp response,rpcId:{},thread:{},response:{}.",rpcId,Thread.currentThread(),JSONUtil.toJSONString(responsePacket));
+                        if(logger.isWarnEnabled()){
+                            logger.warn("recv resp response,rpcId:{},thread:{},response:{}.",rpcId,Thread.currentThread(),JSONUtil.toJSONString(responsePacket));
+                        }
 
                         if(random.nextInt(50000) > 49990){
-                            logger.error("recv resp response,rpcId:{},thread:{},instance:{}.",rpcId,Thread.currentThread(),this);
+                            if(logger.isErrorEnabled()){
+                                logger.error("recv resp response,rpcId:{},thread:{},instance:{}.",rpcId,Thread.currentThread(),this);
+                            }
                         }
                         //添加rpcId->response映射表
                         reqRespWrapper.setPacket(responsePacket);

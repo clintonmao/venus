@@ -119,7 +119,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                 logger.error("###################init connector############");
                 connector = new ConnectionConnector("connection connector-0");
                 int threadGroups = Runtime.getRuntime().availableProcessors();
-                int executeThreads = 10;
+                int executeThreads = 20;
                 ConnectionManager[] connectionManagers = new ConnectionManager[threadGroups];
                 for(int i=0;i<threadGroups;i++){
                     ConnectionManager connManager = new ConnectionManager("connection manager-" + i, executeThreads);
@@ -159,7 +159,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         } catch (Exception e) {
             throw new RpcException(e);
         }finally {
-            logger.warn("request cost time:{}.",System.currentTimeMillis()-bTime);
+            if(logger.isWarnEnabled()){
+                logger.warn("request cost time:{}.",System.currentTimeMillis()-bTime);
+            }
         }
     }
 
@@ -194,7 +196,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         int totalWaitTime = 3000;//TODO 超时时间配置
         long bWaitTime = System.currentTimeMillis();
         if(random.nextInt(100000) > 99990){
-            logger.error("##########resRespMap len:{} ###########",serviceReqRespMap.size());
+            if(logger.isErrorEnabled()){
+                logger.error("##########resRespMap len:{} ###########",serviceReqRespMap.size());
+            }
         }
 
         //构造请求消息
@@ -252,7 +256,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             throw new RpcException(String.format("invoke service:%s,timeout:%dms",url.getPath(),totalWaitTime));
         }
         if(random.nextInt(50000) > 49980){
-            logger.error("build,send->fecth cost time:{}.",System.currentTimeMillis()-bWaitTime);
+            if(logger.isErrorEnabled()){
+                logger.error("build,send->fecth cost time:{}.",System.currentTimeMillis()-bWaitTime);
+            }
         }
         return result;
     }
@@ -434,7 +440,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
             conn.write(buffer);
             if(random.nextInt(100000) > 99995){
-                logger.error("send request,rpcId:{},thread:{},instance:{}",RpcIdUtil.getRpcId(serviceRequestPacket),Thread.currentThread(),this);
+                if(logger.isErrorEnabled()){
+                    logger.error("send request,rpcId:{},thread:{},instance:{}",RpcIdUtil.getRpcId(serviceRequestPacket),Thread.currentThread(),this);
+                }
                 //logger.error("#############write buf cost time:%s.",(System.nanoTime()-bTime)/1000));
             }
             //logger.warn("send buffer cost time:{}.",System.currentTimeMillis()-bTime);

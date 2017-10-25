@@ -119,7 +119,9 @@ public class VenusServerInvokerTask implements Runnable{
             invocation = parseInvocation(conn, data);
             rpcId = invocation.getRpcId();//RpcIdUtil.getRpcId(invocation.getClientId(),invocation.getClientRequestId());
             //不要打印bytes信息流，会导致后续无法获取
-            logger.warn("recv request,rpcId:{},message size:{}.", rpcId,data.getRight().length);
+            if(logger.isWarnEnabled()){
+                logger.warn("recv request,rpcId:{},message size:{}.", rpcId,data.getRight().length);
+            }
 
             //通过代理调用服务
             if(isTest){
@@ -139,10 +141,14 @@ public class VenusServerInvokerTask implements Runnable{
             ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
 
             if (invocation.getResultType() == EndpointInvocation.ResultType.RESPONSE) {
-                logger.warn("write normal response,rpcId:{},cost time:{},result:{}",rpcId,System.currentTimeMillis()-bTime,JSONUtil.toJSONString(result));
+                if(logger.isWarnEnabled()){
+                    logger.warn("write normal response,rpcId:{},cost time:{},result:{}",rpcId,System.currentTimeMillis()-bTime,JSONUtil.toJSONString(result));
+                }
                 responseHandler.writeResponseForResponse(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
-                logger.warn("write normal response,rpcId:{},cost time:{},result:{}",rpcId,System.currentTimeMillis()-bTime,JSONUtil.toJSONString(result));
+                if(logger.isWarnEnabled()){
+                    logger.warn("write normal response,rpcId:{},cost time:{},result:{}",rpcId,System.currentTimeMillis()-bTime,JSONUtil.toJSONString(result));
+                }
                 responseHandler.writeResponseForOk(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.NOTIFY) {
                 //callback回调异常情况
@@ -155,7 +161,9 @@ public class VenusServerInvokerTask implements Runnable{
             logger.error("write response error.",e);
         }finally {
             if(random.nextInt(50000) > 49990){
-                logger.error("curent thread:{},instance:{},cost time:{}.",Thread.currentThread(),this,System.currentTimeMillis()-bTime);
+                if(logger.isErrorEnabled()){
+                    logger.error("curent thread:{},instance:{},cost time:{}.",Thread.currentThread(),this,System.currentTimeMillis()-bTime);
+                }
             }
         }
     }

@@ -126,7 +126,9 @@ public class ClientInvokerProxy implements Invoker {
                     filter.afterInvoke(invocation,url);
                 }
             }
-            logger.warn("request rpcId:{} cost time:{}.", RpcIdUtil.getRpcId(clientInvocation.getClientId(),clientInvocation.getClientRequestId()),System.currentTimeMillis()-bTime);
+            if(logger.isWarnEnabled()){
+                logger.warn("request rpcId:{} cost time:{}.", RpcIdUtil.getRpcId(clientInvocation.getClientId(),clientInvocation.getClientRequestId()),System.currentTimeMillis()-bTime);
+            }
         }
     }
 
