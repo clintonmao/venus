@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,6 +33,8 @@ public class BenchmarkController {
     AtomicInteger totalCount = new AtomicInteger(0);
 
     AtomicInteger currentCount = new AtomicInteger(0);
+
+    List<Thread> allThreadList = new ArrayList<Thread>();
 
     long bTime;
 
