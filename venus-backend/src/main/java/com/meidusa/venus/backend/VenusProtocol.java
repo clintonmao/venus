@@ -87,7 +87,7 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
         connectionAcceptor.setName("venus Acceptor-0");
         connectionAcceptor.setPort(Integer.parseInt(port));
         //TODO 业务线程池数量配置出来
-        int coreThread = 10;
+        int coreThread = 25;
         connectionAcceptor.setExecutorSize(coreThread);
         connectionAcceptor.setConnectionFactory(createConnectionFactory());
         return connectionAcceptor;

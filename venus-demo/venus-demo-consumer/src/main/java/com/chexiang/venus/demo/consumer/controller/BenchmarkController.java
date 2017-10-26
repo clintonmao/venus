@@ -10,10 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -36,12 +33,29 @@ public class BenchmarkController {
 
     AtomicInteger currentCount = new AtomicInteger(0);
 
+    AtomicInteger failCount = new AtomicInteger(0);
+
     long bTime;
+
+    static boolean isRunning = false;
 
     @RequestMapping("/start/{threadCount}/{total}")
     public Result start(@PathVariable String threadCount,@PathVariable int total){
+        if(isRunning){
+            Result result = new Result();
+            result.setErrorCode(500);
+            result.setErrorMessage("task is running.");
+            return result;
+        }
+        isRunning =  true;
+
+        //set
         totalCount.set(total);
         currentCount.set(0);
+        failCount.set(0);
+        int thrCount = Integer.parseInt(threadCount);
+
+        //测试服务可用
         logger.error("start...");
         try {
             logger.error("test start...");
@@ -54,12 +68,11 @@ public class BenchmarkController {
             result.setErrorMessage(e.getLocalizedMessage());
             return result;
         }
-
         try {
             TimeUnit.SECONDS.sleep(1);
         } catch (InterruptedException e) {}
 
-        int thrCount = Integer.parseInt(threadCount);
+        //启动测试线程
         bTime = System.currentTimeMillis();
         for(int i=0;i<thrCount;i++){
             Thread thread = new Thread(new Runnable() {
@@ -67,45 +80,57 @@ public class BenchmarkController {
                 public void run() {
                     while(currentCount.get() < totalCount.get()){
                         try {
-                            long tbTime = System.currentTimeMillis();
                             Hello hello = helloService.getHello("jack");
                             currentCount.getAndIncrement();
-                            int r = ThreadLocalRandom.current().nextInt(100000);
-                            long teTime = System.currentTimeMillis();
-                            if(r > 99995){
-                                long costTime = (System.currentTimeMillis() - bTime)/1000;
-                                long tps = currentCount.get() / costTime;
-                                logger.error("current count:{},total time:{},tps:{},current cost time:{}.",currentCount.get(),costTime,tps,(teTime-tbTime));
-                            }
                         } catch (Exception e) {
+                            failCount.getAndIncrement();
                             logger.error("occur error.",e);
                         }
                     }
+                    isRunning = false;
                     logger.error("complete.");
                 }
             });
             thread.setName("beanchmark thread-" + i);
             thread.start();
         }
+
+        //启动计数定时器
+        Timer timer = new Timer();
+        timer.schedule(new CountTask(),1000,1000);
+
         Result result = new Result();
         result.setResult("start ok.");
         return result;
     }
 
-    /*
-    @RequestMapping("/end")
-    public Result end(){
-        long eTime = System.currentTimeMillis();
-        long costTime = (eTime - bTime)/1000;
-        long tps = count.get() / costTime;
-        logger.warn("costTime:{},count:{},tps:{}.",costTime,count,tps);
-        String result = String.format("costTime:%s,count:%s,tps:%s.",costTime,count,tps);
-        count.set(0);
-        bTime = -1;
-        isEnd = true;
-        return new Result(result);
-    }
-    */
+    /**
+     * 统计task
+     */
 
+    class CountTask extends TimerTask {
+
+        //上一秒最后记录数
+        int lastSecCount = 0;
+
+        @Override
+        public void run() {
+            try {
+                long totalCostTime = (System.currentTimeMillis() - bTime)/1000;
+                if(currentCount.get() < totalCount.get()){
+                    long thisSecTps = currentCount.get() - lastSecCount;
+                    logger.error("current count:{},total time:{},tps:{}.",currentCount.get(),totalCostTime,thisSecTps);
+                    lastSecCount = currentCount.get();
+                }else{//总计
+                    logger.error("###########complete###########");
+                    long totalTps = totalCount.get() / totalCostTime;
+                    logger.error("total count:{},total time:{},fail count:{},tps:{}.",totalCount.get(),totalCostTime,failCount.get(),totalTps);
+                    this.cancel();
+                }
+            } catch (Exception e) {
+                logger.error("count task error.",e);
+            }
+        }
+    }
 
 }
