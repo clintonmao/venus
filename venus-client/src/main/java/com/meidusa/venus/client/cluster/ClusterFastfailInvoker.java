@@ -27,7 +27,6 @@ public class ClusterFastfailInvoker extends AbstractClusterInvoker implements Cl
         String lb = clientInvocation.getLoadbanlance();
 
         URL url = getLoadbanlance(lb,clientInvocation).select(urlList);
-        //logger.info("select service provider:####{}####.",String.format("%s:%s",url.getHost(),String.valueOf(url.getPort())));
         if("A".equalsIgnoreCase("B")){
             return new Result(new Hello("hi@","ok{cluster-invoke-1}"));
         }

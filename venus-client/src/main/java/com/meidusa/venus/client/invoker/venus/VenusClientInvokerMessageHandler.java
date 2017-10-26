@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * 服务调用NIO消息响应处理
@@ -61,9 +63,13 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
      */
     private Map<String, VenusReqRespWrapper> serviceReqRespMap;
 
-    Random random = new Random();
+    private static boolean isEnableRandomPrint = false;
 
     public void handle(VenusBackendConnection conn, byte[] message) {
+        if("A".equalsIgnoreCase("B")){
+            return;
+        }
+        //获取序列化
         Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
 
         int type = AbstractServicePacket.getType(message);
@@ -104,6 +110,9 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 }
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_RESPONSE:
+                if("A".equalsIgnoreCase("B")){
+                    return;
+                }
                 AbstractServicePacket packet = parseServicePacket(message);
                 String rpcId = RpcIdUtil.getRpcId(packet);
                 //获取clientId/clientRequestId，用于获取invocation请求信息
@@ -114,10 +123,16 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
 
                         ServiceResponsePacket responsePacket = new SerializeServiceResponsePacket(serializer, syncInvocation.getMethod().getGenericReturnType());
                         responsePacket.init(message);
-                        logger.warn("recv resp response,rpcId:{},thread:{},response:{}.",rpcId,Thread.currentThread(),JSONUtil.toJSONString(responsePacket));
+                        if(logger.isWarnEnabled()){
+                            logger.warn("recv resp response,rpcId:{},thread:{},response:{}.",rpcId,Thread.currentThread(),JSONUtil.toJSONString(responsePacket));
+                        }
 
-                        if(random.nextInt(50000) > 49990){
-                            logger.error("recv resp response,rpcId:{},thread:{},instance:{}.",rpcId,Thread.currentThread(),this);
+                        if(isEnableRandomPrint){
+                            if(ThreadLocalRandom.current().nextInt(50000) > 49990){
+                                if(logger.isErrorEnabled()){
+                                    logger.error("recv resp response,rpcId:{},thread:{},instance:{}.",rpcId,Thread.currentThread(),this);
+                                }
+                            }
                         }
                         //添加rpcId->response映射表
                         reqRespWrapper.setPacket(responsePacket);
@@ -133,7 +148,8 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                         logger.error("recv and handle message error.",e);
                         //TODO 设置错误信息
                     } finally {
-                        reqRespWrapper.getReqRespLatch().countDown();
+                        //TODO fetch mock时关闭
+                        //reqRespWrapper.getReqRespLatch().countDown();
                     }
                 }
                 break;

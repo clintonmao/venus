@@ -28,11 +28,14 @@ public class TomcatConfig {
     @Value("${maxThreads}")
     private int maxThreads;
 
-    @Value("${acceptCount}")
-    private int acceptCount;
+    @Value("${acceptorThreadCount}")
+    private int acceptorThreadCount;
 
     @Value("${maxConnections}")
     private int maxConnections;
+
+    @Value("${acceptCount}")
+    private int acceptCount;
 
     public int getPort() {
         return port;
@@ -82,12 +85,12 @@ public class TomcatConfig {
         this.maxThreads = maxThreads;
     }
 
-    public int getAcceptCount() {
-        return acceptCount;
+    public int getAcceptorThreadCount() {
+        return acceptorThreadCount;
     }
 
-    public void setAcceptCount(int acceptCount) {
-        this.acceptCount = acceptCount;
+    public void setAcceptorThreadCount(int acceptorThreadCount) {
+        this.acceptorThreadCount = acceptorThreadCount;
     }
 
     public int getMinSpareThreads() {
@@ -96,5 +99,13 @@ public class TomcatConfig {
 
     public void setMinSpareThreads(int minSpareThreads) {
         this.minSpareThreads = minSpareThreads;
+    }
+
+    public int getAcceptCount() {
+        return acceptCount;
+    }
+
+    public void setAcceptCount(int acceptCount) {
+        this.acceptCount = acceptCount;
     }
 }

@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * venus服务调用task，多线程执行
@@ -91,7 +92,7 @@ public class VenusServerInvokerTask implements Runnable{
      */
     private static VenusServerInvokerProxy venusServerInvokerProxy;
 
-    Random random = new Random();
+    private static boolean isEnableRandomPrint = true;
 
     public VenusServerInvokerTask(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
         this.conn = conn;
@@ -114,16 +115,17 @@ public class VenusServerInvokerTask implements Runnable{
         Result result = null;
         String rpcId = null;
         try {
-            boolean isTest = false;
             //解析请求对象
             invocation = parseInvocation(conn, data);
             rpcId = invocation.getRpcId();//RpcIdUtil.getRpcId(invocation.getClientId(),invocation.getClientRequestId());
             //不要打印bytes信息流，会导致后续无法获取
-            logger.warn("recv request,rpcId:{},message size:{}.", rpcId,data.getRight().length);
+            if(logger.isWarnEnabled()){
+                logger.warn("recv request,rpcId:{},message size:{}.", rpcId,data.getRight().length);
+            }
 
             //通过代理调用服务
-            if(isTest){
-                result = new Result(new Hello("@hi","@ok test."));
+            if("A".equalsIgnoreCase("B")){
+                result = new Result(new Hello("@hi","@SERVER task1."));
             }else{
                 result = getVenusServerInvokerProxy().invoke(invocation, null);
             }
@@ -139,10 +141,14 @@ public class VenusServerInvokerTask implements Runnable{
             ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
 
             if (invocation.getResultType() == EndpointInvocation.ResultType.RESPONSE) {
-                logger.warn("write normal response,rpcId:{},cost time:{},result:{}",rpcId,System.currentTimeMillis()-bTime,JSONUtil.toJSONString(result));
+                if(logger.isWarnEnabled()){
+                    logger.warn("write normal response,rpcId:{},cost time:{},result:{}",rpcId,System.currentTimeMillis()-bTime,JSONUtil.toJSONString(result));
+                }
                 responseHandler.writeResponseForResponse(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
-                logger.warn("write normal response,rpcId:{},cost time:{},result:{}",rpcId,System.currentTimeMillis()-bTime,JSONUtil.toJSONString(result));
+                if(logger.isWarnEnabled()){
+                    logger.warn("write normal response,rpcId:{},cost time:{},result:{}",rpcId,System.currentTimeMillis()-bTime,JSONUtil.toJSONString(result));
+                }
                 responseHandler.writeResponseForOk(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.NOTIFY) {
                 //callback回调异常情况
@@ -154,8 +160,12 @@ public class VenusServerInvokerTask implements Runnable{
         } catch (Exception e) {
             logger.error("write response error.",e);
         }finally {
-            if(random.nextInt(50000) > 49990){
-                logger.error("curent thread:{},instance:{},cost time:{}.",Thread.currentThread(),this,System.currentTimeMillis()-bTime);
+            if(isEnableRandomPrint){
+                if(ThreadLocalRandom.current().nextInt(50000) > 49990){
+                    if(logger.isErrorEnabled()){
+                        logger.error("curent thread:{},instance:{},cost time:{}.",Thread.currentThread(),this,System.currentTimeMillis()-bTime);
+                    }
+                }
             }
         }
     }

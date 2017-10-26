@@ -81,7 +81,9 @@ public class ClientRemoteInvoker implements Invoker{
             return new Result(new Hello("hi@","ok{remote-invoke-2}"));
         }
         Result result = clusterInvoker.invoke(invocation, urlList);
-        logger.warn("request rpcId:{} cost time:{}.", RpcIdUtil.getRpcId(clientInvocation.getClientId(),clientInvocation.getClientRequestId()),System.currentTimeMillis()-bTime);
+        if(logger.isWarnEnabled()){
+            logger.warn("request rpcId:{} cost time:{}.", RpcIdUtil.getRpcId(clientInvocation.getClientId(),clientInvocation.getClientRequestId()),System.currentTimeMillis()-bTime);
+        }
         return result;
     }
 
@@ -113,11 +115,17 @@ public class ClientRemoteInvoker implements Invoker{
         List<String> targets = new ArrayList<String>();
         if(CollectionUtils.isNotEmpty(urlList)){
             for(URL url:urlList){
-                String target = new StringBuilder().append(url.getHost()).append(":").append(url.getPort()).toString();
+                String target = new StringBuilder()
+                        .append(url.getHost())
+                        .append(":")
+                        .append(url.getPort())
+                        .toString();
                 targets.add(target);
             }
         }
-        logger.info("lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
+        if(logger.isInfoEnabled()){
+            logger.info("lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
+        }
         return urlList;
     }
 
