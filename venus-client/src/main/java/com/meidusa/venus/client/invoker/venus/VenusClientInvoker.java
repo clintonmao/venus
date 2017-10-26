@@ -324,74 +324,32 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     }
 
     /**
-     * 请求task
-     */
-    class RequestTask implements Callable<Result>{
-
-        private ClientInvocation invocation;
-
-        private SerializeServiceRequestPacket request;
-
-        private URL url;
-
-        private VenusReqRespWrapper reqRespWrapper;
-
-        private Object lock = new Object();
-
-        public RequestTask(SerializeServiceRequestPacket request,ClientInvocation invocation,URL url,VenusReqRespWrapper reqRespWrapper){
-            this.request = request;
-            this.invocation = invocation;
-            this.url = url;
-            this.reqRespWrapper = reqRespWrapper;
-        }
-
-        @Override
-        public Result call() throws Exception {
-            Result result = null;
-            long bWaitTime = System.currentTimeMillis();
-            //latch阻塞等待
-            if("A".equalsIgnoreCase("B")){
-                return new Result(new Hello("hi@","ok{invoker-doInvoke3}"));
-            }
-            reqRespWrapper.getReqRespLatch().await(3000,TimeUnit.MILLISECONDS);
-
-            //处理响应
-            if("A".equalsIgnoreCase("B")){
-                return new Result(new Hello("hi@","ok{invoker-doInvoke4}"));
-            }
-
-            String rpcId = RpcIdUtil.getRpcId(request);
-            result = fetchResponse(rpcId);
-
-            if(ThreadLocalRandom.current().nextInt(50000) > 49980){
-                logger.error("build,send->fecth cost time:{}.",System.currentTimeMillis()-bWaitTime);
-            }
-            return result;
-        }
-    }
-
-    /**
      * 判断是否超时
      * @param totalWaitTime
      * @param bWaitTime
      * @return
      */
+    /*
     boolean isTimeout(long totalWaitTime,long bWaitTime){
         long costTime = System.currentTimeMillis() - bWaitTime;
         return costTime >= totalWaitTime;
     }
+    */
+
     /**
      * 获取剩余等待时间
      * @param totalWaitTime
      * @param bWaitTime
      * @return
      */
+    /*
     long getRemainWaitTime(long totalWaitTime,long bWaitTime){
         long usedWaitTime = System.currentTimeMillis() - bWaitTime;
         long remainWaitTime = totalWaitTime - usedWaitTime;
         remainWaitTime = remainWaitTime < 1?1:remainWaitTime;
         return remainWaitTime;
     }
+    */
 
     /**
      * callback异步调用

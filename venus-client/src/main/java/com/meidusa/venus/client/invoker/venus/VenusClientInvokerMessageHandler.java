@@ -30,8 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -75,128 +73,20 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         int type = AbstractServicePacket.getType(message);
         switch (type) {
             case PacketConstant.PACKET_TYPE_ERROR:
-                ErrorPacket error = new ErrorPacket();
-                error.init(message);
-                /* TODO 异常处理
-                Exception e = venusExceptionFactory.getException(error.errorCode, error.message);
-                if (e == null) {
-                    logger.error("receive error packet,errorCode=" + error.errorCode + ",message=" + error.message);
-                } else {
-                    if (error.additionalData != null) {
-                        Object obj = serializer.decode(error.additionalData, Utils.getBeanFieldType(e.getClass(), Exception.class));
-                        try {
-                            BeanUtils.copyProperties(e, obj);
-                        } catch (Exception e1) {
-                            logger.error("copy properties error", e1);
-                        }
-                    }
-                    logger.error("receive error packet", e);
-                }
-                */
-                logger.info("recv error response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(error), JSONUtil.toJSONString(error));
-                serviceResponseMap.put(RpcIdUtil.getRpcId(error),error);
-                synchronized (lock){
-                    lock.notifyAll();
-                }
-
+                //处理error响应消息
+                handleForError(conn,message,serializer);
                 break;
             case PacketConstant.PACKET_TYPE_OK:
-                OKPacket ok = new OKPacket();
-                ok.init(message);
-                logger.info("recv ok response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(ok),JSONUtil.toJSONString(ok));
-                serviceResponseMap.put(RpcIdUtil.getRpcId(ok),ok);
-                synchronized (lock){
-                    lock.notifyAll();
-                }
+                //处理ok响应消息
+                handleForOk(conn,message,serializer);
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_RESPONSE:
-                if("A".equalsIgnoreCase("B")){
-                    return;
-                }
-                AbstractServicePacket packet = parseServicePacket(message);
-                String rpcId = RpcIdUtil.getRpcId(packet);
-                //获取clientId/clientRequestId，用于获取invocation请求信息
-                VenusReqRespWrapper reqRespWrapper = serviceReqRespMap.get(rpcId);
-                if(reqRespWrapper != null){
-                    try {
-                        ClientInvocation syncInvocation = reqRespWrapper.getInvocation();
-
-                        ServiceResponsePacket responsePacket = new SerializeServiceResponsePacket(serializer, syncInvocation.getMethod().getGenericReturnType());
-                        responsePacket.init(message);
-                        if(logger.isWarnEnabled()){
-                            logger.warn("recv resp response,rpcId:{},thread:{},response:{}.",rpcId,Thread.currentThread(),JSONUtil.toJSONString(responsePacket));
-                        }
-
-                        if(isEnableRandomPrint){
-                            if(ThreadLocalRandom.current().nextInt(50000) > 49990){
-                                if(logger.isErrorEnabled()){
-                                    logger.error("recv resp response,rpcId:{},thread:{},instance:{}.",rpcId,Thread.currentThread(),this);
-                                }
-                            }
-                        }
-                        //添加rpcId->response映射表
-                        reqRespWrapper.setPacket(responsePacket);
-                        //TODO 处理已经超时的记录
-                        //serviceResponseMap.put(RpcIdUtil.getRpcId(response),response);
-                        /*
-                        synchronized (serviceResponseMap){
-                            serviceResponseMap.put(RpcIdUtil.getRpcId(response),response);
-                            serviceResponseMap.notifyAll();
-                        }
-                        */
-                    } catch (Exception e) {
-                        logger.error("recv and handle message error.",e);
-                        //TODO 设置错误信息
-                    } finally {
-                        reqRespWrapper.getReqRespLatch().countDown();
-                    }
-                }
+                //处理response响应消息
+                handleForResponse(conn,message,serializer);
                 break;
             case PacketConstant.PACKET_TYPE_NOTIFY_PUBLISH:
-                ClientInvocation asyncInvocation = serviceInvocationMap.get(RpcIdUtil.getRpcId(parseServicePacket(message)));
-
-                ServicePacketBuffer buffer = new ServicePacketBuffer(message);
-                buffer.setPosition(PacketConstant.SERVICE_HEADER_SIZE + 4);
-                //原来用于标识callback请求的listenerClass与identityHashCode统一改为根据rpcId来处理
-                String listenerClass = buffer.readLengthCodedString("utf-8");
-                int identityHashCode = buffer.readInt();
-                /*
-                Tuple<InvocationListener, Type> tuple = container.getInvocationListener(listenerClass, identityHashCode);
-                */
-                //TODO 优化，本地处理，统一改为根据msgId获取请求信息，同时为了避免不同实例问题，不与服务端耦合
-
-                SerializeServiceNofityPacket notify = new SerializeServiceNofityPacket(serializer, asyncInvocation.getType());
-                notify.init(message);
-                logger.info("recv notify response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(notify),JSONUtil.toJSONString(notify));
-
-                /* TODO 确认代码功能
-                VenusTracerUtil.logRequest(packet.traceId, packet.apiName);
-                */
-                if (notify.errorCode != 0) {
-                    /* TODO 异常处理方式及additionalData信息
-                    Exception exception = venusExceptionFactory.getException(packet.errorCode, packet.errorMessage);
-                    if (exception == null) {
-                        exception = new DefaultVenusException(packet.errorCode, packet.errorMessage);
-                    } else {
-                        if (packet.additionalData != null) {
-                            Object obj = serializer.decode(packet.additionalData, Utils.getBeanFieldType(exception.getClass(), Exception.class));
-                            try {
-                                BeanUtils.copyProperties(exception, obj);
-                            } catch (Exception e1) {
-                                logger.error("copy properties error", e1);
-                            }
-                        }
-                    }
-                    */
-                    //TODO 确认异常构造方式
-                    RpcException exception = new RpcException(String.format("%s-%s",String.valueOf(notify.errorCode),notify.errorMessage));
-                    //TODO 改获取listener方式
-                    //tuple.left.onException(exception);
-                    asyncInvocation.getInvocationListener().onException(exception);
-                } else {
-                    //tuple.left.callback(packet.callbackObject);
-                    asyncInvocation.getInvocationListener().callback(notify.callbackObject);
-                }
+                //处理publish响应消息
+                handleForPublish(conn,message,serializer);
                 break;
             case PacketConstant.PACKET_TYPE_PONG:
                 super.handle(conn, message);
@@ -206,6 +96,195 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 break;
             default:
                 super.handle(conn, message);
+        }
+    }
+
+    /**
+     * 处理error类型消息响应
+     * @param conn
+     * @param message
+     * @param serializer
+     */
+    void handleForError(VenusBackendConnection conn, byte[] message,Serializer serializer){
+        /* TODO 异常处理
+        Exception e = venusExceptionFactory.getException(error.errorCode, error.message);
+        if (e == null) {
+            logger.error("receive error packet,errorCode=" + error.errorCode + ",message=" + error.message);
+        } else {
+            if (error.additionalData != null) {
+                Object obj = serializer.decode(error.additionalData, Utils.getBeanFieldType(e.getClass(), Exception.class));
+                try {
+                    BeanUtils.copyProperties(e, obj);
+                } catch (Exception e1) {
+                    logger.error("copy properties error", e1);
+                }
+            }
+            logger.error("receive error packet", e);
+        }
+        */
+
+        VenusReqRespWrapper reqRespWrapper = null;
+
+        try {
+            ErrorPacket errorPacket = new ErrorPacket();
+            errorPacket.init(message);
+            if(logger.isInfoEnabled()){
+                logger.info("recv error response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(errorPacket), JSONUtil.toJSONString(errorPacket));
+            }
+
+            String rpcId = RpcIdUtil.getRpcId(errorPacket);
+            reqRespWrapper = serviceReqRespMap.get(rpcId);
+            if(reqRespWrapper == null){
+                //TODO 处理此种情况，记录异常？
+                return;
+            }
+            reqRespWrapper.setPacket(errorPacket);
+        } catch (Exception e) {
+            logger.error("recv and handle message error.",e);
+            //TODO 设置错误信息
+        } finally {
+            if(reqRespWrapper != null){
+                reqRespWrapper.getReqRespLatch().countDown();
+            }
+        }
+    }
+
+    /**
+     * 处理response类型响应消息
+     * @param conn
+     * @param message
+     * @param serializer
+     */
+    void handleForResponse(VenusBackendConnection conn, byte[] message,Serializer serializer){
+        if("A".equalsIgnoreCase("B")){
+            return;
+        }
+
+        VenusReqRespWrapper reqRespWrapper = null;
+
+        try {
+            AbstractServicePacket packet = parseServicePacket(message);
+            String rpcId = RpcIdUtil.getRpcId(packet);
+            //获取clientId/clientRequestId，用于获取invocation请求信息
+            reqRespWrapper = serviceReqRespMap.get(rpcId);
+            if(reqRespWrapper == null){
+                //TODO 处理此种情况，记录异常？
+                return;
+            }
+
+            ClientInvocation syncInvocation = reqRespWrapper.getInvocation();
+
+            ServiceResponsePacket responsePacket = new SerializeServiceResponsePacket(serializer, syncInvocation.getMethod().getGenericReturnType());
+            responsePacket.init(message);
+            if(logger.isWarnEnabled()){
+                logger.warn("recv resp response,rpcId:{},thread:{},response:{}.",rpcId,Thread.currentThread(),JSONUtil.toJSONString(responsePacket));
+            }
+
+            if(isEnableRandomPrint){
+                if(ThreadLocalRandom.current().nextInt(50000) > 49990){
+                    if(logger.isErrorEnabled()){
+                        logger.error("recv resp response,rpcId:{},thread:{},instance:{}.",rpcId,Thread.currentThread(),this);
+                    }
+                }
+            }
+            //添加rpcId->response映射表
+            reqRespWrapper.setPacket(responsePacket);
+            //TODO 处理已经超时的记录
+        } catch (Exception e) {
+            logger.error("recv and handle message error.",e);
+            //TODO 设置错误信息
+        } finally {
+            if(reqRespWrapper != null){
+                reqRespWrapper.getReqRespLatch().countDown();
+            }
+        }
+    }
+
+    /**
+     * 处理ok消息响应
+     * @param conn
+     * @param message
+     * @param serializer
+     */
+    void handleForOk(VenusBackendConnection conn, byte[] message,Serializer serializer){
+        VenusReqRespWrapper reqRespWrapper = null;
+
+        try {
+            OKPacket okPacket = new OKPacket();
+            okPacket.init(message);
+            if(logger.isInfoEnabled()){
+                logger.info("recv ok response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(okPacket),JSONUtil.toJSONString(okPacket));
+            }
+
+            String rpcId = RpcIdUtil.getRpcId(okPacket);
+            reqRespWrapper = serviceReqRespMap.get(rpcId);
+            if(reqRespWrapper == null){
+                //TODO 处理此种情况，记录异常？
+                return;
+            }
+
+            reqRespWrapper.setPacket(okPacket);
+        } catch (Exception e) {
+            logger.error("recv and handle message error.",e);
+            //TODO 设置错误信息
+        } finally {
+            if(reqRespWrapper != null){
+                reqRespWrapper.getReqRespLatch().countDown();
+            }
+        }
+    }
+
+    /**
+     * 处理callback响应消息
+     * @param conn
+     * @param message
+     * @param serializer
+     */
+    void handleForPublish(VenusBackendConnection conn, byte[] message,Serializer serializer){
+        ClientInvocation asyncInvocation = serviceInvocationMap.get(RpcIdUtil.getRpcId(parseServicePacket(message)));
+
+        ServicePacketBuffer buffer = new ServicePacketBuffer(message);
+        buffer.setPosition(PacketConstant.SERVICE_HEADER_SIZE + 4);
+        //原来用于标识callback请求的listenerClass与identityHashCode统一改为根据rpcId来处理
+        String listenerClass = buffer.readLengthCodedString("utf-8");
+        int identityHashCode = buffer.readInt();
+        /*
+        Tuple<InvocationListener, Type> tuple = container.getInvocationListener(listenerClass, identityHashCode);
+        */
+        //TODO 优化，本地处理，统一改为根据msgId获取请求信息，同时为了避免不同实例问题，不与服务端耦合
+
+        SerializeServiceNofityPacket notify = new SerializeServiceNofityPacket(serializer, asyncInvocation.getType());
+        notify.init(message);
+        logger.info("recv notify response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(notify),JSONUtil.toJSONString(notify));
+
+        /* TODO 确认代码功能
+        VenusTracerUtil.logRequest(packet.traceId, packet.apiName);
+        */
+        if (notify.errorCode != 0) {
+            //TODO 异常处理方式及additionalData信息
+            /*
+            Exception exception = venusExceptionFactory.getException(packet.errorCode, packet.errorMessage);
+            if (exception == null) {
+                exception = new DefaultVenusException(packet.errorCode, packet.errorMessage);
+            } else {
+                if (packet.additionalData != null) {
+                    Object obj = serializer.decode(packet.additionalData, Utils.getBeanFieldType(exception.getClass(), Exception.class));
+                    try {
+                        BeanUtils.copyProperties(exception, obj);
+                    } catch (Exception e1) {
+                        logger.error("copy properties error", e1);
+                    }
+                }
+            }
+            */
+            //TODO 确认异常构造方式
+            RpcException exception = new RpcException(String.format("%s-%s",String.valueOf(notify.errorCode),notify.errorMessage));
+            //TODO 改获取listener方式
+            //tuple.left.onException(exception);
+            asyncInvocation.getInvocationListener().onException(exception);
+        } else {
+            //tuple.left.callback(packet.callbackObject);
+            asyncInvocation.getInvocationListener().callback(notify.callbackObject);
         }
     }
 
