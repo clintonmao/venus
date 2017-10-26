@@ -232,6 +232,16 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         }
         sendRequest(invocation, request, url);
 
+        if("A".equalsIgnoreCase("B")){
+            if(isEnableRandomPrint){
+                if(ThreadLocalRandom.current().nextInt(100000) > 99995){
+                    if(logger.isErrorEnabled()){
+                        logger.error("build,send->fecth cost time:{}.",System.currentTimeMillis()-bWaitTime);
+                    }
+                }
+            }
+            return new Result(new Hello("hi@","ok{invoker-doInvoke3}"));
+        }
         //sync/wait方式阻塞等待并处理响应结果
         /*
         synchronized (serviceResponseMap){
@@ -255,9 +265,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         Result result = null;
         if(!isReturnMock){
             //latch阻塞等待
-            if("A".equalsIgnoreCase("B")){
-                return new Result(new Hello("hi@","ok{invoker-doInvoke3}"));
-            }
+            //TODO #####超时时间提取配置#######
             reqRespWrapper.getReqRespLatch().await(3000,TimeUnit.MILLISECONDS);
             //处理响应
             if("A".equalsIgnoreCase("B")){

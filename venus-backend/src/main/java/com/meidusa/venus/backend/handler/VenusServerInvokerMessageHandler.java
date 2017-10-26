@@ -37,28 +37,20 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
 
-    //默认业务处理线程数
-    private int coreThread = 10;
-
-    //最大业务处理线程数
-    private int maxThread = 200;
-
-    //业务线程队列大小
-    private int maxQueue = 500000;
-
     private int threadLiveTime = 30;
 
+    /*
     private boolean executorEnabled = false;
-
     private boolean executorProtected;
-
     private boolean useThreadLocalExecutor;
-
     private Executor executor;
+    */
 
     private VenusExceptionFactory venusExceptionFactory;
 
     private ServiceManager serviceManager;
+
+    private VenusServerInvokerTask venusServerInvokerTask = null;
 
     @Override
     public void init() throws InitialisationException {
@@ -68,6 +60,7 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
         }
         */
         //初始化业务处理线程池
+        /*
         if (executor == null) {
             //executor = Executors.newFixedThreadPool(maxExecutionThread);
             //executor = new ThreadPoolExecutor(coreThread,maxThread,0,TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(maxQueue),new ThreadPoolExecutor.CallerRunsPolicy());
@@ -78,26 +71,34 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
                 }
             });
         }
+        */
     }
 
 
     @Override
     public void handle(VenusFrontendConnection conn, Tuple<Long, byte[]> data) {
-        final long waitTime = TimeUtil.currentTimeMillis() - data.left;
-        byte[] message = data.right;
+        if("A".equalsIgnoreCase("B")){
+            return;
+        }
 
-        int type = AbstractServicePacket.getType(message);
+        /*
+        final long waitTime = TimeUtil.currentTimeMillis() - data.left;
         byte serializeType = conn.getSerializeType();
         String sourceIp = conn.getHost();
+        */
+        byte[] message = data.right;
+        int type = AbstractServicePacket.getType(message);
         //TODO 提取分发路由信息，统一serviceRequest报文
         if (PacketConstant.PACKET_TYPE_ROUTER == type) {
             VenusRouterPacket routerPacket = new VenusRouterPacket();
             routerPacket.original = message;
             routerPacket.init(message);
             type = AbstractServicePacket.getType(routerPacket.data);
+            /*
             message = routerPacket.data;
             serializeType = routerPacket.serializeType;
             sourceIp = InetAddressUtil.intToAddress(routerPacket.srcIP);
+            */
         }
 
         switch (type) {
@@ -112,10 +113,12 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:
                 //远程调用消息处理
-                //TODO 多线程调用handler，并处理异常问题，如队列满等
+                /*
                 VenusServerInvokerTask venusServerInvokerTask = new VenusServerInvokerTask(conn, data);
                 venusServerInvokerTask.setServiceManager(getServiceManager());
                 executor.execute(venusServerInvokerTask);
+                */
+                getVenusServerInvokerTask().handle(conn, data);
                 break;
             default:
                 super.handle(conn, data);
@@ -123,28 +126,16 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
     }
 
-    public boolean isExecutorEnabled() {
-        return executorEnabled;
-    }
-
-    public void setExecutorEnabled(boolean executorEnabled) {
-        this.executorEnabled = executorEnabled;
-    }
-
-    public boolean isExecutorProtected() {
-        return executorProtected;
-    }
-
-    public boolean isUseThreadLocalExecutor() {
-        return useThreadLocalExecutor;
-    }
-
-    public void setUseThreadLocalExecutor(boolean useThreadLocalExecutor) {
-        this.useThreadLocalExecutor = useThreadLocalExecutor;
-    }
-
-    public void setExecutorProtected(boolean executorProtected) {
-        this.executorProtected = executorProtected;
+    /**
+     * 获取服务调用处理
+     * @return
+     */
+    VenusServerInvokerTask getVenusServerInvokerTask(){
+        if(venusServerInvokerTask == null){
+            venusServerInvokerTask = new VenusServerInvokerTask();
+            venusServerInvokerTask.setServiceManager(getServiceManager());
+        }
+        return venusServerInvokerTask;
     }
 
     public int getThreadLiveTime() {
@@ -155,40 +146,8 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
         this.threadLiveTime = threadLiveTime;
     }
 
-    public int getCoreThread() {
-        return coreThread;
-    }
-
-    public void setCoreThread(int coreThread) {
-        this.coreThread = coreThread;
-    }
-
-    public int getMaxThread() {
-        return maxThread;
-    }
-
-    public void setMaxThread(int maxThread) {
-        this.maxThread = maxThread;
-    }
-
-    public int getMaxQueue() {
-        return maxQueue;
-    }
-
-    public void setMaxQueue(int maxQueue) {
-        this.maxQueue = maxQueue;
-    }
-
     public VenusExceptionFactory getVenusExceptionFactory() {
         return venusExceptionFactory;
-    }
-
-    public Executor getExecutor() {
-        return executor;
-    }
-
-    public void setExecutor(Executor executor) {
-        this.executor = executor;
     }
 
     public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
@@ -203,4 +162,3 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
         this.serviceManager = serviceManager;
     }
 }
-        //TODO 具体参数功能

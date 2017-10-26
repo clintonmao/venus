@@ -200,16 +200,16 @@ public class ServerResponseHandler {
      * @param conn
      * @param routerPacket
      * @param source
-     * @param result
+     * @param response
      * @param athenaFlag
      */
-    void postMessageBack(Connection conn, VenusRouterPacket routerPacket, AbstractServicePacket source, AbstractServicePacket result, boolean athenaFlag) {
+    void postMessageBack(Connection conn, VenusRouterPacket routerPacket, AbstractServicePacket source, AbstractServicePacket response, boolean athenaFlag) {
         ByteBuffer byteBuffer;
         if (routerPacket == null) {
-            byteBuffer = result.toByteBuffer();
+            byteBuffer = response.toByteBuffer();
             conn.write(byteBuffer);
         } else {
-            routerPacket.data = result.toByteArray();
+            routerPacket.data = response.toByteArray();
             byteBuffer = routerPacket.toByteBuffer();
             conn.write(byteBuffer);
         }

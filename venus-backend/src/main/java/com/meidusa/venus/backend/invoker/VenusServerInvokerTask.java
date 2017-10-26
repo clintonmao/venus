@@ -40,7 +40,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * venus服务调用task，多线程执行
  * Created by Zhangzhihua on 2017/8/2.
  */
-public class VenusServerInvokerTask implements Runnable{
+public class VenusServerInvokerTask{
 
     private static Logger logger = LoggerFactory.getLogger(VenusServerInvokerTask.class);
 
@@ -94,14 +94,11 @@ public class VenusServerInvokerTask implements Runnable{
 
     private static boolean isEnableRandomPrint = true;
 
+    public VenusServerInvokerTask(){}
+
     public VenusServerInvokerTask(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
         this.conn = conn;
         this.data = data;
-    }
-
-    @Override
-    public void run() {
-        handle(this.conn,this.data);
     }
 
     /**
@@ -110,6 +107,9 @@ public class VenusServerInvokerTask implements Runnable{
      * @param data
      */
     public void handle(VenusFrontendConnection conn, Tuple<Long, byte[]> data) {
+        if("A".equalsIgnoreCase("B")){
+            return;
+        }
         long bTime = System.currentTimeMillis();
         ServerInvocation invocation = null;
         Result result = null;
@@ -117,7 +117,7 @@ public class VenusServerInvokerTask implements Runnable{
         try {
             //解析请求对象
             invocation = parseInvocation(conn, data);
-            rpcId = invocation.getRpcId();//RpcIdUtil.getRpcId(invocation.getClientId(),invocation.getClientRequestId());
+            rpcId = invocation.getRpcId();
             //不要打印bytes信息流，会导致后续无法获取
             if(logger.isWarnEnabled()){
                 logger.warn("recv request,rpcId:{},message size:{}.", rpcId,data.getRight().length);
@@ -144,6 +144,7 @@ public class VenusServerInvokerTask implements Runnable{
                 if(logger.isWarnEnabled()){
                     logger.warn("write normal response,rpcId:{},cost time:{},result:{}",rpcId,System.currentTimeMillis()-bTime,JSONUtil.toJSONString(result));
                 }
+                //TODO sync可能有性能问题
                 responseHandler.writeResponseForResponse(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
                 if(logger.isWarnEnabled()){
@@ -186,6 +187,16 @@ public class VenusServerInvokerTask implements Runnable{
      * @return
      */
     ServerInvocation parseInvocation(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
+        /*
+        wrapper.setConn(invocation.getConn());
+        wrapper.setRouterPacket(invocation.getRouterPacket());
+        wrapper.setEndpoint(invocation.getEndpointDef());
+        wrapper.setRequest(invocation.getRequest());
+        wrapper.setSerializeType(invocation.getSerializeType());
+        wrapper.setResult(result);
+        wrapper.setAthenaFlag(athenaFlag);
+        */
+
         ServerInvocation invocation = new ServerInvocation();
         invocation.setConn(conn);
         invocation.setData(data);
