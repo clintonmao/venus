@@ -268,8 +268,8 @@
 					<version>2.3.2</version>
 					<configuration>
 						<encoding>${project.build.sourceEncoding}</encoding>
-						<source>1.6</source>
-						<target>1.6</target>
+						<source>1.7</source>
+						<target>1.7</target>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -326,8 +326,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
 					<encoding>${project.build.sourceEncoding}</encoding>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>1.7</source>
+					<target>1.7</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -346,7 +346,7 @@
 			</plugin>
 		</plugins>
 	</build>
-<!--
+	<!--
  	<repositories>
 		<repository>
 			<id>release-open</id>
@@ -389,7 +389,8 @@
 				<updatePolicy>always</updatePolicy>
 			</snapshots>
 		</pluginRepository>
-	</pluginRepositories> -->
+	</pluginRepositories>
+	-->
 	
 	 <repositories>
 		<repository>

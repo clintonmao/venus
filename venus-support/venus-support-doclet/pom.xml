@@ -101,13 +101,14 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <encoding>${project.build.sourceEncoding}</encoding>
-                    <source>1.5</source>
-                    <target>1.5</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-<!--     <distributionManagement>
+    <!--
+    <distributionManagement>
         <repository>
             <id>release-open</id>
             <name>Internal Releases</name>
@@ -118,5 +119,6 @@
             <name>Internal snapshots</name>
             <url>http://maven.hexnova.com/nexus/content/repositories/snapshot-open</url>
         </snapshotRepository>
-    </distributionManagement> -->
+    </distributionManagement>
+    -->
 </project>

@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * venus服务调用task，多线程执行
@@ -91,7 +92,7 @@ public class VenusServerInvokerTask implements Runnable{
      */
     private static VenusServerInvokerProxy venusServerInvokerProxy;
 
-    Random random = new Random();
+    private static boolean isEnableRandomPrint = true;
 
     public VenusServerInvokerTask(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
         this.conn = conn;
@@ -114,7 +115,6 @@ public class VenusServerInvokerTask implements Runnable{
         Result result = null;
         String rpcId = null;
         try {
-            boolean isTest = false;
             //解析请求对象
             invocation = parseInvocation(conn, data);
             rpcId = invocation.getRpcId();//RpcIdUtil.getRpcId(invocation.getClientId(),invocation.getClientRequestId());
@@ -124,8 +124,8 @@ public class VenusServerInvokerTask implements Runnable{
             }
 
             //通过代理调用服务
-            if(isTest){
-                result = new Result(new Hello("@hi","@ok test."));
+            if("A".equalsIgnoreCase("B")){
+                result = new Result(new Hello("@hi","@SERVER task1."));
             }else{
                 result = getVenusServerInvokerProxy().invoke(invocation, null);
             }
@@ -160,9 +160,11 @@ public class VenusServerInvokerTask implements Runnable{
         } catch (Exception e) {
             logger.error("write response error.",e);
         }finally {
-            if(random.nextInt(50000) > 49990){
-                if(logger.isErrorEnabled()){
-                    logger.error("curent thread:{},instance:{},cost time:{}.",Thread.currentThread(),this,System.currentTimeMillis()-bTime);
+            if(isEnableRandomPrint){
+                if(ThreadLocalRandom.current().nextInt(50000) > 49990){
+                    if(logger.isErrorEnabled()){
+                        logger.error("curent thread:{},instance:{},cost time:{}.",Thread.currentThread(),this,System.currentTimeMillis()-bTime);
+                    }
                 }
             }
         }

@@ -41,10 +41,10 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
     private int coreThread = 10;
 
     //最大业务处理线程数
-    private int maxThread = 100;
+    private int maxThread = 200;
 
     //业务线程队列大小
-    private int maxQueue = 100000;
+    private int maxQueue = 500000;
 
     private int threadLiveTime = 30;
 

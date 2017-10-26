@@ -35,7 +35,6 @@ import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -102,6 +101,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      */
     private VenusClientInvokerMessageHandler messageHandler = new VenusClientInvokerMessageHandler();
 
+    //当前实例连接
+    private ThreadLocal<BackendConnection> connectionThreadLocal = new ThreadLocal<BackendConnection>();
+
     private ExecutorService executor = Executors.newFixedThreadPool(50);
 
     private static ConnectionConnector connector;
@@ -112,6 +114,8 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     //默认连接数
     private int coreConnections = 8;
+
+    private static boolean isEnableRandomPrint = true;
 
     static {
         if(connector == null){
@@ -183,8 +187,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         return false;
     }
 
-    Random random = new Random();
-
     /**
      * sync同步调用
      * @param invocation
@@ -195,11 +197,15 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     public Result doInvokeWithSync(ClientInvocation invocation, URL url) throws Exception {
         int totalWaitTime = 3000;//TODO 超时时间配置
         long bWaitTime = System.currentTimeMillis();
-        if(random.nextInt(100000) > 99990){
-            if(logger.isErrorEnabled()){
-                logger.error("##########resRespMap len:{} ###########",serviceReqRespMap.size());
+        /* 改为起独立线程监控
+        if(isEnableRandomPrint){
+            if(random.nextInt(100000) > 99990){
+                if(logger.isErrorEnabled()){
+                    logger.error("##########resRespMap len:{} ###########",serviceReqRespMap.size());
+                }
             }
         }
+        */
 
         //构造请求消息
         if("A".equalsIgnoreCase("B")){
@@ -227,10 +233,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
             result = fetchResponse(rpcId);
             logger.warn("build,send,wait->fetch end,request rpcId:{},thread:{},cost time:{}.", rpcId,Thread.currentThread(),System.currentTimeMillis()-bWaitTime);
-
-            if(random.nextInt(10000) > 9990){
-                System.out.println("send->fecth cost time:%s:" +(System.currentTimeMillis()-bsTime));
-            }
         }
         */
 
@@ -255,9 +257,12 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         if(result == null){
             throw new RpcException(String.format("invoke service:%s,timeout:%dms",url.getPath(),totalWaitTime));
         }
-        if(random.nextInt(50000) > 49980){
-            if(logger.isErrorEnabled()){
-                logger.error("build,send->fecth cost time:{}.",System.currentTimeMillis()-bWaitTime);
+
+        if(isEnableRandomPrint){
+            if(ThreadLocalRandom.current().nextInt(100000) > 99995){
+                if(logger.isErrorEnabled()){
+                    logger.error("build,send->fecth cost time:{}.",System.currentTimeMillis()-bWaitTime);
+                }
             }
         }
         return result;
@@ -303,7 +308,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             String rpcId = RpcIdUtil.getRpcId(request);
             result = fetchResponse(rpcId);
 
-            if(random.nextInt(50000) > 49980){
+            if(ThreadLocalRandom.current().nextInt(50000) > 49980){
                 logger.error("build,send->fecth cost time:{}.",System.currentTimeMillis()-bWaitTime);
             }
             return result;
@@ -413,9 +418,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         return serviceRequestPacket;
     }
 
-    //当前实例连接
-    ThreadLocal<BackendConnection> connectionThreadLocal = new ThreadLocal<BackendConnection>();
-
     /**
      * 发送远程调用消息
      * @param invocation
@@ -439,12 +441,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             VenusThreadContext.set(VenusThreadContext.CLIENT_OUTPUT_SIZE,Integer.valueOf(buffer.limit()));
 
             conn.write(buffer);
-            if(random.nextInt(100000) > 99995){
-                if(logger.isErrorEnabled()){
-                    logger.error("send request,rpcId:{},thread:{},instance:{}",RpcIdUtil.getRpcId(serviceRequestPacket),Thread.currentThread(),this);
-                }
-                //logger.error("#############write buf cost time:%s.",(System.nanoTime()-bTime)/1000));
-            }
+
             //logger.warn("send buffer cost time:{}.",System.currentTimeMillis()-bTime);
             //logger.warn("send request,rpcId:{},buff len:{},message:{}.",rpcId, buffer.limit(),JSONUtil.toJSONString(serviceRequestPacket));
             /* TODO tracer log
@@ -480,8 +477,12 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @throws Exception
      * @param url
      */
-    public synchronized BackendConnectionPool getNioConnPool(URL url,ClientRemoteConfig remoteConfig) throws Exception {
-        String address = url.getHost() + ":" + url.getPort();
+    public BackendConnectionPool getNioConnPool(URL url,ClientRemoteConfig remoteConfig) throws Exception {
+        String address = new StringBuilder()
+                .append(url.getHost())
+                .append(":")
+                .append(url.getPort())
+                .toString();
         //若存在，则直接使用连接池
         if(nioPoolMap.get(address) != null){
             return nioPoolMap.get(address);
@@ -535,8 +536,14 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         }
         nioFactory.setConnector(connector);
         nioFactory.setMessageHandler(messageHandler);
-        //nioFactory.setSendBufferSize(4);
-        //nioFactory.setReceiveBufferSize(8);
+        //nioFactory.setSendBufferSize(2);
+        //nioFactory.setReceiveBufferSize(4);
+        //nioFactory.setWriteQueueCapcity(16);
+        /*
+        protected int receiveBufferSize = 16;
+        protected int sendBufferSize = 8;
+        protected int writeQueueCapcity = 8;
+        */
 
         //初始化连接池 TODO 连接数双倍问题
         BackendConnectionPool nioPool = new PollingBackendConnectionPool("N-" + url.getHost(), nioFactory, coreConnections);

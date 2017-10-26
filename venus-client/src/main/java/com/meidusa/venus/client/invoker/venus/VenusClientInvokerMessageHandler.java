@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * 服务调用NIO消息响应处理
@@ -61,9 +63,13 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
      */
     private Map<String, VenusReqRespWrapper> serviceReqRespMap;
 
+
     Random random = new Random();
 
+    private static boolean isEnableRandomPrint = false;
+
     public void handle(VenusBackendConnection conn, byte[] message) {
+        //获取序列化
         Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
 
         int type = AbstractServicePacket.getType(message);
@@ -118,9 +124,11 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                             logger.warn("recv resp response,rpcId:{},thread:{},response:{}.",rpcId,Thread.currentThread(),JSONUtil.toJSONString(responsePacket));
                         }
 
-                        if(random.nextInt(50000) > 49990){
-                            if(logger.isErrorEnabled()){
-                                logger.error("recv resp response,rpcId:{},thread:{},instance:{}.",rpcId,Thread.currentThread(),this);
+                        if(isEnableRandomPrint){
+                            if(random.nextInt(50000) > 49990){
+                                if(logger.isErrorEnabled()){
+                                    logger.error("recv resp response,rpcId:{},thread:{},instance:{}.",rpcId,Thread.currentThread(),this);
+                                }
                             }
                         }
                         //添加rpcId->response映射表

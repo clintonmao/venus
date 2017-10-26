@@ -18,14 +18,20 @@ public class DefaultTomcatConnectorCustomizer implements TomcatConnectorCustomiz
     public void customize(Connector connector) {
         AbstractProtocol<?> protocol = (AbstractProtocol<?>) connector.getProtocolHandler();
 
+        // 业务处理最大线程数
+        protocol.setMaxThreads(tomcatConfig.getMaxThreads());
+
+        //业务处理core默认线程数
+        protocol.setMinSpareThreads(tomcatConfig.getMinSpareThreads());
+
+        //IO接收线程
+        protocol.setAcceptorThreadCount(tomcatConfig.getAcceptorThreadCount());
+
         // 最大排队数
         connector.setProperty("acceptCount", String.valueOf(tomcatConfig.getAcceptCount()));
 
         // 最大连接数
         protocol.setMaxConnections(tomcatConfig.getMaxConnections());
-
-        // 最大线程数
-        protocol.setMaxThreads(tomcatConfig.getMaxThreads());
 
         // 连接超时
         protocol.setConnectionTimeout(tomcatConfig.getConnectionTimeout());

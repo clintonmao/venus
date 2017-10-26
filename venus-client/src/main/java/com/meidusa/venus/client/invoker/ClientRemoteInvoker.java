@@ -115,7 +115,11 @@ public class ClientRemoteInvoker implements Invoker{
         List<String> targets = new ArrayList<String>();
         if(CollectionUtils.isNotEmpty(urlList)){
             for(URL url:urlList){
-                String target = new StringBuilder().append(url.getHost()).append(":").append(url.getPort()).toString();
+                String target = new StringBuilder()
+                        .append(url.getHost())
+                        .append(":")
+                        .append(url.getPort())
+                        .toString();
                 targets.add(target);
             }
         }

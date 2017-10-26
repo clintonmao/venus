@@ -15,6 +15,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -34,13 +36,7 @@ public class BenchmarkController {
 
     AtomicInteger currentCount = new AtomicInteger(0);
 
-    List<Thread> allThreadList = new ArrayList<Thread>();
-
     long bTime;
-
-    boolean isEnd = false;
-
-    Random  random = new Random();
 
     @RequestMapping("/start/{threadCount}/{total}")
     public Result start(@PathVariable String threadCount,@PathVariable int total){
@@ -60,7 +56,7 @@ public class BenchmarkController {
         }
 
         try {
-            Thread.sleep(1000*3);
+            TimeUnit.SECONDS.sleep(1);
         } catch (InterruptedException e) {}
 
         int thrCount = Integer.parseInt(threadCount);
@@ -74,13 +70,12 @@ public class BenchmarkController {
                             long tbTime = System.currentTimeMillis();
                             Hello hello = helloService.getHello("jack");
                             currentCount.getAndIncrement();
-                            int r = random.nextInt(50000);
+                            int r = ThreadLocalRandom.current().nextInt(100000);
                             long teTime = System.currentTimeMillis();
-                            if(r > 49980){
-                                logger.error("current cost time:{}.",teTime - tbTime);
+                            if(r > 99995){
                                 long costTime = (System.currentTimeMillis() - bTime)/1000;
                                 long tps = currentCount.get() / costTime;
-                                logger.error("#######current count:{},total time:{},tps:{}.",currentCount.get(),costTime,tps);
+                                logger.error("current count:{},total time:{},tps:{},current cost time:{}.",currentCount.get(),costTime,tps,(teTime-tbTime));
                             }
                         } catch (Exception e) {
                             logger.error("occur error.",e);
