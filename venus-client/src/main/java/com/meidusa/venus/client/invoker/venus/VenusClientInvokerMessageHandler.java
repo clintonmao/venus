@@ -148,8 +148,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                         logger.error("recv and handle message error.",e);
                         //TODO 设置错误信息
                     } finally {
-                        //TODO fetch mock时关闭
-                        //reqRespWrapper.getReqRespLatch().countDown();
+                        reqRespWrapper.getReqRespLatch().countDown();
                     }
                 }
                 break;
