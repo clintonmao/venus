@@ -47,5 +47,6 @@
 		<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.17.135:16800"/>
 		-->
 		<service type="com.chexiang.venus.demo.provider.HelloService" loadbanlance="random"/>
+		<!-- <service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.128.20:16800"/> -->
 	</services>
 </venus-client>
