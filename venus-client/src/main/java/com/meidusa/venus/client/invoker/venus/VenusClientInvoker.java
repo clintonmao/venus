@@ -113,9 +113,18 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     private Object lock = new Object();
 
     //默认连接数
-    private int coreConnections = 8;
+    private int coreConnections = 50;
 
     private static boolean isEnableRandomPrint = true;
+
+    //mock返回线程池
+    //private static int mockPool
+    private Executor mockReturnExecutor = new ThreadPoolExecutor(10,20,0,TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(100000),new RejectedExecutionHandler(){
+        @Override
+        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+            logger.error("mock return,exceed max process,maxThread:{},maxQueue:{}.",5,100);
+        }
+    });
 
     static {
         if(connector == null){
@@ -241,17 +250,28 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         Future future = executor.submit(futureTask);
         Result result = futureTask.get();
         */
-        //latch阻塞等待
-        if("A".equalsIgnoreCase("B")){
-            return new Result(new Hello("hi@","ok{invoker-doInvoke3}"));
-        }
-        reqRespWrapper.getReqRespLatch().await(3000,TimeUnit.MILLISECONDS);
+        boolean isReturnMock = false;
 
-        //处理响应
-        if("A".equalsIgnoreCase("B")){
-            return new Result(new Hello("hi@","ok{invoker-doInvoke4}"));
+        Result result = null;
+        if(!isReturnMock){
+            //latch阻塞等待
+            if("A".equalsIgnoreCase("B")){
+                return new Result(new Hello("hi@","ok{invoker-doInvoke3}"));
+            }
+            reqRespWrapper.getReqRespLatch().await(3000,TimeUnit.MILLISECONDS);
+            //处理响应
+            if("A".equalsIgnoreCase("B")){
+                return new Result(new Hello("hi@","ok{invoker-doInvoke4}"));
+            }
+            result = fetchResponse(rpcId);
+        }else{
+            //mock接收消息处理
+            mockReturnExecutor.execute(new MockReturnProcess(reqRespWrapper));
+
+            reqRespWrapper.getReqRespLatch().await(3000,TimeUnit.MILLISECONDS);
+
+            result = fetchResponseFromMock(rpcId);
         }
-        Result result = fetchResponse(rpcId);
 
         //TODO 改为methodPath
         if(result == null){
@@ -266,6 +286,33 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             }
         }
         return result;
+    }
+
+    /**
+     * mock接收处理线程
+     */
+    class MockReturnProcess implements Runnable{
+
+        VenusReqRespWrapper reqRespWrapper;
+
+        public MockReturnProcess(VenusReqRespWrapper reqRespWrapper){
+            this.reqRespWrapper = reqRespWrapper;
+        }
+
+        @Override
+        public void run() {
+            /*
+            try {
+                TimeUnit.MICROSECONDS.sleep(50);
+            } catch (InterruptedException e) {}
+            */
+
+            try {
+                reqRespWrapper.setPacket(null);
+            } finally {
+                reqRespWrapper.getReqRespLatch().countDown();
+            }
+        }
     }
 
     /**
@@ -440,6 +487,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             ByteBuffer buffer = serviceRequestPacket.toByteBuffer();
             VenusThreadContext.set(VenusThreadContext.CLIENT_OUTPUT_SIZE,Integer.valueOf(buffer.limit()));
 
+            if("A".equalsIgnoreCase("B")){
+                return;
+            }
             conn.write(buffer);
 
             //logger.warn("send buffer cost time:{}.",System.currentTimeMillis()-bTime);
@@ -639,7 +689,15 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         }else{
             return null;
         }
-        //return serviceResponsePacket;
+    }
+
+    /**
+     * mock获取
+     * @param rpcId
+     * @return
+     */
+    Result fetchResponseFromMock(String rpcId){
+        return new Result(new Hello("@hi","@mock result"));
     }
 
     /**

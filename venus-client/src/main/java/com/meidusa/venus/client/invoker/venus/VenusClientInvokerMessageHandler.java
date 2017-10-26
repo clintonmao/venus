@@ -63,12 +63,12 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
      */
     private Map<String, VenusReqRespWrapper> serviceReqRespMap;
 
-
-    Random random = new Random();
-
     private static boolean isEnableRandomPrint = false;
 
     public void handle(VenusBackendConnection conn, byte[] message) {
+        if("A".equalsIgnoreCase("B")){
+            return;
+        }
         //获取序列化
         Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
 
@@ -110,6 +110,9 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 }
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_RESPONSE:
+                if("A".equalsIgnoreCase("B")){
+                    return;
+                }
                 AbstractServicePacket packet = parseServicePacket(message);
                 String rpcId = RpcIdUtil.getRpcId(packet);
                 //获取clientId/clientRequestId，用于获取invocation请求信息
@@ -125,7 +128,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                         }
 
                         if(isEnableRandomPrint){
-                            if(random.nextInt(50000) > 49990){
+                            if(ThreadLocalRandom.current().nextInt(50000) > 49990){
                                 if(logger.isErrorEnabled()){
                                     logger.error("recv resp response,rpcId:{},thread:{},instance:{}.",rpcId,Thread.currentThread(),this);
                                 }
@@ -145,7 +148,8 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                         logger.error("recv and handle message error.",e);
                         //TODO 设置错误信息
                     } finally {
-                        reqRespWrapper.getReqRespLatch().countDown();
+                        //TODO fetch mock时关闭
+                        //reqRespWrapper.getReqRespLatch().countDown();
                     }
                 }
                 break;
