@@ -77,6 +77,9 @@ public class ClientInvocation implements Invocation {
     //超时时间，默认3000ms
     private int timeout = VenusConstants.TIMEOUT_DEFAULT;
 
+    //连接数，默认8（一个服务）
+    private int connectionCount = VenusConstants.CONNECTION_DEFAULT_COUNT;
+
     public int getClientId() {
         return clientId;
     }
@@ -303,5 +306,13 @@ public class ClientInvocation implements Invocation {
 
     public void setTimeout(int timeout) {
         this.timeout = timeout;
+    }
+
+    public int getConnectionCount() {
+        return connectionCount;
+    }
+
+    public void setConnectionCount(int connectionCount) {
+        this.connectionCount = connectionCount;
     }
 }

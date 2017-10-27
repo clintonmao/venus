@@ -188,7 +188,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
         if(register != null){
             invocation.setLookupType(1);
         }
-        //设置服务相关自定义参数
+        //设置服务引用自定义参数
         if(serviceConfig != null){
             if(StringUtils.isNotEmpty(serviceConfig.getCluster())){
                 invocation.setCluster(serviceConfig.getCluster());
@@ -201,6 +201,9 @@ public class InvokerInvocationHandler implements InvocationHandler {
             }
             if(serviceConfig.getTimeout() != 0){
                 invocation.setTimeout(serviceConfig.getTimeout());
+            }
+            if(serviceConfig.getConnectionCount() != 0){
+                invocation.setConnectionCount(serviceConfig.getConnectionCount());
             }
         }
         return invocation;

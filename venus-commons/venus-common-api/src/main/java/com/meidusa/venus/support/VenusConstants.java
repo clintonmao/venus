@@ -17,4 +17,7 @@ public class VenusConstants {
 
     //超时时间，默认3000ms
     public static int TIMEOUT_DEFAULT = 3000;
+
+    //默认连接数目，默认为8
+    public static int CONNECTION_DEFAULT_COUNT = 8;
 }
