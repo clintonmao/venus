@@ -15,6 +15,7 @@ package com.meidusa.venus.client.invoker.venus;
 
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.venus.ClientInvocation;
+import com.meidusa.venus.Result;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.handler.VenusClientMessageHandler;
@@ -43,23 +44,15 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
 
     private InvocationListenerContainer container;
 
-    //TODO lock传递
-    private Object lock;
-
-    /**
-     * rpcId-请求映射表 TODO 完成、异常清理问题；及监控大小问题
-     */
-    private Map<String, ClientInvocation> serviceInvocationMap;
-
-    /**
-     * rpcId-响应映射表
-     */
-    private Map<String,AbstractServicePacket> serviceResponseMap;
-
     /**
      * rpcId-请求&响应映射表
      */
     private Map<String, VenusReqRespWrapper> serviceReqRespMap;
+
+    /**
+     * rpcId-请求&回调映射表 TODO 完成、异常清理问题；及监控大小问题
+     */
+    private Map<String, ClientInvocation> serviceReqCallbackMap;
 
     private static boolean isEnableRandomPrint = false;
 
@@ -140,8 +133,13 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             }
             reqRespWrapper.setPacket(errorPacket);
         } catch (Exception e) {
-            logger.error("recv and handle message error.",e);
-            //TODO 设置错误信息
+            if(logger.isErrorEnabled()){
+                logger.error("recv and handle error message error.",e);
+            }
+            ErrorPacket errorPacket = new ErrorPacket();
+            errorPacket.errorCode = 500;
+            errorPacket.message = e.getLocalizedMessage();
+            reqRespWrapper.setPacket(errorPacket);
         } finally {
             if(reqRespWrapper != null){
                 reqRespWrapper.getReqRespLatch().countDown();
@@ -192,7 +190,10 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             //TODO 处理已经超时的记录
         } catch (Exception e) {
             logger.error("recv and handle message error.",e);
-            //TODO 设置错误信息
+            ErrorPacket errorPacket = new ErrorPacket();
+            errorPacket.errorCode = 500;
+            errorPacket.message = e.getLocalizedMessage();
+            reqRespWrapper.setPacket(errorPacket);
         } finally {
             if(reqRespWrapper != null){
                 reqRespWrapper.getReqRespLatch().countDown();
@@ -226,7 +227,10 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             reqRespWrapper.setPacket(okPacket);
         } catch (Exception e) {
             logger.error("recv and handle message error.",e);
-            //TODO 设置错误信息
+            ErrorPacket errorPacket = new ErrorPacket();
+            errorPacket.errorCode = 500;
+            errorPacket.message = e.getLocalizedMessage();
+            reqRespWrapper.setPacket(errorPacket);
         } finally {
             if(reqRespWrapper != null){
                 reqRespWrapper.getReqRespLatch().countDown();
@@ -241,50 +245,66 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
      * @param serializer
      */
     void handleForPublish(VenusBackendConnection conn, byte[] message,Serializer serializer){
-        ClientInvocation asyncInvocation = serviceInvocationMap.get(RpcIdUtil.getRpcId(parseServicePacket(message)));
+        String rpcId = null;
+        ClientInvocation asyncInvocation = null;
 
-        ServicePacketBuffer buffer = new ServicePacketBuffer(message);
-        buffer.setPosition(PacketConstant.SERVICE_HEADER_SIZE + 4);
-        //原来用于标识callback请求的listenerClass与identityHashCode统一改为根据rpcId来处理
-        String listenerClass = buffer.readLengthCodedString("utf-8");
-        int identityHashCode = buffer.readInt();
-        /*
-        Tuple<InvocationListener, Type> tuple = container.getInvocationListener(listenerClass, identityHashCode);
-        */
-        //TODO 优化，本地处理，统一改为根据msgId获取请求信息，同时为了避免不同实例问题，不与服务端耦合
+        try {
+            rpcId = RpcIdUtil.getRpcId(parseServicePacket(message));
+            asyncInvocation = serviceReqCallbackMap.get(rpcId);
 
-        SerializeServiceNofityPacket notify = new SerializeServiceNofityPacket(serializer, asyncInvocation.getType());
-        notify.init(message);
-        logger.info("recv notify response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(notify),JSONUtil.toJSONString(notify));
-
-        /* TODO 确认代码功能
-        VenusTracerUtil.logRequest(packet.traceId, packet.apiName);
-        */
-        if (notify.errorCode != 0) {
-            //TODO 异常处理方式及additionalData信息
+            ServicePacketBuffer buffer = new ServicePacketBuffer(message);
+            buffer.setPosition(PacketConstant.SERVICE_HEADER_SIZE + 4);
+            //原来用于标识callback请求的listenerClass与identityHashCode统一改为根据rpcId来处理
+            String listenerClass = buffer.readLengthCodedString("utf-8");
+            int identityHashCode = buffer.readInt();
             /*
-            Exception exception = venusExceptionFactory.getException(packet.errorCode, packet.errorMessage);
-            if (exception == null) {
-                exception = new DefaultVenusException(packet.errorCode, packet.errorMessage);
-            } else {
-                if (packet.additionalData != null) {
-                    Object obj = serializer.decode(packet.additionalData, Utils.getBeanFieldType(exception.getClass(), Exception.class));
-                    try {
-                        BeanUtils.copyProperties(exception, obj);
-                    } catch (Exception e1) {
-                        logger.error("copy properties error", e1);
+            Tuple<InvocationListener, Type> tuple = container.getInvocationListener(listenerClass, identityHashCode);
+            */
+
+            SerializeServiceNofityPacket nofityPacket = new SerializeServiceNofityPacket(serializer, asyncInvocation.getType());
+            nofityPacket.init(message);
+            logger.info("recv notify response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(nofityPacket),JSONUtil.toJSONString(nofityPacket));
+
+            /* TODO 确认代码功能
+            VenusTracerUtil.logRequest(packet.traceId, packet.apiName);
+            */
+
+            if (nofityPacket.errorCode != 0) {
+                //TODO 异常处理方式及additionalData信息
+                /*
+                Exception exception = venusExceptionFactory.getException(packet.errorCode, packet.errorMessage);
+                if (exception == null) {
+                    exception = new DefaultVenusException(packet.errorCode, packet.errorMessage);
+                } else {
+                    if (packet.additionalData != null) {
+                        Object obj = serializer.decode(packet.additionalData, Utils.getBeanFieldType(exception.getClass(), Exception.class));
+                        try {
+                            BeanUtils.copyProperties(exception, obj);
+                        } catch (Exception e1) {
+                            logger.error("copy properties error", e1);
+                        }
                     }
                 }
+                */
+                //TODO 确认异常构造方式
+                RpcException exception = new RpcException(String.format("%s-%s",String.valueOf(nofityPacket.errorCode),nofityPacket.errorMessage));
+                //TODO 改获取listener方式
+                //tuple.left.onException(exception);
+                asyncInvocation.getInvocationListener().onException(exception);
+            } else {
+                //tuple.left.callback(packet.callbackObject);
+                asyncInvocation.getInvocationListener().callback(nofityPacket.callbackObject);
             }
-            */
-            //TODO 确认异常构造方式
-            RpcException exception = new RpcException(String.format("%s-%s",String.valueOf(notify.errorCode),notify.errorMessage));
-            //TODO 改获取listener方式
-            //tuple.left.onException(exception);
+        } catch (Exception e) {
+            logger.error("recv and handle message error.",e);
+            //TODO rpcException设置属性
+            RpcException exception = new RpcException(String.format("%s-%s",String.valueOf(500),e.getLocalizedMessage()));
             asyncInvocation.getInvocationListener().onException(exception);
-        } else {
-            //tuple.left.callback(packet.callbackObject);
-            asyncInvocation.getInvocationListener().callback(notify.callbackObject);
+        } finally {
+            if(rpcId != null && asyncInvocation != null){
+                serviceReqCallbackMap.remove(rpcId);
+            }
+
         }
     }
 
@@ -315,28 +335,12 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         this.container = container;
     }
 
-    public Object getLock() {
-        return lock;
+    public Map<String, ClientInvocation> getServiceReqCallbackMap() {
+        return serviceReqCallbackMap;
     }
 
-    public void setLock(Object lock) {
-        this.lock = lock;
-    }
-
-    public Map<String, AbstractServicePacket> getServiceResponseMap() {
-        return serviceResponseMap;
-    }
-
-    public void setServiceResponseMap(Map<String, AbstractServicePacket> serviceResponseMap) {
-        this.serviceResponseMap = serviceResponseMap;
-    }
-
-    public Map<String, ClientInvocation> getServiceInvocationMap() {
-        return serviceInvocationMap;
-    }
-
-    public void setServiceInvocationMap(Map<String, ClientInvocation> serviceInvocationMap) {
-        this.serviceInvocationMap = serviceInvocationMap;
+    public void setServiceReqCallbackMap(Map<String, ClientInvocation> serviceReqCallbackMap) {
+        this.serviceReqCallbackMap = serviceReqCallbackMap;
     }
 
     public Map<String, VenusReqRespWrapper> getServiceReqRespMap() {

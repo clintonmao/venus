@@ -46,6 +46,7 @@ public class ClientInvocation implements Invocation {
 
     private Object[] args;
 
+    //callback回调listener
     private InvocationListener invocationListener;
 
     private Type type;
