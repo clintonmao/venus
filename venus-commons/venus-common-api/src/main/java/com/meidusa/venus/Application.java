@@ -1,4 +1,4 @@
-package com.meidusa.venus.client;
+package com.meidusa.venus;
 
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.exception.VenusConfigException;

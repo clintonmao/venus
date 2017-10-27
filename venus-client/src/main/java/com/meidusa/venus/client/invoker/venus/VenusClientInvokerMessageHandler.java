@@ -15,8 +15,7 @@ package com.meidusa.venus.client.invoker.venus;
 
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.venus.ClientInvocation;
-import com.meidusa.venus.Result;
-import com.meidusa.venus.RpcException;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.handler.VenusClientMessageHandler;
 import com.meidusa.venus.io.network.VenusBackendConnection;

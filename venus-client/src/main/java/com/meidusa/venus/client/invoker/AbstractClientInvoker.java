@@ -3,6 +3,7 @@ package com.meidusa.venus.client.invoker;
 import com.meidusa.venus.*;
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.exception.CodedException;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.support.EndpointWrapper;
 import com.meidusa.venus.support.ServiceWrapper;
 import com.meidusa.venus.support.VenusThreadContext;

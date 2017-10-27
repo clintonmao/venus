@@ -8,6 +8,7 @@ import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.client.factory.xml.config.*;
 import com.meidusa.venus.client.invoker.AbstractClientInvoker;
 import com.meidusa.venus.exception.InvalidParameterException;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.network.AbstractBIOConnection;
 import com.meidusa.venus.io.network.VenusBackendConnectionFactory;

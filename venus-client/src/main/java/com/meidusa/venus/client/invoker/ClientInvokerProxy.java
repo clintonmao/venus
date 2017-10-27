@@ -4,6 +4,7 @@ import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.client.invoker.injvm.InjvmClientInvoker;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.monitor.AthenaContext;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;

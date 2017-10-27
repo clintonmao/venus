@@ -2,7 +2,7 @@ package com.meidusa.venus.client.router.condition;
 
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.Invocation;
-import com.meidusa.venus.RpcException;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.rule.ConditionRule;

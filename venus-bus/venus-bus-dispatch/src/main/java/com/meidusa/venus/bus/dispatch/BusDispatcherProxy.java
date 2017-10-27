@@ -2,6 +2,7 @@ package com.meidusa.venus.bus.dispatch;
 
 import com.meidusa.venus.*;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.registry.VenusRegistryFactory;
 import com.meidusa.venus.registry.Register;
 import org.slf4j.Logger;

@@ -2,11 +2,9 @@ package com.chexiang.venus.demo.provider.impl;
 
 import com.chexiang.venus.demo.provider.HelloService;
 import com.chexiang.venus.demo.provider.model.Hello;
-import com.meidusa.venus.RpcException;
 import com.meidusa.venus.notify.InvocationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 /**
  * Created by Zhangzhihua on 2017/8/15.

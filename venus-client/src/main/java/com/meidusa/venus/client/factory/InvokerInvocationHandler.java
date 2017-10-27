@@ -8,6 +8,7 @@ import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.factory.xml.config.ServiceConfig;
 import com.meidusa.venus.client.invoker.ClientInvokerProxy;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.utils.RpcIdUtil;

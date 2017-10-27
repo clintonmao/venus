@@ -1,6 +1,7 @@
 package com.meidusa.venus.monitor.athena.filter;
 
 import com.meidusa.venus.*;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.monitor.athena.reporter.AthenaExtensionResolver;
 import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionId;
 import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionDelegate;

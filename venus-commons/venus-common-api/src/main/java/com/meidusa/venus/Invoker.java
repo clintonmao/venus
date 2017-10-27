@@ -1,6 +1,8 @@
 package com.meidusa.venus;
 
 
+import com.meidusa.venus.exception.RpcException;
+
 /**
  * 服务调用接口，分别由client/server/bus proxy代理类/remote包装类/协议类实现
  * Created by Zhangzhihua on 2017/7/31.

@@ -1,7 +1,7 @@
 package com.meidusa.venus.client.factory.simple;
 
 import com.meidusa.toolkit.common.util.Tuple;
-import com.meidusa.venus.RpcException;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.ServiceFactoryExtra;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.annotations.Endpoint;

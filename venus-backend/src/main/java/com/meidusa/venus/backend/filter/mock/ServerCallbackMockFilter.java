@@ -1,7 +1,7 @@
 package com.meidusa.venus.backend.filter.mock;
 
 import com.meidusa.venus.*;
-import com.meidusa.venus.client.filter.mock.ClientThrowMockFilter;
+import com.meidusa.venus.exception.RpcException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

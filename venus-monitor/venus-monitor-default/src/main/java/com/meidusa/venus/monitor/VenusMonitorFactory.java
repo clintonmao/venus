@@ -1,7 +1,7 @@
 package com.meidusa.venus.monitor;
 
 import com.athena.service.api.AthenaDataService;
-import com.meidusa.venus.RpcException;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.ServiceFactoryBean;
 import com.meidusa.venus.ServiceFactoryExtra;
 import com.meidusa.venus.support.VenusContext;

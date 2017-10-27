@@ -6,7 +6,7 @@ import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.toolkit.common.util.StringUtil;
-import com.meidusa.venus.RpcException;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.annotations.PerformanceLevel;

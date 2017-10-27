@@ -1,8 +1,7 @@
 package com.meidusa.venus.registry;
 
 import com.caucho.hessian.client.HessianProxyFactory;
-import com.meidusa.venus.RpcException;
-import com.meidusa.venus.ServiceFactoryExtra;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
 import com.meidusa.venus.registry.service.RegisterService;
@@ -15,8 +14,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 import java.net.MalformedURLException;
 

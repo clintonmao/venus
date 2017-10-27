@@ -3,7 +3,7 @@ package com.meidusa.venus.client.cluster;
 import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.venus.*;
 import com.meidusa.venus.ClientInvocation;
-import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
+import com.meidusa.venus.exception.RpcException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,4 +1,4 @@
-package com.meidusa.venus;
+package com.meidusa.venus.exception;
 
 /**
  * rpc调用异常
