@@ -100,29 +100,23 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     private boolean isInit = false;
 
-    //默认连接数
+    //默认连接数 TODO 连接数提醒配置 新建VenusConstants常量定义类
     private int coreConnections = 50;
 
     private static boolean isEnableRandomPrint = true;
 
     //mock返回线程池
-    private Executor mockReturnExecutor = new ThreadPoolExecutor(10,20,0,TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(100000),new RejectedExecutionHandler(){
-        @Override
-        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            logger.error("mock return,exceed max process,maxThread:{},maxQueue:{}.",5,100);
-        }
-    });
+    private static Executor mockReturnExecutor = null;
 
     static {
         if(connector == null){
             try {
                 logger.error("###################init connector############");
                 connector = new ConnectionConnector("connection connector-0");
-                int threadGroups = Runtime.getRuntime().availableProcessors();
-                int executeThreads = 20;
-                ConnectionManager[] connectionManagers = new ConnectionManager[threadGroups];
-                for(int i=0;i<threadGroups;i++){
-                    ConnectionManager connManager = new ConnectionManager("connection manager-" + i, executeThreads);
+                int ioThreads = 8;//Runtime.getRuntime().availableProcessors();
+                ConnectionManager[] connectionManagers = new ConnectionManager[ioThreads];
+                for(int i=0;i<ioThreads;i++){
+                    ConnectionManager connManager = new ConnectionManager("connection manager-" + i, 10);
                     connectionManagers[i] = connManager;
                     connManager.start();
                 }
@@ -235,6 +229,14 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             }
             result = fetchResponse(rpcId);
         }else{
+            if(mockReturnExecutor == null){
+                mockReturnExecutor = new ThreadPoolExecutor(10,20,0,TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(100000),new RejectedExecutionHandler(){
+                    @Override
+                    public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+                        logger.error("mock return,exceed max process,maxThread:{},maxQueue:{}.",5,100);
+                    }
+                });
+            }
             //mock接收消息处理
             mockReturnExecutor.execute(new MockReturnProcess(reqRespWrapper));
 

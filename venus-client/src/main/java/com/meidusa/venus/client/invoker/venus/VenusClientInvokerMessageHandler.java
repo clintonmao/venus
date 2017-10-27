@@ -54,7 +54,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
      */
     private Map<String, ClientInvocation> serviceReqCallbackMap;
 
-    private static boolean isEnableRandomPrint = false;
+    private static boolean isEnableRandomPrint = true;
 
     public void handle(VenusBackendConnection conn, byte[] message) {
         if("A".equalsIgnoreCase("B")){
@@ -174,12 +174,9 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
 
             ServiceResponsePacket responsePacket = new SerializeServiceResponsePacket(serializer, syncInvocation.getMethod().getGenericReturnType());
             responsePacket.init(message);
-            if(logger.isWarnEnabled()){
-                logger.warn("recv resp response,rpcId:{},thread:{},response:{}.",rpcId,Thread.currentThread(),JSONUtil.toJSONString(responsePacket));
-            }
 
             if(isEnableRandomPrint){
-                if(ThreadLocalRandom.current().nextInt(50000) > 49990){
+                if(ThreadLocalRandom.current().nextInt(100000) > 99995){
                     if(logger.isErrorEnabled()){
                         logger.error("recv resp response,rpcId:{},thread:{},instance:{}.",rpcId,Thread.currentThread(),this);
                     }
