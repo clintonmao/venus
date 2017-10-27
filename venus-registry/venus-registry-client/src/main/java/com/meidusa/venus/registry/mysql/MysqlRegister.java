@@ -583,7 +583,7 @@ public class MysqlRegister implements Register {
 		return os.toLowerCase().startsWith("win");
 	}
 
-	public static void main(String args[]) {
+	/*public static void main(String args[]) {
 
 		VenusServiceDefinitionDO def1 = new VenusServiceDefinitionDO();
 		VenusServiceDefinitionDO def2 = new VenusServiceDefinitionDO();
@@ -619,5 +619,5 @@ public class MysqlRegister implements Register {
 		}
 
 	}
-
+*/
 }
