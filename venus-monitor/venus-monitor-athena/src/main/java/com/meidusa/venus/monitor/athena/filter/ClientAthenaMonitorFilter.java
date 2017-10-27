@@ -1,15 +1,13 @@
 package com.meidusa.venus.monitor.athena.filter;
 
 import com.meidusa.venus.*;
-import com.meidusa.venus.annotations.Endpoint;
-import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.monitor.athena.reporter.AthenaExtensionResolver;
 import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionId;
 import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionDelegate;
 import com.meidusa.venus.support.EndpointWrapper;
 import com.meidusa.venus.support.ServiceWrapper;
+import com.meidusa.venus.support.VenusThreadContext;
 import com.meidusa.venus.support.VenusUtil;
-import com.meidusa.venus.util.VenusAnnotationUtils;
 
 import java.lang.reflect.Method;
 

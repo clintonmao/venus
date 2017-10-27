@@ -22,6 +22,7 @@ import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.support.EndpointWrapper;
 import com.meidusa.venus.support.ServiceWrapper;
+import com.meidusa.venus.support.VenusThreadContext;
 import com.meidusa.venus.support.VenusUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -186,8 +187,8 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     public Result doInvokeWithSync(ClientInvocation invocation, URL url) throws Exception {
         Result result = null;
 
-        int totalWaitTime = 3000;//TODO 超时时间配置
         long bWaitTime = System.currentTimeMillis();
+        int timeout = invocation.getTimeout();
 
         //构造请求消息
         if("A".equalsIgnoreCase("B")){
@@ -222,7 +223,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         if(!isReturnMock){
             //latch阻塞等待
             //TODO #####超时时间提取配置#######
-            reqRespWrapper.getReqRespLatch().await(3000,TimeUnit.MILLISECONDS);
+            reqRespWrapper.getReqRespLatch().await(timeout,TimeUnit.MILLISECONDS);
             //处理响应
             if("A".equalsIgnoreCase("B")){
                 return new Result(new Hello("hi@","ok{invoker-doInvoke4}"));
@@ -240,14 +241,14 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             //mock接收消息处理
             mockReturnExecutor.execute(new MockReturnProcess(reqRespWrapper));
 
-            reqRespWrapper.getReqRespLatch().await(3000,TimeUnit.MILLISECONDS);
+            reqRespWrapper.getReqRespLatch().await(timeout,TimeUnit.MILLISECONDS);
 
             result = fetchResponseFromMock(rpcId);
         }
 
         //TODO 改为methodPath
         if(result == null){
-            throw new RpcException(String.format("invoke service:%s,timeout:%dms",url.getPath(),totalWaitTime));
+            throw new RpcException(String.format("invoke service:%s,timeout:%dms",url.getPath(),timeout));
         }
 
         if(isEnableRandomPrint){

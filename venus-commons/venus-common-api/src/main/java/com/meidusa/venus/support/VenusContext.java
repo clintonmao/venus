@@ -1,9 +1,7 @@
-package com.meidusa.venus;
+package com.meidusa.venus.support;
 
 import com.meidusa.toolkit.common.bean.BeanContext;
 import org.springframework.context.ApplicationContext;
-
-import java.rmi.registry.Registry;
 
 /**
  * venus应用上下文信息

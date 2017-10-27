@@ -18,7 +18,7 @@ import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.venus.RpcException;
-import com.meidusa.venus.VenusContext;
+import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.metainfo.AnnotationUtil;
@@ -244,6 +244,8 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
     private synchronized void initConfiguration() throws Exception {
         //加载客户端配置信息
         VenusClientConfig venusClientConfig = parseClientConfig();
+
+        //TODO 校验配置有效性，提出去
 
         //初始化service实例
         for (ServiceConfig serviceConfig : venusClientConfig.getServiceConfigs()) {

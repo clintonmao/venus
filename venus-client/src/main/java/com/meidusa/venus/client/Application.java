@@ -1,6 +1,6 @@
 package com.meidusa.venus.client;
 
-import com.meidusa.venus.VenusContext;
+import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import org.apache.commons.lang.StringUtils;

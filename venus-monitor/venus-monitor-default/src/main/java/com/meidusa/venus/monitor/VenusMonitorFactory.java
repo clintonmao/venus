@@ -4,7 +4,7 @@ import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.RpcException;
 import com.meidusa.venus.ServiceFactoryBean;
 import com.meidusa.venus.ServiceFactoryExtra;
-import com.meidusa.venus.VenusContext;
+import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.monitor.config.ClientConfigManagerDelegate;
 import com.meidusa.venus.monitor.support.CustomScanAndRegisteUtil;
@@ -26,8 +26,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 

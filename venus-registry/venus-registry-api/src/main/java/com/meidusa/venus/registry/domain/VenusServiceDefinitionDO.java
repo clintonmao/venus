@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.meidusa.venus.ServiceDefinitionDO;
+import com.meidusa.venus.ServiceDefinitionExtra;
 import org.apache.commons.lang.StringUtils;
 
 import com.meidusa.toolkit.common.util.ObjectUtil;
@@ -15,7 +15,7 @@ import com.meidusa.toolkit.common.util.ObjectUtil;
  * @author structchen
  * 
  */
-public class VenusServiceDefinitionDO implements ServiceDefinitionDO,java.io.Serializable{
+public class VenusServiceDefinitionDO implements ServiceDefinitionExtra,java.io.Serializable{
 
 	private static final long serialVersionUID = -4527715273482256858L;
 

@@ -1,4 +1,4 @@
-package com.meidusa.venus;
+package com.meidusa.venus.support;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -20,6 +20,7 @@ import com.meidusa.venus.monitor.filter.ClientMonitorFilter;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.support.EndpointWrapper;
 import com.meidusa.venus.support.ServiceWrapper;
+import com.meidusa.venus.support.VenusThreadContext;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
