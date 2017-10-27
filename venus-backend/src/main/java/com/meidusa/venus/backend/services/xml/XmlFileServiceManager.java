@@ -350,7 +350,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                 port,
                 methods
         );
-        logger.info("registe service:{}",registerUrl);
         URL url = URL.parse(registerUrl);
         return url;
     }

@@ -114,7 +114,6 @@ public class VenusServerInvocationEndpoint implements EndpointInvocation {
                     }
                 }
                 result = ep.getMethod().invoke(ep.getService().getInstance(), parameters);
-                logger.info("invoke result:{}.", JSONUtil.toJSONString(result));
             } catch (IllegalArgumentException e) {
                 throw new ServiceInvokeException(e);
             } catch (InvocationTargetException e) {

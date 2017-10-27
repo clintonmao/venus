@@ -27,5 +27,4 @@ public class ManagerController {
         System.exit(0);
     }
 
-
 }

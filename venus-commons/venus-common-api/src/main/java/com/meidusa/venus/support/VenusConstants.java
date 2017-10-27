@@ -20,4 +20,7 @@ public class VenusConstants {
 
     //默认连接数目，默认为8
     public static int CONNECTION_DEFAULT_COUNT = 8;
+
+    //venus协议默认线程数
+    public static int VENUS_PROTOCOL_DEFAULT_CORE_THREADS = 100;
 }

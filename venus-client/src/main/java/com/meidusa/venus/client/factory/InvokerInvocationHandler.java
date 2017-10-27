@@ -202,8 +202,8 @@ public class InvokerInvocationHandler implements InvocationHandler {
             if(serviceConfig.getTimeout() != 0){
                 invocation.setTimeout(serviceConfig.getTimeout());
             }
-            if(serviceConfig.getConnectionCount() != 0){
-                invocation.setConnectionCount(serviceConfig.getConnectionCount());
+            if(serviceConfig.getCoreConnections() != 0){
+                invocation.setCoreConnections(serviceConfig.getCoreConnections());
             }
         }
         return invocation;

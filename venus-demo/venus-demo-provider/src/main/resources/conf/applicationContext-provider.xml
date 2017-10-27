@@ -42,6 +42,9 @@
 	<!--venus协议配置-->
 	<bean id="venusProtocol" class="com.meidusa.venus.backend.VenusProtocol">
 		<property name="port" value="${venus.protocol.port}"/>
+		<!--
+		<property name="coreThreads" value="${venus.protocol.coreThreads}"/>
+		-->
 		<property name="authenticateProvider" ref="authenticateProvider"/>
 	</bean>
 

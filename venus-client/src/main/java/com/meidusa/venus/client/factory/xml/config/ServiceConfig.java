@@ -63,7 +63,7 @@ public class ServiceConfig {
     /**
      * 连接数
      */
-    private int connectionCount;
+    private int coreConnections;
     
     public int getTimeWait() {
         return timeWait;
@@ -161,11 +161,11 @@ public class ServiceConfig {
         this.timeout = timeout;
     }
 
-    public int getConnectionCount() {
-        return connectionCount;
+    public int getCoreConnections() {
+        return coreConnections;
     }
 
-    public void setConnectionCount(int connectionCount) {
-        this.connectionCount = connectionCount;
+    public void setCoreConnections(int coreConnections) {
+        this.coreConnections = coreConnections;
     }
 }

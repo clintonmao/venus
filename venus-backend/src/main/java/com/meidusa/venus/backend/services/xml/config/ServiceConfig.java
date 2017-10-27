@@ -3,6 +3,7 @@ package com.meidusa.venus.backend.services.xml.config;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.meidusa.venus.support.VenusConstants;
 import org.apache.commons.lang.StringUtils;
 
 import com.meidusa.toolkit.common.util.StringUtil;
@@ -24,7 +25,11 @@ public class ServiceConfig {
     private Map<String, EndpointConfig> endpointConfigMap = new HashMap<String, EndpointConfig>();
 
     private String interceptorStack;
+
     private Range versionRange;
+
+    //venus协议默认线程数
+    private int coreThreads;
 
     public String getVersion() {
         return version;
@@ -103,5 +108,13 @@ public class ServiceConfig {
 
     public void addEndpointConfig(EndpointConfig config) {
         endpointConfigMap.put(config.getName(), config);
+    }
+
+    public int getCoreThreads() {
+        return coreThreads;
+    }
+
+    public void setCoreThreads(int coreThreads) {
+        this.coreThreads = coreThreads;
     }
 }

@@ -1,7 +1,5 @@
 package com.meidusa.venus;
 
-import com.meidusa.venus.annotations.Endpoint;
-import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.support.EndpointWrapper;
@@ -78,7 +76,7 @@ public class ClientInvocation implements Invocation {
     private int timeout = VenusConstants.TIMEOUT_DEFAULT;
 
     //连接数，默认8（一个服务）
-    private int connectionCount = VenusConstants.CONNECTION_DEFAULT_COUNT;
+    private int coreConnections = VenusConstants.CONNECTION_DEFAULT_COUNT;
 
     public int getClientId() {
         return clientId;
@@ -308,11 +306,11 @@ public class ClientInvocation implements Invocation {
         this.timeout = timeout;
     }
 
-    public int getConnectionCount() {
-        return connectionCount;
+    public int getCoreConnections() {
+        return coreConnections;
     }
 
-    public void setConnectionCount(int connectionCount) {
-        this.connectionCount = connectionCount;
+    public void setCoreConnections(int coreConnections) {
+        this.coreConnections = coreConnections;
     }
 }

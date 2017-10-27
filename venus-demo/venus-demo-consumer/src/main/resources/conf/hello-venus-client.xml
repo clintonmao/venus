@@ -38,19 +38,14 @@
 	<services>
 		<!-- 定义服务以及指定该服务提供方的远程相关配置 -->
 		<!--
-		<service type="com.saic.framework.message.UniMessageService" remote="UMSRemote"/>
-		-->
-		<!--
 		<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.16.40:16800"/>
 		-->
 		<!--
-		<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.32.174.226:16800"/>
+		<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.17.135:16800" coreConnections="10" timeout="5000"/>
 		-->
 		<!--
-		<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.17.135:16800"/>
+		<service type="com.chexiang.venus.demo.provider.HelloService" retries="3"/>
 		-->
-		<!-- <service type="com.chexiang.venus.demo.provider.HelloService" loadbanlance="random"/> -->
-		
 		<service type="com.chexiang.venus.demo.provider.HelloService" loadbanlance="random"/>
 	</services>
 </venus-client>

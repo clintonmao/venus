@@ -147,10 +147,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             }
         } catch (Exception e) {
             throw new RpcException(e);
-        }finally {
-            if(logger.isWarnEnabled()){
-                logger.warn("request cost time:{}.",System.currentTimeMillis()-bTime);
-            }
         }
     }
 
@@ -500,7 +496,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         //nioFactory.setWriteQueueCapcity(16);
 
         //初始化连接池 TODO 连接数双倍问题
-        int connectionCount = invocation.getConnectionCount();
+        int connectionCount = invocation.getCoreConnections();
         BackendConnectionPool nioPool = new PollingBackendConnectionPool("N-" + url.getHost(), nioFactory, connectionCount);
         PoolConfig poolConfig = remoteConfig.getPool();
         if (poolConfig != null) {

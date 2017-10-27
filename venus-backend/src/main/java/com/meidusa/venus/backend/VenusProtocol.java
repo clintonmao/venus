@@ -5,6 +5,7 @@ import com.meidusa.toolkit.net.ConnectionAcceptor;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.authenticate.server.AuthenticateProvider;
 import com.meidusa.toolkit.net.factory.FrontendConnectionFactory;
+import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.backend.handler.VenusServerInvokerMessageHandler;
 import com.meidusa.venus.backend.services.ServiceManager;
@@ -49,6 +50,9 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
     //自定义属性设置
     private String port;
 
+    //venus协议默认线程数
+    private int coreThreads = VenusConstants.VENUS_PROTOCOL_DEFAULT_CORE_THREADS;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         valid();
@@ -86,9 +90,13 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
         ConnectionAcceptor connectionAcceptor = new ConnectionAcceptor();
         connectionAcceptor.setName("venus Acceptor-0");
         connectionAcceptor.setPort(Integer.parseInt(port));
-        //TODO 业务线程池数量配置出来
-        int coreThread = 25;
-        connectionAcceptor.setExecutorSize(coreThread);
+        //计算每IO线程组业务平均线程池数
+        int cpuCores = Runtime.getRuntime().availableProcessors();
+        int perGroupCoreThread = coreThreads/cpuCores;
+        if(perGroupCoreThread < cpuCores){
+            perGroupCoreThread = cpuCores;
+        }
+        connectionAcceptor.setExecutorSize(perGroupCoreThread);
         connectionAcceptor.setConnectionFactory(createConnectionFactory());
         return connectionAcceptor;
     }
@@ -196,5 +204,13 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
     //不使用属性依赖注入，由srvMgr反向注入
     public void setSrvMgr(ServiceManager serviceManager) {
         this.serviceManager = serviceManager;
+    }
+
+    public int getCoreThreads() {
+        return coreThreads;
+    }
+
+    public void setCoreThreads(int coreThreads) {
+        this.coreThreads = coreThreads;
     }
 }

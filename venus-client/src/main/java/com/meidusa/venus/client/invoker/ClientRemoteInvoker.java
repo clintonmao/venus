@@ -82,9 +82,6 @@ public class ClientRemoteInvoker implements Invoker{
             return new Result(new Hello("hi@","ok{remote-invoke-2}"));
         }
         Result result = clusterInvoker.invoke(invocation, urlList);
-        if(logger.isWarnEnabled()){
-            logger.warn("request rpcId:{} cost time:{}.", RpcIdUtil.getRpcId(clientInvocation.getClientId(),clientInvocation.getClientRequestId()),System.currentTimeMillis()-bTime);
-        }
         return result;
     }
 
