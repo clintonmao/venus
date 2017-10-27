@@ -61,7 +61,7 @@ public class MysqlRegister implements Register {
 	private RegisterService registerService = null;
 
 	//FIXME 将linux/windows统一改为系统目录下存储
-	private String fileCachePath = "/data/application/venusLocalSubcribe.txt";
+	private String fileCachePath ;//= "/data/application/venusLocalSubcribe.txt";
 
 	//是否开启本地文件缓存
 	private static boolean isEnableFileCache = true;
@@ -81,8 +81,19 @@ public class MysqlRegister implements Register {
 	 */
 	void init() throws Exception {
 		if (isWindows()) {
-			fileCachePath = "D:\\data\\application\\venusLocalSubcribe.txt";
+			String property = System.getProperty("user.home");
+			fileCachePath = property + File.separator + "venus" + File.separator
+					+ ".venusCache.txt";
+		} else {
+			String property = System.getProperty("user.home");
+			if (property.startsWith(File.separator)) {
+				fileCachePath = property + File.separator + "venus" + File.separator + ".venusCache.txt";
+			} else {
+				fileCachePath = File.separator + property + File.separator + "venus" + File.separator
+						+ ".venusCache.txt";
+			}
 		}
+		logger.error("@@@@@@@@@fileCachePath=>{}",fileCachePath);
 		if (!loadRunning) {
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 10, failRetryInterval, TimeUnit.SECONDS);
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefLoaderRunnable(), 10, srvDefLoaderInterval, TimeUnit.SECONDS);
@@ -360,6 +371,39 @@ public class MysqlRegister implements Register {
 		}
 
 	}
+	
+	public static List<String> readFile(String filePath) {
+		List<String> fileContents = new ArrayList<String>();
+		if (!filePath.endsWith(".txt")) {
+			return fileContents;
+		}
+		File file = new File(filePath);
+		if (file.exists()) {
+			RandomAccessFile randomAccessFile = null;
+			try {
+				randomAccessFile = new RandomAccessFile(file, "r");
+			} catch (FileNotFoundException e) {
+				logger.error("readFile filePath=>" + filePath + " is error", e);
+			}
+			String str = null;
+			try {
+				while ((str = randomAccessFile.readLine()) != null) {
+					fileContents.add(str);
+				}
+			} catch (IOException e) {
+				logger.error("readFile filePath=>" + filePath + " is error", e);
+			} finally {
+				if (null != randomAccessFile) {
+					try {
+						randomAccessFile.close();
+					} catch (IOException e) {
+						// ingore
+					}
+				}
+			}
+		}
+		return fileContents;
+	}
 
 	/**
 	 * 读文件
@@ -367,7 +411,7 @@ public class MysqlRegister implements Register {
 	 * @param filePath
 	 * @return
 	 */
-	public static List<String> readFile(String filePath) {
+	public static List<String> readFile1(String filePath) {
 		List<String> fileContents = new ArrayList<String>();
 		if (!filePath.endsWith(".txt")) {
 			return fileContents;
@@ -426,7 +470,9 @@ public class MysqlRegister implements Register {
 		if (filePath.endsWith(".txt")) {
 			String folderPath = filePath.substring(0, filePath.lastIndexOf(File.separator));
 			File f = new File(folderPath);
-			mkDir(f);
+			if (!f.exists()) {
+				f.mkdirs();
+			}
 		} else {
 			return;
 		}
@@ -452,8 +498,9 @@ public class MysqlRegister implements Register {
 		if (CollectionUtils.isEmpty(need_write_list)) {
 			return;
 		}
-		FileWriter fileWriter = null;
-		BufferedWriter bufferWriter = null;
+//		FileWriter fileWriter = null;
+//		BufferedWriter bufferWriter = null;
+		RandomAccessFile randomAccessFile =null;
 		try {
 			File file = new File(filePath);
 			if (file.createNewFile()) {
@@ -463,19 +510,33 @@ public class MysqlRegister implements Register {
 				file.setWritable(true);
 			}
 			if (file.isFile()) {
-				fileWriter = new FileWriter(file);
+				/*fileWriter = new FileWriter(file);
 				bufferWriter = new BufferedWriter(fileWriter);
 				for (String json : need_write_list) {
 					bufferWriter.write(json);
 					bufferWriter.newLine();
+				}*/
+				
+				randomAccessFile = new RandomAccessFile(file, "rw");
+				for (String json : need_write_list) {
+					randomAccessFile.writeBytes(json);
+					randomAccessFile.writeBytes("\n");
 				}
+				randomAccessFile.close();
 			}
 		} catch (IOException e) {
 			logger.error("writeFile filePath=>" + filePath + " is error", e);
 		} catch (NullPointerException e) {
 			logger.error("writeFile filePath=>" + filePath + " is error", e);
 		} finally {
-			if (null != bufferWriter) {
+			if (null != randomAccessFile) {
+				try {
+					randomAccessFile.close();
+				} catch (IOException e) {
+					// ingore
+				}
+			}
+/*			if (null != bufferWriter) {
 				try {
 					bufferWriter.close();
 				} catch (IOException e) {
@@ -488,7 +549,7 @@ public class MysqlRegister implements Register {
 				} catch (IOException e) {
 					// ingore
 				}
-			}
+			}*/
 		}
 	}
 
@@ -520,7 +581,7 @@ public class MysqlRegister implements Register {
 		return os.toLowerCase().startsWith("win");
 	}
 
-	/*public static void main(String args[]) {
+	public static void main(String args[]) {
 
 		VenusServiceDefinitionDO def1 = new VenusServiceDefinitionDO();
 		VenusServiceDefinitionDO def2 = new VenusServiceDefinitionDO();
@@ -548,13 +609,13 @@ public class MysqlRegister implements Register {
 		jsons.add(JSON.toJSONString(list1));
 		jsons.add(JSON.toJSONString(list2));
 		String filePath = "D:\\soft\\b\\a.txt";
-		writeFile(filePath,  new ArrayList<String>() );
+		//writeFile(filePath,  new ArrayList<String>() );
 		writeFile(filePath, jsons);
 		List<String> readFile = readFile(filePath);
 		for (String str : readFile) {
 			System.out.println(str);
 		}
-	}*/
-	 
+
+	}
 
 }
