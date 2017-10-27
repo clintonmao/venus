@@ -5,19 +5,15 @@ import com.meidusa.toolkit.common.bean.util.Initialisable;
 import com.meidusa.toolkit.common.bean.util.InitialisationException;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.MessageHandler;
-import com.meidusa.toolkit.net.util.InetAddressUtil;
-import com.meidusa.toolkit.util.TimeUtil;
-import com.meidusa.venus.backend.invoker.VenusServerInvokerTask;
 import com.meidusa.venus.backend.services.ServiceManager;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.handler.VenusServerMessageHandler;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
-import com.meidusa.venus.io.packet.*;
+import com.meidusa.venus.io.packet.AbstractServicePacket;
+import com.meidusa.venus.io.packet.PacketConstant;
+import com.meidusa.venus.io.packet.VenusRouterPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.concurrent.*;
 
 /**
  * venus服务端服务调用消息处理
@@ -37,9 +33,10 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
 
-    private int threadLiveTime = 30;
+
 
     /*
+    private int threadLiveTime = 30;
     private boolean executorEnabled = false;
     private boolean executorProtected;
     private boolean useThreadLocalExecutor;
@@ -50,19 +47,13 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
     private ServiceManager serviceManager;
 
-    private VenusServerInvokerTask venusServerInvokerTask = null;
+    private VenusServerInvokerHandler venusServerInvokerTask = null;
 
     @Override
     public void init() throws InitialisationException {
-        /*
-        if (executor == null && executorEnabled && !useThreadLocalExecutor && maxExecutionThread > 0) {
-            executor = Executors.newFixedThreadPool(maxExecutionThread);
-        }
-        */
         //初始化业务处理线程池
         /*
         if (executor == null) {
-            //executor = Executors.newFixedThreadPool(maxExecutionThread);
             //executor = new ThreadPoolExecutor(coreThread,maxThread,0,TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(maxQueue),new ThreadPoolExecutor.CallerRunsPolicy());
             executor = new ThreadPoolExecutor(coreThread,maxThread,0,TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(maxQueue),new RejectedExecutionHandler(){
                 @Override
@@ -113,11 +104,6 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:
                 //远程调用消息处理
-                /*
-                VenusServerInvokerTask venusServerInvokerTask = new VenusServerInvokerTask(conn, data);
-                venusServerInvokerTask.setServiceManager(getServiceManager());
-                executor.execute(venusServerInvokerTask);
-                */
                 getVenusServerInvokerTask().handle(conn, data);
                 break;
             default:
@@ -130,20 +116,12 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
      * 获取服务调用处理
      * @return
      */
-    VenusServerInvokerTask getVenusServerInvokerTask(){
+    VenusServerInvokerHandler getVenusServerInvokerTask(){
         if(venusServerInvokerTask == null){
-            venusServerInvokerTask = new VenusServerInvokerTask();
+            venusServerInvokerTask = new VenusServerInvokerHandler();
             venusServerInvokerTask.setServiceManager(getServiceManager());
         }
         return venusServerInvokerTask;
-    }
-
-    public int getThreadLiveTime() {
-        return threadLiveTime;
-    }
-
-    public void setThreadLiveTime(int threadLiveTime) {
-        this.threadLiveTime = threadLiveTime;
     }
 
     public VenusExceptionFactory getVenusExceptionFactory() {

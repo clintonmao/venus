@@ -1,16 +1,13 @@
 package com.meidusa.venus.monitor.athena.reporter.impl;
 
-import com.meidusa.venus.VenusContext;
 import com.meidusa.venus.monitor.athena.reporter.AthenaClientTransaction;
 import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionId;
-import com.saic.framework.athena.client.Athena;
 import com.saic.framework.athena.configuration.client.entity.RemoteContext;
 import com.saic.framework.athena.configuration.client.entity.impl.RemoteContextInstance;
 import com.saic.framework.athena.message.Transaction;
 import com.saic.framework.athena.site.helper.AthenaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 
 import java.util.Stack;
 

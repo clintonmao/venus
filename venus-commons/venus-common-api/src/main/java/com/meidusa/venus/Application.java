@@ -1,6 +1,6 @@
-package com.meidusa.venus.client;
+package com.meidusa.venus;
 
-import com.meidusa.venus.VenusContext;
+import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import org.apache.commons.lang.StringUtils;
@@ -46,8 +46,7 @@ public class Application implements InitializingBean,BeanFactoryPostProcessor {
     void init(){
         VenusContext.getInstance().setApplication(name);
 
-        //初始化venus协议，protcol不再单独配置，由application内置默认初始化
-        //TODO 通信端口，相关连接配置等，需要单独外部配置
+        //初始化序列化工厂
         initSerializer();
     }
 

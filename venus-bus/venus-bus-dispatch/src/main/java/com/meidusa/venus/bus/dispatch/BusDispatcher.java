@@ -8,6 +8,7 @@ import com.meidusa.venus.bus.handler.BusDispatchMessageHandler;
 import com.meidusa.venus.bus.network.BusBackendConnection;
 import com.meidusa.venus.bus.network.BusBackendConnectionFactory;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.io.authenticate.Authenticator;
 import com.meidusa.venus.io.packet.PacketConstant;
 import org.slf4j.Logger;

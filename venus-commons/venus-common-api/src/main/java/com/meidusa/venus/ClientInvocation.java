@@ -6,6 +6,7 @@ import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.support.EndpointWrapper;
 import com.meidusa.venus.support.ServiceWrapper;
+import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.support.VenusUtil;
 
 import java.lang.reflect.Method;
@@ -46,6 +47,7 @@ public class ClientInvocation implements Invocation {
 
     private Object[] args;
 
+    //callback回调listener
     private InvocationListener invocationListener;
 
     private Type type;
@@ -60,16 +62,20 @@ public class ClientInvocation implements Invocation {
 
     boolean async;
 
-    private int lookupType = 0;//0:本地;1:注册中心
+    //寻址方式，默认本地，0:本地;1:注册中心
+    private int lookupType = 0;
 
-    //集群容错策略
-    private String cluster = "fastfail";
+    //集群容错策略，默认fastfail
+    private String cluster = VenusConstants.CLUSTER_DEFAULT;
 
     //重试次数，若retries不为空，则cluster默认开启failover
-    private int retries = 0;
+    private int retries = VenusConstants.RETRIES_DEFAULT;
 
-    //负载均衡策略
-    private String loadbanlance = "random";
+    //负载均衡策略,默认random
+    private String loadbanlance = VenusConstants.LOADBANLANCE_DEFAULT;
+
+    //超时时间，默认3000ms
+    private int timeout = VenusConstants.TIMEOUT_DEFAULT;
 
     public int getClientId() {
         return clientId;
@@ -289,5 +295,13 @@ public class ClientInvocation implements Invocation {
      */
     public String getMethodPath(){
         return VenusUtil.getMethodPath(this);
+    }
+
+    public int getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
     }
 }

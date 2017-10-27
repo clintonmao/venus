@@ -6,6 +6,7 @@ import com.meidusa.venus.ErrorPacketWrapperException;
 import com.meidusa.venus.ServerInvocation;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.services.Service;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.io.packet.AbstractServicePacket;
 import com.meidusa.venus.io.packet.AbstractServiceRequestPacket;

@@ -54,6 +54,11 @@ public class ServiceConfig {
      * 负载均衡策略
      */
     private String loadbanlance;
+
+    /**
+     * 超时时间
+     */
+    private int timeout;
     
     public int getTimeWait() {
         return timeWait;
@@ -141,5 +146,13 @@ public class ServiceConfig {
 
     public void setRetries(int retries) {
         this.retries = retries;
+    }
+
+    public int getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
     }
 }

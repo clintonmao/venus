@@ -1,6 +1,8 @@
 package com.meidusa.venus;
 
 
+import com.meidusa.venus.exception.RpcException;
+
 import java.util.List;
 
 /**

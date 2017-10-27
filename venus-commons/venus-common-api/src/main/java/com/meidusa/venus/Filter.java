@@ -1,6 +1,8 @@
 package com.meidusa.venus;
 
 
+import com.meidusa.venus.exception.RpcException;
+
 /**
  * filte接口定义
  * Created by Zhangzhihua on 2017/8/1.

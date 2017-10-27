@@ -4,6 +4,8 @@ import com.athena.domain.MethodCallDetailDO;
 import com.athena.domain.MethodStaticDO;
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
+import com.meidusa.venus.exception.RpcException;
+import com.meidusa.venus.support.VenusThreadContext;
 import com.meidusa.venus.util.UUIDUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +51,7 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
         }
 
         //请求url
-        url = (URL)VenusThreadContext.get(VenusThreadContext.REQUEST_URL);
+        url = (URL) VenusThreadContext.get(VenusThreadContext.REQUEST_URL);
         //响应结果
         Result result = (Result) VenusThreadContext.get(VenusThreadContext.RESPONSE_RESULT);
         //响应异常

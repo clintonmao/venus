@@ -5,10 +5,10 @@ import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.toolkit.net.*;
 import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
-import com.meidusa.venus.client.factory.xml.XmlServiceFactory;
 import com.meidusa.venus.client.factory.xml.config.*;
 import com.meidusa.venus.client.invoker.AbstractClientInvoker;
 import com.meidusa.venus.exception.InvalidParameterException;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.network.AbstractBIOConnection;
 import com.meidusa.venus.io.network.VenusBackendConnectionFactory;
@@ -23,6 +23,7 @@ import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.support.EndpointWrapper;
 import com.meidusa.venus.support.ServiceWrapper;
+import com.meidusa.venus.support.VenusThreadContext;
 import com.meidusa.venus.support.VenusUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,6 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * venus协议服务调用实现
@@ -52,8 +52,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     private byte serializeType = PacketConstant.CONTENT_TYPE_JSON;
 
-    private static AtomicLong sequenceId = new AtomicLong(1);
-
     /**
      * 远程连接配置，包含ip相关信息
      */
@@ -61,35 +59,34 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     private VenusExceptionFactory venusExceptionFactory;
 
-    private XmlServiceFactory serviceFactory;
-
     private boolean enableAsync = true;
 
+    /*
+    private static AtomicLong sequenceId = new AtomicLong(1);
     private boolean needPing = false;
+    private XmlServiceFactory serviceFactory;
+    */
 
     //TODO 确认此处线程池用途
     private int asyncExecutorSize = 10;
-
-    //TODO 优化锁对象
-    //private Object lock = new Object();
 
     /**
      * nio连接映射表
      */
     private Map<String, BackendConnectionPool> nioPoolMap = new ConcurrentHashMap<String, BackendConnectionPool>();
 
-    private Map<String, ClientInvocation> serviceInvocationMap = new ConcurrentHashMap<String, ClientInvocation>();
-
-    /**
-     * rpcId-响应映射表 TODO 完成、异常清理问题；及监控大小问题
-     */
-
-    private Map<String,AbstractServicePacket> serviceResponseMap = new ConcurrentHashMap<String, AbstractServicePacket>();
+    //当前实例连接 TODO 【***】监听连接有效性，释放资源
+    private ThreadLocal<BackendConnection> connectionThreadLocal = new ThreadLocal<BackendConnection>();
 
     /**
      * rpcId-请求&响应映射表，TODO 容量、有效期、清理机制
      */
     private Map<String, VenusReqRespWrapper> serviceReqRespMap = new ConcurrentHashMap<String, VenusReqRespWrapper>();
+
+    /**
+     * rpcId-请求&回调映射表
+     */
+    private Map<String, ClientInvocation> serviceReqCallbackMap = new ConcurrentHashMap<String, ClientInvocation>();
 
     /**
      * 调用监听容器
@@ -101,41 +98,27 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      */
     private VenusClientInvokerMessageHandler messageHandler = new VenusClientInvokerMessageHandler();
 
-    //当前实例连接
-    private ThreadLocal<BackendConnection> connectionThreadLocal = new ThreadLocal<BackendConnection>();
-
-    private ExecutorService executor = Executors.newFixedThreadPool(50);
-
     private static ConnectionConnector connector;
 
     private boolean isInit = false;
 
-    private Object lock = new Object();
-
-    //默认连接数
+    //默认连接数 TODO 连接数提醒配置 新建VenusConstants常量定义类
     private int coreConnections = 50;
 
     private static boolean isEnableRandomPrint = true;
 
     //mock返回线程池
-    //private static int mockPool
-    private Executor mockReturnExecutor = new ThreadPoolExecutor(10,20,0,TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(100000),new RejectedExecutionHandler(){
-        @Override
-        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            logger.error("mock return,exceed max process,maxThread:{},maxQueue:{}.",5,100);
-        }
-    });
+    private static Executor mockReturnExecutor = null;
 
     static {
         if(connector == null){
             try {
                 logger.error("###################init connector############");
                 connector = new ConnectionConnector("connection connector-0");
-                int threadGroups = Runtime.getRuntime().availableProcessors();
-                int executeThreads = 20;
-                ConnectionManager[] connectionManagers = new ConnectionManager[threadGroups];
-                for(int i=0;i<threadGroups;i++){
-                    ConnectionManager connManager = new ConnectionManager("connection manager-" + i, executeThreads);
+                int ioThreads = 8;//Runtime.getRuntime().availableProcessors();
+                ConnectionManager[] connectionManagers = new ConnectionManager[ioThreads];
+                for(int i=0;i<ioThreads;i++){
+                    ConnectionManager connManager = new ConnectionManager("connection manager-" + i, 10);
                     connectionManagers[i] = connManager;
                     connManager.start();
                 }
@@ -152,8 +135,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         if(!isInit){
             messageHandler.setVenusExceptionFactory(venusExceptionFactory);
             messageHandler.setContainer(this.container);
-            messageHandler.setServiceInvocationMap(serviceInvocationMap);
-            messageHandler.setServiceResponseMap(serviceResponseMap);
+            messageHandler.setServiceReqCallbackMap(serviceReqCallbackMap);
             messageHandler.setServiceReqRespMap(serviceReqRespMap);
             isInit = true;
         }
@@ -204,29 +186,23 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @throws Exception
      */
     public Result doInvokeWithSync(ClientInvocation invocation, URL url) throws Exception {
-        int totalWaitTime = 3000;//TODO 超时时间配置
+        Result result = null;
+
         long bWaitTime = System.currentTimeMillis();
-        /* 改为起独立线程监控
-        if(isEnableRandomPrint){
-            if(random.nextInt(100000) > 99990){
-                if(logger.isErrorEnabled()){
-                    logger.error("##########resRespMap len:{} ###########",serviceReqRespMap.size());
-                }
-            }
-        }
-        */
+        int timeout = invocation.getTimeout();
 
         //构造请求消息
         if("A".equalsIgnoreCase("B")){
             return new Result(new Hello("hi@","ok{invoker-doInvoke1}"));
         }
         SerializeServiceRequestPacket request = buildRequest(invocation);
-        //添加rpcId -> invocation映射表
+
+        //添加rpcId -> reqResp映射表
         String rpcId = RpcIdUtil.getRpcId(request);
         VenusReqRespWrapper reqRespWrapper = new VenusReqRespWrapper(invocation);
+        serviceReqRespMap.put(rpcId,reqRespWrapper);
 
         //发送消息
-        serviceReqRespMap.put(rpcId,reqRespWrapper);
         if("A".equalsIgnoreCase("B")){
             return new Result(new Hello("hi@","ok{invoker-doInvoke2}"));
         }
@@ -236,54 +212,44 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             if(isEnableRandomPrint){
                 if(ThreadLocalRandom.current().nextInt(100000) > 99995){
                     if(logger.isErrorEnabled()){
-                        logger.error("build,send->fecth cost time:{}.",System.currentTimeMillis()-bWaitTime);
+                        logger.error("build->send cost time:{}.",System.currentTimeMillis()-bWaitTime);
                     }
                 }
             }
             return new Result(new Hello("hi@","ok{invoker-doInvoke3}"));
         }
-        //sync/wait方式阻塞等待并处理响应结果
-        /*
-        synchronized (serviceResponseMap){
-            long bWaitTime = System.currentTimeMillis();
-            while(serviceResponseMap.get(rpcId) == null && !isTimeout(totalWaitTime,bWaitTime)){
-                serviceResponseMap.wait(getRemainWaitTime(totalWaitTime,bWaitTime));
-            }
 
-            result = fetchResponse(rpcId);
-            logger.warn("build,send,wait->fetch end,request rpcId:{},thread:{},cost time:{}.", rpcId,Thread.currentThread(),System.currentTimeMillis()-bWaitTime);
-        }
-        */
 
-        /*
-        FutureTask<Result> futureTask = new FutureTask(new RequestTask(request,invocation,url,reqRespWrapper));
-        Future future = executor.submit(futureTask);
-        Result result = futureTask.get();
-        */
         boolean isReturnMock = false;
-
-        Result result = null;
         if(!isReturnMock){
             //latch阻塞等待
             //TODO #####超时时间提取配置#######
-            reqRespWrapper.getReqRespLatch().await(3000,TimeUnit.MILLISECONDS);
+            reqRespWrapper.getReqRespLatch().await(timeout,TimeUnit.MILLISECONDS);
             //处理响应
             if("A".equalsIgnoreCase("B")){
                 return new Result(new Hello("hi@","ok{invoker-doInvoke4}"));
             }
             result = fetchResponse(rpcId);
         }else{
+            if(mockReturnExecutor == null){
+                mockReturnExecutor = new ThreadPoolExecutor(10,20,0,TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(100000),new RejectedExecutionHandler(){
+                    @Override
+                    public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+                        logger.error("mock return,exceed max process,maxThread:{},maxQueue:{}.",5,100);
+                    }
+                });
+            }
             //mock接收消息处理
             mockReturnExecutor.execute(new MockReturnProcess(reqRespWrapper));
 
-            reqRespWrapper.getReqRespLatch().await(3000,TimeUnit.MILLISECONDS);
+            reqRespWrapper.getReqRespLatch().await(timeout,TimeUnit.MILLISECONDS);
 
             result = fetchResponseFromMock(rpcId);
         }
 
         //TODO 改为methodPath
         if(result == null){
-            throw new RpcException(String.format("invoke service:%s,timeout:%dms",url.getPath(),totalWaitTime));
+            throw new RpcException(String.format("invoke service:%s,timeout:%dms",url.getPath(),timeout));
         }
 
         if(isEnableRandomPrint){
@@ -309,12 +275,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
         @Override
         public void run() {
-            /*
-            try {
-                TimeUnit.MICROSECONDS.sleep(50);
-            } catch (InterruptedException e) {}
-            */
-
             try {
                 reqRespWrapper.setPacket(null);
             } finally {
@@ -324,74 +284,32 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     }
 
     /**
-     * 请求task
-     */
-    class RequestTask implements Callable<Result>{
-
-        private ClientInvocation invocation;
-
-        private SerializeServiceRequestPacket request;
-
-        private URL url;
-
-        private VenusReqRespWrapper reqRespWrapper;
-
-        private Object lock = new Object();
-
-        public RequestTask(SerializeServiceRequestPacket request,ClientInvocation invocation,URL url,VenusReqRespWrapper reqRespWrapper){
-            this.request = request;
-            this.invocation = invocation;
-            this.url = url;
-            this.reqRespWrapper = reqRespWrapper;
-        }
-
-        @Override
-        public Result call() throws Exception {
-            Result result = null;
-            long bWaitTime = System.currentTimeMillis();
-            //latch阻塞等待
-            if("A".equalsIgnoreCase("B")){
-                return new Result(new Hello("hi@","ok{invoker-doInvoke3}"));
-            }
-            reqRespWrapper.getReqRespLatch().await(3000,TimeUnit.MILLISECONDS);
-
-            //处理响应
-            if("A".equalsIgnoreCase("B")){
-                return new Result(new Hello("hi@","ok{invoker-doInvoke4}"));
-            }
-
-            String rpcId = RpcIdUtil.getRpcId(request);
-            result = fetchResponse(rpcId);
-
-            if(ThreadLocalRandom.current().nextInt(50000) > 49980){
-                logger.error("build,send->fecth cost time:{}.",System.currentTimeMillis()-bWaitTime);
-            }
-            return result;
-        }
-    }
-
-    /**
      * 判断是否超时
      * @param totalWaitTime
      * @param bWaitTime
      * @return
      */
+    /*
     boolean isTimeout(long totalWaitTime,long bWaitTime){
         long costTime = System.currentTimeMillis() - bWaitTime;
         return costTime >= totalWaitTime;
     }
+    */
+
     /**
      * 获取剩余等待时间
      * @param totalWaitTime
      * @param bWaitTime
      * @return
      */
+    /*
     long getRemainWaitTime(long totalWaitTime,long bWaitTime){
         long usedWaitTime = System.currentTimeMillis() - bWaitTime;
         long remainWaitTime = totalWaitTime - usedWaitTime;
         remainWaitTime = remainWaitTime < 1?1:remainWaitTime;
         return remainWaitTime;
     }
+    */
 
     /**
      * callback异步调用
@@ -403,8 +321,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     public Result doInvokeWithCallback(ClientInvocation invocation, URL url) throws Exception {
         //构造请求消息
         SerializeServiceRequestPacket request = buildRequest(invocation);
-        //添加rpcId-> invocation映射表
-        serviceInvocationMap.put(RpcIdUtil.getRpcId(request),invocation);
+
+        //添加rpcId-> reqResp映射表
+        serviceReqCallbackMap.put(RpcIdUtil.getRpcId(request),invocation);
 
         //发送消息
         sendRequest(invocation, request, url);
@@ -519,7 +438,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                 performanceLogger.debug(buffer.toString());
             }
             */
-
             //TODO 长连接，心跳处理，确认？
             if (conn != null && nioConnPool != null) {
                 nioConnPool.returnObject(conn);
@@ -597,11 +515,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         //nioFactory.setSendBufferSize(2);
         //nioFactory.setReceiveBufferSize(4);
         //nioFactory.setWriteQueueCapcity(16);
-        /*
-        protected int receiveBufferSize = 16;
-        protected int sendBufferSize = 8;
-        protected int writeQueueCapcity = 8;
-        */
 
         //初始化连接池 TODO 连接数双倍问题
         BackendConnectionPool nioPool = new PollingBackendConnectionPool("N-" + url.getHost(), nioFactory, coreConnections);
@@ -709,7 +622,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     }
 
     /**
-     * 设置transactionId
+     * 设置transactionId TODO 监控上报用，确认是否保留？
      * @param athenaTransactionId
      * @param serviceRequestPacket
      * @param invocation
@@ -751,10 +664,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
         this.venusExceptionFactory = venusExceptionFactory;
-    }
-
-    public void setServiceFactory(XmlServiceFactory serviceFactory) {
-        this.serviceFactory = serviceFactory;
     }
 
     public short getSerializeType() {

@@ -1,11 +1,8 @@
 package com.meidusa.venus.service.registry;
 
 import com.meidusa.toolkit.common.util.ObjectUtil;
-import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -121,7 +118,7 @@ public class ServiceDefinition {
 
 	@Override
 	public String toString() {
-		return "ServiceDefinitionDO [name=" + name + ", interfaceName=" + interfaceName + ", versionRange=" + versionRange
+		return "ServiceDefinitionExtra [name=" + name + ", interfaceName=" + interfaceName + ", versionRange=" + versionRange
 				+ ", active=" + active + ", ipAddress=" + ipAddress + ", description=" + description
 				+ "]";
 	}

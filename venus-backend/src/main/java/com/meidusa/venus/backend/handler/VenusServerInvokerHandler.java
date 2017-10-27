@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.invoker;
+package com.meidusa.venus.backend.handler;
 
 import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.fastbson.exception.SerializeException;
@@ -9,6 +9,8 @@ import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.*;
+import com.meidusa.venus.backend.invoker.VenusServerInvocationListener;
+import com.meidusa.venus.backend.invoker.VenusServerInvokerProxy;
 import com.meidusa.venus.backend.invoker.support.ServerRequestHandler;
 import com.meidusa.venus.backend.invoker.support.ServerResponseHandler;
 import com.meidusa.venus.backend.invoker.support.ServerResponseWrapper;
@@ -24,6 +26,7 @@ import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
+import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.*;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
@@ -33,16 +36,15 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * venus服务调用task，多线程执行
+ * venus服务调用处理handler
  * Created by Zhangzhihua on 2017/8/2.
  */
-public class VenusServerInvokerTask{
+public class VenusServerInvokerHandler {
 
-    private static Logger logger = LoggerFactory.getLogger(VenusServerInvokerTask.class);
+    private static Logger logger = LoggerFactory.getLogger(VenusServerInvokerHandler.class);
 
     private static Logger performanceLogger = LoggerFactory.getLogger("venus.backend.performance");
 
@@ -65,11 +67,12 @@ public class VenusServerInvokerTask{
     private short serializeType;
     private String apiName;
     private String sourceIp;
+    private Tuple<Long, byte[]> data;
     */
 
-    private Endpoint endpoint;
-
     private byte[] traceID;
+
+    private Endpoint endpoint;
 
     private SerializeServiceRequestPacket request;
 
@@ -83,8 +86,6 @@ public class VenusServerInvokerTask{
 
     private VenusFrontendConnection conn;
 
-    private Tuple<Long, byte[]> data;
-
     private ServerResponseHandler responseHandler = new ServerResponseHandler();
 
     /**
@@ -93,13 +94,6 @@ public class VenusServerInvokerTask{
     private static VenusServerInvokerProxy venusServerInvokerProxy;
 
     private static boolean isEnableRandomPrint = true;
-
-    public VenusServerInvokerTask(){}
-
-    public VenusServerInvokerTask(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
-        this.conn = conn;
-        this.data = data;
-    }
 
     /**
      * 处理远程调用请求
@@ -238,6 +232,7 @@ public class VenusServerInvokerTask{
             requestContext.setEndPointer(endpointDef);
         }
         invocation.setRequestContext(requestContext);
+        //确认监控用，可注掉
         ThreadLocalMap.put(VenusTracerUtil.REQUEST_TRACE_ID, traceID);
         ThreadLocalMap.put(ThreadLocalConstant.REQUEST_CONTEXT, requestContext);
         if(requestContext.getRootId() != null){

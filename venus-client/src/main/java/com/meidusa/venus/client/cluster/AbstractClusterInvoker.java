@@ -3,7 +3,7 @@ package com.meidusa.venus.client.cluster;
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.ClusterInvoker;
 import com.meidusa.venus.Invoker;
-import com.meidusa.venus.RpcException;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.client.cluster.loadbanlance.Loadbanlance;
 import com.meidusa.venus.client.cluster.loadbanlance.RandomLoadbanlance;
 import com.meidusa.venus.client.cluster.loadbanlance.RoundLoadbanlance;

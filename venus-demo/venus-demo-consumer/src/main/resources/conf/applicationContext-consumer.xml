@@ -23,7 +23,7 @@
 	</bean>
 
 	<!--应用配置-->
-	<bean class="com.meidusa.venus.client.Application">
+	<bean class="com.meidusa.venus.Application">
 		<property name="name" value="${application.name}"/>
 	</bean>
 

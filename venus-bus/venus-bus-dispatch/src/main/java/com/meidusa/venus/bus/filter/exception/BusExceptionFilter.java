@@ -1,6 +1,7 @@
 package com.meidusa.venus.bus.filter.exception;
 
 import com.meidusa.venus.*;
+import com.meidusa.venus.exception.RpcException;
 
 /**
  * bus异常切面处理

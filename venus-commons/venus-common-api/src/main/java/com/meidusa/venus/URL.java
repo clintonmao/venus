@@ -58,7 +58,7 @@ public class URL implements Serializable {
 	private RemoteConfig remoteConfig;
 
 	/*注册中心服务定义*/
-	private ServiceDefinitionDO serviceDefinition;
+	private ServiceDefinitionExtra serviceDefinition;
 
 	public String getProtocol() {
 		return protocol;
@@ -338,11 +338,11 @@ public class URL implements Serializable {
 		this.remoteConfig = remoteConfig;
 	}
 
-	public ServiceDefinitionDO getServiceDefinition() {
+	public ServiceDefinitionExtra getServiceDefinition() {
 		return serviceDefinition;
 	}
 
-	public void setServiceDefinition(ServiceDefinitionDO serviceDefinition) {
+	public void setServiceDefinition(ServiceDefinitionExtra serviceDefinition) {
 		this.serviceDefinition = serviceDefinition;
 	}
 

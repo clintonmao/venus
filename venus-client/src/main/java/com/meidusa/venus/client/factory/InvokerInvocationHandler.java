@@ -8,6 +8,7 @@ import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.factory.xml.config.ServiceConfig;
 import com.meidusa.venus.client.invoker.ClientInvokerProxy;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.utils.RpcIdUtil;
@@ -17,6 +18,7 @@ import com.meidusa.venus.metainfo.EndpointParameterUtil;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.support.EndpointWrapper;
 import com.meidusa.venus.support.ServiceWrapper;
+import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusTracerUtil;
 import org.apache.commons.lang.StringUtils;
@@ -186,7 +188,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
         if(register != null){
             invocation.setLookupType(1);
         }
-        //设置集群负载相关
+        //设置服务相关自定义参数
         if(serviceConfig != null){
             if(StringUtils.isNotEmpty(serviceConfig.getCluster())){
                 invocation.setCluster(serviceConfig.getCluster());
@@ -196,6 +198,9 @@ public class InvokerInvocationHandler implements InvocationHandler {
             }
             if(StringUtils.isNotEmpty(serviceConfig.getLoadbanlance())){
                 invocation.setLoadbanlance(serviceConfig.getLoadbanlance());
+            }
+            if(serviceConfig.getTimeout() != 0){
+                invocation.setTimeout(serviceConfig.getTimeout());
             }
         }
         return invocation;

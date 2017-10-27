@@ -6,6 +6,7 @@ import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.client.cluster.ClusterFastfailInvoker;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import org.apache.commons.collections.CollectionUtils;
