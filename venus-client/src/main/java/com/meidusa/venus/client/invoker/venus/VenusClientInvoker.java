@@ -59,16 +59,13 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     private VenusExceptionFactory venusExceptionFactory;
 
-    private boolean enableAsync = true;
 
     /*
+    private boolean enableAsync = true;
     private static AtomicLong sequenceId = new AtomicLong(1);
     private boolean needPing = false;
     private XmlServiceFactory serviceFactory;
     */
-
-    //TODO 确认此处线程池用途
-    private int asyncExecutorSize = 10;
 
     /**
      * nio连接映射表
@@ -102,9 +99,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     private boolean isInit = false;
 
-    //默认连接数 TODO 连接数提醒配置 新建VenusConstants常量定义类
-    private int coreConnections = 50;
-
     private static boolean isEnableRandomPrint = true;
 
     //mock返回线程池
@@ -115,10 +109,10 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             try {
                 logger.error("###################init connector############");
                 connector = new ConnectionConnector("connection connector-0");
-                int ioThreads = 8;//Runtime.getRuntime().availableProcessors();
+                int ioThreads = Runtime.getRuntime().availableProcessors();
                 ConnectionManager[] connectionManagers = new ConnectionManager[ioThreads];
                 for(int i=0;i<ioThreads;i++){
-                    ConnectionManager connManager = new ConnectionManager("connection manager-" + i, 10);
+                    ConnectionManager connManager = new ConnectionManager("connection manager-" + i, -1);
                     connectionManagers[i] = connManager;
                     connManager.start();
                 }
@@ -406,7 +400,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         BackendConnection conn = null;
         try {
             //获取连接 TODO 地址变化情况
-            nioConnPool = getNioConnPool(url,null);
+            nioConnPool = getNioConnPool(url,invocation,null);
             conn = nioConnPool.borrowObject();
 
             //发送请求消息，响应由handler类处理
@@ -453,7 +447,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @throws Exception
      * @param url
      */
-    public BackendConnectionPool getNioConnPool(URL url,ClientRemoteConfig remoteConfig) throws Exception {
+    public BackendConnectionPool getNioConnPool(URL url,ClientInvocation invocation,ClientRemoteConfig remoteConfig) throws Exception {
         String address = new StringBuilder()
                 .append(url.getHost())
                 .append(":")
@@ -470,23 +464,12 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                 if(nioPoolMap.get(address) != null){
                     backendConnectionPool = nioPoolMap.get(address);
                 }else{
-                    backendConnectionPool = createNioPool(url,new ClientRemoteConfig());
+                    backendConnectionPool = createNioPool(url,invocation,new ClientRemoteConfig());
                     nioPoolMap.put(address,backendConnectionPool);
                 }
             }
             return backendConnectionPool;
         }
-
-        /*
-        String ipAddressList = remoteConfig.getFactory().getIpAddressList();
-        if(nioPoolMap.get(ipAddressList) != null){
-            return nioPoolMap.get(ipAddressList);
-        }
-
-        BackendConnectionPool backendConnectionPool = createNioPool(remoteConfig, realPoolMap);
-        nioPoolMap.put(remoteConfig.getFactory().getIpAddressList(),backendConnectionPool);
-        return backendConnectionPool;
-        */
     }
 
     /**
@@ -496,7 +479,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @return
      * @throws Exception
      */
-    private BackendConnectionPool createNioPool(URL url,ClientRemoteConfig remoteConfig) throws Exception {
+    private BackendConnectionPool createNioPool(URL url,ClientInvocation invocation,ClientRemoteConfig remoteConfig) throws Exception {
         logger.error("#########create nio pool#############:{}.",url);
         //初始化连接工厂
         VenusBackendConnectionFactory nioFactory = new VenusBackendConnectionFactory();
@@ -517,13 +500,14 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         //nioFactory.setWriteQueueCapcity(16);
 
         //初始化连接池 TODO 连接数双倍问题
-        BackendConnectionPool nioPool = new PollingBackendConnectionPool("N-" + url.getHost(), nioFactory, coreConnections);
+        int connectionCount = invocation.getConnectionCount();
+        BackendConnectionPool nioPool = new PollingBackendConnectionPool("N-" + url.getHost(), nioFactory, connectionCount);
         PoolConfig poolConfig = remoteConfig.getPool();
         if (poolConfig != null) {
             //BeanUtils.copyProperties(nioPool, poolConfig);
         }
         nioPool.init();
-        //若连接池初始化失败，则释放连接池（TODO fix 此时心跳检测已启动）
+        //若连接池初始化失败，则释放连接池（fix 此时心跳检测已启动）
         boolean isValid = nioPool.isValid();
         if(!isValid){
             boolean isClosed = nioPool.isClosed();
@@ -650,14 +634,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     }
 
 
-    public boolean isEnableAsync() {
-        return enableAsync;
-    }
-
-    public void setEnableAsync(boolean enableAsync) {
-        this.enableAsync = enableAsync;
-    }
-
     public VenusExceptionFactory getVenusExceptionFactory() {
         return venusExceptionFactory;
     }
@@ -722,11 +698,4 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         */
     }
 
-    public int getAsyncExecutorSize() {
-        return asyncExecutorSize;
-    }
-
-    public void setAsyncExecutorSize(int asyncExecutorSize) {
-        this.asyncExecutorSize = asyncExecutorSize;
-    }
 }

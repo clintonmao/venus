@@ -59,6 +59,11 @@ public class ServiceConfig {
      * 超时时间
      */
     private int timeout;
+
+    /**
+     * 连接数
+     */
+    private int connectionCount;
     
     public int getTimeWait() {
         return timeWait;
@@ -154,5 +159,13 @@ public class ServiceConfig {
 
     public void setTimeout(int timeout) {
         this.timeout = timeout;
+    }
+
+    public int getConnectionCount() {
+        return connectionCount;
+    }
+
+    public void setConnectionCount(int connectionCount) {
+        this.connectionCount = connectionCount;
     }
 }
