@@ -131,7 +131,6 @@ public class VenusServerInvokerHandler {
                 if(logger.isWarnEnabled()){
                     logger.warn("write normal response,rpcId:{},cost time:{},result:{}",rpcId,System.currentTimeMillis()-bTime,JSONUtil.toJSONString(result));
                 }
-                //TODO sync可能有性能问题
                 responseHandler.writeResponseForResponse(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
                 if(logger.isWarnEnabled()){

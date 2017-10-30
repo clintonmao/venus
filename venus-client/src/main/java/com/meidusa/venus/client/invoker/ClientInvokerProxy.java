@@ -127,7 +127,6 @@ public class ClientInvokerProxy implements Invoker {
             }else{
                 ClientRemoteInvoker clientRemoteInvoker = getRemoteInvoker();
                 Result result = clientRemoteInvoker.invoke(invocation, url);
-                //logger.error("clientRemoteInvoker:{},thread:{},this.",clientRemoteInvoker,Thread.currentThread(),this);
                 VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
                 return result;
             }

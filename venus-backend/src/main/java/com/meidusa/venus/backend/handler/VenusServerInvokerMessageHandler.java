@@ -33,8 +33,6 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
 
-
-
     /*
     private int threadLiveTime = 30;
     private boolean executorEnabled = false;
@@ -47,7 +45,8 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
     private ServiceManager serviceManager;
 
-    private VenusServerInvokerHandler venusServerInvokerTask = null;
+    //业务消息实际处理类
+    private VenusServerInvokerHandler serverInvokerHandler = new VenusServerInvokerHandler();
 
     @Override
     public void init() throws InitialisationException {
@@ -100,7 +99,7 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:
                 //远程调用消息处理
-                getVenusServerInvokerTask().handle(conn, data);
+                getVenusServerInvokerHandler().handle(conn, data);
                 break;
             default:
                 super.handle(conn, data);
@@ -112,12 +111,11 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
      * 获取服务调用处理
      * @return
      */
-    VenusServerInvokerHandler getVenusServerInvokerTask(){
-        if(venusServerInvokerTask == null){
-            venusServerInvokerTask = new VenusServerInvokerHandler();
-            venusServerInvokerTask.setServiceManager(getServiceManager());
+    VenusServerInvokerHandler getVenusServerInvokerHandler(){
+        if(serverInvokerHandler != null){
+            serverInvokerHandler.setServiceManager(getServiceManager());
         }
-        return venusServerInvokerTask;
+        return serverInvokerHandler;
     }
 
     public VenusExceptionFactory getVenusExceptionFactory() {

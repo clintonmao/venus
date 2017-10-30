@@ -129,14 +129,6 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
     }
 
     /**
-     * 判断是否本地寻址
-     * @return
-     */
-    boolean isLocalLookup(){
-        return StringUtils.isNotEmpty(ipAddressList);
-    }
-
-    /**
      * 初始化服务代理
      * @param t
      * @param <T>
@@ -186,7 +178,6 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
 
     @Override
     public void destroy() {
-        // TODO
     }
 
 	@Override

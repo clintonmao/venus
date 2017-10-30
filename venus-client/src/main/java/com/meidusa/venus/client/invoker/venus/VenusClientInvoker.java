@@ -135,7 +135,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     public void init() throws RpcException {
         if(!isInit){
             messageHandler.setVenusExceptionFactory(venusExceptionFactory);
-            messageHandler.setContainer(this.container);
             messageHandler.setServiceReqCallbackMap(serviceReqCallbackMap);
             messageHandler.setServiceReqRespMap(serviceReqRespMap);
             isInit = true;
@@ -270,34 +269,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             }
         }
     }
-
-    /**
-     * 判断是否超时
-     * @param totalWaitTime
-     * @param bWaitTime
-     * @return
-     */
-    /*
-    boolean isTimeout(long totalWaitTime,long bWaitTime){
-        long costTime = System.currentTimeMillis() - bWaitTime;
-        return costTime >= totalWaitTime;
-    }
-    */
-
-    /**
-     * 获取剩余等待时间
-     * @param totalWaitTime
-     * @param bWaitTime
-     * @return
-     */
-    /*
-    long getRemainWaitTime(long totalWaitTime,long bWaitTime){
-        long usedWaitTime = System.currentTimeMillis() - bWaitTime;
-        long remainWaitTime = totalWaitTime - usedWaitTime;
-        remainWaitTime = remainWaitTime < 1?1:remainWaitTime;
-        return remainWaitTime;
-    }
-    */
 
     /**
      * callback异步调用

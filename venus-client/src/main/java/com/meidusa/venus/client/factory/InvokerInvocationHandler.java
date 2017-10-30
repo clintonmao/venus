@@ -97,9 +97,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
         try {
             //构造请求
             ClientInvocation invocation = buildInvocation(proxy, method, args);
-            if("A".equalsIgnoreCase("B")){
-                return new Hello("@hi","@ok");
-            }
 
             //通过代理调用服务
             Result result = getClientInvokerProxy().invoke(invocation,null);
@@ -124,7 +121,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
         //TODO auth/exceptionFactory通过懒加载注入
         clientInvokerProxy.setAuthenticator(getAuthenticator());
         clientInvokerProxy.setVenusExceptionFactory(getVenusExceptionFactory());
-        //TODO 传递要优化
         clientInvokerProxy.setRegister(register);
         clientInvokerProxy.setRemoteConfig(getRemoteConfig());
         return clientInvokerProxy;
@@ -173,9 +169,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
         invocation.setClientRequestId(sequenceId.getAndIncrement());
         //设置rpcId
         invocation.setRpcId(RpcIdUtil.getRpcId(invocation.getClientId(),invocation.getClientRequestId()));
-        if("A".equalsIgnoreCase("B")){
-            return null;
-        }
         //设置traceId
         byte[] traceID = VenusTracerUtil.getTracerID();
         if (traceID == null) {

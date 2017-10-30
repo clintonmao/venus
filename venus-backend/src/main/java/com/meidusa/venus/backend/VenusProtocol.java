@@ -27,7 +27,7 @@ import org.springframework.context.ApplicationContextAware;
  * venus协议，启动/销毁remoting、设置message handler相关操作
  * Created by Zhangzhihua on 2017/9/28.
  */
-public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,DisposableBean,BeanFactoryAware,ApplicationContextAware {
+public class VenusProtocol implements InitializingBean,DisposableBean {
 
     private static boolean isRunning = false;
 
@@ -122,12 +122,6 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
     }
 
     @Override
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-
-    }
-
-
-    @Override
     public void destroy() throws Exception {
         //释放连接
         if(connectionAcceptor != null){
@@ -163,16 +157,6 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
 
     public void setAuthenticateProvider(AuthenticateProvider authenticateProvider) {
         this.authenticateProvider = authenticateProvider;
-    }
-
-    @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-
     }
 
     //不使用属性依赖注入，由srvMgr反向注入
