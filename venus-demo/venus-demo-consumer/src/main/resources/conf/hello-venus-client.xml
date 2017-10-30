@@ -40,7 +40,7 @@
 		<!--
 		属性说明:
 		ipAddressList:地址列表，若不配则走注册中心，多个以;间隔，示例如ipAddressList="10.47.16.9:16800;10.47.16.10:16800"
-		remote:直连remote远程配置，不建议使用，仅ipAddressList属性可解，其它保留不用
+		remote:直连remote远程配置，不建议使用，仅ipAddressList属性解析使用，其它保留不用
 		timeout:超时时间，单位ms,默认3000ms，示例如,timeout="5000"
 		loadbanlance:负载均衡策略，支持random/round，默认random,,示例如,loadbanlance="random"
 		weight:权重，默认1，仅支持通过注册中心管理界面修改
