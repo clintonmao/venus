@@ -3,6 +3,7 @@ package com.meidusa.venus.client.cluster;
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.ClusterInvoker;
 import com.meidusa.venus.Invoker;
+import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.client.cluster.loadbanlance.Loadbanlance;
 import com.meidusa.venus.client.cluster.loadbanlance.RandomLoadbanlance;
@@ -32,11 +33,7 @@ public abstract class AbstractClusterInvoker implements ClusterInvoker {
     //服务路径-roundlb映射表
     private static Map<String,RoundLoadbanlance> roundLbMap = new ConcurrentHashMap<String,RoundLoadbanlance>();
 
-
-    /**
-     * 相应协议的invoker调用实现
-     */
-    private Invoker invoker;
+    protected Invoker invoker = null;
 
     public Invoker getInvoker() {
         return invoker;

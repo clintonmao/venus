@@ -5,6 +5,7 @@ import com.meidusa.toolkit.net.ConnectionAcceptor;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.authenticate.server.AuthenticateProvider;
 import com.meidusa.toolkit.net.factory.FrontendConnectionFactory;
+import com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider;
 import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.backend.handler.VenusServerInvokerMessageHandler;
@@ -112,7 +113,7 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
         MessageHandler messageHandler = createMessageHandler();
         this.messageHandler = messageHandler;
         connectionFactory.setMessageHandler(messageHandler);
-        connectionFactory.setAuthenticateProvider(authenticateProvider);
+        connectionFactory.setAuthenticateProvider(getAuthenticateProvider());
         return connectionFactory;
     }
 
@@ -131,10 +132,6 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
 
     }
 
-    public String getPort() {
-        return port;
-    }
-
 
     //TODO 资源释放时机，application or protocol or invoker？同时consumer&provider都要释放
     @Override
@@ -142,6 +139,10 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
         if(connectionAcceptor != null){
             connectionAcceptor.shutdown();
         }
+    }
+
+    public String getPort() {
+        return port;
     }
 
     public void setPort(String port) {
@@ -168,6 +169,12 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
     */
 
     public AuthenticateProvider getAuthenticateProvider() {
+        if(authenticateProvider == null){
+            //若认证为空，则默认设置为dummy方式
+            SimpleAuthenticateProvider simpleAuthenticateProvider= new SimpleAuthenticateProvider();
+            simpleAuthenticateProvider.setUseDummy(true);
+            return simpleAuthenticateProvider;
+        }
         return authenticateProvider;
     }
 

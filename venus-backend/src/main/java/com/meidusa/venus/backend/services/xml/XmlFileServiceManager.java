@@ -6,11 +6,8 @@ import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.toolkit.common.util.StringUtil;
-import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.URL;
-import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.annotations.PerformanceLevel;
-import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.backend.VenusProtocol;
 import com.meidusa.venus.backend.interceptor.Configurable;
 import com.meidusa.venus.backend.interceptor.config.InterceptorConfig;
@@ -19,9 +16,13 @@ import com.meidusa.venus.backend.services.xml.config.*;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanContext;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanUtilsBean;
 import com.meidusa.venus.digester.DigesterRuleParser;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusConfigException;
+import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.RegisterContext;
+import com.meidusa.venus.registry.VenusRegistryFactory;
+import com.meidusa.venus.support.VenusConstants;
+import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
@@ -30,6 +31,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.digester.Digester;
 import org.apache.commons.digester.RuleSet;
 import org.apache.commons.digester.xmlrules.FromXmlRuleSet;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -61,12 +63,15 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
     private ApplicationContext applicationContext;
 
-    private Register register;
-
     /**
-     * 通过get/set注入
+     * venus协议
      */
     private VenusProtocol venusProtocol;
+
+    /**
+     * 注册中心工厂
+     */
+    private VenusRegistryFactory venusRegistryFactory;
 
     public Resource[] getConfigFiles() {
         return configFiles;
@@ -101,9 +106,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         //初始化上下文
         initContext();
 
-        //初始化注册中心
-        initRegister();
-
         //初始化协议
         initProtocol();
 
@@ -125,28 +127,17 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         if(beanContext != null){
             VenusContext.getInstance().setBeanContext(beanContext);
         }
-        //VenusExceptionLoader.getCodeMap();
-        //AthenaExtensionResolver.getInstance().resolver();
-    }
-
-    /**
-     * 初始化注册中心
-     */
-    void initRegister(){
-        Register register = RegisterContext.getInstance().getRegister();
-        if(register == null){
-            throw new RpcException("init register failed.");
-        }
-        this.register = register;
     }
 
     /**
      * 初始化协议，启动相应协议的监听
      */
     void initProtocol(){
-        logger.info("initProtocol:{}.",Thread.currentThread().getName());
-        venusProtocol.setSrvMgr(this);
         try {
+            if(venusProtocol == null){
+                throw new VenusConfigException("venus protocol not config.");
+            }
+            venusProtocol.setSrvMgr(this);
             venusProtocol.init();
         } catch (Exception e) {
             throw new RpcException("init protocol failed.",e);
@@ -160,12 +151,12 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         //解析配置文件
         VenusServerConfig venusServerConfig = parseConfig();
         List<ServiceConfig> serviceConfigList = venusServerConfig.getServiceConfigs();
-        addMonitorServiceConfig(serviceConfigList);
-        addRegistryServiceConfig(serviceConfigList);
-
-        //初始化服务
+        //addMonitorServiceConfig(serviceConfigList);
+        //addRegistryServiceConfig(serviceConfigList);
         Map<String, InterceptorMapping> interceptors = venusServerConfig.getInterceptors();
         Map<String, InterceptorStackConfig> interceptorStacks = venusServerConfig.getInterceptorStatcks();
+
+        //初始化服务
         for (ServiceConfig serviceConfig : serviceConfigList) {
             initSerivce(serviceConfig,interceptors,interceptorStacks);
         }
@@ -191,19 +182,18 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                 InputStream is = config.getInputStream();
                 VenusServerConfig venusServerConfig = (VenusServerConfig) digester.parse(is);
 
-                //TODO disgester初始化不成功，临时设置instance
+                ConfigurableListableBeanFactory cbf = (ConfigurableListableBeanFactory) beanFactory;
                 if(CollectionUtils.isNotEmpty(venusServerConfig.getServiceConfigs())){
                     for(ServiceConfig serviceConfig : venusServerConfig.getServiceConfigs()){
+                        //FIXME disgester初始化不成功，注册到上下文
                         if(serviceConfig.getInstance() == null){
-                            if(beanFactory != null){
-                                //TODO 旧逻辑按实例名称查找spring实例？
-                                Object object = beanFactory.getBean(serviceConfig.getType());
-                                if(object == null){
-                                    String errorMsg = String.format("init venus config instance %s error.",serviceConfig.getType().getName());
-                                    throw new VenusConfigException(errorMsg);
-                                }
-                                serviceConfig.setInstance(object);
+                            Object serivceInstance = beanFactory.getBean(serviceConfig.getType());
+                            if(serivceInstance == null){
+                                String errorMsg = String.format("init venus config instance %s error.",serviceConfig.getType().getName());
+                                throw new VenusConfigException(errorMsg);
                             }
+                            //cbf.registerResolvableDependency(serviceConfig.getType(), serivceInstance);
+                            serviceConfig.setInstance(serivceInstance);
                         }
                     }
 
@@ -223,9 +213,33 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     }
 
     /**
+     * 注册到spring上下文
+     * @param beanFactory
+     * @param clz
+     * @param object
+     */
+    /*
+    void registeServiceBean(ConfigurableListableBeanFactory beanFactory,Class<?> clz,Object object){
+        String beanName = clz.getSimpleName();
+        BeanDefinitionRegistry reg = (BeanDefinitionRegistry) beanFactory;
+        GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+        beanDefinition.setBeanClass(clz);
+        beanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, beanName));
+        beanDefinition.setScope(BeanDefinition.SCOPE_SINGLETON);
+        ConstructorArgumentValues args = new ConstructorArgumentValues();
+        args.addIndexedArgumentValue(0, object);
+        args.addIndexedArgumentValue(1, clz);
+        beanDefinition.setConstructorArgumentValues(args);
+        beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
+        reg.registerBeanDefinition(beanName, beanDefinition);
+    }
+    */
+
+    /**
      * 添加服务监听实例配置
      * @param serviceConfigList
      */
+    /*
     void addMonitorServiceConfig(List<ServiceConfig> serviceConfigList){
         ServiceConfig monitorServiceConfig = new ServiceConfig();
         monitorServiceConfig.setActive(true);
@@ -234,11 +248,13 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         //monitorServiceConfig.setInstance(new VenusMonitorService());
         //serviceConfigList.add(monitorServiceConfig);
     }
+    */
 
     /**
      * 添加服务注册实例配置
      * @param serviceConfigList
      */
+    /*
     void addRegistryServiceConfig(List<ServiceConfig> serviceConfigList) {
         ServiceConfig registerServiceConfig = new ServiceConfig();
         registerServiceConfig.setActive(true);
@@ -247,6 +263,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         //registerServiceConfig.setInstance(new VenusServiceRegistry(getServiceMappings()));
         //serviceConfigList.add(registerServiceConfig);
     }
+    */
 
     /**
      * 初始化服务
@@ -258,8 +275,11 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         //初始化服务stub
         Service service = initServiceStub(serviceConfig, interceptors, interceptorStatcks);
 
-        //注册服务
-        registeService(serviceConfig, service);
+        //若开启注册中心，则注册服务
+        if(venusRegistryFactory != null && venusRegistryFactory.getRegister() != null){
+            registeService(serviceConfig, service,venusRegistryFactory.getRegister());
+        }
+
     }
 
     /**
@@ -289,6 +309,9 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         } else {
             service.setName(type.getCanonicalName());
         }
+        if(StringUtils.isNotEmpty(serviceAnnotation.versionx())){
+            service.setVersionx(serviceAnnotation.versionx());
+        }
         service.setDescription(serviceAnnotation.description());
 
         //初始化endpoints
@@ -297,12 +320,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         service.setEndpoints(endpoints);
 
         this.serviceMap.put(service.getName(), service);
-
-        // register to resolvable dependency container
-        if (beanFactory instanceof ConfigurableListableBeanFactory) {
-            ConfigurableListableBeanFactory cbf = (ConfigurableListableBeanFactory) beanFactory;
-            cbf.registerResolvableDependency(service.getType(), service.getInstance());
-        }
 
         Map<String, Collection<Endpoint>> ends = service.getEndpoints().asMap();
         for (Map.Entry<String, Collection<Endpoint>> entry : ends.entrySet()) {
@@ -317,12 +334,12 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     /**
      * 注册服务
      */
-    void registeService(ServiceConfig serviceConfig,Service service){
+    void registeService(ServiceConfig serviceConfig, Service service, Register register){
         //获取服务注册url
         URL serviceRegisterUrl = parseRegisterUrl(serviceConfig,service);
 
         //注册服务
-        getRegister().registe(serviceRegisterUrl);
+        register.registe(serviceRegisterUrl);
     }
 
     /**
@@ -335,9 +352,12 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         String protocol = "venus";
         String serviceInterfaceName = serviceConfig.getType().getName();
         String serviceName = service.getName();
-        String version = "0.0.0";//TODO
+        String version = VenusConstants.VERSION_DEFAULT;
+        if(StringUtils.isNotEmpty(service.getVersionx())){
+            version = service.getVersionx();
+        }
         String host = NetUtil.getLocalIp();
-        String port = venusProtocol.getPort();
+        String port = String.valueOf(venusProtocol.getPort());
         String methods = "sayHello[java.lang.String]";//TODO
         String registerUrl = String.format(
                 "%s://%s/%s?version=%s&application=%s&host=%s&port=%s&methods=%s",
@@ -458,14 +478,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
     }
 
-    /**
-     * 获取注册中心
-     * @return
-     */
-    Register getRegister(){
-        return register;
-    }
-
     public VenusProtocol getVenusProtocol() {
         return venusProtocol;
     }
@@ -482,5 +494,13 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    public VenusRegistryFactory getVenusRegistryFactory() {
+        return venusRegistryFactory;
+    }
+
+    public void setVenusRegistryFactory(VenusRegistryFactory venusRegistryFactory) {
+        this.venusRegistryFactory = venusRegistryFactory;
     }
 }

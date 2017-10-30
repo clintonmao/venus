@@ -17,32 +17,32 @@ package com.meidusa.venus.client.factory.xml;
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
-import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.support.VenusContext;
+import com.meidusa.venus.Invoker;
+import com.meidusa.venus.ServiceFactory;
+import com.meidusa.venus.ServiceFactoryBean;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
-import com.meidusa.venus.metainfo.AnnotationUtil;
-import com.meidusa.venus.monitor.VenusMonitorFactory;
-import com.meidusa.venus.registry.VenusRegistryFactory;
-import com.meidusa.venus.ServiceFactory;
+import com.meidusa.venus.client.factory.InvokerInvocationHandler;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.factory.xml.config.ServiceConfig;
 import com.meidusa.venus.client.factory.xml.config.VenusClientConfig;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanContext;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanUtilsBean;
 import com.meidusa.venus.client.factory.xml.support.ServiceDefinedBean;
-import com.meidusa.venus.ServiceFactoryBean;
-import com.meidusa.venus.client.factory.InvokerInvocationHandler;
+import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.io.packet.PacketConstant;
-import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.RegisterContext;
+import com.meidusa.venus.metainfo.AnnotationUtil;
+import com.meidusa.venus.monitor.VenusMonitorFactory;
+import com.meidusa.venus.registry.VenusRegistryFactory;
+import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.FileWatchdog;
 import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.digester.Digester;
 import org.apache.commons.digester.RuleSet;
 import org.apache.commons.digester.xmlrules.FromXmlRuleSet;
@@ -50,6 +50,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -70,12 +71,13 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * 基于xml配置服务工厂
  */
-public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware, InitializingBean, BeanFactoryPostProcessor {
+public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware, InitializingBean, DisposableBean,BeanFactoryPostProcessor {
 
     private static Logger logger = LoggerFactory.getLogger(ServiceFactory.class);
 
@@ -112,12 +114,13 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
     private BeanContext beanContext;
 
     /**
-     * 注册中心
+     * 注册中心工厂
      */
-    private Register register;
-
     private VenusRegistryFactory venusRegistryFactory;
 
+    /**
+     * 监控中心工厂
+     */
     private VenusMonitorFactory venusMonitorFactory;
 
     //private boolean enableReload = false;
@@ -164,9 +167,6 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
 
     	//初始化应用上下文
     	initContext();
-
-        //初始化注册中心
-        initRegister();
 
         //初始化配置
         initConfiguration();
@@ -225,27 +225,12 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
     }
 
     /**
-     * 获取注册中心
-     * @return
-     */
-    void initRegister(){
-        //TODO 改由注册工厂获取，这样不存在加载顺序问题
-        Register register = RegisterContext.getInstance().getRegister();
-        if(register == null){
-            throw new RpcException("init register failed.");
-        }
-        this.register = register;
-    }
-
-    /**
      * 初始化配置
      * @throws Exception
      */
     private synchronized void initConfiguration() throws Exception {
         //加载客户端配置信息
         VenusClientConfig venusClientConfig = parseClientConfig();
-
-        //TODO 校验配置有效性，提出去
 
         //初始化service实例
         for (ServiceConfig serviceConfig : venusClientConfig.getServiceConfigs()) {
@@ -279,7 +264,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         initServiceProxy(serviceConfig,venusClientConfig);
 
         //若走注册中心，则订阅服务
-        if(!isLocalLookup(serviceConfig)){
+        if(isNeedSubscrible(serviceConfig)){
             subscribleService(serviceConfig);
         }
     }
@@ -289,8 +274,14 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      * @param serviceConfig
      * @return
      */
-    boolean isLocalLookup(ServiceConfig serviceConfig){
-        return StringUtils.isNotEmpty(serviceConfig.getRemote()) || StringUtils.isNotEmpty(serviceConfig.getIpAddressList());
+    boolean isNeedSubscrible(ServiceConfig serviceConfig){
+        //若直连，则不订阅
+        if(StringUtils.isNotEmpty(serviceConfig.getRemote()) || StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
+            return false;
+        }
+
+        //若注册中心未定义，则不订阅
+        return !(venusRegistryFactory == null || venusRegistryFactory.getRegister() == null);
     }
     /**
      * 初始化服务代理
@@ -302,11 +293,14 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
         invocationHandler.setServiceInterface(serviceConfig.getType());
         //若配置静态地址，以静态为先
-        if(isLocalLookup(serviceConfig)){
+        if(StringUtils.isNotEmpty(serviceConfig.getRemote()) || StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
             ClientRemoteConfig remoteConfig = getRemoteConfig(serviceConfig,venusClientConfig);
             invocationHandler.setRemoteConfig(remoteConfig);
         }else{
-            invocationHandler.setRegister(register);
+            if(venusRegistryFactory == null || venusRegistryFactory.getRegister() == null){
+                throw new VenusConfigException("venus register not config.");
+            }
+            invocationHandler.setRegister(venusRegistryFactory.getRegister());
         }
         invocationHandler.setVenusExceptionFactory(this.getVenusExceptionFactory());
         invocationHandler.setServiceConfig(serviceConfig);
@@ -366,20 +360,26 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             serviceInterfaceName = serviceConfig.getType().getName();
         }
         String serivceName = serviceConfig.getBeanName();
-        String version = "0.0.0";//TODO
+        //TODO 加载版本机制？
+        String versionx = "0.0.0";
+        if(StringUtils.isNotEmpty(serviceConfig.getVersionx())){
+            versionx = serviceConfig.getVersionx();
+        }
         String consumerHost = NetUtil.getLocalIp();
 
         String subscribleUrl = String.format(
                 "subscrible://%s/%s?version=%s&application=%s&host=%s",
                 serviceInterfaceName,
                 serivceName,
-                version,
+                versionx,
                 application,
                 consumerHost
                 );
         com.meidusa.venus.URL url = com.meidusa.venus.URL.parse(subscribleUrl);
-        logger.info("subscrible service:{}",url);
-        register.subscrible(url);
+        if(logger.isInfoEnabled()){
+            logger.info("subscrible service:{}",url);
+        }
+        venusRegistryFactory.getRegister().subscrible(url);
     }
 
 
@@ -511,9 +511,20 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
 
     }
 
+    @Override
     public void destroy() {
         if (shutdown) {
             return;
+        }
+
+        //释放资源
+        List<Invoker> invokerList = VenusClientInvoker.getInvokerList();
+        if(CollectionUtils.isNotEmpty(invokerList)){
+            for(Invoker invoker:invokerList){
+                if(invoker != null){
+                    invoker.destroy();
+                }
+            }
         }
         shutdown = true;
     }

@@ -3,6 +3,7 @@ package com.meidusa.venus.client.cluster;
 import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.venus.*;
 import com.meidusa.venus.ClientInvocation;
+import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.exception.RpcException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,10 @@ import java.util.List;
 public class ClusterFastfailInvoker extends AbstractClusterInvoker implements ClusterInvoker {
 
     private static Logger logger = LoggerFactory.getLogger(ClusterFastfailInvoker.class);
+
+    public ClusterFastfailInvoker(Invoker invoker){
+        this.invoker = invoker;
+    }
 
     @Override
     public void init() throws RpcException {
@@ -41,5 +46,6 @@ public class ClusterFastfailInvoker extends AbstractClusterInvoker implements Cl
     @Override
     public void destroy() throws RpcException {
     }
+
 
 }

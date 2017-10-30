@@ -67,8 +67,10 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean,Be
 
         //实例化register
         Register register = new MysqlRegister(registerService);
+        if(register == null){
+            throw new VenusRegisteException("init register failed.");
+        }
         this.register = register;
-        RegisterContext.getInstance().setRegister(register);
     }
 
     /**

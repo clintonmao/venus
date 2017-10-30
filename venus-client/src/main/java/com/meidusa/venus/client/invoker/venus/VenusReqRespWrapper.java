@@ -1,5 +1,6 @@
 package com.meidusa.venus.client.invoker.venus;
 
+import com.meidusa.toolkit.net.BackendConnection;
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.io.packet.AbstractServicePacket;
 
@@ -17,6 +18,8 @@ public class VenusReqRespWrapper {
     //响应报文
     private AbstractServicePacket packet;
 
+    //当前请求使用连接
+    private BackendConnection backendConnection;
 
     //计数latch
     private CountDownLatch reqRespLatch = new CountDownLatch(1);
@@ -47,5 +50,13 @@ public class VenusReqRespWrapper {
 
     public void setReqRespLatch(CountDownLatch reqRespLatch) {
         this.reqRespLatch = reqRespLatch;
+    }
+
+    public BackendConnection getBackendConnection() {
+        return backendConnection;
+    }
+
+    public void setBackendConnection(BackendConnection backendConnection) {
+        this.backendConnection = backendConnection;
     }
 }

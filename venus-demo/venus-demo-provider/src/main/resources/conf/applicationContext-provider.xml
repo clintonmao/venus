@@ -11,7 +11,9 @@
 	default-autowire="byName">
 	
 	<!-- import server side spring context file -->
-	<context:component-scan base-package="com.chexiang.*" />
+	<context:annotation-config/>
+	<context:component-scan base-package="com.chexiang" />
+	<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" />
 
 	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="locations">
@@ -22,12 +24,12 @@
 		</property>
 	</bean>
 
-	<bean id="helloService" class="com.chexiang.venus.demo.provider.impl.DefaultHelloService"/>
-
 	<!--应用配置-->
-	<bean class="com.meidusa.venus.Application">
+	<bean id="application" class="com.meidusa.venus.Application">
 		<property name="name" value="${application.name}"/>
 	</bean>
+
+	<bean id="helloService" class="com.chexiang.venus.demo.provider.impl.DefaultHelloService"/>
 
 	<!--注册配置-->
 	<bean id="venusRegistryFactory" class="com.meidusa.venus.registry.VenusRegistryFactory">
@@ -35,9 +37,11 @@
 	</bean>
 
 	<!--监控配置-->
+	<!--
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
 		<property name="url" value="${monitor.url}"/>
 	</bean>
+	-->
 
 	<!--venus协议配置-->
 	<bean id="venusProtocol" class="com.meidusa.venus.backend.VenusProtocol">
@@ -45,13 +49,6 @@
 		<!--
 		<property name="coreThreads" value="${venus.protocol.coreThreads}"/>
 		-->
-		<property name="authenticateProvider" ref="authenticateProvider"/>
-	</bean>
-
-	<bean id="authenticateProvider" class="com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider">
-		<property name="useDummy" value="true" />
-		<property name="username" value="111" />
-		<property name="password" value="111" />
 	</bean>
 
 	<!--服务发布配置-->

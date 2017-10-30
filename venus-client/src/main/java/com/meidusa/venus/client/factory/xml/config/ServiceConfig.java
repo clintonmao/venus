@@ -24,6 +24,9 @@ public class ServiceConfig {
 
     private Object instance;
 
+    //版本号
+    private String versionx;
+
     /**
      * 远程配置名称
      */
@@ -167,5 +170,13 @@ public class ServiceConfig {
 
     public void setCoreConnections(int coreConnections) {
         this.coreConnections = coreConnections;
+    }
+
+    public String getVersionx() {
+        return versionx;
+    }
+
+    public void setVersionx(String versionx) {
+        this.versionx = versionx;
     }
 }

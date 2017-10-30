@@ -78,6 +78,9 @@ public class ClientInvocation implements Invocation {
     //连接数，默认8（一个服务）
     private int coreConnections = VenusConstants.CONNECTION_DEFAULT_COUNT;
 
+    //版本号，4.0开始使用
+    private String versionx;
+
     public int getClientId() {
         return clientId;
     }
@@ -312,5 +315,13 @@ public class ClientInvocation implements Invocation {
 
     public void setCoreConnections(int coreConnections) {
         this.coreConnections = coreConnections;
+    }
+
+    public String getVersionx() {
+        return versionx;
+    }
+
+    public void setVersionx(String versionx) {
+        this.versionx = versionx;
     }
 }

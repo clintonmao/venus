@@ -70,8 +70,6 @@ public class ClientInvokerProxy implements Invoker {
 
     private static boolean isEnableFilter = false;
 
-    Random random = new Random();
-
     @Override
     public void init() throws RpcException {
     }
@@ -103,7 +101,9 @@ public class ClientInvokerProxy implements Invoker {
                 VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
                 return result;
             }else{
-                Result result = getRemoteInvoker().invoke(invocation, url);
+                ClientRemoteInvoker clientRemoteInvoker = getRemoteInvoker();
+                Result result = clientRemoteInvoker.invoke(invocation, url);
+                //logger.error("clientRemoteInvoker:{},thread:{},this.",clientRemoteInvoker,Thread.currentThread(),this);
                 VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
                 return result;
             }

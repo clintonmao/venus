@@ -9,13 +9,16 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>venus-demo-provider</artifactId>
     <properties>
-		<project.home>${basedir}</project.home>
+        <project.home>${basedir}</project.home>
         <spring.version>4.3.3.RELEASE</spring.version>
+        <!--
+        <spring.version>3.2.4.RELEASE</spring.version>
+        -->
         <spring.boot.version>1.4.1.RELEASE</spring.boot.version>
-		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-	</properties>
+        <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+    </properties>
+    <artifactId>venus-demo-provider</artifactId>
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>

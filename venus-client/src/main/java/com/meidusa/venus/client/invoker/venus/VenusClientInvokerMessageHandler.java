@@ -56,9 +56,6 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
     private static boolean isEnableRandomPrint = true;
 
     public void handle(VenusBackendConnection conn, byte[] message) {
-        if("A".equalsIgnoreCase("B")){
-            return;
-        }
         //获取序列化
         Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
 
@@ -153,10 +150,6 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
      * @param serializer
      */
     void handleForResponse(VenusBackendConnection conn, byte[] message,Serializer serializer){
-        if("A".equalsIgnoreCase("B")){
-            return;
-        }
-
         VenusReqRespWrapper reqRespWrapper = null;
 
         try {

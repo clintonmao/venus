@@ -74,7 +74,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
      */
     private Register register;
 
-    private ClientInvokerProxy clientInvokerProxy;
+    private ClientInvokerProxy clientInvokerProxy = new ClientInvokerProxy();
 
     private static AtomicLong sequenceId = new AtomicLong(1);
 
@@ -121,15 +121,12 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * @return
      */
     public ClientInvokerProxy getClientInvokerProxy() {
-        if(clientInvokerProxy == null){
-            clientInvokerProxy = new ClientInvokerProxy();
-            //TODO auth/exceptionFactory通过懒加载注入
-            clientInvokerProxy.setAuthenticator(getAuthenticator());
-            clientInvokerProxy.setVenusExceptionFactory(getVenusExceptionFactory());
-            //TODO 传递要优化
-            clientInvokerProxy.setRegister(register);
-            clientInvokerProxy.setRemoteConfig(getRemoteConfig());
-        }
+        //TODO auth/exceptionFactory通过懒加载注入
+        clientInvokerProxy.setAuthenticator(getAuthenticator());
+        clientInvokerProxy.setVenusExceptionFactory(getVenusExceptionFactory());
+        //TODO 传递要优化
+        clientInvokerProxy.setRegister(register);
+        clientInvokerProxy.setRemoteConfig(getRemoteConfig());
         return clientInvokerProxy;
     }
 
@@ -204,6 +201,9 @@ public class InvokerInvocationHandler implements InvocationHandler {
             }
             if(serviceConfig.getCoreConnections() != 0){
                 invocation.setCoreConnections(serviceConfig.getCoreConnections());
+            }
+            if(StringUtils.isNotEmpty(serviceConfig.getVersionx())){
+                invocation.setVersionx(serviceConfig.getVersionx());
             }
         }
         return invocation;

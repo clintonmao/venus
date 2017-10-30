@@ -10,9 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -69,7 +68,7 @@ public class BenchmarkController {
             return result;
         }
         try {
-            TimeUnit.SECONDS.sleep(1);
+            TimeUnit.MICROSECONDS.sleep(500);
         } catch (InterruptedException e) {}
 
         //启动测试线程

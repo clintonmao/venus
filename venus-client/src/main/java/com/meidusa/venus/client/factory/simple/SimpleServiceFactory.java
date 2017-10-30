@@ -1,12 +1,10 @@
 package com.meidusa.venus.client.factory.simple;
 
 import com.meidusa.toolkit.common.util.Tuple;
-import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.ServiceFactoryExtra;
-import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.annotations.Endpoint;
-import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.factory.InvokerInvocationHandler;
+import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
@@ -14,9 +12,6 @@ import com.meidusa.venus.exception.XmlVenusExceptionFactory;
 import com.meidusa.venus.io.authenticate.Authenticator;
 import com.meidusa.venus.io.authenticate.DummyAuthenticator;
 import com.meidusa.venus.io.packet.DummyAuthenPacket;
-import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.RegisterContext;
-import com.meidusa.venus.util.NetUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,11 +51,6 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
 
     //TODO 版本号相关信息
     private Map<Class<?>, Tuple<Object, InvokerInvocationHandler>> servicesMap = new HashMap<Class<?>, Tuple<Object, InvokerInvocationHandler>>();
-
-    /**
-     * 注册中心client
-     */
-    private Register register;
 
     public SimpleServiceFactory() {
     }
@@ -135,11 +125,6 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
     protected <T> T initService(Class<T> t) {
         //初始化服务代理
         T serviceProxy = initServiceProxy(t);
-
-        //若走注册中心，则订阅服务
-        if(!isLocalLookup()){
-            subscribleService(t);
-        }
         return serviceProxy;
     }
 
@@ -165,7 +150,7 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
         if(StringUtils.isNotEmpty(ipAddressList)){
             invocationHandler.setRemoteConfig(ClientRemoteConfig.newInstace(ipAddressList));
         }else{
-            invocationHandler.setRegister(this.getRegister());
+            throw new VenusConfigException("ipAddressList not allow empty.");
         }
 
         if(this.venusExceptionFactory == null){
@@ -175,7 +160,6 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
             this.venusExceptionFactory = venusExceptionFactory;
         }
         invocationHandler.setVenusExceptionFactory(this.getVenusExceptionFactory());
-        //TODO 确认认证功能
         if(this.getAuthenticator() == null){
             this.authenticator = new DummyAuthenticator<DummyAuthenPacket>();
         }
@@ -198,54 +182,6 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
         Tuple<Object, InvokerInvocationHandler> serviceTuple = new Tuple<Object, InvokerInvocationHandler>(object, invocationHandler);
         servicesMap.put(t, serviceTuple);
         return object;
-    }
-
-    /**
-     * 获取注册中心端点
-     * @return
-     */
-    Register getRegister(){
-        if(this.register != null){
-            return this.register;
-        }
-        Register register = initRegister();
-        this.register = register;
-        return register;
-    }
-
-    /**
-     * 获取注册中心端点
-     * @return
-     */
-    Register initRegister(){
-        Register register = RegisterContext.getInstance().getRegister();
-        if(register == null){
-            throw new RpcException("init register failed.");
-        }
-        return register;
-    }
-
-    /**
-     * 订阅服务
-     */
-    void subscribleService(Class serviceClazz){
-        String application = VenusContext.getInstance().getApplication();
-        String serviceInterfaceName = serviceClazz.getClass().getName();
-        String serivceName = "null";//TODO 服务名称为空
-        String version = "0.0.0";//TODO
-        String consumerHost = NetUtil.getLocalIp();
-
-        String subscribleUrl = String.format(
-                "subscrible://%s/%s?version=%s&application=%s&host=%s",
-                serviceInterfaceName,
-                serivceName,
-                version,
-                application,
-                consumerHost
-        );
-        com.meidusa.venus.URL url = com.meidusa.venus.URL.parse(subscribleUrl);
-        logger.info("subscrible service:{}",url);
-        register.subscrible(url);
     }
 
     @Override
