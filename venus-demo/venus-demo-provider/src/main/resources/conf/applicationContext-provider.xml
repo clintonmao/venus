@@ -32,18 +32,31 @@
 	</bean>
 
 	<!--注册配置-->
+	<!--可选，若不配置则服务发布不注册-->
 	<bean id="venusRegistryFactory" class="com.meidusa.venus.registry.VenusRegistryFactory">
 		<property name="registerUrl" value="${register.registerUrl}"/>
 	</bean>
 
 	<!--监控配置-->
+	<!--可选，若不配置则监控不上报-->
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
 		<property name="url" value="${monitor.url}"/>
+		<!--
+		enableAthenaReport:是否开启athena上报，默认true
+		enableVenusReport:是否开启venus上报，默认true
+		-->
+		<!--
+		<property name="enableAthenaReport" value="true"/>
+		<property name="enableVenusReport" value="true"/>
+		-->
 	</bean>
 
 	<!--venus协议配置-->
 	<bean id="venusProtocol" class="com.meidusa.venus.backend.VenusProtocol">
 		<property name="port" value="${venus.protocol.port}"/>
+		<!--
+		coreThreads:协议启动线程数，默认100
+		-->
 		<!--
 		<property name="coreThreads" value="${venus.protocol.coreThreads}"/>
 		-->
