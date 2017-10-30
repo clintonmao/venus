@@ -68,10 +68,6 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
     @Override
     public void handle(VenusFrontendConnection conn, Tuple<Long, byte[]> data) {
-        if("A".equalsIgnoreCase("B")){
-            return;
-        }
-
         /*
         final long waitTime = TimeUtil.currentTimeMillis() - data.left;
         byte serializeType = conn.getSerializeType();

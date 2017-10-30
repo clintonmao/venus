@@ -667,10 +667,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         this.messageHandler = messageHandler;
     }
 
-    public static void release(){
-        //destroy();
-    }
-
     @Override
     public void destroy() throws RpcException{
         //释放连接

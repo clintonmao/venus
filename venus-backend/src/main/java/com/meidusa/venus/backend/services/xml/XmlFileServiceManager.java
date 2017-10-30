@@ -324,7 +324,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         Map<String, Collection<Endpoint>> ends = service.getEndpoints().asMap();
         for (Map.Entry<String, Collection<Endpoint>> entry : ends.entrySet()) {
             if (entry.getValue() != null && !entry.getValue().isEmpty()) {
-                //TODO 初始化monitorService
                 //MonitorRuntime.getInstance().initEndPoint(service.getName(), entry.getValue().iterator().next().getName());
             }
         }

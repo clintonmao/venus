@@ -33,11 +33,9 @@
 	</bean>
 
 	<!--监控配置-->
-	<!--
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
 		<property name="url" value="${monitor.url}"/>
 	</bean>
-	-->
 
 	<!--服务引用配置-->
 	<bean id="serviceFactory" class="com.meidusa.venus.client.VenusServiceFactory" destroy-method="destroy">

@@ -34,7 +34,6 @@ import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.metainfo.AnnotationUtil;
-import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.registry.VenusRegistryFactory;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.FileWatchdog;
@@ -117,11 +116,6 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      * 注册中心工厂
      */
     private VenusRegistryFactory venusRegistryFactory;
-
-    /**
-     * 监控中心工厂
-     */
-    private VenusMonitorFactory venusMonitorFactory;
 
     //private boolean enableReload = false;
     //private int asyncExecutorSize = 10;
@@ -571,11 +565,4 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         this.venusRegistryFactory = venusRegistryFactory;
     }
 
-    public VenusMonitorFactory getVenusMonitorFactory() {
-        return venusMonitorFactory;
-    }
-
-    public void setVenusMonitorFactory(VenusMonitorFactory venusMonitorFactory) {
-        this.venusMonitorFactory = venusMonitorFactory;
-    }
 }

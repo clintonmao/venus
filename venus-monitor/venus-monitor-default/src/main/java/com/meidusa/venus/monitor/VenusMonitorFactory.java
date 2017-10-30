@@ -45,8 +45,6 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      */
     private String url;
 
-    private boolean enable;
-
     /**
      * athena配置信息管理委托
      */
@@ -57,16 +55,43 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      */
     private Object clientConfigManager;
 
-    /**
-     * athena上报服务接口
-     */
-    private AthenaDataService athenaDataService;
-
     private ServiceFactoryExtra serviceFactoryExtra;
 
     private ApplicationContext applicationContext;
 
+    /**
+     * athena上报服务
+     */
+    private AthenaDataService athenaDataService;
+
+    /**
+     * 是否开启athena上报
+     */
+    private boolean enableAthenaReport = true;
+
+    /**
+     * 是否开启venus上报
+     */
+    private boolean enableVenusReport = true;
+
+    private static VenusMonitorFactory venusMonitorFactory;
+
     //private ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
+
+    private VenusMonitorFactory(){
+        venusMonitorFactory = this;
+    }
+
+    /**
+     * 获取实例，若spring未定义则为空
+     * @return
+     */
+    public static VenusMonitorFactory getInstance(){
+        if(venusMonitorFactory != null){
+            return venusMonitorFactory;
+        }
+        return null;
+    }
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -186,7 +211,6 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
             throw new RpcException("init athenaDataService failed.");
         }
         this.athenaDataService = athenaDataService;
-        AthenaContext.getInstance().setAthenaDataService(athenaDataService);
     }
 
     @Override
@@ -247,14 +271,6 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         this.url = url;
     }
 
-    public boolean isEnable() {
-        return enable;
-    }
-
-    public void setEnable(boolean enable) {
-        this.enable = enable;
-    }
-
     public AthenaDataService getAthenaDataService() {
         return athenaDataService;
     }
@@ -266,5 +282,21 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    public boolean isEnableAthenaReport() {
+        return enableAthenaReport;
+    }
+
+    public void setEnableAthenaReport(boolean enableAthenaReport) {
+        this.enableAthenaReport = enableAthenaReport;
+    }
+
+    public boolean isEnableVenusReport() {
+        return enableVenusReport;
+    }
+
+    public void setEnableVenusReport(boolean enableVenusReport) {
+        this.enableVenusReport = enableVenusReport;
     }
 }

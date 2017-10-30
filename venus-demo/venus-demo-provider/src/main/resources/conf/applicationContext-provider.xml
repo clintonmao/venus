@@ -24,12 +24,12 @@
 		</property>
 	</bean>
 
+	<bean id="helloService" class="com.chexiang.venus.demo.provider.impl.DefaultHelloService"/>
+
 	<!--应用配置-->
 	<bean id="application" class="com.meidusa.venus.Application">
 		<property name="name" value="${application.name}"/>
 	</bean>
-
-	<bean id="helloService" class="com.chexiang.venus.demo.provider.impl.DefaultHelloService"/>
 
 	<!--注册配置-->
 	<bean id="venusRegistryFactory" class="com.meidusa.venus.registry.VenusRegistryFactory">
@@ -37,11 +37,9 @@
 	</bean>
 
 	<!--监控配置-->
-	<!--
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
 		<property name="url" value="${monitor.url}"/>
 	</bean>
-	-->
 
 	<!--venus协议配置-->
 	<bean id="venusProtocol" class="com.meidusa.venus.backend.VenusProtocol">

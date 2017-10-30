@@ -91,7 +91,7 @@ public class VenusServerInvokerHandler {
     /**
      * 服务调用代理
      */
-    private static VenusServerInvokerProxy venusServerInvokerProxy;
+    private VenusServerInvokerProxy venusServerInvokerProxy = new VenusServerInvokerProxy();
 
     private static boolean isEnableRandomPrint = true;
 
@@ -101,9 +101,6 @@ public class VenusServerInvokerHandler {
      * @param data
      */
     public void handle(VenusFrontendConnection conn, Tuple<Long, byte[]> data) {
-        if("A".equalsIgnoreCase("B")){
-            return;
-        }
         long bTime = System.currentTimeMillis();
         ServerInvocation invocation = null;
         Result result = null;
@@ -118,11 +115,7 @@ public class VenusServerInvokerHandler {
             }
 
             //通过代理调用服务
-            if("A".equalsIgnoreCase("B")){
-                result = new Result(new Hello("@hi","@SERVER task1."));
-            }else{
-                result = getVenusServerInvokerProxy().invoke(invocation, null);
-            }
+            result = getVenusServerInvokerProxy().invoke(invocation, null);
         } catch (Exception e) {
             //TODO 处理异常信息丢失、异常信息包装
             result = new Result();
@@ -170,9 +163,6 @@ public class VenusServerInvokerHandler {
      * @return
      */
     VenusServerInvokerProxy getVenusServerInvokerProxy(){
-        if(venusServerInvokerProxy == null){
-            venusServerInvokerProxy = new VenusServerInvokerProxy();
-        }
         return venusServerInvokerProxy;
     }
 

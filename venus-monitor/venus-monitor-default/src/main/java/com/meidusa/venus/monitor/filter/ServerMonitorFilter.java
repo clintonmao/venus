@@ -20,9 +20,12 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
 
     private static Logger logger = LoggerFactory.getLogger(ServerMonitorFilter.class);
 
+    private boolean isInitAthena = false;
+
+    public ServerMonitorFilter(){}
+
     public ServerMonitorFilter(AthenaDataService athenaDataService){
         this.setAthenaDataService(athenaDataService);
-        startProcessAndReporterTread();
     }
 
     @Override
