@@ -19,6 +19,7 @@ public class DefaultEchoService implements EchoService {
 
     @Override
     public void echo(String name) {
+        System.out.println("kakaService:" + kakaService);
         System.out.println("echo:" + name);
     }
 }

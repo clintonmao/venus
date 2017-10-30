@@ -26,7 +26,7 @@ public class DefaultHelloService implements HelloService {
     VenusProtocol venusProtocol;
 
     @Autowired
-    EchoService echoService;
+    EchoService defaultEchoService;
 
     @Autowired
     KakaService kakaService;
