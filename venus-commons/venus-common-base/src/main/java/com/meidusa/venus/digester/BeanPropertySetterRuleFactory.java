@@ -15,9 +15,6 @@ public class BeanPropertySetterRuleFactory extends AbstractObjectCreationFactory
         Rule beanPropertySetterRule = null;
         String propertyname = attributes.getValue("propertyname");
         String attrname = attributes.getValue("attrname");
-        if("instance".equalsIgnoreCase(propertyname) || "instance".equalsIgnoreCase(attrname)){
-            System.out.println("kaka.");
-        }
         if (propertyname == null && attrname == null) {
             // call the setter method corresponding to the element name.
             beanPropertySetterRule = new BeanPropertySetterRule();

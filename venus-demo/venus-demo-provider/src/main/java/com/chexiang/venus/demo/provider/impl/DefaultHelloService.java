@@ -2,7 +2,6 @@ package com.chexiang.venus.demo.provider.impl;
 
 import com.chexiang.venus.demo.provider.EchoService;
 import com.chexiang.venus.demo.provider.HelloService;
-import com.chexiang.venus.demo.provider.KakaService;
 import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.venus.Application;
 import com.meidusa.venus.backend.VenusProtocol;
@@ -11,12 +10,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
 /**
  * Created by Zhangzhihua on 2017/8/15.
  */
-//@Component
 public class DefaultHelloService implements HelloService {
 
     private static Logger logger = LoggerFactory.getLogger(DefaultHelloService.class);
@@ -26,10 +23,8 @@ public class DefaultHelloService implements HelloService {
     VenusProtocol venusProtocol;
 
     @Autowired
-    EchoService defaultEchoService;
-
-    @Autowired
-    KakaService kakaService;
+    //@Qualifier("defaultEchoService")
+    EchoService echoService;
 
     @Override
     public void sayHello(String name, InvocationListener<Hello> invocationListener) {

@@ -51,7 +51,7 @@ import java.util.*;
 /**
  * 基于XML配置服务管理类
  */
-public class XmlFileServiceManager extends AbstractServiceManager implements InitializingBean,BeanFactoryPostProcessor,BeanFactoryAware,ApplicationContextAware{
+public class XmlFileServiceManager extends AbstractServiceManager implements InitializingBean,BeanFactoryAware,ApplicationContextAware{
 
     private static Logger logger = LoggerFactory.getLogger(XmlFileServiceManager.class);
 
@@ -182,22 +182,22 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                 InputStream is = config.getInputStream();
                 VenusServerConfig venusServerConfig = (VenusServerConfig) digester.parse(is);
 
+                /*
                 ConfigurableListableBeanFactory cbf = (ConfigurableListableBeanFactory) beanFactory;
                 if(CollectionUtils.isNotEmpty(venusServerConfig.getServiceConfigs())){
                     for(ServiceConfig serviceConfig : venusServerConfig.getServiceConfigs()){
-                        //FIXME disgester初始化不成功，注册到上下文
                         if(serviceConfig.getInstance() == null){
                             Object serivceInstance = beanFactory.getBean(serviceConfig.getType());
                             if(serivceInstance == null){
                                 String errorMsg = String.format("init venus config instance %s error.",serviceConfig.getType().getName());
                                 throw new VenusConfigException(errorMsg);
                             }
-                            //cbf.registerResolvableDependency(serviceConfig.getType(), serivceInstance);
                             serviceConfig.setInstance(serivceInstance);
                         }
                     }
 
                 }
+                */
                 serviceConfigList.addAll(venusServerConfig.getServiceConfigs());
                 interceptors.putAll(venusServerConfig.getInterceptors());
                 interceptorStacks.putAll(venusServerConfig.getInterceptorStatcks());
@@ -471,10 +471,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                 throw new VenusConfigException("unknow filte config with name=" + s);
             }
         }
-    }
-
-    @Override
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
     }
 
     public VenusProtocol getVenusProtocol() {

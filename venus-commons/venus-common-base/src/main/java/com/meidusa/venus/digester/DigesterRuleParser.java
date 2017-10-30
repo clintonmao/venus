@@ -3,6 +3,7 @@ package com.meidusa.venus.digester;
 import org.apache.commons.digester.AbstractObjectCreationFactory;
 import org.apache.commons.digester.Digester;
 import org.apache.commons.digester.Rule;
+import org.apache.commons.lang.StringUtils;
 import org.xml.sax.Attributes;
 
 /**
@@ -30,9 +31,16 @@ public class DigesterRuleParser extends org.apache.commons.digester.xmlrules.Dig
      */
     protected class ObjectCreateRuleFactoryWithInit extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
+            Object object = null;
             String className = attributes.getValue("classname");
             String attrName = attributes.getValue("attrname");
-            return (attrName == null || attrName.length() == 0) ? new ObjectCreateRuleWithInit(className) : new ObjectCreateRuleWithInit(className, attrName);
+            //return (attrName == null || attrName.length() == 0) ? new ObjectCreateRuleWithInit(className) : new ObjectCreateRuleWithInit(className, attrName);
+            if((attrName == null || attrName.length() == 0)){
+                object = new ObjectCreateRuleWithInit(className);
+            }else{
+                object = new ObjectCreateRuleWithInit(className, attrName);
+            }
+            return object;
         }
     }
 

@@ -1,12 +1,9 @@
 package com.chexiang.venus.demo.provider.impl;
 
 import com.chexiang.venus.demo.provider.EchoService;
-import com.chexiang.venus.demo.provider.KakaService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import javax.annotation.PostConstruct;
 
 /**
  * Created by Zhangzhihua on 2017/10/29.
@@ -14,12 +11,13 @@ import javax.annotation.Resource;
 @Component
 public class DefaultEchoService implements EchoService {
 
-    @Autowired(required=true)
-    KakaService kakaService;
+    @PostConstruct
+    void init(){
+        System.out.println("init echo service.");
+    }
 
     @Override
     public void echo(String name) {
-        System.out.println("kakaService:" + kakaService);
         System.out.println("echo:" + name);
     }
 }
