@@ -140,7 +140,6 @@ public class ServerResponseHandler {
             response.callbackObject = result.getResult();
             response.apiName = request.apiName;
             response.identityData = new byte[]{};
-            //TODO 处理版本兼容问题 listener请求标识数据
 
             byte[] traceID = (byte[]) ThreadLocalMap.get(VenusTracerUtil.REQUEST_TRACE_ID);
             if (traceID == null) {

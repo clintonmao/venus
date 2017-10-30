@@ -245,7 +245,6 @@ public class VenusServerInvokerHandler {
      * @return
      */
     SerializeServiceRequestPacket parseRequest(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
-        //TODO 代码复用
         final long waitTime = TimeUtil.currentTimeMillis() - data.left;
         byte[] message = data.right;
         int type = AbstractServicePacket.getType(message);
@@ -326,7 +325,6 @@ public class VenusServerInvokerHandler {
      * @return
      */
     Endpoint parseEndpoint(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
-        //TODO 代码复用
         final long waitTime = TimeUtil.currentTimeMillis() - data.left;
         byte[] message = data.right;
         int type = AbstractServicePacket.getType(message);

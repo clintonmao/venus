@@ -88,7 +88,7 @@ public class ServerInvocation implements Invocation {
     long waitTime;
 
     /**
-     * 服务端端点配置，非注释配置 TODO 想办法统一client/server服务定义信息，如两套service/两套endpoinit
+     * 服务端端点配置，非注释配置
      */
     Endpoint endpointDef;
 

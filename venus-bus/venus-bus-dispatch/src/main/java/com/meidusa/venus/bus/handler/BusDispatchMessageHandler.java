@@ -116,7 +116,6 @@ public class BusDispatchMessageHandler extends BusBackendMessageHandler implemen
 //        int type = AbstractServicePacket.getType(message);
 //        logger.info("bus dispatch recevier msg,type:{}.",type);
 //        if (type == AbstractVenusPacket.PACKET_TYPE_ROUTER) {
-//            //TODO 根据rpcId来获取对应conn
 //            BusFrontendConnection clientConn = (BusFrontendConnection) clientConnectionObserver.getConnection(VenusRouterPacket
 //                    .getConnectionSequenceID(message));
 //            conn.removeRequest(VenusRouterPacket.getRemoteRequestID(message));

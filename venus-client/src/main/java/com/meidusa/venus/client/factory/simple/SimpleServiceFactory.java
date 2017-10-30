@@ -49,7 +49,6 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
 
     private Authenticator authenticator;
 
-    //TODO 版本号相关信息
     private Map<Class<?>, Tuple<Object, InvokerInvocationHandler>> servicesMap = new HashMap<Class<?>, Tuple<Object, InvokerInvocationHandler>>();
 
     public SimpleServiceFactory() {

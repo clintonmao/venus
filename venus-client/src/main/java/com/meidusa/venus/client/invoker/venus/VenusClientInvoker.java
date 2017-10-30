@@ -73,7 +73,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     //nio连接映射表
     private Map<String, BackendConnectionPool> nioPoolMap = new ConcurrentHashMap<String, BackendConnectionPool>();
 
-    //rpcId-请求&响应映射表，TODO 容量、有效期、清理机制
+    //rpcId-请求&响应映射表
     private Map<String, VenusReqRespWrapper> serviceReqRespMap = new ConcurrentHashMap<String, VenusReqRespWrapper>();
 
     //rpcId-请求&回调映射表
@@ -570,11 +570,12 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     }
 
     /**
-     * 设置transactionId TODO 监控上报用，确认是否保留？
+     * 设置transactionId
      * @param athenaTransactionId
      * @param serviceRequestPacket
      * @param invocation
      */
+    /*
     private void setTransactionId(AthenaTransactionId athenaTransactionId, SerializeServiceRequestPacket serviceRequestPacket, ClientInvocation invocation) {
         if (athenaTransactionId != null) {
             if (athenaTransactionId.getRootId() != null) {
@@ -596,6 +597,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             }
         }
     }
+    */
 
 
     public VenusExceptionFactory getVenusExceptionFactory() {

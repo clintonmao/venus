@@ -10,11 +10,9 @@ import java.net.UnknownHostException;
  */
 public class NetUtil {
 
-	private static String localIp;// TODO localIp可能变化
+	private static String localIp;
 
 	public static String getLocalIp(boolean isCache) {
-		// return
-
 		if (isCache) {
 			return getLocalIp();
 		}

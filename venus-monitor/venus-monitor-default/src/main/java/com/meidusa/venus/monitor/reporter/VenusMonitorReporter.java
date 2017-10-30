@@ -20,8 +20,6 @@ public class VenusMonitorReporter {
 
     private AthenaDataService athenaDataService;
 
-    private boolean isEnableReporte = true;
-
     /**
      * 上报明细
      * @param detailDOList
@@ -32,21 +30,17 @@ public class VenusMonitorReporter {
         }
 
         if(CollectionUtils.isNotEmpty(detailDOList)){
-            /*
-            try {
-                String detailDoListOfJson = serialize(detailDOList);
-                logger.info("report detailDOList json:{}.",detailDoListOfJson);
-            } catch (Exception e) {}
-            */
-            logger.info("report detail size:{}.",detailDOList.size());
+            if(logger.isInfoEnabled()){
+                logger.info("report detail size:{}.",detailDOList.size());
+            }
         }else{
-            logger.info("report detail size:{}.",0);
+            if(logger.isInfoEnabled()){
+                logger.info("report detail size:{}.",0);
+            }
         }
 
-        if(isEnableReporte){
-            if(CollectionUtils.isNotEmpty(detailDOList)){
-                getAthenaDataService().reportMethodCallDetail(detailDOList);
-            }
+        if(CollectionUtils.isNotEmpty(detailDOList)){
+            getAthenaDataService().reportMethodCallDetail(detailDOList);
         }
     }
 
@@ -60,21 +54,17 @@ public class VenusMonitorReporter {
         }
 
         if(CollectionUtils.isNotEmpty(staticDOList)){
-            /*
-            try {
-                String statisticDOListOfJson = serialize(staticDOList);
-                logger.info("report staticDOList json:{}.",statisticDOListOfJson);
-            } catch (Exception e) {}
-            */
-            logger.info("report static size:{}.",staticDOList.size());
+            if(logger.isInfoEnabled()){
+                logger.info("report static size:{}.",staticDOList.size());
+            }
         }else{
-            logger.info("report static size:{}.",0);
+            if(logger.isInfoEnabled()){
+                logger.info("report static size:{}.",0);
+            }
         }
 
-        if(isEnableReporte){
-            if(CollectionUtils.isNotEmpty(staticDOList)){
-                getAthenaDataService().reportMethodStatic(staticDOList);
-            }
+        if(CollectionUtils.isNotEmpty(staticDOList)){
+            getAthenaDataService().reportMethodStatic(staticDOList);
         }
     }
 

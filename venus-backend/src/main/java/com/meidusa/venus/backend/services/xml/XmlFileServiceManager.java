@@ -240,7 +240,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     void addMonitorServiceConfig(List<ServiceConfig> serviceConfigList){
         ServiceConfig monitorServiceConfig = new ServiceConfig();
         monitorServiceConfig.setActive(true);
-        //TODO 提取接口到公共部门，实例动态生成或注入
         //monitorServiceConfig.setType(MonitorService.class);
         //monitorServiceConfig.setInstance(new VenusMonitorService());
         //serviceConfigList.add(monitorServiceConfig);
@@ -255,7 +254,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     void addRegistryServiceConfig(List<ServiceConfig> serviceConfigList) {
         ServiceConfig registerServiceConfig = new ServiceConfig();
         registerServiceConfig.setActive(true);
-        //TODO 提取接口到公共部门，实例动态生成或注入
         //registerServiceConfig.setType(ServiceRegistry.class);
         //registerServiceConfig.setInstance(new VenusServiceRegistry(getServiceMappings()));
         //serviceConfigList.add(registerServiceConfig);

@@ -44,7 +44,7 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
 
     static void init(){
         Runtime.getRuntime().addShutdownHook(listener);
-        //初始化序列化配置 TODO 正常应该由protocol定义初始化
+        //初始化序列化配置
         SerializerFactory.init();
     }
 
@@ -73,7 +73,6 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
                 super.handle(srcConn, message);
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_REQUEST: {
-                //TODO 多线程？
                 doHandle(srcConn, message);
                 break;
             }
@@ -112,7 +111,7 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
             //解析请求
             invocation = parseInvocation(srcConn, message,serviceRequestPacket);
 
-            //通过分发代理分发消息 TODO 通过线程池处理
+            //通过分发代理分发消息
             result = getBusDispatcherProxy().invoke(invocation,null);
         } catch (Exception e) {
             //TODO 异常信息包装
@@ -213,7 +212,7 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
         if(venusRegistryFactory != null){
             busDispatcherProxy.setVenusRegistryFactory(venusRegistryFactory);
         }
-        if(requestConnectionMap != null){//TODO 改传值方式
+        if(requestConnectionMap != null){
             busDispatcherProxy.setRequestConnectionMap(requestConnectionMap);
         }
         return busDispatcherProxy;

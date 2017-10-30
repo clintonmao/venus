@@ -34,7 +34,6 @@ public class BusRemoteDispatcher implements Dispatcher{
 
     private ClusterInvoker clusterInvoker;
 
-    //TODO 构造条件
     private Router router = new ConditionRouter();
 
     @Override

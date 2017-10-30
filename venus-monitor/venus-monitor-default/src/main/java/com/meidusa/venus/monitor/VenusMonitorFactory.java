@@ -124,20 +124,6 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     }
 
 
-    void scanAthenaPackageByResource(){
-        //String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + "/com/saic/framework/**/*.class";
-        /*
-        try {
-            Resource[] resources = resourcePatternResolver.getResources(packageSearchPath);
-            for (Resource resource : resources) {
-                logger.info("resource:{}.",resource);
-            }
-        } catch (IOException e) {
-            logger.error("scan athena client package error.",e);
-        }
-        */
-    }
-
     /**
      * 手动扫描athena client包并注册到spring上下文
      */
@@ -195,13 +181,6 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      * @param url
      */
     void initAthenaDataService(String url){
-        /*
-        String[] arr = url.split(":");
-        SimpleServiceFactory factory = new SimpleServiceFactory(arr[0],Integer.parseInt(arr[1]));
-        factory.setSoTimeout(16 * 1000);//可选,默认 15秒
-        factory.setCoTimeout(5 * 1000);//可选,默认5秒
-        AthenaDataService athenaDataService = factory.getService(AthenaDataService.class);
-        */
         String[] addressArr = {url};
         //List<String> addressList = Arrays.asList(address);
         serviceFactoryExtra.setAddressList(addressArr);
