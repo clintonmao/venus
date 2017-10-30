@@ -571,9 +571,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     /**
      * 设置transactionId
-     * @param athenaTransactionId
-     * @param serviceRequestPacket
-     * @param invocation
      */
     /*
     private void setTransactionId(AthenaTransactionId athenaTransactionId, SerializeServiceRequestPacket serviceRequestPacket, ClientInvocation invocation) {
