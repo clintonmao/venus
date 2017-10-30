@@ -6,6 +6,10 @@ package com.meidusa.venus.support;
  */
 public class VenusConstants {
 
+    //集群策略-failover
+    public static String CLUSTER_FAILOVER = "failover";
+    //集群策略-fastfail
+    public static String CLUSTER_FASTFAIL = "fastfail";
     //集群容错策略，默认fastfail
     public static String CLUSTER_DEFAULT = "fastfail";
 

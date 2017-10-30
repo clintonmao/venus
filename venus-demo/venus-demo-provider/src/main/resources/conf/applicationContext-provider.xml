@@ -55,7 +55,7 @@
 	<bean id="venusProtocol" class="com.meidusa.venus.backend.VenusProtocol">
 		<property name="port" value="${venus.protocol.port}"/>
 		<!--
-		coreThreads:协议启动线程数，默认100
+		coreThreads:业务线程数，默认100
 		-->
 		<!--
 		<property name="coreThreads" value="${venus.protocol.coreThreads}"/>

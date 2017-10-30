@@ -106,7 +106,7 @@ public class VenusServerInvokerProxy implements Invoker {
     void initBeforeFilters(){
         beforeFilters.add(serverValidFilter);
         //监控filters
-        initMonitorFilters();
+        addMonitorFilters(beforeFilters);
     }
 
     /**
@@ -114,7 +114,7 @@ public class VenusServerInvokerProxy implements Invoker {
      */
     void initThrowFilters(){
         //监控filters
-        initMonitorFilters();
+        addMonitorFilters(throwFilters);
     }
 
     /**
@@ -122,17 +122,17 @@ public class VenusServerInvokerProxy implements Invoker {
      */
     void initAfterFilters(){
         //监控filters
-        initMonitorFilters();
+        addMonitorFilters(afterFilters);
     }
 
-    void initMonitorFilters(){
+    void addMonitorFilters(List<Filter> filterList){
         VenusMonitorFactory venusMonitorFactory = getVenusMonitorFactory();
         if(venusMonitorFactory != null){
             if(venusMonitorFactory.isEnableAthenaReport()){
-                beforeFilters.add(serverAthenaMonitorFilter);
+                filterList.add(serverAthenaMonitorFilter);
             }
             if(venusMonitorFactory.isEnableVenusReport()){
-                beforeFilters.add(getServerMonitorFilter());
+                filterList.add(getServerMonitorFilter());
             }
         }
     }

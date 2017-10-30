@@ -210,7 +210,7 @@ public class ClientInvokerProxy implements Invoker {
         beforeFilters.add(clientThrowMockFilter);
         beforeFilters.add(clientCallbackMockFilter);
         //监控
-        initMonitorFilters();
+        addMonitorFilters(beforeFilters);
     }
 
     /**
@@ -218,7 +218,7 @@ public class ClientInvokerProxy implements Invoker {
      */
     void initThrowFilters(){
         //监控filters
-        initMonitorFilters();
+        addMonitorFilters(throwFilters);
     }
 
     /**
@@ -228,20 +228,20 @@ public class ClientInvokerProxy implements Invoker {
         //流控
         afterFilters.add(clientActivesLimitFilter);
         //监控
-        initMonitorFilters();
+        addMonitorFilters(afterFilters);
     }
 
     /**
      * 初始化监控filters
      */
-    void initMonitorFilters(){
+    void addMonitorFilters(List<Filter> filterList){
         VenusMonitorFactory venusMonitorFactory = getVenusMonitorFactory();
         if(venusMonitorFactory != null){
             if(venusMonitorFactory.isEnableAthenaReport()){
-                afterFilters.add(clientAthenaMonitorFilter);
+                filterList.add(clientAthenaMonitorFilter);
             }
             if(venusMonitorFactory.isEnableVenusReport()){
-                afterFilters.add(getClientMonitorFilter());
+                filterList.add(getClientMonitorFilter());
             }
         }
     }

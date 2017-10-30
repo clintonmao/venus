@@ -32,11 +32,6 @@ public class ClientRemoteInvoker implements Invoker{
 
     private static Logger logger = LoggerFactory.getLogger(ClientRemoteInvoker.class);
 
-    //集群策略-failover
-    private static String CLUSTER_FAILOVER = "failover";
-    //集群策略-fastfail
-    private static String CLUSTER_FASTFAIL = "fastfail";
-
     /**
      * 静态地址配置
      */
@@ -232,9 +227,9 @@ public class ClientRemoteInvoker implements Invoker{
      */
     ClusterInvoker getClusterInvoker(ClientInvocation invocation,URL url){
         String cluster = invocation.getCluster();
-        if(CLUSTER_FAILOVER.equals(cluster) || invocation.getRetries() > 0){
+        if(VenusConstants.CLUSTER_FAILOVER.equals(cluster) || invocation.getRetries() > 0){
             return clusterFailoverInvoker;
-        }else if(CLUSTER_FASTFAIL.equals(cluster)){
+        }else if(VenusConstants.CLUSTER_FASTFAIL.equals(cluster)){
             return clusterFastfailInvoker;
         }else{
             throw new RpcException(String.format("invalid cluster policy:%s.",cluster));

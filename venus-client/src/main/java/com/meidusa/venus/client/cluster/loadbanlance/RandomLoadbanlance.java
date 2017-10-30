@@ -4,14 +4,13 @@ import com.meidusa.venus.URL;
 
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * 随机选择
  * Created by Zhangzhihua on 2017/8/1.
  */
 public class RandomLoadbanlance implements Loadbanlance {
-
-    private final Random random = new Random();
 
     @Override
     public URL select(List<URL> urlList) {
@@ -27,7 +26,7 @@ public class RandomLoadbanlance implements Loadbanlance {
                 }
             }
         }
-        int index = random.nextInt(urlList.size());
+        int index = ThreadLocalRandom.current().nextInt(urlList.size());
         return urlList.get(index);
     }
 }
