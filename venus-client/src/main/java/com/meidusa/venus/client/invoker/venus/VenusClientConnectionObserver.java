@@ -58,6 +58,8 @@ public class VenusClientConnectionObserver implements ConnectionObserver {
         if(conn != null){
             releaseCountDownLatch(conn,null);
         }
+
+        //TODO 反订阅
     }
 
     /**

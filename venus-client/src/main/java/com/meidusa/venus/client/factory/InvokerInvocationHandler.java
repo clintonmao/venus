@@ -1,7 +1,8 @@
 package com.meidusa.venus.client.factory;
 
-import com.chexiang.venus.demo.provider.model.Hello;
-import com.meidusa.venus.*;
+import com.meidusa.venus.ClientInvocation;
+import com.meidusa.venus.Result;
+import com.meidusa.venus.ServiceFactory;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;

@@ -19,12 +19,26 @@ public class Application implements InitializingBean {
 
     private static Logger logger = LoggerFactory.getLogger(Application.class);
 
-    /**
-     * 应用名称
-     */
+    //应用名称
     private String name;
 
+    //是否开启filter
+    private boolean enableFilter = false;
+
     private static boolean isInitedSerializer = false;
+
+    private static Application application;
+
+    private Application(){
+        application = this;
+    }
+
+    public static Application getInstance(){
+        if(application == null){
+            throw new VenusConfigException("application not inited.");
+        }
+        return application;
+    }
 
     static {
         Runtime.getRuntime().addShutdownHook(new Thread(){
@@ -52,7 +66,7 @@ public class Application implements InitializingBean {
      */
     void valid(){
         if(StringUtils.isEmpty(name)){
-            throw new VenusConfigException("name not allow empty.");
+            throw new VenusConfigException("application name not allow empty.");
         }
     }
 
@@ -82,5 +96,13 @@ public class Application implements InitializingBean {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isEnableFilter() {
+        return enableFilter;
+    }
+
+    public void setEnableFilter(boolean enableFilter) {
+        this.enableFilter = enableFilter;
     }
 }

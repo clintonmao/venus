@@ -1,6 +1,7 @@
 package com.meidusa.venus.monitor;
 
 import com.athena.service.api.AthenaDataService;
+import com.meidusa.venus.Application;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.ServiceFactoryBean;
 import com.meidusa.venus.ServiceFactoryExtra;
@@ -58,6 +59,8 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     private ServiceFactoryExtra serviceFactoryExtra;
 
     private ApplicationContext applicationContext;
+
+    private Application application;
 
     /**
      * athena上报服务
@@ -168,9 +171,9 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         this.clientConfigManagerDelegate = clientConfigManagerDelegate;
 
         //初始化配置信息实例
-        String appName = VenusContext.getInstance().getApplication();
+        String appName = application.getName();
         if(StringUtils.isEmpty(appName)){
-            throw new VenusConfigException("application not inited.");
+            throw new VenusConfigException("application not config.");
         }
         Object clientConfigManager = clientConfigManagerDelegate.initConfigManager(appName,true);
         this.clientConfigManager = clientConfigManager;
@@ -277,5 +280,13 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
 
     public void setEnableVenusReport(boolean enableVenusReport) {
         this.enableVenusReport = enableVenusReport;
+    }
+
+    public Application getApplication() {
+        return application;
+    }
+
+    public void setApplication(Application application) {
+        this.application = application;
     }
 }

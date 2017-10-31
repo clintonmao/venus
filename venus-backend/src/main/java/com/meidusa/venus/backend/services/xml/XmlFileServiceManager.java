@@ -6,6 +6,7 @@ import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.toolkit.common.util.StringUtil;
+import com.meidusa.venus.Application;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.annotations.PerformanceLevel;
 import com.meidusa.venus.backend.VenusProtocol;
@@ -336,13 +337,16 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         register.registe(serviceRegisterUrl);
     }
 
+    Application application;
+
+
     /**
      * 获取服务注册url
      * @param serviceConfig
      * @return
      */
     URL parseRegisterUrl(ServiceConfig serviceConfig, Service service){
-        String application = VenusContext.getInstance().getApplication();
+        String appName = application.getName();
         String protocol = "venus";
         String serviceInterfaceName = serviceConfig.getType().getName();
         String serviceName = service.getName();
@@ -359,7 +363,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                 serviceInterfaceName,
                 serviceName,
                 version,
-                application,
+                appName,
                 host,
                 port,
                 methods
@@ -492,5 +496,13 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
     public void setVenusRegistryFactory(VenusRegistryFactory venusRegistryFactory) {
         this.venusRegistryFactory = venusRegistryFactory;
+    }
+
+    public Application getApplication() {
+        return application;
+    }
+
+    public void setApplication(Application application) {
+        this.application = application;
     }
 }

@@ -127,6 +127,8 @@ public class VenusProtocol implements InitializingBean,DisposableBean {
         if(connectionAcceptor != null){
             connectionAcceptor.shutdown();
         }
+
+        //TODO 反注册
     }
 
     public String getPort() {

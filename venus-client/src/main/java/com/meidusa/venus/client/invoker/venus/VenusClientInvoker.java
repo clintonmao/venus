@@ -1,6 +1,5 @@
 package com.meidusa.venus.client.invoker.venus;
 
-import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.toolkit.net.*;
 import com.meidusa.venus.ClientInvocation;
@@ -20,13 +19,9 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
-import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionId;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
-import com.meidusa.venus.support.EndpointWrapper;
-import com.meidusa.venus.support.ServiceWrapper;
-import com.meidusa.venus.support.VenusThreadContext;
-import com.meidusa.venus.support.VenusUtil;
+import com.meidusa.venus.support.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -206,7 +201,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                     }
                 }
             }
-            return new Result(new Hello("hi@","ok{invoker-doInvoke3}"));
+            return new Result(new Echo("hi@","ok{invoker-doInvoke3}"));
         }
 
 
@@ -566,7 +561,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @return
      */
     Result fetchResponseFromMock(String rpcId){
-        return new Result(new Hello("@hi","@mock result"));
+        return new Result(new Echo("@hi","@mock result"));
     }
 
     /**

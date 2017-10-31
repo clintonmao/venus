@@ -1,9 +1,6 @@
 package com.meidusa.venus.client.cluster;
 
-import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.venus.*;
-import com.meidusa.venus.ClientInvocation;
-import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.exception.RpcException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,10 +31,6 @@ public class ClusterFastfailInvoker extends AbstractClusterInvoker implements Cl
         URL url = getLoadbanlance(lb,clientInvocation).select(urlList);
         if(logger.isInfoEnabled()){
             logger.info("select service provider:【{}】.",new StringBuilder().append(url.getHost()).append(":").append(url.getPort()));
-        }
-
-        if("A".equalsIgnoreCase("B")){
-            return new Result(new Hello("hi@","ok{cluster-invoke-1}"));
         }
 
         return  getInvoker().invoke(invocation,url);

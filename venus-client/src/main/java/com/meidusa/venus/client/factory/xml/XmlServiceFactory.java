@@ -17,6 +17,7 @@ package com.meidusa.venus.client.factory.xml;
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
+import com.meidusa.venus.Application;
 import com.meidusa.venus.Invoker;
 import com.meidusa.venus.ServiceFactory;
 import com.meidusa.venus.ServiceFactoryBean;
@@ -35,6 +36,7 @@ import com.meidusa.venus.exception.*;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.registry.VenusRegistryFactory;
+import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.FileWatchdog;
 import com.meidusa.venus.util.NetUtil;
@@ -339,6 +341,9 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         }
     }
 
+    Application application;
+
+
     /**
      * 订阅服务
      */
@@ -347,14 +352,13 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         if(StringUtils.isNotEmpty(serviceConfig.getRemote()) || StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
             return;
         }
-        String application = VenusContext.getInstance().getApplication();
+        String appName = application.getName();
         String serviceInterfaceName = null;
         if(serviceConfig.getType() != null){
             serviceInterfaceName = serviceConfig.getType().getName();
         }
         String serivceName = serviceConfig.getBeanName();
-        //TODO 加载版本机制？
-        String versionx = "0.0.0";
+        String versionx = VenusConstants.VERSION_DEFAULT;
         if(StringUtils.isNotEmpty(serviceConfig.getVersionx())){
             versionx = serviceConfig.getVersionx();
         }
@@ -365,7 +369,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
                 serviceInterfaceName,
                 serivceName,
                 versionx,
-                application,
+                appName,
                 consumerHost
                 );
         com.meidusa.venus.URL url = com.meidusa.venus.URL.parse(subscribleUrl);
@@ -564,4 +568,11 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         this.venusRegistryFactory = venusRegistryFactory;
     }
 
+    public Application getApplication() {
+        return application;
+    }
+
+    public void setApplication(Application application) {
+        this.application = application;
+    }
 }

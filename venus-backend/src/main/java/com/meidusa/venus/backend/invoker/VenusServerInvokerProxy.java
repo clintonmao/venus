@@ -42,6 +42,7 @@ public class VenusServerInvokerProxy implements Invoker {
     @Override
     public void init() throws RpcException {
         synchronized (this){
+            isEnableFilter = Application.getInstance().isEnableFilter();
             if(isEnableFilter){
                 initFilters();
             }
