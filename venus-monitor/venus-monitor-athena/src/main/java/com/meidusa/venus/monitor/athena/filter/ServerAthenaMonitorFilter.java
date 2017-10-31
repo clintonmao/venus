@@ -23,9 +23,11 @@ public class ServerAthenaMonitorFilter implements Filter {
     boolean isFindderBug = false;
 
     public ServerAthenaMonitorFilter(){
-        if(!isRunning){
-            init();
-            isRunning = true;
+        synchronized (this){
+            if(!isRunning){
+                init();
+                isRunning = true;
+            }
         }
     }
 

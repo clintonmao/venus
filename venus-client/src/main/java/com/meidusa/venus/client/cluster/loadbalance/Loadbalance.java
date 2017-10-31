@@ -1,14 +1,14 @@
-package com.meidusa.venus.client.cluster.loadbanlance;
+package com.meidusa.venus.client.cluster.loadbalance;
 
 import com.meidusa.venus.URL;
 
 import java.util.List;
 
 /**
- * loadbanlance接口
+ * loadbalance接口
  * Created by Zhangzhihua on 2017/8/1.
  */
-public interface Loadbanlance {
+public interface Loadbalance {
 
     /**
      * 选择目标地址

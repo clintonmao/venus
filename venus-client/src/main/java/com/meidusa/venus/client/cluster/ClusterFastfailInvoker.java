@@ -26,7 +26,7 @@ public class ClusterFastfailInvoker extends AbstractClusterInvoker implements Cl
     @Override
     public Result invoke(Invocation invocation, List<URL> urlList) throws RpcException {
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
-        String lb = clientInvocation.getLoadbanlance();
+        String lb = clientInvocation.getLoadbalance();
 
         URL url = getLoadbanlance(lb,clientInvocation).select(urlList);
         if(logger.isInfoEnabled()){

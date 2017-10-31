@@ -16,7 +16,7 @@ package com.meidusa.venus.client.factory.xml.config;
 
 public class FactoryConfig {
 
-    private String ipAddressList = "127.0.0.1:16800";
+    private String ipAddressList = "127.0.0.1:16800";//多个以;间隔，如"127.0.0.1:16800;127.0.0.2:16800"
 
     private int sendBufferSize = 64;
 

@@ -21,9 +21,11 @@ public class ClientAthenaMonitorFilter implements Filter {
     static boolean isInited;
 
     public ClientAthenaMonitorFilter(){
-        if(!isInited){
-            init();
-            isInited = true;
+        synchronized (this){
+            if(!isInited){
+                init();
+                isInited = true;
+            }
         }
     }
 

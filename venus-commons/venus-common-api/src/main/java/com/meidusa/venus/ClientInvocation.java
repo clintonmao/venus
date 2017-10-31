@@ -70,7 +70,7 @@ public class ClientInvocation implements Invocation {
     private int retries = VenusConstants.RETRIES_DEFAULT;
 
     //负载均衡策略,默认random
-    private String loadbanlance = VenusConstants.LOADBANLANCE_DEFAULT;
+    private String loadbalance = VenusConstants.LOADBALANCE_DEFAULT;
 
     //超时时间，默认3000ms
     private int timeout = VenusConstants.TIMEOUT_DEFAULT;
@@ -277,12 +277,12 @@ public class ClientInvocation implements Invocation {
         this.retries = retries;
     }
 
-    public String getLoadbanlance() {
-        return loadbanlance;
+    public String getLoadbalance() {
+        return loadbalance;
     }
 
-    public void setLoadbanlance(String loadbanlance) {
-        this.loadbanlance = loadbanlance;
+    public void setLoadbalance(String loadbalance) {
+        this.loadbalance = loadbalance;
     }
 
     /**

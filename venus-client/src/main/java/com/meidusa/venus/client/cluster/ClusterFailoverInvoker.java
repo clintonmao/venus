@@ -30,7 +30,7 @@ public class ClusterFailoverInvoker extends AbstractClusterInvoker implements Cl
         if(retries < 1){
             retries = 1;
         }
-        String lb = clientInvocation.getLoadbanlance();
+        String lb = clientInvocation.getLoadbalance();
         //对于系统异常，进行重试
         for(int i=0;i<retries;i++){
             try {

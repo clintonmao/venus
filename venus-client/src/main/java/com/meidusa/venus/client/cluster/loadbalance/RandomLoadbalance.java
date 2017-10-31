@@ -1,17 +1,15 @@
-package com.meidusa.venus.client.cluster.loadbanlance;
+package com.meidusa.venus.client.cluster.loadbalance;
 
 import com.meidusa.venus.URL;
 
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * 轮询选择
+ * 随机选择
  * Created by Zhangzhihua on 2017/8/1.
  */
-public class RoundLoadbanlance implements Loadbanlance {
-
-    //下标位置
-    private Integer position = 0;
+public class RandomLoadbalance implements Loadbalance {
 
     @Override
     public URL select(List<URL> urlList) {
@@ -27,15 +25,7 @@ public class RoundLoadbanlance implements Loadbanlance {
                 }
             }
         }
-
-        //reset
-        synchronized (position){
-            if(position >= urlList.size()){
-                position = 0;
-            }
-            URL url = urlList.get(position);
-            position++;
-            return url;
-        }
+        int index = ThreadLocalRandom.current().nextInt(urlList.size());
+        return urlList.get(index);
     }
 }

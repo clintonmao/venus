@@ -56,7 +56,7 @@ public class ServiceConfig {
     /**
      * 负载均衡策略
      */
-    private String loadbanlance;
+    private String loadbalance;
 
     /**
      * 超时时间
@@ -140,12 +140,12 @@ public class ServiceConfig {
         this.cluster = cluster;
     }
 
-    public String getLoadbanlance() {
-        return loadbanlance;
+    public String getLoadbalance() {
+        return loadbalance;
     }
 
-    public void setLoadbanlance(String loadbanlance) {
-        this.loadbanlance = loadbanlance;
+    public void setLoadbalance(String loadbalance) {
+        this.loadbalance = loadbalance;
     }
 
     public int getRetries() {

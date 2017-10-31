@@ -17,7 +17,7 @@ public class VenusConstants {
     public static int RETRIES_DEFAULT = 0;
 
     //负载均衡策略,默认random
-    public static String LOADBANLANCE_DEFAULT = "random";
+    public static String LOADBALANCE_DEFAULT = "random";
 
     //超时时间，默认3000ms
     public static int TIMEOUT_DEFAULT = 3000;

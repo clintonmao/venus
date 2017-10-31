@@ -118,6 +118,7 @@
             <artifactId>venus-demo-api</artifactId>
             <version>4.0.0-SNAPSHOT</version>
         </dependency>
+        <!--venus依赖-->
         <dependency>
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-client</artifactId>
@@ -128,12 +129,6 @@
             		<artifactId>spring-data-gemfire</artifactId>
             	</exclusion>
             </exclusions>
-        </dependency>
-        <!--运行期依赖-->
-        <dependency>
-            <groupId>com.meidusa.venus</groupId>
-            <artifactId>venus-registry-client</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus</groupId>

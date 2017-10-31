@@ -3,11 +3,10 @@ package com.meidusa.venus.client.cluster;
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.ClusterInvoker;
 import com.meidusa.venus.Invoker;
-import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.client.cluster.loadbanlance.Loadbanlance;
-import com.meidusa.venus.client.cluster.loadbanlance.RandomLoadbanlance;
-import com.meidusa.venus.client.cluster.loadbanlance.RoundLoadbanlance;
+import com.meidusa.venus.client.cluster.loadbalance.Loadbalance;
+import com.meidusa.venus.client.cluster.loadbalance.RandomLoadbalance;
+import com.meidusa.venus.client.cluster.loadbalance.RoundLoadbalance;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,15 +22,15 @@ public abstract class AbstractClusterInvoker implements ClusterInvoker {
     //负载策略-轮询
     private static String LB_ROUND = "round";
 
-    private RandomLoadbanlance randomLoadbanlance = new RandomLoadbanlance();
+    private RandomLoadbalance randomLoadbanlance = new RandomLoadbalance();
 
-    private RoundLoadbanlance roundLoadbanlance = new RoundLoadbanlance();
+    private RoundLoadbalance roundLoadbanlance = new RoundLoadbalance();
 
     //服务路径-randomlb映射表
-    private static Map<String,RandomLoadbanlance> randomLbMap = new ConcurrentHashMap<String,RandomLoadbanlance>();
+    private static Map<String,RandomLoadbalance> randomLbMap = new ConcurrentHashMap<String,RandomLoadbalance>();
 
     //服务路径-roundlb映射表
-    private static Map<String,RoundLoadbanlance> roundLbMap = new ConcurrentHashMap<String,RoundLoadbanlance>();
+    private static Map<String,RoundLoadbalance> roundLbMap = new ConcurrentHashMap<String,RoundLoadbalance>();
 
     protected Invoker invoker = null;
 
@@ -47,7 +46,7 @@ public abstract class AbstractClusterInvoker implements ClusterInvoker {
      * 获取loadbanlance
      * @return
      */
-    Loadbanlance getLoadbanlance(String lb, ClientInvocation clientInvocation){
+    Loadbalance getLoadbanlance(String lb, ClientInvocation clientInvocation){
         String servicePath = clientInvocation.getServicePath();
         if(LB_RANDOM.equals(lb)){
             if(randomLbMap.get(servicePath) == null){

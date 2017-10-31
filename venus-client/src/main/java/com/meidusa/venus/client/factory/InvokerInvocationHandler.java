@@ -187,8 +187,8 @@ public class InvokerInvocationHandler implements InvocationHandler {
             if(serviceConfig.getRetries() != 0){
                 invocation.setRetries(serviceConfig.getRetries());
             }
-            if(StringUtils.isNotEmpty(serviceConfig.getLoadbanlance())){
-                invocation.setLoadbanlance(serviceConfig.getLoadbanlance());
+            if(StringUtils.isNotEmpty(serviceConfig.getLoadbalance())){
+                invocation.setLoadbalance(serviceConfig.getLoadbalance());
             }
             if(serviceConfig.getTimeout() != 0){
                 invocation.setTimeout(serviceConfig.getTimeout());

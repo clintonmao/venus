@@ -28,36 +28,38 @@ public abstract class AbstractMonitorFilter {
     private static Logger logger = LoggerFactory.getLogger(AbstractMonitorFilter.class);
 
     //明细队列
-    Queue<InvocationDetail> detailQueue = new LinkedBlockingQueue<InvocationDetail>();
+    private Queue<InvocationDetail> detailQueue = new LinkedBlockingQueue<InvocationDetail>();
 
     //待上报明细队列
-    Queue<InvocationDetail> reportDetailQueue = new LinkedBlockingQueue<InvocationDetail>();
+    private Queue<InvocationDetail> reportDetailQueue = new LinkedBlockingQueue<InvocationDetail>();
 
     //方法调用汇总映射表
-    Map<String,InvocationStatistic> statisticMap = new ConcurrentHashMap<String,InvocationStatistic>();
+    private Map<String,InvocationStatistic> statisticMap = new ConcurrentHashMap<String,InvocationStatistic>();
 
     //计算线程
-    Executor processExecutor = Executors.newFixedThreadPool(1);
+    private Executor processExecutor = Executors.newFixedThreadPool(1);
 
     //上报线程
-    Executor reporterExecutor = Executors.newFixedThreadPool(1);
+    private Executor reporterExecutor = Executors.newFixedThreadPool(1);
 
-    boolean isRunning = false;
+    private boolean isRunning = false;
 
-    VenusMonitorReporter monitorReporter = null;
+    private VenusMonitorReporter monitorReporter = null;
 
-    AthenaDataService athenaDataService = null;
+    private AthenaDataService athenaDataService = null;
 
     //consumer
     protected static int ROLE_CONSUMER = 0;
     //provider
     protected static int ROLE_PROVIDER = 2;
     //一次处理记录条数
-    private static int perDetailProcessNum = 10;
+    private static int perDetailProcessNum = 100;
     //一次上报记录条数
-    private static int perDetailReportNum = 50;
+    private static int perDetailReportNum = 100;
     //慢操作耗时
     private static int SLOW_COST_TIME = 0;
+    //支持最大队列长度
+    private static int QUEU_MAX_SIZE = 50000;
     //Athena接口名称定义
     private static final String ATHENA_INTERFACE_SIMPLE_NAME = "AthenaDataService";
     private static final String ATHENA_INTERFACE_FULL_NAME = "com.athena.service.api.AthenaDataService";
@@ -83,6 +85,9 @@ public abstract class AbstractMonitorFilter {
      */
     public void putInvocationDetailQueue(InvocationDetail invocationDetail){
         try {
+            if(detailQueue.size() > QUEU_MAX_SIZE){
+                return;
+            }
             detailQueue.add(invocationDetail);
         } catch (Exception e) {
             //不处理异常，避免影响主流程
@@ -144,6 +149,9 @@ public abstract class AbstractMonitorFilter {
             while(true){
                 try {
                     int fetchNum = perDetailProcessNum;
+                    if(logger.isErrorEnabled()){
+                        //logger.error("current detail queue size:{}.",detailQueue.size());
+                    }
                     if(detailQueue.size() < fetchNum){
                         fetchNum = detailQueue.size();
                     }
@@ -151,7 +159,9 @@ public abstract class AbstractMonitorFilter {
                         InvocationDetail detail = detailQueue.poll();
                         //1、过滤明细，异常或慢操作
                         if(isExceptionOperation(detail) || isSlowOperation(detail)){
-                            reportDetailQueue.add(detail);
+                            if(reportDetailQueue.size() < QUEU_MAX_SIZE){
+                                reportDetailQueue.add(detail);
+                            }
                         }
 
                         //2、汇总统计，查1m内汇总记录，若不存在则新建
@@ -191,7 +201,9 @@ public abstract class AbstractMonitorFilter {
                     VenusMonitorReporter monitorReporter = getMonitorReporter();
 
                     //1、明细上报
-                    logger.info("monitor detail queue size:{}.", reportDetailQueue.size());
+                    if(logger.isErrorEnabled()){
+                        logger.error("current detail report queue size:{}.", reportDetailQueue.size());
+                    }
                     List<InvocationDetail> detailList = new ArrayList<InvocationDetail>();
                     int fetchNum = perDetailReportNum;
                     if(reportDetailQueue.size() < fetchNum){
@@ -211,7 +223,9 @@ public abstract class AbstractMonitorFilter {
 
                     //2、汇总上报
                     if(getRole() == ROLE_CONSUMER){//只consumer进行统计上报
-                        logger.info("monitor statistic queue size:{}.",statisticMap.size());
+                        if(logger.isErrorEnabled()){
+                            logger.error("current statistic report queue size:{}.",statisticMap.size());
+                        }
                         Collection<InvocationStatistic> statisticCollection = statisticMap.values();
                         if(CollectionUtils.isNotEmpty(statisticCollection)){
                             try {
@@ -250,7 +264,9 @@ public abstract class AbstractMonitorFilter {
         for(InvocationDetail detail:detailList){
             MethodCallDetailDO detailDO = convertDetail(detail);
             detailDOList.add(detailDO);
-            logger.info("report detailDO:{}.",JSONUtil.toJSONString(detailDO));
+            if(logger.isInfoEnabled()){
+                logger.info("report detailDO:{}.",JSONUtil.toJSONString(detailDO));
+            }
         }
         return detailDOList;
     }
@@ -274,7 +290,9 @@ public abstract class AbstractMonitorFilter {
                 continue;
             }
             MethodStaticDO staticDO = convertStatistic(statistic);
-            logger.info("report staticDO:{}.",JSONUtil.toJSONString(staticDO));
+            if(logger.isInfoEnabled()){
+                logger.info("report staticDO:{}.",JSONUtil.toJSONString(staticDO));
+            }
             staticDOList.add(staticDO);
         }
         return staticDOList;
