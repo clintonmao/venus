@@ -24,7 +24,6 @@ public class ServiceConfig {
 
     private Object instance;
 
-    //版本号
     private String versionx;
 
     /**

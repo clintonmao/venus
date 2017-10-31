@@ -35,8 +35,7 @@ public class Endpoint {
 
     private InterceptorStack interceptorStack;
 
-    //TODO 确认字段功能
-    //private PerformanceLogger performanceLogger;
+    private PerformanceLogger performanceLogger;
 
     private boolean active = true;
 
@@ -238,5 +237,13 @@ public class Endpoint {
 
     public void setInterceptorStack(InterceptorStack interceptorStack) {
         this.interceptorStack = interceptorStack;
+    }
+
+    public PerformanceLogger getPerformanceLogger() {
+        return performanceLogger;
+    }
+
+    public void setPerformanceLogger(PerformanceLogger performanceLogger) {
+        this.performanceLogger = performanceLogger;
     }
 }

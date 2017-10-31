@@ -8,7 +8,7 @@ import com.meidusa.venus.*;
 import com.meidusa.venus.ErrorPacketWrapperException;
 import com.meidusa.venus.ServerInvocation;
 import com.meidusa.venus.backend.services.*;
-import com.meidusa.venus.backend.services.xml.config.PerformanceLogger;
+import com.meidusa.venus.backend.services.PerformanceLogger;
 import com.meidusa.venus.backend.support.Response;
 import com.meidusa.venus.backend.support.UtilTimerStack;
 import com.meidusa.venus.exception.*;

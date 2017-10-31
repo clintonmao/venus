@@ -143,6 +143,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
         invocation.setEndpoint(endpointWrapper);
         Service service = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
         ServiceWrapper serviceWrapper = ServiceWrapper.wrapper(service);
+        invocation.setVersionx(serviceWrapper.getVersionx());
         invocation.setService(serviceWrapper);
         EndpointParameter[] params = EndpointParameterUtil.getPrameters(method);
         invocation.setParams(params);
@@ -181,23 +182,20 @@ public class InvokerInvocationHandler implements InvocationHandler {
         }
         //设置服务引用自定义参数
         if(serviceConfig != null){
+            if(serviceConfig.getTimeout() != 0){
+                invocation.setTimeout(serviceConfig.getTimeout());
+            }
+            if(StringUtils.isNotEmpty(serviceConfig.getLoadbalance())){
+                invocation.setLoadbalance(serviceConfig.getLoadbalance());
+            }
             if(StringUtils.isNotEmpty(serviceConfig.getCluster())){
                 invocation.setCluster(serviceConfig.getCluster());
             }
             if(serviceConfig.getRetries() != 0){
                 invocation.setRetries(serviceConfig.getRetries());
             }
-            if(StringUtils.isNotEmpty(serviceConfig.getLoadbalance())){
-                invocation.setLoadbalance(serviceConfig.getLoadbalance());
-            }
-            if(serviceConfig.getTimeout() != 0){
-                invocation.setTimeout(serviceConfig.getTimeout());
-            }
             if(serviceConfig.getCoreConnections() != 0){
                 invocation.setCoreConnections(serviceConfig.getCoreConnections());
-            }
-            if(StringUtils.isNotEmpty(serviceConfig.getVersionx())){
-                invocation.setVersionx(serviceConfig.getVersionx());
             }
         }
         return invocation;

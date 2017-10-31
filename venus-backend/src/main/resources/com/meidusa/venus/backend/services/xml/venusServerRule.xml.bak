@@ -54,7 +54,7 @@
 					<set-next-rule methodname="addInterceptorConfig" />
 				</pattern>
 				<pattern value="performanceLogger">
-					<object-create-rule-with-init classname="com.meidusa.venus.backend.services.xml.config.PerformanceLogger" />
+					<object-create-rule-with-init classname="com.meidusa.venus.backend.services.PerformanceLogger" />
 					<bean-property-setter-byAttrname-rule pattern="property" attrname="name" />
 					<set-properties-rule />
 					<set-next-rule methodname="setPerformanceLogger" />

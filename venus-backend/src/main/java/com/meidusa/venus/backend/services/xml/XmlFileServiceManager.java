@@ -28,6 +28,7 @@ import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.digester.Digester;
 import org.apache.commons.digester.RuleSet;
 import org.apache.commons.digester.xmlrules.FromXmlRuleSet;
@@ -356,7 +357,8 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         }
         String host = NetUtil.getLocalIp();
         String port = String.valueOf(venusProtocol.getPort());
-        String methods = "sayHello[java.lang.String]";//TODO
+        //获取方法定义列表
+        String methodsDef = getMethodsDef(service);
         String registerUrl = String.format(
                 "%s://%s/%s?version=%s&application=%s&host=%s&port=%s&methods=%s",
                 protocol,
@@ -366,10 +368,58 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                 appName,
                 host,
                 port,
-                methods
+                methodsDef
         );
         URL url = URL.parse(registerUrl);
         return url;
+    }
+
+    /**
+     * 获取所有方法定义字符串
+     * @param service
+     * @return
+     */
+    String getMethodsDef(Service service){
+        StringBuffer buf = new StringBuffer();
+        Multimap<String, Endpoint> endpointMultimap = service.getEndpoints();
+        Collection<Endpoint> endpoints = endpointMultimap.values();
+        if(CollectionUtils.isNotEmpty(endpoints)){
+            int i = 0;
+            for(Endpoint endpoint:endpoints){
+                String methodDef = getMethodDef(endpoint);
+                buf.append(methodDef);
+                if(i < (endpoints.size()-1)){
+                    buf.append(",");
+                }
+                i++;
+            }
+        }
+        String methodsDef = buf.toString();
+        return methodsDef;
+    }
+
+    /**
+     * 获取方法定义字符串
+     * @param endpoint
+     * @return
+     */
+    String getMethodDef(Endpoint endpoint){
+        StringBuffer buf = new StringBuffer();
+        buf.append(endpoint.getMethod().getName());
+        buf.append("[");
+        Class[] paramClzArr = endpoint.getMethod().getParameterTypes();
+        if(paramClzArr != null && paramClzArr.length > 0){
+            int i = 0;
+            for(Class paramClz:paramClzArr){
+                buf.append(paramClz.getName());
+                if(i < (paramClzArr.length - 1)){
+                    buf.append(",");
+                }
+                i++;
+            }
+        }
+        buf.append("]");
+        return buf.toString();
     }
 
     /**
@@ -413,11 +463,11 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                     ep.setInterceptorStack(stack);
                 }
 
+                //设置日志打印级别
                 PerformanceLogger pLogger = null;
                 if (endpointConfig != null) {
                     pLogger = endpointConfig.getPerformanceLogger();
                 }
-
                 if (pLogger == null) {
                     PerformanceLevel pLevel = AnnotationUtil.getAnnotation(ep.getMethod().getAnnotations(), PerformanceLevel.class);
                     if (pLevel != null) {
@@ -429,9 +479,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                         pLogger.setPrintResult(pLevel.printResult());
                     }
                 }
-
-                //TODO 确认代码用途及替换方案
-                //ep.setPerformanceLogger(pLogger);
+                ep.setPerformanceLogger(pLogger);
                 ep.setService(service);
                 if (logger.isDebugEnabled()) {
                     logger.debug("add endpoint: " + ep.getService().getName() + "." + ep.getName());

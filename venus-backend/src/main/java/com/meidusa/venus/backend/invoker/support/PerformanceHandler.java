@@ -4,7 +4,7 @@ import com.meidusa.fastjson.JSON;
 import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.venus.backend.support.Response;
 import com.meidusa.venus.backend.services.Endpoint;
-import com.meidusa.venus.backend.services.xml.config.PerformanceLogger;
+import com.meidusa.venus.backend.services.PerformanceLogger;
 import com.meidusa.venus.io.packet.ErrorPacket;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
@@ -19,8 +19,11 @@ import java.util.Map;
  * Created by godzillahua on 7/4/16.
  */
 public class PerformanceHandler {
+
     private static Logger performanceLogger = LoggerFactory.getLogger("venus.backend.performance");
+
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
+
     public static void logPerformance(Endpoint endpoint, SerializeServiceRequestPacket request, long queuedTime,
                                       long executeTime, String remoteIp, String sourceIP, Object result) {
         String traceId;
@@ -62,12 +65,10 @@ public class PerformanceHandler {
         PerformanceLogger pLevel = null;
 
         if (endpoint != null) {
-            //TODO 确认代码用途
-            //pLevel = endpoint.getPerformanceLogger();
+            pLevel = endpoint.getPerformanceLogger();
         }
 
         if (pLevel != null) {
-
             if (pLevel.isPrintParams()) {
                 buffer.append(", params=");
                 buffer.append(JSON.toJSONString(parameterMap, JSON.DEFAULT_GENERATE_FEATURE,JSON_FEATURE));

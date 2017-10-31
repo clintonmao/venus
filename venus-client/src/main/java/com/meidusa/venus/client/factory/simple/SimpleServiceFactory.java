@@ -154,7 +154,7 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
         if(this.getAuthenticator() == null){
             this.authenticator = new DummyAuthenticator<DummyAuthenPacket>();
         }
-        //invocationHandler.setAuthenticator(getAuthenticator());
+        //invocationHandler.setAuthenticator(this.getAuthenticator());
 
         T object = (T) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[] { t }, invocationHandler);
 

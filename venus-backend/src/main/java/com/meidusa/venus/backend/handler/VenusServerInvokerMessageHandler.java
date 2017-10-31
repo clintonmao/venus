@@ -19,7 +19,7 @@ import com.meidusa.venus.backend.invoker.support.ServerRequestHandler;
 import com.meidusa.venus.backend.invoker.support.ServerResponseHandler;
 import com.meidusa.venus.backend.invoker.support.ServerResponseWrapper;
 import com.meidusa.venus.backend.services.*;
-import com.meidusa.venus.backend.services.xml.config.PerformanceLogger;
+import com.meidusa.venus.backend.services.PerformanceLogger;
 import com.meidusa.venus.backend.support.Response;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.io.handler.VenusServerMessageHandler;

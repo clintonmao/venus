@@ -359,7 +359,8 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         BackendConnectionPool nioConnPool = null;
         BackendConnection conn = null;
         try {
-            //获取连接 TODO 地址变化情况
+            //获取连接
+            //TODO 地址变化对连接的影响；地址未变但连接已断开其影响
             nioConnPool = getNioConnPool(url,invocation,null);
             conn = nioConnPool.borrowObject();
             if(reqRespWrapper != null){
@@ -371,8 +372,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             VenusThreadContext.set(VenusThreadContext.CLIENT_OUTPUT_SIZE,Integer.valueOf(buffer.limit()));
 
             conn.write(buffer);
-
-
             //logger.warn("send buffer cost time:{}.",System.currentTimeMillis()-bTime);
             //logger.warn("send request,rpcId:{},buff len:{},message:{}.",rpcId, buffer.limit(),JSONUtil.toJSONString(serviceRequestPacket));
             /* TODO tracer log
@@ -402,7 +401,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
 
     /**
-     * 根据远程配置获取nio连接池 TODO 地址变化对连接的影响；地址未变但连接已断开其影响
+     * 根据远程配置获取nio连接池
      * @return
      * @throws Exception
      * @param url
@@ -444,7 +443,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         VenusBackendConnectionFactory nioFactory = new VenusBackendConnectionFactory();
         nioFactory.setHost(url.getHost());
         nioFactory.setPort(Integer.valueOf(url.getPort()));
-        //TODO auth信息
         if (remoteConfig.getAuthenticator() != null) {
             nioFactory.setAuthenticator(remoteConfig.getAuthenticator());
         }

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.meidusa.venus.backend.interceptor.config.InterceptorConfig;
+import com.meidusa.venus.backend.services.PerformanceLogger;
 
 public class EndpointConfig {
 

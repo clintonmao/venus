@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.services.xml.config;
+package com.meidusa.venus.backend.services;
 
 public class PerformanceLogger {
     private int error = 5 * 1000;

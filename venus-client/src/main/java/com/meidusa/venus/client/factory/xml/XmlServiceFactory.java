@@ -168,26 +168,6 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
 
         //初始化配置
         initConfiguration();
-
-        /*__RELOAD:
-        {
-            if (enableReload) {
-                File[] files = new File[this.configFiles.length];
-                for (int i = 0; i < this.configFiles.length; i++) {
-                    try {
-                        files[i] = ResourceUtils.getFile(configFiles[i].trim());
-                    } catch (FileNotFoundException e) {
-                        logger.warn(e.getMessage());
-                        enableReload = false;
-                        logger.warn("venus serviceFactory configuration reload disabled!");
-                        break __RELOAD;
-                    }
-                }
-                VenusFileWatchdog dog = new VenusFileWatchdog(files);
-                dog.setDelay(1000 * 10);
-                dog.start();
-            }
-        }*/
     }
 
     /**
@@ -323,6 +303,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
                 Service service = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
                 if(service != null){
                     serviceConfig.setBeanName(service.name());
+                    serviceConfig.setVersionx(service.versionx());
                 }
 
                 Class[] eclazz = method.getExceptionTypes();

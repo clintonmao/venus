@@ -19,10 +19,10 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 消息重试处理,诸如:后端服务不可用的 时候,将有默认3次尝试请求.每次间隔1秒的机制,重新对虚拟连接池发起请求,如果都失败将返回异常数据包给客户端.
- * 
+ * 保留不用，由协议层进行重试操作
  * @author structchen
- * 
  */
+@Deprecated
 public class DefaultRetryMessageHandler implements RetryMessageHandler{
 
     private static Logger logger = LoggerFactory.getLogger(BusReceiveMessageHandler.class);
@@ -123,7 +123,6 @@ public class DefaultRetryMessageHandler implements RetryMessageHandler{
             int index = apiName.lastIndexOf(".");
             String serviceName = apiName.substring(0, index);
             // String methodName = apiName.substring(index + 1);
-            //TODO 确认功能废弃？
             List<Tuple<Range, BackendConnectionPool>> list = null;//serviceRegisterManager.getRemoteList(serviceName);
 
             // service not found

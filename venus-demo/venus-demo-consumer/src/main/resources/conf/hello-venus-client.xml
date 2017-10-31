@@ -47,7 +47,7 @@
 		cluster:集群容错策略，支持failover/fastfail，默认fastfail即正常模式
 		retries:重试次数，若配置则开启cluster=failover容错策略，示例如，retries="3"
 		coreConnections:服务连接数，默认8，示例如，coreConnections="10"
-		versionx:版本号，走注册中心若存在多版本时可指定，默认为0.0.0,示例如versionx="0.0.1"
+		versionx:版本号，取接口定义文件Service.versionx属性值
 		自定义路由策略、流控、降级：仅支持通过注册中心管理界面修改
 		-->
 		<!--
@@ -60,6 +60,6 @@
 		<service type="com.chexiang.venus.demo.provider.HelloService" retries="3"/>
 		-->
 		<!-- <service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.128.250:16800"/> -->
-		<service type="com.chexiang.venus.demo.provider.HelloService" versionx="0.0.1" loadbalance="random"/>
+		<service type="com.chexiang.venus.demo.provider.HelloService" loadbalance="random"/>
 	</services>
 </venus-client>

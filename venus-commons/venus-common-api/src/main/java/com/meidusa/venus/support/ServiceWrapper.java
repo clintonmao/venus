@@ -18,6 +18,7 @@ public class ServiceWrapper {
     private String name = "";
     private boolean singleton = true;
     private int version = 0;
+    private String versionx = "";
     private String implement = "";
     private String description = "";
     private boolean athenaFlag = true;
@@ -70,10 +71,19 @@ public class ServiceWrapper {
         this.athenaFlag = athenaFlag;
     }
 
+    public String getVersionx() {
+        return versionx;
+    }
+
+    public void setVersionx(String versionx) {
+        this.versionx = versionx;
+    }
+
     public static ServiceWrapper wrapper(Service service){
         ServiceWrapper sw = new ServiceWrapper();
         sw.setName(service.name());
         sw.setVersion(service.version());
+        sw.setVersionx(service.versionx());
         sw.setImplement(service.implement());
         sw.setAthenaFlag(service.athenaFlag());
         sw.setDescription(service.description());
