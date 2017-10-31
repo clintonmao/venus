@@ -14,19 +14,21 @@ import com.meidusa.venus.util.Range;
  */
 public abstract class Service {
 
-    private String name;
-
     private Class<?> type;
 
-    private Range versionRange;
+    private String name;
 
-    private boolean active = true;
+    private String versionx;
+
+    private Range versionRange;
 
     private Multimap<String, Endpoint> endpoints;
 
     private String description;
 
     private boolean athenaFlag;
+
+    private boolean active = true;
 
     public Range getVersionRange() {
         return versionRange;
@@ -108,4 +110,11 @@ public abstract class Service {
         this.description = description;
     }
 
+    public String getVersionx() {
+        return versionx;
+    }
+
+    public void setVersionx(String versionx) {
+        this.versionx = versionx;
+    }
 }

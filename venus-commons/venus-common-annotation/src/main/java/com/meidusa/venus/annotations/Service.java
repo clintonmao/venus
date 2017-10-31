@@ -31,6 +31,13 @@ public @interface Service {
      * @return
      */
     int version() default 0;
+
+    /**
+     * 服务版本号，4.0开始使用
+     * @return
+     */
+    String versionx() default "";
+
     /**
      * 该Service接口的本地默认实现，该字段不为空，则会采用implement()返回的类名进行相关的方法调用
      * @return
@@ -42,7 +49,6 @@ public @interface Service {
      * @return
      */
     String description() default "";
-
 
     /**
      * 是否开启athena

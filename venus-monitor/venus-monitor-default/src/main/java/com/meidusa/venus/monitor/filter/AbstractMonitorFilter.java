@@ -4,6 +4,8 @@ import com.athena.domain.MethodCallDetailDO;
 import com.athena.domain.MethodStaticDO;
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.Invocation;
+import com.meidusa.venus.monitor.support.InvocationDetail;
+import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.monitor.reporter.VenusMonitorReporter;
 import com.meidusa.venus.util.JSONUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -71,7 +73,7 @@ public abstract class AbstractMonitorFilter {
     /**
      * 起动数据计算及上报线程
      */
-    void startProcessAndReporterTread(){
+    public void startProcessAndReporterTread(){
         if(!isRunning){
             processExecutor.execute(new InvocationDataProcessRunnable());
             reporterExecutor.execute(new InvocationDataReportRunnable());
@@ -321,8 +323,18 @@ public abstract class AbstractMonitorFilter {
         return ATHENA_INTERFACE_SIMPLE_NAME.equalsIgnoreCase(serviceInterfaceName) || ATHENA_INTERFACE_FULL_NAME.equalsIgnoreCase(serviceInterfaceName);
     }
 
+    public boolean isRunning() {
+        return isRunning;
+    }
+
+    public void setRunning(boolean running) {
+        isRunning = running;
+    }
+
     String serialize(Object object){
         return JSONUtil.toJSONString(object);
+
+
     }
 
 }

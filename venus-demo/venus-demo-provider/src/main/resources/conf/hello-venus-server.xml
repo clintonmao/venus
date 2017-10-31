@@ -4,6 +4,9 @@
 	<services>
 		<service type="com.chexiang.venus.demo.provider.HelloService">
 			<property name="instance">${helloService}</property>
+			<!--
+			<instance class="com.chexiang.venus4.greeting.impl.GreetingServiceImpl" />
+			-->
 		</service>
 	</services>
 </venus-server>

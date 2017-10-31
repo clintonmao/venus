@@ -6,6 +6,10 @@ package com.meidusa.venus.support;
  */
 public class VenusConstants {
 
+    //集群策略-failover
+    public static String CLUSTER_FAILOVER = "failover";
+    //集群策略-fastfail
+    public static String CLUSTER_FASTFAIL = "fastfail";
     //集群容错策略，默认fastfail
     public static String CLUSTER_DEFAULT = "fastfail";
 
@@ -23,4 +27,9 @@ public class VenusConstants {
 
     //venus协议默认线程数
     public static int VENUS_PROTOCOL_DEFAULT_CORE_THREADS = 100;
+
+    //服务默认版本号
+    public static String VERSION_DEFAULT = "0.0.0";
+
+
 }

@@ -34,7 +34,6 @@ public class BusRemoteDispatcher implements Dispatcher{
 
     private ClusterInvoker clusterInvoker;
 
-    //TODO 构造条件
     private Router router = new ConditionRouter();
 
     @Override
@@ -128,9 +127,9 @@ public class BusRemoteDispatcher implements Dispatcher{
     ClusterInvoker getClusterInvoker(){
         //TODO 根据配置获取clusterInvoker
         if(clusterInvoker == null){
-            clusterInvoker =  new ClusterFastfailInvoker();
+            clusterInvoker =  new ClusterFastfailInvoker(null);
             //TODO 根据配置加载invoker
-            clusterInvoker.setInvoker(new BusDispatcher(this.requestConnectionMap));
+            //clusterInvoker.setInvoker(new BusDispatcher(this.requestConnectionMap));
         }
         return clusterInvoker;
     }

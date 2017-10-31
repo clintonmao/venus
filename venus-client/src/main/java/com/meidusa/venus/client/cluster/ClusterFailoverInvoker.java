@@ -15,6 +15,10 @@ public class ClusterFailoverInvoker extends AbstractClusterInvoker implements Cl
 
     private static Logger logger = LoggerFactory.getLogger(ClusterFailoverInvoker.class);
 
+    public ClusterFailoverInvoker(Invoker invoker){
+        this.invoker = invoker;
+    }
+
     @Override
     public void init() throws RpcException {
     }
@@ -50,4 +54,6 @@ public class ClusterFailoverInvoker extends AbstractClusterInvoker implements Cl
     public void destroy() throws RpcException {
 
     }
+
+
 }

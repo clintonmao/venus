@@ -594,7 +594,6 @@ public class MysqlRegisterService implements RegisterService {
 				deleteServer(serverId);
 			}
 
-			// TODO
 			/*List<VenusServiceMappingDO> deleteServiceMappings = venusServiceMappingDAO
 					.getDeleteServiceMappings(updateTime, RegisteConstant.PROVIDER, true);// 取两分钟内删除的服务提供者
 			Set<Integer> serviceIds = new HashSet<Integer>();

@@ -3,6 +3,7 @@ package com.meidusa.venus.digester;
 import org.apache.commons.digester.AbstractObjectCreationFactory;
 import org.apache.commons.digester.Digester;
 import org.apache.commons.digester.Rule;
+import org.apache.commons.lang.StringUtils;
 import org.xml.sax.Attributes;
 
 /**
@@ -14,9 +15,9 @@ public class DigesterRuleParser extends org.apache.commons.digester.xmlrules.Dig
 
     public void addRuleInstances(Digester digester) {
         final String ruleClassName = Rule.class.getName();
-        digester.addFactoryCreate("*/config-property-setter-byAttrname-rule", new BeanPropertySetterRuleFactory());
-        digester.addRule("*/config-property-setter-byAttrname-rule", new PatternRule("pattern"));
-        digester.addSetNext("*/config-property-setter-byAttrname-rule", "add", ruleClassName);
+        digester.addFactoryCreate("*/bean-property-setter-byAttrname-rule", new BeanPropertySetterRuleFactory());
+        digester.addRule("*/bean-property-setter-byAttrname-rule", new PatternRule("pattern"));
+        digester.addSetNext("*/bean-property-setter-byAttrname-rule", "add", ruleClassName);
 
         digester.addFactoryCreate("*/object-create-rule-with-init", new ObjectCreateRuleFactoryWithInit());
         digester.addRule("*/object-create-rule-with-init", new PatternRule("pattern"));
@@ -30,9 +31,16 @@ public class DigesterRuleParser extends org.apache.commons.digester.xmlrules.Dig
      */
     protected class ObjectCreateRuleFactoryWithInit extends AbstractObjectCreationFactory {
         public Object createObject(Attributes attributes) {
+            Object object = null;
             String className = attributes.getValue("classname");
             String attrName = attributes.getValue("attrname");
-            return (attrName == null || attrName.length() == 0) ? new ObjectCreateRuleWithInit(className) : new ObjectCreateRuleWithInit(className, attrName);
+            //return (attrName == null || attrName.length() == 0) ? new ObjectCreateRuleWithInit(className) : new ObjectCreateRuleWithInit(className, attrName);
+            if((attrName == null || attrName.length() == 0)){
+                object = new ObjectCreateRuleWithInit(className);
+            }else{
+                object = new ObjectCreateRuleWithInit(className, attrName);
+            }
+            return object;
         }
     }
 

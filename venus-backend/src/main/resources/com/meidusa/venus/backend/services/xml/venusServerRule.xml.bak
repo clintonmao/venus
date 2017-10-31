@@ -1,29 +1,29 @@
 <?xml version="1.0"?>
 <!DOCTYPE digester-rules PUBLIC
-		"-//Jakarta Apache //DTD digester-rules XML V1.0//EN"
-		"digester-rules.dtd">
+   "-//Jakarta Apache //DTD digester-rules XML V1.0//EN"
+   "digester-rules.dtd">
 <digester-rules>
 	<pattern value="*/property">
 		<pattern value="bean">
 			<object-create-rule-with-init attrname="class" />
 			<set-properties-rule />
 			<bean-property-setter-byAttrname-rule
-					pattern="property" attrname="name" /> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
+				pattern="property" attrname="name" /> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
 		</pattern>
 	</pattern>
 
 	<pattern value="venus-server">
 		<object-create-rule-with-init
-				classname="com.meidusa.venus.backend.services.xml.config.VenusServerConfig"
-				attrname="class" />
+			classname="com.meidusa.venus.backend.services.xml.config.VenusServerConfig"
+			attrname="class" />
 		<set-properties-rule />
 		<bean-property-setter-byAttrname-rule
-				pattern="property" attrname="name" /> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
+			pattern="property" attrname="name" /> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
 		<pattern value="services/service">
 			<object-create-rule-with-init
-					classname="com.meidusa.venus.backend.services.xml.config.ServiceConfig" />
+				classname="com.meidusa.venus.backend.services.xml.config.ServiceConfig" />
 			<bean-property-setter-byAttrname-rule
-					pattern="property" attrname="name" /> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
+				pattern="property" attrname="name" /> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
 			<set-next-rule methodname="addService" />
 			<set-properties-rule>
 				<alias attr-name="interceptor-stack" prop-name="interceptorStack" />
@@ -32,18 +32,18 @@
 				<object-create-rule-with-init attrname="class" />
 				<set-properties-rule />
 				<bean-property-setter-byAttrname-rule
-						pattern="property" attrname="name" /> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
+					pattern="property" attrname="name" /> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
 				<set-next-rule methodname="setInstance" />
 			</pattern>
 
 			<pattern value="endpoint">
 				<object-create-rule-with-init
-						classname="com.meidusa.venus.backend.services.xml.config.EndpointConfig" />
+					classname="com.meidusa.venus.backend.services.xml.config.EndpointConfig" />
 				<set-properties-rule>
 					<alias attr-name="interceptor-stack" prop-name="interceptorStack" />
 				</set-properties-rule>
 				<bean-property-setter-byAttrname-rule
-						pattern="property" attrname="name" />
+					pattern="property" attrname="name" />
 				<set-next-rule methodname="addEndpointConfig" />
 				<pattern value="interceptor-config">
 					<object-create-rule-with-init attrname="class" />
@@ -65,25 +65,25 @@
 		</pattern>
 		<pattern value="interceptors/interceptor">
 			<object-create-rule-with-init
-					classname="com.meidusa.venus.backend.services.InterceptorMapping" />
+				classname="com.meidusa.venus.backend.services.InterceptorMapping" />
 			<set-properties-rule />
 			<bean-property-setter-byAttrname-rule
-					pattern="property" attrname="name" /> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
+				pattern="property" attrname="name" /> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
 			<set-next-rule methodname="addInterceptor" />
 			<object-create-rule-with-init attrname="class" />
 			<set-next-rule methodname="setInterceptor" />
 			<set-properties-rule />
 			<bean-property-setter-byAttrname-rule
-					pattern="property" attrname="name" /> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
+				pattern="property" attrname="name" /> <!-- 璋冪敤瀵硅薄鐨剆etter鏂规硶 -->
 		</pattern>
 
 		<pattern value="interceptor-stacks/interceptor-stack">
 			<object-create-rule-with-init
-					classname="com.meidusa.venus.backend.services.xml.config.InterceptorStackConfig" />
+				classname="com.meidusa.venus.backend.services.xml.config.InterceptorStackConfig" />
 			<set-properties-rule />
 			<pattern value="interceptor-ref">
 				<object-create-rule-with-init
-						classname="com.meidusa.venus.backend.services.xml.config.InterceptorRef" />
+					classname="com.meidusa.venus.backend.services.xml.config.InterceptorRef" />
 				<set-properties-rule />
 				<set-next-rule methodname="addInterceptorRef" />
 			</pattern>
@@ -93,4 +93,4 @@
 	</pattern>
 
 
-</digester-rules>
+</digester-rules> 

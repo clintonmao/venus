@@ -62,8 +62,7 @@ public class MysqlRegister implements Register {
 
 	private RegisterService registerService = null;
 
-	//FIXME 将linux/windows统一改为系统目录下存储
-	private String fileCachePath ;//= "/data/application/venusLocalSubcribe.txt";
+	private String fileCachePath ;
 
 	//是否开启本地文件缓存
 	private static boolean isEnableFileCache = true;

@@ -5,14 +5,13 @@ import com.meidusa.toolkit.net.ConnectionAcceptor;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.authenticate.server.AuthenticateProvider;
 import com.meidusa.toolkit.net.factory.FrontendConnectionFactory;
-import com.meidusa.venus.support.VenusConstants;
-import com.meidusa.venus.support.VenusContext;
+import com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider;
 import com.meidusa.venus.backend.handler.VenusServerInvokerMessageHandler;
 import com.meidusa.venus.backend.services.ServiceManager;
-import com.meidusa.venus.monitor.VenusMonitorFactory;
-import com.meidusa.venus.registry.VenusRegistryFactory;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.io.network.VenusBackendFrontendConnectionFactory;
+import com.meidusa.venus.support.VenusConstants;
+import com.meidusa.venus.support.VenusContext;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -28,7 +27,7 @@ import org.springframework.context.ApplicationContextAware;
  * venus协议，启动/销毁remoting、设置message handler相关操作
  * Created by Zhangzhihua on 2017/9/28.
  */
-public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,DisposableBean,BeanFactoryAware,ApplicationContextAware {
+public class VenusProtocol implements InitializingBean,DisposableBean {
 
     private static boolean isRunning = false;
 
@@ -42,10 +41,6 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
     private ServiceManager serviceManager;
 
     private AuthenticateProvider authenticateProvider;
-
-    private VenusRegistryFactory venusRegistryFactory;
-
-    private VenusMonitorFactory venusMonitorFactory;
 
     //自定义属性设置
     private String port;
@@ -112,7 +107,7 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
         MessageHandler messageHandler = createMessageHandler();
         this.messageHandler = messageHandler;
         connectionFactory.setMessageHandler(messageHandler);
-        connectionFactory.setAuthenticateProvider(authenticateProvider);
+        connectionFactory.setAuthenticateProvider(getAuthenticateProvider());
         return connectionFactory;
     }
 
@@ -127,21 +122,17 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
     }
 
     @Override
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+    public void destroy() throws Exception {
+        //释放连接
+        if(connectionAcceptor != null){
+            connectionAcceptor.shutdown();
+        }
 
+        //TODO 反注册
     }
 
     public String getPort() {
         return port;
-    }
-
-
-    //TODO 资源释放时机，application or protocol or invoker？同时consumer&provider都要释放
-    @Override
-    public void destroy() throws Exception {
-        if(connectionAcceptor != null){
-            connectionAcceptor.shutdown();
-        }
     }
 
     public void setPort(String port) {
@@ -156,49 +147,18 @@ public class VenusProtocol implements InitializingBean,BeanFactoryPostProcessor,
         this.messageHandler = messageHandler;
     }
 
-    /*
-    public void registeServiceManager(ServiceManager serviceManager) {
-        if(this.messageHandler instanceof VenusServerInvokerMessageHandler){
-            VenusServerInvokerMessageHandler serverInvokerMessageHandler =  (VenusServerInvokerMessageHandler)messageHandler;
-            serverInvokerMessageHandler.setServiceManager(serviceManager);
-        }else{
-            throw new VenusConfigException("messageHandler config error.");
-        }
-    }
-    */
-
     public AuthenticateProvider getAuthenticateProvider() {
+        if(authenticateProvider == null){
+            //若认证为空，则默认设置为dummy方式
+            SimpleAuthenticateProvider simpleAuthenticateProvider= new SimpleAuthenticateProvider();
+            simpleAuthenticateProvider.setUseDummy(true);
+            return simpleAuthenticateProvider;
+        }
         return authenticateProvider;
     }
 
     public void setAuthenticateProvider(AuthenticateProvider authenticateProvider) {
         this.authenticateProvider = authenticateProvider;
-    }
-
-    public VenusRegistryFactory getVenusRegistryFactory() {
-        return venusRegistryFactory;
-    }
-
-    public void setVenusRegistryFactory(VenusRegistryFactory venusRegistryFactory) {
-        this.venusRegistryFactory = venusRegistryFactory;
-    }
-
-    public VenusMonitorFactory getVenusMonitorFactory() {
-        return venusMonitorFactory;
-    }
-
-    public void setVenusMonitorFactory(VenusMonitorFactory venusMonitorFactory) {
-        this.venusMonitorFactory = venusMonitorFactory;
-    }
-
-    @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-
     }
 
     //不使用属性依赖注入，由srvMgr反向注入

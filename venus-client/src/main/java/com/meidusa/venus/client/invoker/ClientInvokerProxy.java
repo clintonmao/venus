@@ -1,12 +1,6 @@
 package com.meidusa.venus.client.invoker;
 
-import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
-import com.meidusa.venus.ClientInvocation;
-import com.meidusa.venus.client.invoker.injvm.InjvmClientInvoker;
-import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.io.utils.RpcIdUtil;
-import com.meidusa.venus.monitor.AthenaContext;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.filter.limit.ClientActivesLimitFilter;
@@ -15,7 +9,11 @@ import com.meidusa.venus.client.filter.mock.ClientCallbackMockFilter;
 import com.meidusa.venus.client.filter.mock.ClientReturnMockFilter;
 import com.meidusa.venus.client.filter.mock.ClientThrowMockFilter;
 import com.meidusa.venus.client.filter.valid.ClientValidFilter;
+import com.meidusa.venus.client.invoker.injvm.InjvmClientInvoker;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
+import com.meidusa.venus.io.utils.RpcIdUtil;
+import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.monitor.athena.filter.ClientAthenaMonitorFilter;
 import com.meidusa.venus.monitor.filter.ClientMonitorFilter;
 import com.meidusa.venus.registry.Register;
@@ -26,7 +24,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Random;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * client invoker调用代理类，附加处理校验、流控、降级相关切面操作
@@ -57,7 +56,7 @@ public class ClientInvokerProxy implements Invoker {
     private Register register;
 
     /**
-     * injvm调用 TODO 初始化
+     * injvm调用
      */
     private InjvmClientInvoker injvmInvoker = new InjvmClientInvoker();
 
@@ -66,34 +65,58 @@ public class ClientInvokerProxy implements Invoker {
      */
     private ClientRemoteInvoker clientRemoteInvoker = new ClientRemoteInvoker();
 
-    private ClientMonitorFilter clientMonitorFilter;
-
     private static boolean isEnableFilter = false;
 
-    Random random = new Random();
+    //前置filters
+    private List<Filter> beforeFilters = new ArrayList<Filter>();
+    //异常filters
+    private List<Filter> throwFilters = new ArrayList<Filter>();
+    //后置filters
+    private List<Filter> afterFilters = new ArrayList<Filter>();
+
+    //校验filter
+    private ClientValidFilter clientValidFilter = new ClientValidFilter();
+    //并发数流控
+    private ClientActivesLimitFilter clientActivesLimitFilter = new ClientActivesLimitFilter();
+    //TPS流控
+    private ClientTpsLimitFilter clientTpsLimitFilter = new ClientTpsLimitFilter();
+    //return降级
+    private ClientReturnMockFilter clientReturnMockFilter = new ClientReturnMockFilter();
+    //throw降级
+    private ClientThrowMockFilter clientThrowMockFilter = new ClientThrowMockFilter();
+    //mock降级
+    private ClientCallbackMockFilter clientCallbackMockFilter = new ClientCallbackMockFilter();
+    //athena监控
+    private ClientAthenaMonitorFilter clientAthenaMonitorFilter = new ClientAthenaMonitorFilter();
+    //venus监控上报filter
+    private ClientMonitorFilter clientMonitorFilter = new ClientMonitorFilter();
+
+
+    public ClientInvokerProxy(){
+        init();
+    }
 
     @Override
     public void init() throws RpcException {
+        synchronized (this){
+            isEnableFilter = Application.getInstance().isEnableFilter();
+            if(isEnableFilter){
+                initFilters();
+            }
+        }
     }
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
-        /*
-        if(random.nextInt(50000) > 49980){
-            logger.error("current thread:{},instance:{}",Thread.currentThread(),this);
-        }
-        */
         long bTime = System.currentTimeMillis();
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
         try {
-            if(isEnableFilter){
-                //调用前切面处理，校验、流控、降级等
-                for(Filter filter : getBeforeFilters()){
-                    Result result = filter.beforeInvoke(invocation,null);
-                    if(result != null){
-                        VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
-                        return result;
-                    }
+            //调用前切面处理，校验、流控、降级等
+            for(Filter filter : getBeforeFilters()){
+                Result result = filter.beforeInvoke(invocation,null);
+                if(result != null){
+                    VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
+                    return result;
                 }
             }
 
@@ -103,30 +126,27 @@ public class ClientInvokerProxy implements Invoker {
                 VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
                 return result;
             }else{
-                Result result = getRemoteInvoker().invoke(invocation, url);
+                ClientRemoteInvoker clientRemoteInvoker = getRemoteInvoker();
+                Result result = clientRemoteInvoker.invoke(invocation, url);
                 VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
                 return result;
             }
         } catch (Throwable e) {
             VenusThreadContext.set(VenusThreadContext.RESPONSE_EXCEPTION,e);
-            if(isEnableFilter){
-                //调用异常切面处理
-                for(Filter filter : getThrowFilters()){
-                    Result result = filter.throwInvoke(invocation,url,e );
-                    if(result != null){
-                        VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
-                        return result;
-                    }
+            //调用异常切面处理
+            for(Filter filter : getThrowFilters()){
+                Result result = filter.throwInvoke(invocation,url,e );
+                if(result != null){
+                    VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
+                    return result;
                 }
             }
             //TODO 本地异常情况
             throw  new RpcException(e);
         }finally {
-            if(isEnableFilter){
-                //调用结束切面处理
-                for(Filter filter : getAfterFilters()){
-                    filter.afterInvoke(invocation,url);
-                }
+            //调用结束切面处理
+            for(Filter filter : getAfterFilters()){
+                filter.afterInvoke(invocation,url);
             }
             if(logger.isWarnEnabled()){
                 logger.warn("request rpcId:{} cost time:{}.", RpcIdUtil.getRpcId(clientInvocation.getClientId(),clientInvocation.getClientRequestId()),System.currentTimeMillis()-bTime);
@@ -146,7 +166,6 @@ public class ClientInvokerProxy implements Invoker {
             return StringUtils.isNotEmpty(service.getImplement());
         }else{
             //本地调用
-            //TODO 确认endpoint为空情况
             return true;
         }
     }
@@ -170,67 +189,91 @@ public class ClientInvokerProxy implements Invoker {
     }
 
     /**
-     * 获取前置filters TODO 初始化处理
-     * @return
+     * 初始化filters
      */
-    Filter[] getBeforeFilters(){
-        return new Filter[]{
-                //校验
-                new ClientValidFilter(),
-                //并发数流控
-                new ClientActivesLimitFilter(),
-                //TPS流控
-                new ClientTpsLimitFilter(),
-                //return降级
-                new ClientReturnMockFilter(),
-                //throw降级
-                new ClientThrowMockFilter(),
-                //mock降级
-                new ClientCallbackMockFilter(),
-                //athena监控
-                new ClientAthenaMonitorFilter(),
-                //venus监控
-                getClientMonitorFilter()
-        };
+    void initFilters(){
+        initBeforeFilters();
+        initThrowFilters();
+        initAfterFilters();
     }
 
     /**
-     * 获取前置filters TODO 初始化处理
-     * @return
+     * 初始化前置切面
      */
-    Filter[] getThrowFilters(){
-        return new Filter[]{
-                //athena监控
-                new ClientAthenaMonitorFilter(),
-                //venus监控
-                getClientMonitorFilter()
-        };
+    void initBeforeFilters(){
+        beforeFilters.add(clientValidFilter);
+        //流控
+        beforeFilters.add(clientActivesLimitFilter);
+        beforeFilters.add(clientTpsLimitFilter);
+        //降级
+        beforeFilters.add(clientReturnMockFilter);
+        beforeFilters.add(clientThrowMockFilter);
+        beforeFilters.add(clientCallbackMockFilter);
+        //监控
+        addMonitorFilters(beforeFilters);
     }
 
     /**
-     * 获取after filters TODO 初始化处理
-     * @return
+     * 初始化异常切面
      */
-    Filter[] getAfterFilters(){
-        return new Filter[]{
-                //并发数流控
-                new ClientActivesLimitFilter(),
-                //athena监控
-                new ClientAthenaMonitorFilter(),
-                //venus监控
-                getClientMonitorFilter()
-        };
+    void initThrowFilters(){
+        //监控filters
+        addMonitorFilters(throwFilters);
     }
 
     /**
-     * getClientMonitorFilter
+     * 初始化后置切面
+     */
+    void initAfterFilters(){
+        //流控
+        afterFilters.add(clientActivesLimitFilter);
+        //监控
+        addMonitorFilters(afterFilters);
+    }
+
+    /**
+     * 初始化监控filters
+     */
+    void addMonitorFilters(List<Filter> filterList){
+        VenusMonitorFactory venusMonitorFactory = getVenusMonitorFactory();
+        if(venusMonitorFactory != null){
+            if(venusMonitorFactory.isEnableAthenaReport()){
+                filterList.add(clientAthenaMonitorFilter);
+            }
+            if(venusMonitorFactory.isEnableVenusReport()){
+                filterList.add(getClientMonitorFilter());
+            }
+        }
+    }
+
+    /**
+     * 获取VenusMonitorFactory
      * @return
      */
-    ClientMonitorFilter getClientMonitorFilter(){
-         if(clientMonitorFilter != null){
-             return clientMonitorFilter;
-         }
-        clientMonitorFilter = new ClientMonitorFilter(getAthenaDataService());
+    VenusMonitorFactory getVenusMonitorFactory(){
+        return VenusMonitorFactory.getInstance();
+    }
+
+    public List<Filter> getBeforeFilters() {
+        return beforeFilters;
+    }
+
+    public List<Filter> getThrowFilters() {
+        return throwFilters;
+    }
+
+    public List<Filter> getAfterFilters() {
+        return afterFilters;
+    }
+
+
+    public ClientMonitorFilter getClientMonitorFilter() {
+        synchronized (clientMonitorFilter){
+            if(!clientMonitorFilter.isRunning()){
+                clientMonitorFilter.setAthenaDataService(getVenusMonitorFactory().getAthenaDataService());
+                clientMonitorFilter.startProcessAndReporterTread();
+            }
+        }
         return clientMonitorFilter;
     }
 
@@ -240,7 +283,6 @@ public class ClientInvokerProxy implements Invoker {
      */
     Filter getAthenaMonitorFilter(){
         try {
-            //TODO 实例化
             Filter filter = (Filter) Class.forName("com.meidusa.venus.monitor.athena.filter.ClientAthenaMonitorFilter").newInstance();
             return filter;
         } catch (Exception e) {
@@ -287,8 +329,5 @@ public class ClientInvokerProxy implements Invoker {
         this.register = register;
     }
 
-    public AthenaDataService getAthenaDataService() {
-        return AthenaContext.getInstance().getAthenaDataService();
-    }
-
 }
+

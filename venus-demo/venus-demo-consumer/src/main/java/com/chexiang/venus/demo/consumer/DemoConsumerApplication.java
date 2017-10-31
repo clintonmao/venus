@@ -22,7 +22,6 @@ import org.springframework.context.annotation.ImportResource;
         })
 //@EnableAspectJAutoProxy(proxyTargetClass = true)
 //@ComponentScan(basePackages = "com.chexiang")
-@ComponentScan
 @ImportResource("classpath:conf/applicationContext-consumer.xml")
 public class DemoConsumerApplication {
 

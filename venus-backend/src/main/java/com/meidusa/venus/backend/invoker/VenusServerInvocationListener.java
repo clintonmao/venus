@@ -54,7 +54,9 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
         Result result = new Result(object);
         ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
         try {
-            logger.info("write notify response,result:{}", JSONUtil.toJSONString(result));
+            if(logger.isInfoEnabled()){
+                logger.info("write notify response,result:{}", JSONUtil.toJSONString(result));
+            }
             responseHandler.writeResponseForNotify(responseEntityWrapper);
         } catch (Exception e) {
             logger.error("response callback error.",e);
@@ -70,7 +72,9 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
         result.setException(e);
         ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
         try {
-            logger.info("write notify response,result:{}", JSONUtil.toJSONString(result));
+            if(logger.isInfoEnabled()){
+                logger.info("write notify response,result:{}", JSONUtil.toJSONString(result));
+            }
             responseHandler.writeResponseForNotify(responseEntityWrapper);
         } catch (Exception ex) {
             logger.error("response onException error.",ex);

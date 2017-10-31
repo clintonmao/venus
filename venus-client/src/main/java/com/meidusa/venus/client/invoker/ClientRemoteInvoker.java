@@ -1,8 +1,6 @@
 package com.meidusa.venus.client.invoker;
 
-import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.venus.*;
-import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.client.cluster.ClusterFailoverInvoker;
 import com.meidusa.venus.client.cluster.ClusterFastfailInvoker;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
@@ -10,9 +8,9 @@ import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
 import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
+import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.util.JSONUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -30,11 +28,6 @@ public class ClientRemoteInvoker implements Invoker{
 
     private static Logger logger = LoggerFactory.getLogger(ClientRemoteInvoker.class);
 
-    //集群策略-failover
-    private static String CLUSTER_FAILOVER = "failover";
-    //集群策略-fastfail
-    private static String CLUSTER_FASTFAIL = "fastfail";
-
     /**
      * 静态地址配置
      */
@@ -50,14 +43,14 @@ public class ClientRemoteInvoker implements Invoker{
      */
     private Router router = new ConditionRouter();
 
-    private ClusterFailoverInvoker clusterFailoverInvoker = new ClusterFailoverInvoker();
-
-    private ClusterFastfailInvoker clusterFastfailInvoker = new ClusterFastfailInvoker();
-
     /**
      * venus协议调用invoker
      */
     private VenusClientInvoker invoker = new VenusClientInvoker();
+
+    private ClusterFailoverInvoker clusterFailoverInvoker = new ClusterFailoverInvoker(invoker);
+
+    private ClusterFastfailInvoker clusterFastfailInvoker = new ClusterFastfailInvoker(invoker);
 
     @Override
     public void init() throws RpcException {
@@ -69,18 +62,12 @@ public class ClientRemoteInvoker implements Invoker{
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
         //寻址，静态或动态
         List<URL> urlList = lookup(clientInvocation);
-        if("A".equalsIgnoreCase("B")){
-            return new Result(new Hello("hi@","ok{remote-invoke-1}"));
-        }
 
         //自定义路由过滤 TODO 版本号访问控制
         //urlList = router.filte(clientInvocation, urlList);
 
         //集群容错调用
         ClusterInvoker clusterInvoker = getClusterInvoker(clientInvocation,url);
-        if("A".equalsIgnoreCase("B")){
-            return new Result(new Hello("hi@","ok{remote-invoke-2}"));
-        }
         Result result = clusterInvoker.invoke(invocation, urlList);
         return result;
     }
@@ -211,24 +198,21 @@ public class ClientRemoteInvoker implements Invoker{
         if(invocation.getService() != null){
             serviceName = invocation.getService().getName();
         }
-        String version = "0.0.0";//TODO
+        //若不指定版本号，则使用默认版本号
+        String versionx = VenusConstants.VERSION_DEFAULT;
+        if(StringUtils.isNotEmpty(invocation.getVersionx())){
+            versionx = invocation.getVersionx();
+        }
 
-        /*
-        String serviceUrl = String.format(
-                "venus://%s/%s?version=%s",
-                serviceInterfaceName,
-                serviceName,
-                version
-                );
-        */
-        String serviceUrl = new StringBuilder()
+        StringBuilder stringBuilder = new StringBuilder()
                 .append("venus://")
-                .append(serviceInterfaceName)
-                .append("/")
-                .append(serviceName)
-                .append("?version=")
-                .append(version)
-                .toString();
+                .append(serviceInterfaceName).append("/")
+                .append(serviceName);
+        if(StringUtils.isNotEmpty(versionx)){
+            stringBuilder
+                    .append("?version=").append(versionx);
+        }
+        String serviceUrl = stringBuilder.toString();
         URL url = URL.parse(serviceUrl);
         return url;
     }
@@ -239,17 +223,9 @@ public class ClientRemoteInvoker implements Invoker{
      */
     ClusterInvoker getClusterInvoker(ClientInvocation invocation,URL url){
         String cluster = invocation.getCluster();
-        if(CLUSTER_FAILOVER.equals(cluster) || invocation.getRetries() > 0){
-            if(clusterFailoverInvoker == null){
-                clusterFailoverInvoker =  new ClusterFailoverInvoker();
-            }
-            clusterFailoverInvoker.setInvoker(invoker);
+        if(VenusConstants.CLUSTER_FAILOVER.equals(cluster) || invocation.getRetries() > 0){
             return clusterFailoverInvoker;
-        }else if(CLUSTER_FASTFAIL.equals(cluster)){
-            if(clusterFastfailInvoker == null){
-                clusterFastfailInvoker =  new ClusterFastfailInvoker();
-            }
-            clusterFastfailInvoker.setInvoker(invoker);
+        }else if(VenusConstants.CLUSTER_FASTFAIL.equals(cluster)){
             return clusterFastfailInvoker;
         }else{
             throw new RpcException(String.format("invalid cluster policy:%s.",cluster));

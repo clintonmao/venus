@@ -23,18 +23,28 @@
 	</bean>
 
 	<!--应用配置-->
-	<bean class="com.meidusa.venus.Application">
+	<bean id="application" class="com.meidusa.venus.Application">
 		<property name="name" value="${application.name}"/>
 	</bean>
 
 	<!--注册配置-->
+	<!--可选，若不配置则服务引用不走注册中心-->
 	<bean id="venusRegistryFactory" class="com.meidusa.venus.registry.VenusRegistryFactory">
 		<property name="registerUrl" value="${register.registerUrl}"/>
 	</bean>
 
 	<!--监控配置-->
+	<!--可选，若不配置则监控不上报-->
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
 		<property name="url" value="${monitor.url}"/>
+		<!--
+		enableAthenaReport:是否开启athena上报，默认true
+		enableVenusReport:是否开启venus上报，默认true
+		-->
+		<!--
+		<property name="enableAthenaReport" value="true"/>
+		<property name="enableVenusReport" value="true"/>
+		-->
 	</bean>
 
 	<!--服务引用配置-->

@@ -24,6 +24,7 @@ import com.meidusa.venus.notify.InvocationListener;
 /**
  * 服务调用监听容器
  */
+@Deprecated
 public class InvocationListenerContainer {
 
     private Map<String, Map<Integer, Tuple<InvocationListener, Type>>> listenerMap = new HashMap<String, Map<Integer, Tuple<InvocationListener, Type>>>();

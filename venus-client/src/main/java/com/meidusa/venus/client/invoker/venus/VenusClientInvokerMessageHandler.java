@@ -41,8 +41,6 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
 
     private VenusExceptionFactory venusExceptionFactory;
 
-    private InvocationListenerContainer container;
-
     /**
      * rpcId-请求&响应映射表
      */
@@ -56,9 +54,6 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
     private static boolean isEnableRandomPrint = true;
 
     public void handle(VenusBackendConnection conn, byte[] message) {
-        if("A".equalsIgnoreCase("B")){
-            return;
-        }
         //获取序列化
         Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
 
@@ -153,10 +148,6 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
      * @param serializer
      */
     void handleForResponse(VenusBackendConnection conn, byte[] message,Serializer serializer){
-        if("A".equalsIgnoreCase("B")){
-            return;
-        }
-
         VenusReqRespWrapper reqRespWrapper = null;
 
         try {
@@ -321,14 +312,6 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
 
     public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
         this.venusExceptionFactory = venusExceptionFactory;
-    }
-
-    public InvocationListenerContainer getContainer() {
-        return container;
-    }
-
-    public void setContainer(InvocationListenerContainer container) {
-        this.container = container;
     }
 
     public Map<String, ClientInvocation> getServiceReqCallbackMap() {

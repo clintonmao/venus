@@ -28,7 +28,7 @@ public interface Register {
     /**
      * 服务订阅
      * @param url
-     * @return TODO
+     * @return
      * @throws VenusRegisteException
      */
     boolean subscrible(URL url) throws VenusRegisteException;

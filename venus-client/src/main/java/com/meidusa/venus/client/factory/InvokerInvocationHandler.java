@@ -1,7 +1,8 @@
 package com.meidusa.venus.client.factory;
 
-import com.chexiang.venus.demo.provider.model.Hello;
-import com.meidusa.venus.*;
+import com.meidusa.venus.ClientInvocation;
+import com.meidusa.venus.Result;
+import com.meidusa.venus.ServiceFactory;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
@@ -74,7 +75,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
      */
     private Register register;
 
-    private ClientInvokerProxy clientInvokerProxy;
+    private ClientInvokerProxy clientInvokerProxy = new ClientInvokerProxy();
 
     private static AtomicLong sequenceId = new AtomicLong(1);
 
@@ -97,9 +98,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
         try {
             //构造请求
             ClientInvocation invocation = buildInvocation(proxy, method, args);
-            if("A".equalsIgnoreCase("B")){
-                return new Hello("@hi","@ok");
-            }
 
             //通过代理调用服务
             Result result = getClientInvokerProxy().invoke(invocation,null);
@@ -121,15 +119,11 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * @return
      */
     public ClientInvokerProxy getClientInvokerProxy() {
-        if(clientInvokerProxy == null){
-            clientInvokerProxy = new ClientInvokerProxy();
-            //TODO auth/exceptionFactory通过懒加载注入
-            clientInvokerProxy.setAuthenticator(getAuthenticator());
-            clientInvokerProxy.setVenusExceptionFactory(getVenusExceptionFactory());
-            //TODO 传递要优化
-            clientInvokerProxy.setRegister(register);
-            clientInvokerProxy.setRemoteConfig(getRemoteConfig());
-        }
+        //TODO auth/exceptionFactory通过懒加载注入
+        clientInvokerProxy.setAuthenticator(getAuthenticator());
+        clientInvokerProxy.setVenusExceptionFactory(getVenusExceptionFactory());
+        clientInvokerProxy.setRegister(register);
+        clientInvokerProxy.setRemoteConfig(getRemoteConfig());
         return clientInvokerProxy;
     }
 
@@ -176,9 +170,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
         invocation.setClientRequestId(sequenceId.getAndIncrement());
         //设置rpcId
         invocation.setRpcId(RpcIdUtil.getRpcId(invocation.getClientId(),invocation.getClientRequestId()));
-        if("A".equalsIgnoreCase("B")){
-            return null;
-        }
         //设置traceId
         byte[] traceID = VenusTracerUtil.getTracerID();
         if (traceID == null) {
@@ -204,6 +195,9 @@ public class InvokerInvocationHandler implements InvocationHandler {
             }
             if(serviceConfig.getCoreConnections() != 0){
                 invocation.setCoreConnections(serviceConfig.getCoreConnections());
+            }
+            if(StringUtils.isNotEmpty(serviceConfig.getVersionx())){
+                invocation.setVersionx(serviceConfig.getVersionx());
             }
         }
         return invocation;

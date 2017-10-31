@@ -1,9 +1,11 @@
 package com.meidusa.venus.client.invoker.venus;
 
-import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.toolkit.net.*;
-import com.meidusa.venus.*;
+import com.meidusa.venus.ClientInvocation;
+import com.meidusa.venus.Invoker;
+import com.meidusa.venus.Result;
+import com.meidusa.venus.URL;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.client.factory.xml.config.*;
 import com.meidusa.venus.client.invoker.AbstractClientInvoker;
@@ -16,15 +18,10 @@ import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
-import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.metainfo.EndpointParameter;
-import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionId;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
-import com.meidusa.venus.support.EndpointWrapper;
-import com.meidusa.venus.support.ServiceWrapper;
-import com.meidusa.venus.support.VenusThreadContext;
-import com.meidusa.venus.support.VenusUtil;
+import com.meidusa.venus.support.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +31,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -59,7 +58,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     private VenusExceptionFactory venusExceptionFactory;
 
-
     /*
     private boolean enableAsync = true;
     private static AtomicLong sequenceId = new AtomicLong(1);
@@ -67,35 +65,30 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     private XmlServiceFactory serviceFactory;
     */
 
-    /**
-     * nio连接映射表
-     */
+    //nio连接映射表
     private Map<String, BackendConnectionPool> nioPoolMap = new ConcurrentHashMap<String, BackendConnectionPool>();
 
-    //当前实例连接 TODO 【***】监听连接有效性，释放资源
-    private ThreadLocal<BackendConnection> connectionThreadLocal = new ThreadLocal<BackendConnection>();
-
-    /**
-     * rpcId-请求&响应映射表，TODO 容量、有效期、清理机制
-     */
+    //rpcId-请求&响应映射表
     private Map<String, VenusReqRespWrapper> serviceReqRespMap = new ConcurrentHashMap<String, VenusReqRespWrapper>();
 
-    /**
-     * rpcId-请求&回调映射表
-     */
+    //rpcId-请求&回调映射表
     private Map<String, ClientInvocation> serviceReqCallbackMap = new ConcurrentHashMap<String, ClientInvocation>();
 
-    /**
-     * 调用监听容器
-     */
-    private InvocationListenerContainer container = new InvocationListenerContainer();
-
-    /**
-     * NIO消息响应处理
-     */
+    //NIO消息响应处理
     private VenusClientInvokerMessageHandler messageHandler = new VenusClientInvokerMessageHandler();
 
+    //调用监听容器
+    private InvocationListenerContainer container = new InvocationListenerContainer();
+
+    //添加连接事件监听
+    private VenusClientConnectionObserver connectionObserver = new VenusClientConnectionObserver();
+
     private static ConnectionConnector connector;
+
+    private static ConnectionManager[] connectionManagers;
+
+    //invoker列表
+    private static List<Invoker> invokerList = new ArrayList<Invoker>();
 
     private boolean isInit = false;
 
@@ -104,31 +97,39 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     //mock返回线程池
     private static Executor mockReturnExecutor = null;
 
-    static {
-        if(connector == null){
-            try {
-                logger.error("###################init connector############");
-                connector = new ConnectionConnector("connection connector-0");
-                int ioThreads = Runtime.getRuntime().availableProcessors();
-                ConnectionManager[] connectionManagers = new ConnectionManager[ioThreads];
-                for(int i=0;i<ioThreads;i++){
-                    ConnectionManager connManager = new ConnectionManager("connection manager-" + i, -1);
-                    connectionManagers[i] = connManager;
-                    connManager.start();
+    public VenusClientInvoker(){
+        synchronized (this){
+            if(connector == null && connectionManagers == null){
+                try {
+                    logger.error("###################init connector############");
+                    connector = new ConnectionConnector("connection connector-0");
+                    int ioThreads = Runtime.getRuntime().availableProcessors();
+                    connectionManagers = new ConnectionManager[ioThreads];
+                    for(int i=0;i<ioThreads;i++){
+                        ConnectionManager connManager = new ConnectionManager("connection manager-" + i, -1);
+                        //添加连接监听
+                        connectionObserver.setServiceReqRespMap(serviceReqRespMap);
+                        connManager.addConnectionObserver(connectionObserver);
+                        connectionManagers[i] = connManager;
+                        connManager.start();
+                    }
+                    connector.setProcessors(connectionManagers);
+                    connector.start();
+                } catch (IOException e) {
+                    throw new RpcException(e);
                 }
-                connector.setProcessors(connectionManagers);
-                connector.start();
-            } catch (IOException e) {
-                throw new RpcException(e);
             }
+
+            //添加到invoker列表，用于释放资源
+            getInvokerList().add(this);
         }
     }
+
 
     @Override
     public void init() throws RpcException {
         if(!isInit){
             messageHandler.setVenusExceptionFactory(venusExceptionFactory);
-            messageHandler.setContainer(this.container);
             messageHandler.setServiceReqCallbackMap(serviceReqCallbackMap);
             messageHandler.setServiceReqRespMap(serviceReqRespMap);
             isInit = true;
@@ -182,21 +183,15 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         int timeout = invocation.getTimeout();
 
         //构造请求消息
-        if("A".equalsIgnoreCase("B")){
-            return new Result(new Hello("hi@","ok{invoker-doInvoke1}"));
-        }
         SerializeServiceRequestPacket request = buildRequest(invocation);
 
         //添加rpcId -> reqResp映射表
-        String rpcId = RpcIdUtil.getRpcId(request);
+        String rpcId = invocation.getRpcId();
         VenusReqRespWrapper reqRespWrapper = new VenusReqRespWrapper(invocation);
         serviceReqRespMap.put(rpcId,reqRespWrapper);
 
         //发送消息
-        if("A".equalsIgnoreCase("B")){
-            return new Result(new Hello("hi@","ok{invoker-doInvoke2}"));
-        }
-        sendRequest(invocation, request, url);
+        sendRequest(invocation, request, url,reqRespWrapper);
 
         if("A".equalsIgnoreCase("B")){
             if(isEnableRandomPrint){
@@ -206,19 +201,16 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                     }
                 }
             }
-            return new Result(new Hello("hi@","ok{invoker-doInvoke3}"));
+            return new Result(new Echo("hi@","ok{invoker-doInvoke3}"));
         }
 
 
         boolean isReturnMock = false;
         if(!isReturnMock){
             //latch阻塞等待
-            //TODO #####超时时间提取配置#######
             reqRespWrapper.getReqRespLatch().await(timeout,TimeUnit.MILLISECONDS);
+
             //处理响应
-            if("A".equalsIgnoreCase("B")){
-                return new Result(new Hello("hi@","ok{invoker-doInvoke4}"));
-            }
             result = fetchResponse(rpcId);
         }else{
             if(mockReturnExecutor == null){
@@ -274,34 +266,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     }
 
     /**
-     * 判断是否超时
-     * @param totalWaitTime
-     * @param bWaitTime
-     * @return
-     */
-    /*
-    boolean isTimeout(long totalWaitTime,long bWaitTime){
-        long costTime = System.currentTimeMillis() - bWaitTime;
-        return costTime >= totalWaitTime;
-    }
-    */
-
-    /**
-     * 获取剩余等待时间
-     * @param totalWaitTime
-     * @param bWaitTime
-     * @return
-     */
-    /*
-    long getRemainWaitTime(long totalWaitTime,long bWaitTime){
-        long usedWaitTime = System.currentTimeMillis() - bWaitTime;
-        long remainWaitTime = totalWaitTime - usedWaitTime;
-        remainWaitTime = remainWaitTime < 1?1:remainWaitTime;
-        return remainWaitTime;
-    }
-    */
-
-    /**
      * callback异步调用
      * @param invocation
      * @param url
@@ -313,10 +277,10 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         SerializeServiceRequestPacket request = buildRequest(invocation);
 
         //添加rpcId-> reqResp映射表
-        serviceReqCallbackMap.put(RpcIdUtil.getRpcId(request),invocation);
+        serviceReqCallbackMap.put(invocation.getRpcId(),invocation);
 
         //发送消息
-        sendRequest(invocation, request, url);
+        sendRequest(invocation, request, url,null);
 
         //立即返回，响应由invocationListener处理
         return new Result(null);
@@ -390,7 +354,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @return
      * @throws Exception
      */
-    void sendRequest(ClientInvocation invocation, SerializeServiceRequestPacket serviceRequestPacket, URL url) throws Exception{
+    void sendRequest(ClientInvocation invocation, SerializeServiceRequestPacket serviceRequestPacket, URL url,VenusReqRespWrapper reqRespWrapper) throws Exception{
         //long start = TimeUtil.currentTimeMillis();
         BackendConnectionPool nioConnPool = null;
         BackendConnection conn = null;
@@ -398,16 +362,16 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             //获取连接 TODO 地址变化情况
             nioConnPool = getNioConnPool(url,invocation,null);
             conn = nioConnPool.borrowObject();
+            if(reqRespWrapper != null){
+                reqRespWrapper.setBackendConnection(conn);
+            }
 
             //发送请求消息，响应由handler类处理
-            //String rpcId = RpcIdUtil.getRpcId(serviceRequestPacket);
             ByteBuffer buffer = serviceRequestPacket.toByteBuffer();
             VenusThreadContext.set(VenusThreadContext.CLIENT_OUTPUT_SIZE,Integer.valueOf(buffer.limit()));
 
-            if("A".equalsIgnoreCase("B")){
-                return;
-            }
             conn.write(buffer);
+
 
             //logger.warn("send buffer cost time:{}.",System.currentTimeMillis()-bTime);
             //logger.warn("send request,rpcId:{},buff len:{},message:{}.",rpcId, buffer.limit(),JSONUtil.toJSONString(serviceRequestPacket));
@@ -454,17 +418,16 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             return nioPoolMap.get(address);
         }else{
             //若不存在，则创建连接池
-            BackendConnectionPool backendConnectionPool = null;
-            //锁定，避免重复创建 TODO 存在并发问题
-            synchronized (nioPoolMap){
+            synchronized (this){
+                BackendConnectionPool backendConnectionPool = null;
                 if(nioPoolMap.get(address) != null){
                     backendConnectionPool = nioPoolMap.get(address);
                 }else{
                     backendConnectionPool = createNioPool(url,invocation,new ClientRemoteConfig());
                     nioPoolMap.put(address,backendConnectionPool);
                 }
+                return backendConnectionPool;
             }
-            return backendConnectionPool;
         }
     }
 
@@ -598,15 +561,13 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @return
      */
     Result fetchResponseFromMock(String rpcId){
-        return new Result(new Hello("@hi","@mock result"));
+        return new Result(new Echo("@hi","@mock result"));
     }
 
     /**
-     * 设置transactionId TODO 监控上报用，确认是否保留？
-     * @param athenaTransactionId
-     * @param serviceRequestPacket
-     * @param invocation
+     * 设置transactionId
      */
+    /*
     private void setTransactionId(AthenaTransactionId athenaTransactionId, SerializeServiceRequestPacket serviceRequestPacket, ClientInvocation invocation) {
         if (athenaTransactionId != null) {
             if (athenaTransactionId.getRootId() != null) {
@@ -628,6 +589,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             }
         }
     }
+    */
 
 
     public VenusExceptionFactory getVenusExceptionFactory() {
@@ -670,28 +632,35 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         this.messageHandler = messageHandler;
     }
 
-    public ConnectionConnector getConnector() {
-        return connector;
-    }
-
-    public void setConnector(ConnectionConnector connector) {
-        VenusClientInvoker.connector = connector;
-    }
-
     @Override
     public void destroy() throws RpcException{
+        //释放连接
         if (connector != null) {
             if (connector.isAlive()) {
                 connector.shutdown();
             }
         }
-        /*
-        if (connManager != null) {
-            if (connManager.isAlive()) {
-                connManager.shutdown();
+
+        if(connectionManagers != null && connectionManagers.length > 0){
+            for(ConnectionManager connManager:connectionManagers){
+                if (connManager != null) {
+                    if (connManager.isAlive()) {
+                        connManager.shutdown();
+                    }
+                }
             }
         }
-        */
+    }
+
+
+    public static List<Invoker> getInvokerList() {
+        return invokerList;
+    }
+
+    void addInvoker(Invoker invoker){
+        if(invoker != null){
+            getInvokerList().add(invoker);
+        }
     }
 
 }

@@ -46,7 +46,8 @@ public class BusDispatcher implements Dispatcher{
      */
     private Map<String, BackendConnectionPool> nioPoolMap = new HashMap<String, BackendConnectionPool>();
 
-    //TODO set observer
+    //TODO 通过observer监听来处理连接异常
+
     private BusDispatchMessageHandler dispatchMessageHandler;
 
     public BusDispatcher(Map<String, BusFrontendConnection> requestConnectionMap){
@@ -171,7 +172,6 @@ public class BusDispatcher implements Dispatcher{
             throw new RpcException(e);
         } finally {
             if (connectionPool != null && remoteConn != null) {
-                //TODO 连接释放，要释放？
                 connectionPool.returnObject(remoteConn);
             }
         }

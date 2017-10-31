@@ -1,35 +1,34 @@
 package com.meidusa.venus.backend.services.xml.config;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import com.meidusa.venus.support.VenusConstants;
-import org.apache.commons.lang.StringUtils;
-
 import com.meidusa.toolkit.common.util.StringUtil;
 import com.meidusa.venus.util.ArrayRange;
 import com.meidusa.venus.util.BetweenRange;
 import com.meidusa.venus.util.Range;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ServiceConfig {
-    private String name;
-
-    private boolean active = true;
-
     private Class<?> type;
+
+    private String name;
 
     private Object instance;
 
+    //版本号，如1.0.0
     private String version;
+
+    private Range versionRange;
 
     private Map<String, EndpointConfig> endpointConfigMap = new HashMap<String, EndpointConfig>();
 
     private String interceptorStack;
 
-    private Range versionRange;
-
     //venus协议默认线程数
     private int coreThreads;
+
+    private boolean active = true;
 
     public String getVersion() {
         return version;
@@ -117,4 +116,8 @@ public class ServiceConfig {
     public void setCoreThreads(int coreThreads) {
         this.coreThreads = coreThreads;
     }
+
+
+
+
 }
