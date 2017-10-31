@@ -583,6 +583,16 @@ public class MysqlRegister implements Register {
 	}
 
 	/*public static void main(String args[]) {
+		List<String> readFileJsons = readFile("D:\\Users\\longhaisheng\\venus\\.venusCache.txt");
+		Map<String, List<VenusServiceDefinitionDO>> map = new HashMap<String, List<VenusServiceDefinitionDO>>();
+		if (CollectionUtils.isNotEmpty(readFileJsons)) {
+			for (String str : readFileJsons) {
+				List<VenusServiceDefinitionDO> parseObject = JSON.parseArray(str, VenusServiceDefinitionDO.class);
+				if (CollectionUtils.isNotEmpty(parseObject)) {
+					map.put(getKey(parseObject.get(0)), parseObject);
+				}
+			}
+		}
 
 		VenusServiceDefinitionDO def1 = new VenusServiceDefinitionDO();
 		VenusServiceDefinitionDO def2 = new VenusServiceDefinitionDO();
