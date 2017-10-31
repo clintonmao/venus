@@ -114,6 +114,8 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
 
     private BeanContext beanContext;
 
+    private Application application;
+
     /**
      * 注册中心工厂
      */
@@ -340,8 +342,6 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             serviceMap.put(serviceConfig.getType(), defined);
         }
     }
-
-    Application application;
 
 
     /**

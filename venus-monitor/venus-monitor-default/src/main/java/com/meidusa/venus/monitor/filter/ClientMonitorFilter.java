@@ -78,6 +78,7 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
      * @return
      */
     boolean isNeedReport(ClientInvocation clientInvocation){
+        //走注册中心才上报
         return clientInvocation.getLookupType() != 0;
     }
 

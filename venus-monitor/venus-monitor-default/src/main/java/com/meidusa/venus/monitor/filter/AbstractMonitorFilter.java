@@ -48,23 +48,19 @@ public abstract class AbstractMonitorFilter {
 
     AthenaDataService athenaDataService = null;
 
-    //一次处理记录条数
-    private static int perDetailProcessNum = 10;
-
-    //一次上报记录条数
-    private static int perDetailReportNum = 50;
-
     //consumer
     protected static int ROLE_CONSUMER = 0;
     //provider
     protected static int ROLE_PROVIDER = 2;
-
+    //一次处理记录条数
+    private static int perDetailProcessNum = 10;
+    //一次上报记录条数
+    private static int perDetailReportNum = 50;
     //慢操作耗时
-    static int SLOW_COST_TIME = 0;
-
+    private static int SLOW_COST_TIME = 0;
     //Athena接口名称定义
-    public static final String ATHENA_INTERFACE_SIMPLE_NAME = "AthenaDataService";
-    public static final String ATHENA_INTERFACE_FULL_NAME = "com.athena.service.api.AthenaDataService";
+    private static final String ATHENA_INTERFACE_SIMPLE_NAME = "AthenaDataService";
+    private static final String ATHENA_INTERFACE_FULL_NAME = "com.athena.service.api.AthenaDataService";
 
 
     public AbstractMonitorFilter(){
