@@ -31,7 +31,8 @@ public class ClusterFailoverInvoker extends AbstractClusterInvoker implements Cl
             retries = 1;
         }
         String lb = clientInvocation.getLoadbalance();
-        //对于系统异常，进行重试
+
+        //调用相应协议服务
         for(int i=0;i<retries;i++){
             try {
                 //选择地址
@@ -43,11 +44,15 @@ public class ClusterFailoverInvoker extends AbstractClusterInvoker implements Cl
                 // 调用
                 return  getInvoker().invoke(invocation, url);
             } catch (RpcException e) {
-                //对于网络异常、超时异常若根据配置则进行重试
-                if(e.isNetwork()){
-                    logger.warn("occur network exception,to retry.",e);
-                }else if(e.isTimeout()){
-                    logger.warn("occur timeout exception,to retry.",e);
+                //对于网络异常、超时异常根据配置进行重试
+                if(e.isNetwork() || e.isTimeout()){
+                    if(i < retries){
+                        if(logger.isWarnEnabled()){
+                            logger.warn("invoke failed,to retry.",e);
+                        }
+                    }else{
+                        throw e;
+                    }
                 }else{
                     throw e;
                 }
