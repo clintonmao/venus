@@ -58,70 +58,60 @@ public class ClientRemoteInvoker implements Invoker{
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
-        long bTime = System.currentTimeMillis();
+        if(isRegisterLookup()){
+            //走注册中心寻址调用
+            return this.invokeByRegisterLookup(invocation, url);
+        }else{
+            //静态地址调用
+            return this.invokeByStaticLookup(invocation, url);
+        }
+    }
+
+    /**
+     * 走静态寻址调用
+     * @param invocation
+     * @param url
+     * @return
+     * @throws RpcException
+     */
+    Result invokeByStaticLookup(Invocation invocation, URL url) throws RpcException {
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
-        //寻址，静态或动态
-        List<URL> urlList = lookup(clientInvocation);
+        //静态寻址
+        List<URL> urlList = lookupByStatic(clientInvocation);
+
+        //集群容错调用
+        Result result = getClusterInvoker(clientInvocation,url).invoke(invocation, urlList);
+        return result;
+    }
+
+    /**
+     * 走注册中心寻址调用
+     * @param invocation
+     * @param url
+     * @return
+     * @throws RpcException
+     */
+    Result invokeByRegisterLookup(Invocation invocation, URL url) throws RpcException {
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
+        //注册中心寻址
+        List<URL> urlList = lookupByRegister(clientInvocation);
 
         //自定义路由过滤 TODO 版本号访问控制
         //urlList = router.filte(clientInvocation, urlList);
 
         //集群容错调用
-        ClusterInvoker clusterInvoker = getClusterInvoker(clientInvocation,url);
-        Result result = clusterInvoker.invoke(invocation, urlList);
+        Result result = getClusterInvoker(clientInvocation,url).invoke(invocation, urlList);
         return result;
     }
 
-    @Override
-    public void destroy() throws RpcException {
-
-    }
-
     /**
-     * 查找服务提供者地址列表
-     * @param invocation
+     * 判断是否注册中心寻址
      * @return
      */
-    List<URL> lookup(ClientInvocation invocation){
-        List<URL> urlList = null;
-        if(!isDynamicLookup()){//静态地址
-            urlList = lookupByStatic(invocation);
-            if(CollectionUtils.isEmpty(urlList)){
-                throw new RpcException("not found avalid providers.");
-            }
-        }else{//动态注册中心查找
-            urlList = lookupByDynamic(invocation);
-            if(CollectionUtils.isEmpty(urlList)){
-                throw new RpcException("not found avalid providers.");
-            }
-        }
-
-        //输出寻址结果信息
-        List<String> targets = new ArrayList<String>();
-        if(CollectionUtils.isNotEmpty(urlList)){
-            for(URL url:urlList){
-                String target = new StringBuilder()
-                        .append(url.getHost())
-                        .append(":")
-                        .append(url.getPort())
-                        .toString();
-                targets.add(target);
-            }
-        }
-        if(logger.isInfoEnabled()){
-            logger.info("lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
-        }
-        return urlList;
-    }
-
-    /**
-     * 判断是否动态寻址
-     * @return
-     */
-    boolean isDynamicLookup(){
+    boolean isRegisterLookup(){
         if(remoteConfig != null){//静态地址
             return false;
-        }else if(register != null){//动态注册中心查找
+        }else if(register != null){//走注册中心寻址
             return true;
         }else{
             throw new RpcException("remoteConfig and registerUrl not allow empty.");
@@ -145,6 +135,25 @@ public class ClientRemoteInvoker implements Invoker{
             url.setRemoteConfig(remoteConfig);
             urlList.add(url);
         }
+
+        if(CollectionUtils.isEmpty(urlList)){
+            throw new RpcException("not found avalid providers.");
+        }
+        //输出寻址结果信息
+        List<String> targets = new ArrayList<String>();
+        if(CollectionUtils.isNotEmpty(urlList)){
+            for(URL url:urlList){
+                String target = new StringBuilder()
+                        .append(url.getHost())
+                        .append(":")
+                        .append(url.getPort())
+                        .toString();
+                targets.add(target);
+            }
+        }
+        if(logger.isInfoEnabled()){
+            logger.info("static lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
+        }
         return urlList;
     }
 
@@ -153,22 +162,19 @@ public class ClientRemoteInvoker implements Invoker{
      * @param invocation
      * @return
      */
-    List<URL> lookupByDynamic(ClientInvocation invocation){
+    List<URL> lookupByRegister(ClientInvocation invocation){
         List<URL> urlList = new ArrayList<URL>();
 
         //解析请求Url
         URL requestUrl = parseRequestUrl(invocation);
-
         //查找服务定义
         List<VenusServiceDefinitionDO> serviceDefinitionDOList = getRegister().lookup(requestUrl);
         if(CollectionUtils.isEmpty(serviceDefinitionDOList)){
             throw new RpcException(String.format("not found available service %s providers.",requestUrl.toString()));
         }
-        //logger.info("lookup service:{} provider group:{}",requestUrl.toString(),serviceDefinitionDOList.size());
 
         //TODO group/urls关系
         for(VenusServiceDefinitionDO srvDef:serviceDefinitionDOList){
-            //logger.info("lookup service:{} provider size:{}",requestUrl.toString(),srvDef.getIpAddress().size());
             for(String addresss:srvDef.getIpAddress()){
                 String[] arr = addresss.split(":");
                 URL url = new URL();
@@ -180,6 +186,25 @@ public class ClientRemoteInvoker implements Invoker{
                 }
                 urlList.add(url);
             }
+        }
+
+        if(CollectionUtils.isEmpty(urlList)){
+            throw new RpcException("not found avalid providers.");
+        }
+        //输出寻址结果信息
+        List<String> targets = new ArrayList<String>();
+        if(CollectionUtils.isNotEmpty(urlList)){
+            for(URL url:urlList){
+                String target = new StringBuilder()
+                        .append(url.getHost())
+                        .append(":")
+                        .append(url.getPort())
+                        .toString();
+                targets.add(target);
+            }
+        }
+        if(logger.isInfoEnabled()){
+            logger.info("register lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
         }
         return urlList;
     }
@@ -230,6 +255,11 @@ public class ClientRemoteInvoker implements Invoker{
         }else{
             throw new RpcException(String.format("invalid cluster policy:%s.",cluster));
         }
+    }
+
+    @Override
+    public void destroy() throws RpcException {
+
     }
 
     public ClientRemoteConfig getRemoteConfig() {

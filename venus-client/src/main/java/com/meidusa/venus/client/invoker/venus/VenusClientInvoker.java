@@ -82,9 +82,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     //NIO消息响应处理
     private VenusClientInvokerMessageHandler messageHandler = new VenusClientInvokerMessageHandler();
 
-    //调用监听容器
-    private InvocationListenerContainer container = new InvocationListenerContainer();
-
     //添加连接事件监听
     private VenusClientConnectionObserver connectionObserver = new VenusClientConnectionObserver();
 
@@ -586,14 +583,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     public void setSerializeType(byte serializeType) {
         this.serializeType = serializeType;
-    }
-
-    public InvocationListenerContainer getContainer() {
-        return container;
-    }
-
-    public void setContainer(InvocationListenerContainer container) {
-        this.container = container;
     }
 
     public ClientRemoteConfig getRemoteConfig() {

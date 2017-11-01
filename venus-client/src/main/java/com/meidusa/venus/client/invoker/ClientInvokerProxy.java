@@ -141,8 +141,7 @@ public class ClientInvokerProxy implements Invoker {
                     return result;
                 }
             }
-            //TODO 本地异常情况
-            throw  new RpcException(e);
+            throw new RpcException(e);
         }finally {
             //调用结束切面处理
             for(Filter filter : getAfterFilters()){

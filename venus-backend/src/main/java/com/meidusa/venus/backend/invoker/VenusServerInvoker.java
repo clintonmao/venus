@@ -280,10 +280,8 @@ public class VenusServerInvoker implements Invoker {
                 .append(clientId).append(", requestID=").append(requestId);
 
         PerformanceLogger pLevel = null;
-
         if(endpoint != null){
-            //TODO 确认代码功能
-            //pLevel = endpoint.getPerformanceLogger();
+            pLevel = endpoint.getPerformanceLogger();
         }
 
         if (pLevel != null) {
