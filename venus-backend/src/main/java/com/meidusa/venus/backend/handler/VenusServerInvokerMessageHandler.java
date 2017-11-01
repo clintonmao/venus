@@ -65,6 +65,13 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
     private boolean executorProtected;
     private boolean useThreadLocalExecutor;
     private Executor executor;
+    private EndpointInvocation.ResultType resultType;
+    private Executor executor;
+    private RequestContext context;
+    private short serializeType;
+    private String apiName;
+    private String sourceIp;
+    private Tuple<Long, byte[]> data;
     */
 
     private static Logger INVOKER_LOGGER = LoggerFactory.getLogger("venus.service.invoker");
@@ -74,16 +81,6 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
 
     private static String ENDPOINT_INVOKED_TIME = "invoked Total Time: ";
-
-    /*
-    private EndpointInvocation.ResultType resultType;
-    private Executor executor;
-    private RequestContext context;
-    private short serializeType;
-    private String apiName;
-    private String sourceIp;
-    private Tuple<Long, byte[]> data;
-    */
 
     private byte[] traceID;
 
@@ -112,18 +109,6 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
     @Override
     public void init() throws InitialisationException {
-        //初始化业务处理线程池
-        /*
-        if (executor == null) {
-            //executor = new ThreadPoolExecutor(coreThread,maxThread,0,TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(maxQueue),new ThreadPoolExecutor.CallerRunsPolicy());
-            executor = new ThreadPoolExecutor(coreThread,maxThread,0,TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(maxQueue),new RejectedExecutionHandler(){
-                @Override
-                public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-                    logger.error("exceed max process,maxThread:{},maxQueue:{}.",maxThread,maxQueue);
-                }
-            });
-        }
-        */
     }
 
 
@@ -135,7 +120,6 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
         */
         byte[] message = data.right;
         int type = AbstractServicePacket.getType(message);
-        //TODO 提取分发路由信息，统一serviceRequest报文
         if (PacketConstant.PACKET_TYPE_ROUTER == type) {
             VenusRouterPacket routerPacket = new VenusRouterPacket();
             routerPacket.original = message;
@@ -181,22 +165,23 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
         try {
             //解析请求对象
             invocation = parseInvocation(conn, data);
-            rpcId = invocation.getRpcId();
+
             //不要打印bytes信息流，会导致后续无法获取
+            rpcId = invocation.getRpcId();
             if(logger.isWarnEnabled()){
                 logger.warn("recv request,rpcId:{},message size:{}.", rpcId,data.getRight().length);
             }
 
             //通过代理调用服务
             result = getVenusServerInvokerProxy().invoke(invocation, null);
-        } catch (Exception e) {
-            //TODO 处理异常信息丢失、异常信息包装
+        } catch (Throwable t) {
             result = new Result();
-            result.setErrorCode(500);
-            result.setErrorMessage(e.getLocalizedMessage());
+            result.setException(t);
         }
 
-        //输出响应
+        // 输出响应
+        // 1、将exception转化为errorPacket方式输出
+        // 2、对于rpcException包装异常输出其原始异常，因client不升级可能不存在类定义
         try {
             ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
 
@@ -217,8 +202,10 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
                     responseHandler.writeResponseForNotify(responseEntityWrapper);
                 }
             }
-        } catch (Exception e) {
-            logger.error("write response error.",e);
+        } catch (Throwable t) {
+            if(logger.isErrorEnabled()){
+                logger.error("write response error.",t);
+            }
         }finally {
             if(isEnableRandomPrint){
                 if(ThreadLocalRandom.current().nextInt(50000) > 49990){
@@ -231,28 +218,10 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
     }
 
     /**
-     * 获取VenusServerInvokerProxy
-     * @return
-     */
-    VenusServerInvokerProxy getVenusServerInvokerProxy(){
-        return venusServerInvokerProxy;
-    }
-
-    /**
      * 解析并构造请求对象
      * @return
      */
     ServerInvocation parseInvocation(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
-        /*
-        wrapper.setConn(invocation.getConn());
-        wrapper.setRouterPacket(invocation.getRouterPacket());
-        wrapper.setEndpoint(invocation.getEndpointDef());
-        wrapper.setRequest(invocation.getRequest());
-        wrapper.setSerializeType(invocation.getSerializeType());
-        wrapper.setResult(result);
-        wrapper.setAthenaFlag(athenaFlag);
-        */
-
         ServerInvocation invocation = new ServerInvocation();
         invocation.setConn(conn);
         invocation.setData(data);
@@ -337,59 +306,94 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
         SerializeServiceRequestPacket request = null;
         Endpoint ep = null;
         ServiceAPIPacket apiPacket = new ServiceAPIPacket();
-        try {
-            ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
-            apiPacket.init(packetBuffer);
+        ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
+        apiPacket.init(packetBuffer);
 
-            ep = getServiceManager().getEndpoint(apiPacket.apiName);
+        ep = getServiceManager().getEndpoint(apiPacket.apiName);
 
-            Serializer serializer = SerializerFactory.getSerializer(serializeType);
-            request = new SerializeServiceRequestPacket(serializer, ep.getParameterTypeDict());
+        Serializer serializer = SerializerFactory.getSerializer(serializeType);
+        request = new SerializeServiceRequestPacket(serializer, ep.getParameterTypeDict());
 
-            packetBuffer.setPosition(0);
-            request.init(packetBuffer);
-            VenusTracerUtil.logReceive(request.traceId, request.apiName, JSON.toJSONString(request.parameterMap,JSON_FEATURE) );
+        packetBuffer.setPosition(0);
+        request.init(packetBuffer);
+        VenusTracerUtil.logReceive(request.traceId, request.apiName, JSON.toJSONString(request.parameterMap,JSON_FEATURE) );
 
-            return request;
-        } catch (Exception e) {
-            ErrorPacket error = new ErrorPacket();
-            AbstractServicePacket.copyHead(apiPacket, error);
-            if (e instanceof CodedException || codeMap.containsKey(e.getClass())) {
-                if(e instanceof CodedException){
-                    CodedException codeEx = (CodedException) e;
-                    error.errorCode = codeEx.getErrorCode();
-                }else{
-                    error.errorCode = codeMap.get(e.getClass());
-                }
-            } else {
-                if (e instanceof JSONException || e instanceof SerializeException) {
-                    error.errorCode = VenusExceptionCodeConstant.REQUEST_ILLEGAL;
-                } else {
-                    error.errorCode = VenusExceptionCodeConstant.UNKNOW_EXCEPTION;
-                }
-            }
-            error.message = e.getMessage();
-
-            if(request != null){
-                logPerformance(ep,request.traceId == null ? UUID.toString(PacketConstant.EMPTY_TRACE_ID) : UUID.toString(request.traceId),apiPacket.apiName,waitTime,0,conn.getHost(),sourceIp,request.clientId,request.clientRequestId,request.parameterMap, error);
-
-                if (e instanceof VenusExceptionLevel) {
-                    if (((VenusExceptionLevel) e).getLevel() != null) {
-                        logDependsOnLevel(((VenusExceptionLevel) e).getLevel(), logger, e.getMessage() + " client:{clientID=" + apiPacket.clientId
-                                + ",ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + sourceIp + ", apiName=" + apiPacket.apiName
-                                + "}", e);
-                    }
-                } else {
-                    logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + sourceIp + ", apiName="+ apiPacket.apiName + "]", e);
-                }
-            }else{
-                logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + sourceIp + ", apiName="+ apiPacket.apiName + "]", e);
-            }
-
-            throw new ErrorPacketWrapperException(error);
-        }
-
+        return request;
     }
+
+//    SerializeServiceRequestPacket parseRequest(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
+//        final long waitTime = TimeUtil.currentTimeMillis() - data.left;
+//        byte[] message = data.right;
+//        int type = AbstractServicePacket.getType(message);
+//        byte serializeType = conn.getSerializeType();
+//        String sourceIp = conn.getHost();
+//        VenusRouterPacket routerPacket = null;
+//        if (PacketConstant.PACKET_TYPE_ROUTER == type) {
+//            routerPacket = new VenusRouterPacket();
+//            routerPacket.original = message;
+//            routerPacket.init(message);
+//            type = AbstractServicePacket.getType(routerPacket.data);
+//            message = routerPacket.data;
+//            serializeType = routerPacket.serializeType;
+//            sourceIp = InetAddressUtil.intToAddress(routerPacket.srcIP);
+//        }
+//
+//        SerializeServiceRequestPacket request = null;
+//        Endpoint ep = null;
+//        ServiceAPIPacket apiPacket = new ServiceAPIPacket();
+//        try {
+//            ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
+//            apiPacket.init(packetBuffer);
+//
+//            ep = getServiceManager().getEndpoint(apiPacket.apiName);
+//
+//            Serializer serializer = SerializerFactory.getSerializer(serializeType);
+//            request = new SerializeServiceRequestPacket(serializer, ep.getParameterTypeDict());
+//
+//            packetBuffer.setPosition(0);
+//            request.init(packetBuffer);
+//            VenusTracerUtil.logReceive(request.traceId, request.apiName, JSON.toJSONString(request.parameterMap,JSON_FEATURE) );
+//
+//            return request;
+//        } catch (Exception e) {
+//            ErrorPacket error = new ErrorPacket();
+//            AbstractServicePacket.copyHead(apiPacket, error);
+//            if (e instanceof CodedException || codeMap.containsKey(e.getClass())) {
+//                if(e instanceof CodedException){
+//                    CodedException codeEx = (CodedException) e;
+//                    error.errorCode = codeEx.getErrorCode();
+//                }else{
+//                    error.errorCode = codeMap.get(e.getClass());
+//                }
+//            } else {
+//                if (e instanceof JSONException || e instanceof SerializeException) {
+//                    error.errorCode = VenusExceptionCodeConstant.REQUEST_ILLEGAL;
+//                } else {
+//                    error.errorCode = VenusExceptionCodeConstant.UNKNOW_EXCEPTION;
+//                }
+//            }
+//            error.message = e.getMessage();
+//
+//            if(request != null){
+//                logPerformance(ep,request.traceId == null ? UUID.toString(PacketConstant.EMPTY_TRACE_ID) : UUID.toString(request.traceId),apiPacket.apiName,waitTime,0,conn.getHost(),sourceIp,request.clientId,request.clientRequestId,request.parameterMap, error);
+//
+//                if (e instanceof VenusExceptionLevel) {
+//                    if (((VenusExceptionLevel) e).getLevel() != null) {
+//                        logDependsOnLevel(((VenusExceptionLevel) e).getLevel(), logger, e.getMessage() + " client:{clientID=" + apiPacket.clientId
+//                                + ",ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + sourceIp + ", apiName=" + apiPacket.apiName
+//                                + "}", e);
+//                    }
+//                } else {
+//                    logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + sourceIp + ", apiName="+ apiPacket.apiName + "]", e);
+//                }
+//            }else{
+//                logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + sourceIp + ", apiName="+ apiPacket.apiName + "]", e);
+//            }
+//
+//            throw new ErrorPacketWrapperException(error);
+//        }
+//
+//    }
 
     /**
      * 解析endpoint
@@ -419,52 +423,82 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
         SerializeServiceRequestPacket request = null;
         Endpoint ep = null;
         ServiceAPIPacket apiPacket = new ServiceAPIPacket();
-        try {
-            ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
-            apiPacket.init(packetBuffer);
+        ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
+        apiPacket.init(packetBuffer);
 
-            ep = getServiceManager().getEndpoint(apiPacket.apiName);
+        ep = getServiceManager().getEndpoint(apiPacket.apiName);
 
-            return ep;
-        } catch (Exception e) {
-            ErrorPacket error = new ErrorPacket();
-            AbstractServicePacket.copyHead(apiPacket, error);
-            if (e instanceof CodedException || codeMap.containsKey(e.getClass())) {
-                if(e instanceof CodedException){
-                    CodedException codeEx = (CodedException) e;
-                    error.errorCode = codeEx.getErrorCode();
-                }else{
-                    error.errorCode = codeMap.get(e.getClass());
-                }
-            } else {
-                if (e instanceof JSONException || e instanceof SerializeException) {
-                    error.errorCode = VenusExceptionCodeConstant.REQUEST_ILLEGAL;
-                } else {
-                    error.errorCode = VenusExceptionCodeConstant.UNKNOW_EXCEPTION;
-                }
-            }
-            error.message = e.getMessage();
-
-            if(request != null){
-                logPerformance(ep,request.traceId == null ? UUID.toString(PacketConstant.EMPTY_TRACE_ID) : UUID.toString(request.traceId),apiPacket.apiName,waitTime,0,conn.getHost(),finalSourceIp,request.clientId,request.clientRequestId,request.parameterMap, error);
-
-                if (e instanceof VenusExceptionLevel) {
-                    if (((VenusExceptionLevel) e).getLevel() != null) {
-                        logDependsOnLevel(((VenusExceptionLevel) e).getLevel(), logger, e.getMessage() + " client:{clientID=" + apiPacket.clientId
-                                + ",ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + finalSourceIp + ", apiName=" + apiPacket.apiName
-                                + "}", e);
-                    }
-                } else {
-                    logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + finalSourceIp + ", apiName="+ apiPacket.apiName + "]", e);
-                }
-            }else{
-                logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + finalSourceIp + ", apiName="+ apiPacket.apiName + "]", e);
-            }
-
-            throw new ErrorPacketWrapperException(error);
-        }
-
+        return ep;
     }
+
+//    Endpoint parseEndpoint(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
+//        final long waitTime = TimeUtil.currentTimeMillis() - data.left;
+//        byte[] message = data.right;
+//        int type = AbstractServicePacket.getType(message);
+//        VenusRouterPacket routerPacket = null;
+//        byte serializeType = conn.getSerializeType();
+//        String sourceIp = conn.getHost();
+//        if (PacketConstant.PACKET_TYPE_ROUTER == type) {
+//            routerPacket = new VenusRouterPacket();
+//            routerPacket.original = message;
+//            routerPacket.init(message);
+//            type = AbstractServicePacket.getType(routerPacket.data);
+//            message = routerPacket.data;
+//            serializeType = routerPacket.serializeType;
+//            sourceIp = InetAddressUtil.intToAddress(routerPacket.srcIP);
+//        }
+//        final byte packetSerializeType = serializeType;
+//        final String finalSourceIp = sourceIp;
+//
+//        SerializeServiceRequestPacket request = null;
+//        Endpoint ep = null;
+//        ServiceAPIPacket apiPacket = new ServiceAPIPacket();
+//        try {
+//            ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
+//            apiPacket.init(packetBuffer);
+//
+//            ep = getServiceManager().getEndpoint(apiPacket.apiName);
+//
+//            return ep;
+//        } catch (Exception e) {
+//            ErrorPacket error = new ErrorPacket();
+//            AbstractServicePacket.copyHead(apiPacket, error);
+//            if (e instanceof CodedException || codeMap.containsKey(e.getClass())) {
+//                if(e instanceof CodedException){
+//                    CodedException codeEx = (CodedException) e;
+//                    error.errorCode = codeEx.getErrorCode();
+//                }else{
+//                    error.errorCode = codeMap.get(e.getClass());
+//                }
+//            } else {
+//                if (e instanceof JSONException || e instanceof SerializeException) {
+//                    error.errorCode = VenusExceptionCodeConstant.REQUEST_ILLEGAL;
+//                } else {
+//                    error.errorCode = VenusExceptionCodeConstant.UNKNOW_EXCEPTION;
+//                }
+//            }
+//            error.message = e.getMessage();
+//
+//            if(request != null){
+//                logPerformance(ep,request.traceId == null ? UUID.toString(PacketConstant.EMPTY_TRACE_ID) : UUID.toString(request.traceId),apiPacket.apiName,waitTime,0,conn.getHost(),finalSourceIp,request.clientId,request.clientRequestId,request.parameterMap, error);
+//
+//                if (e instanceof VenusExceptionLevel) {
+//                    if (((VenusExceptionLevel) e).getLevel() != null) {
+//                        logDependsOnLevel(((VenusExceptionLevel) e).getLevel(), logger, e.getMessage() + " client:{clientID=" + apiPacket.clientId
+//                                + ",ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + finalSourceIp + ", apiName=" + apiPacket.apiName
+//                                + "}", e);
+//                    }
+//                } else {
+//                    logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + finalSourceIp + ", apiName="+ apiPacket.apiName + "]", e);
+//                }
+//            }else{
+//                logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + finalSourceIp + ", apiName="+ apiPacket.apiName + "]", e);
+//            }
+//
+//            throw new ErrorPacketWrapperException(error);
+//        }
+//
+//    }
 
     /**
      * 设置invocationListener回调参数
@@ -531,8 +565,7 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
         PerformanceLogger pLevel = null;
 
         if(endpoint != null){
-            //TODO 确认代码功能
-            //pLevel = endpoint.getPerformanceLogger();
+            pLevel = endpoint.getPerformanceLogger();
         }
 
         if (pLevel != null) {
@@ -664,6 +697,14 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
     public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
         this.venusExceptionFactory = venusExceptionFactory;
+    }
+
+    /**
+     * 获取VenusServerInvokerProxy
+     * @return
+     */
+    VenusServerInvokerProxy getVenusServerInvokerProxy(){
+        return venusServerInvokerProxy;
     }
 
 

@@ -65,10 +65,7 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
 
     @Override
     public void onException(Exception e) {
-        //TODO 细化异常
         Result result = new Result();
-        result.setErrorCode(500);
-        result.setErrorMessage(e.getMessage());
         result.setException(e);
         ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
         try {

@@ -62,6 +62,8 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
     private ApplicationContext applicationContext;
 
+    private Application application;
+
     /**
      * venus协议
      */
@@ -337,9 +339,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         //注册服务
         register.registe(serviceRegisterUrl);
     }
-
-    Application application;
-
 
     /**
      * 获取服务注册url

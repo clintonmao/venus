@@ -245,7 +245,7 @@ public class ClientInvocation implements Invocation {
 
     @Override
     public String getVersion() {
-        return "0.0.0";//TODO 版本号处理
+        return versionx;
     }
 
     @Override

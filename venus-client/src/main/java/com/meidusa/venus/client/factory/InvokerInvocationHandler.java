@@ -109,7 +109,9 @@ public class InvokerInvocationHandler implements InvocationHandler {
                 throw new RpcException(String.format("%s-%s",String.valueOf(result.getErrorCode()),result.getErrorMessage()));
             }
         } catch (Throwable e) {
-            logger.error("invoke error.",e);
+            if(logger.isErrorEnabled()){
+                logger.error("invoke error.",e);
+            }
             throw e;
         }
     }

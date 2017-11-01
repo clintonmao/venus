@@ -98,136 +98,178 @@ public class VenusServerInvoker implements Invoker {
         long startTime = TimeUtil.currentTimeMillis();
 
         try {
-            /* TODO 确认功能
-            if (invocation.getConn().isClosed() && resultType == EndpointInvocation.ResultType.RESPONSE) {
-                throw new RpcException("conn is closed.");
-            }
-            */
             //调用服务实例
-            Object object = doInvokeEndpoint(requestContext,endpointDef);
-            Result result = new Result(object);
-            return result;
+            UtilTimerStack.push(ENDPOINT_INVOKED_TIME);
+
+            VenusServerInvocationEndpoint invocationEndpoint = new VenusServerInvocationEndpoint(requestContext, endpointDef);
+            Object result = invocationEndpoint.invoke();
+            return new Result(result);
         } catch (Exception e) {
-            ErrorPacket error = new ErrorPacket();
-            AbstractServicePacket.copyHead(request, error);
-            Integer code = VenusExceptionLoader.getCodeMap().get(e.getClass());
-            if (code != null) {
-                error.errorCode = code;
-            } else {
-                if (e instanceof CodedException) {
-                    CodedException codeEx = (CodedException) e;
-                    error.errorCode = codeEx.getErrorCode();
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("error when handleRequest", e);
-                    }
-                } else {
-                    try {
-                        Method method = e.getClass().getMethod("getErrorCode");
-                        int i = (Integer) method.invoke(e);
-                        error.errorCode = i;
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("error when handleRequest", e);
-                        }
-                    } catch (Exception e1) {
-                        error.errorCode = VenusExceptionCodeConstant.UNKNOW_EXCEPTION;
-                        if (logger.isWarnEnabled()) {
-                            logger.warn("error when handleRequest", e);
-                        }
-                    }
-                }
-            }
-            error.message = e.getMessage();
-            throw new ErrorPacketWrapperException(error);
+            throw new RpcException(e);
         } catch (OutOfMemoryError e) {
-            ErrorPacket error = new ErrorPacket();
-            AbstractServicePacket.copyHead(request, error);
-            error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
-            error.message = e.getMessage();
             VenusStatus.getInstance().setStatus(PacketConstant.VENUS_STATUS_OUT_OF_MEMORY);
-            logger.error("error when handleRequest", e);
-            throw new ErrorPacketWrapperException(error);
+            throw new RpcException(e);
         } catch (Error e) {
-            ErrorPacket error = new ErrorPacket();
-            AbstractServicePacket.copyHead(request, error);
-            error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
-            error.message = e.getMessage();
-            logger.error("error when handleRequest", e);
-            throw new ErrorPacketWrapperException(error);
-            /*
-            MonitorRuntime.getInstance().calculateAverage(endpoint.getService().getName(), endpoint.getName(), executeTime, false);
-            PerformanceHandler.logPerformance(endpoint, request, queuedTime, executeTime, invocation.getHost(), sourceIp, result);
-            */
+            //PerformanceHandler.logPerformance(endpoint, request, queuedTime, executeTime, invocation.getHost(), sourceIp, result);
+            throw new RpcException(e);
         } finally {
             ThreadLocalMap.remove(ThreadLocalConstant.REQUEST_CONTEXT);
             ThreadLocalMap.remove(VenusTracerUtil.REQUEST_TRACE_ID);
-        }
-    }
 
-    /**
-     * 调用本地stub/存根
-     * @param context
-     * @param endpoint
-     * @return
-     */
-    private Object doInvokeEndpoint(RequestContext context, Endpoint endpoint) throws Exception{
-        VenusServerInvocationEndpoint invocation = new VenusServerInvocationEndpoint(context, endpoint);
-        //invocation.addObserver(ObserverScanner.getInvocationObservers());
-        try {
-            UtilTimerStack.push(ENDPOINT_INVOKED_TIME);
-            Object result = invocation.invoke();
-            return result;
-        } catch (Exception e) {
-            throw e;
-            /* TODO log exception
-            if (e instanceof ServiceInvokeException) {
-                e = ((ServiceInvokeException) e).getTargetException();
-            }
-            if (e instanceof Exception) {
-                response.setException((Exception) e);
-            } else {
-                response.setException(new DefaultVenusException(e.getMessage(), e));
-            }
-
-            Integer code = VenusExceptionLoader.getCodeMap().get(e.getClass());
-
-            if (code != null) {
-                response.setErrorCode(code);
-                response.setErrorMessage(e.getMessage());
-            } else {
-                response.setError(e, venusExceptionFactory);
-            }
-
-            Service service = endpoint.getService();
-            if (e instanceof VenusExceptionLevel) {
-                if (((VenusExceptionLevel) e).getLevel() != null) {
-                    LogHandler.logDependsOnLevel(((VenusExceptionLevel) e).getLevel(), INVOKER_LOGGER, e.getMessage() + " " + context.getRequestInfo().getRemoteIp() + " "
-                            + service.getName() + ":" + endpoint.getMethod().getName() + " " + Utils.toString(context.getParameters()), e);
-                }
-            } else {
-                if (e instanceof RuntimeException && !(e instanceof CodedException)) {
-                    INVOKER_LOGGER.error(e.getMessage() + " " + context.getRequestInfo().getRemoteIp() + " " + service.getName() + ":" + endpoint.getMethod().getName()
-                            + " " + Utils.toString(context.getParameters()), e);
-                } else {
-                    if (endpoint.isAsync()) {
-                        if (INVOKER_LOGGER.isErrorEnabled()) {
-
-                            INVOKER_LOGGER.error(e.getMessage() + " " + context.getRequestInfo().getRemoteIp() + " " + service.getName() + ":"
-                                    + endpoint.getMethod().getName() + " " + Utils.toString(context.getParameters()), e);
-                        }
-                    } else {
-                        if (INVOKER_LOGGER.isDebugEnabled()) {
-                            INVOKER_LOGGER.debug(e.getMessage() + " " + context.getRequestInfo().getRemoteIp() + " " + service.getName() + ":"
-                                    + endpoint.getMethod().getName() + " " + Utils.toString(context.getParameters()), e);
-                        }
-                    }
-                }
-            }
-            */
-        } finally {
             UtilTimerStack.pop(ENDPOINT_INVOKED_TIME);
         }
-
     }
+
+//    @Override
+//    public Result invoke(Invocation invocation, URL url) throws RpcException {
+//        ServerInvocation serverInvocation = (ServerInvocation)invocation;
+//        //获取调用信息
+//        Tuple<Long, byte[]> data = serverInvocation.getData();
+//        byte[] message = serverInvocation.getMessage();
+//        byte serializeType = serverInvocation.getSerializeType();
+//        byte packetSerializeType = serverInvocation.getPacketSerializeType();
+//        VenusRouterPacket routerPacket = serverInvocation.getRouterPacket();
+//        SerializeServiceRequestPacket request = serverInvocation.getRequest();
+//        String apiName = request.apiName;
+//        String finalSourceIp = serverInvocation.getFinalSourceIp();
+//        long waitTime = serverInvocation.getWaitTime();
+//        Endpoint endpointDef = serverInvocation.getEndpointDef();
+//        //构造请求上下文信息
+//        RequestContext requestContext = serverInvocation.getRequestContext();
+//        /*
+//        int index = apiName.lastIndexOf(".");
+//        String serviceName = request.apiName.substring(0, index);
+//        String methodName = request.apiName.substring(index + 1);
+//        RequestInfo info = getRequestInfo(conn, request);
+//        */
+//        long startTime = TimeUtil.currentTimeMillis();
+//
+//        try {
+//            //调用服务实例
+//            Object object = doInvokeEndpoint(requestContext,endpointDef);
+//            Result result = new Result(object);
+//            return result;
+//        } catch (Exception e) {
+//            ErrorPacket error = new ErrorPacket();
+//            AbstractServicePacket.copyHead(request, error);
+//            Integer code = VenusExceptionLoader.getCodeMap().get(e.getClass());
+//            if (code != null) {
+//                error.errorCode = code;
+//            } else {
+//                if (e instanceof CodedException) {
+//                    CodedException codeEx = (CodedException) e;
+//                    error.errorCode = codeEx.getErrorCode();
+//                    if (logger.isDebugEnabled()) {
+//                        logger.debug("error when handleRequest", e);
+//                    }
+//                } else {
+//                    try {
+//                        Method method = e.getClass().getMethod("getErrorCode");
+//                        int i = (Integer) method.invoke(e);
+//                        error.errorCode = i;
+//                        if (logger.isDebugEnabled()) {
+//                            logger.debug("error when handleRequest", e);
+//                        }
+//                    } catch (Exception e1) {
+//                        error.errorCode = VenusExceptionCodeConstant.UNKNOW_EXCEPTION;
+//                        if (logger.isWarnEnabled()) {
+//                            logger.warn("error when handleRequest", e);
+//                        }
+//                    }
+//                }
+//            }
+//            error.message = e.getMessage();
+//            throw new ErrorPacketWrapperException(error);
+//        } catch (OutOfMemoryError e) {
+//            ErrorPacket error = new ErrorPacket();
+//            AbstractServicePacket.copyHead(request, error);
+//            error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
+//            error.message = e.getMessage();
+//            VenusStatus.getInstance().setStatus(PacketConstant.VENUS_STATUS_OUT_OF_MEMORY);
+//            logger.error("error when handleRequest", e);
+//            throw new ErrorPacketWrapperException(error);
+//        } catch (Error e) {
+//            ErrorPacket error = new ErrorPacket();
+//            AbstractServicePacket.copyHead(request, error);
+//            error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
+//            error.message = e.getMessage();
+//            logger.error("error when handleRequest", e);
+//            throw new ErrorPacketWrapperException(error);
+//            /*
+//            MonitorRuntime.getInstance().calculateAverage(endpoint.getService().getName(), endpoint.getName(), executeTime, false);
+//            PerformanceHandler.logPerformance(endpoint, request, queuedTime, executeTime, invocation.getHost(), sourceIp, result);
+//            */
+//        } finally {
+//            ThreadLocalMap.remove(ThreadLocalConstant.REQUEST_CONTEXT);
+//            ThreadLocalMap.remove(VenusTracerUtil.REQUEST_TRACE_ID);
+//        }
+//    }
+//
+//    /**
+//     * 调用本地stub/存根
+//     * @param context
+//     * @param endpoint
+//     * @return
+//     */
+//    private Object doInvokeEndpoint(RequestContext context, Endpoint endpoint) throws Exception{
+//        VenusServerInvocationEndpoint invocation = new VenusServerInvocationEndpoint(context, endpoint);
+//        //invocation.addObserver(ObserverScanner.getInvocationObservers());
+//        try {
+//            UtilTimerStack.push(ENDPOINT_INVOKED_TIME);
+//            Object result = invocation.invoke();
+//            return result;
+//        } catch (Exception e) {
+//            throw e;
+//            /* TODO log exception
+//            if (e instanceof ServiceInvokeException) {
+//                e = ((ServiceInvokeException) e).getTargetException();
+//            }
+//            if (e instanceof Exception) {
+//                response.setException((Exception) e);
+//            } else {
+//                response.setException(new DefaultVenusException(e.getMessage(), e));
+//            }
+//
+//            Integer code = VenusExceptionLoader.getCodeMap().get(e.getClass());
+//
+//            if (code != null) {
+//                response.setErrorCode(code);
+//                response.setErrorMessage(e.getMessage());
+//            } else {
+//                response.setError(e, venusExceptionFactory);
+//            }
+//
+//            Service service = endpoint.getService();
+//            if (e instanceof VenusExceptionLevel) {
+//                if (((VenusExceptionLevel) e).getLevel() != null) {
+//                    LogHandler.logDependsOnLevel(((VenusExceptionLevel) e).getLevel(), INVOKER_LOGGER, e.getMessage() + " " + context.getRequestInfo().getRemoteIp() + " "
+//                            + service.getName() + ":" + endpoint.getMethod().getName() + " " + Utils.toString(context.getParameters()), e);
+//                }
+//            } else {
+//                if (e instanceof RuntimeException && !(e instanceof CodedException)) {
+//                    INVOKER_LOGGER.error(e.getMessage() + " " + context.getRequestInfo().getRemoteIp() + " " + service.getName() + ":" + endpoint.getMethod().getName()
+//                            + " " + Utils.toString(context.getParameters()), e);
+//                } else {
+//                    if (endpoint.isAsync()) {
+//                        if (INVOKER_LOGGER.isErrorEnabled()) {
+//
+//                            INVOKER_LOGGER.error(e.getMessage() + " " + context.getRequestInfo().getRemoteIp() + " " + service.getName() + ":"
+//                                    + endpoint.getMethod().getName() + " " + Utils.toString(context.getParameters()), e);
+//                        }
+//                    } else {
+//                        if (INVOKER_LOGGER.isDebugEnabled()) {
+//                            INVOKER_LOGGER.debug(e.getMessage() + " " + context.getRequestInfo().getRemoteIp() + " " + service.getName() + ":"
+//                                    + endpoint.getMethod().getName() + " " + Utils.toString(context.getParameters()), e);
+//                        }
+//                    }
+//                }
+//            }
+//            */
+//        } finally {
+//            UtilTimerStack.pop(ENDPOINT_INVOKED_TIME);
+//        }
+//
+//    }
 
     protected void logPerformance(Endpoint endpoint,String traceId,String apiName,long queuedTime,
                                   long executTime,String remoteIp,String sourceIP, long clientId,long requestId,

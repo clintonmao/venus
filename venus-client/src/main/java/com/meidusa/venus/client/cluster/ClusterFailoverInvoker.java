@@ -43,7 +43,16 @@ public class ClusterFailoverInvoker extends AbstractClusterInvoker implements Cl
                 // 调用
                 return  getInvoker().invoke(invocation, url);
             } catch (RpcException e) {
-                logger.warn("invoke failed,to retry.",e);
+                //对于网络异常、超时异常若根据配置则进行重试
+                if(e.isNetwork()){
+                    logger.warn("occur network exception,to retry.",e);
+                }else if(e.isTimeout()){
+                    logger.warn("occur timeout exception,to retry.",e);
+                }else{
+                    throw e;
+                }
+            }catch (Throwable t){
+                throw t;
             }
         }
 
