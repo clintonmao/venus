@@ -5,15 +5,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 /**
  * 各种地址抽象URL，如
- * 服务注册地址,venus://com.chexiang.order.OrderService/orderService?version=1.0.0&host=192.168.1.1&port=9000&methods=getOrderById[java.lang.String],selectAllOrder[java.lang.String]
- * 服务订阅地址,subscrible://com.chexiang.order.OrderService/orderService?version=1.0.0&host=192.168.1.2
+ * 服务注册地址,/com.chexiang.order.OrderService/orderService?version=1.0.0&protocol=venus&versionRange=[1,3]&host=192.168.1.1&port=9000&methods=getOrderById[java.lang.String],selectAllOrder[java.lang.String]
+ * 服务订阅地址,/com.chexiang.order.OrderService/orderService?version=1.0.0&host=192.168.1.2
  * Created by Zhangzhihua on 2017/7/27.
  */
 public class URL implements Serializable {
 
+	//venus://com.chexiang.order.OrderService/orderService?version=1.0.0&host=192.168.1.1&port=9000&methods=getOrderById[java.lang.String],selectAllOrder[java.lang.String]
+	//com.chexiang.order.OrderService/orderService?version=1.0.0&host=192.168.1.1&port=9000&methods=getOrderById[java.lang.String],selectAllOrder[java.lang.String]
 	private static final long serialVersionUID = -4259657535674215341L;
 
 	/** 协议，如 venus || subscrible */
@@ -30,6 +33,9 @@ public class URL implements Serializable {
 
 	/** 版本号，如 1.0.0 */
 	private String version;
+	
+	/** 版本号区间,兼容老数据 */
+	private String versionRange;
 
 	private String methods;
 
@@ -109,11 +115,14 @@ public class URL implements Serializable {
 				u.setProtocol("venus");
 				url = url.replaceFirst("venus://", "");
 			}
+			if (url.startsWith("/")) {
+				url = url.replaceFirst("/", "");
+			}
 			if (url.startsWith("subscrible://")) {
 				u.setProtocol("subscrible");
 				url = url.replaceFirst("subscrible://", "");
 			}
-			int indexOf = url.indexOf("?");
+			int indexOf = url.indexOf("?");///
 			if (indexOf != -1) {
 				String path = url.substring(0, indexOf);
 				u.setPath(path);
@@ -125,6 +134,9 @@ public class URL implements Serializable {
 					String[] split = str.split("=");
 					if (split.length > 1) {
 						map.put(split[0], split[1]);
+						if (split[0].equals("protocol")) {
+							u.setProtocol(split[1]);
+						}
 						if (split[0].equals("port")) {
 							u.setPort(Integer.valueOf(split[1]));
 						}
@@ -133,6 +145,9 @@ public class URL implements Serializable {
 						}
 						if (split[0].equals("version")) {
 							u.setVersion(split[1]);
+						}
+						if (split[0].equals("versionRange")) {
+							u.setVersionRange(split[1]);
 						}
 						if (split[0].equals("loadbanlance")) {
 							u.setLoadbanlance(split[1]);
@@ -346,17 +361,25 @@ public class URL implements Serializable {
 		this.serviceDefinition = serviceDefinition;
 	}
 
+	public String getVersionRange() {
+		return versionRange;
+	}
+
+	public void setVersionRange(String versionRange) {
+		this.versionRange = versionRange;
+	}
+
 	@Override
 	public String toString() {
-		return "URL [protocol=" + protocol + ", path=" + path + ", interfaceName=" + interfaceName + ", serviceName="
-				+ serviceName + ", version=" + version + ", host=" + host + ", port=" + port + ", application="
-				+ application + ", loadbanlance=" + loadbanlance + ", consumerCheck=" + consumerCheck + ", methods="
-				+ methods + ", properties=" + properties + "]";
+		return ReflectionToStringBuilder.toString(this);
 	}
 
 	public static void main(String args[]) {
-		String url = "subscrible://orderService?version=1.0.0&host=192.168.1.1&port=9000&application=order-service&loadbanlance=random";
+		String url = "/com.chexiang.order.OrderService/orderService?version=1.0.0&host=192.168.1.1&port=9000&application=order-service&loadbanlance=random";
 		URL u = URL.parse(url);
+		System.out.println(u);
+		url="/com.chexiang.order.OrderService/orderService?version=1.0.0&protocol=venus&versionRange=[1,3]&host=192.168.1.1&port=9000&methods=getOrderById[java.lang.String],selectAllOrder[java.lang.String]";
+		u = URL.parse(url);
 		System.out.println(u);
 	}
 

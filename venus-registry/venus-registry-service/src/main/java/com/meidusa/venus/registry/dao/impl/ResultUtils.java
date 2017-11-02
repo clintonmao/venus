@@ -55,12 +55,14 @@ public class ResultUtils {
 		venusService.setInterfaceName(rs.getString("interface_name"));
 
 		venusService.setVersion(rs.getString("version"));
+		venusService.setVersionRange(rs.getString("version_range"));
+		
 		venusService.setDescription(rs.getString("description"));
 		venusService.setAppId(rs.getInt("app_id"));
 		venusService.setRegisteType(rs.getInt("registe_type"));
 
 		venusService.setMethods(rs.getString("methods"));
-		venusService.setIsDelete(rs.getBoolean("is_delete"));
+		venusService.setDelete(rs.getBoolean("is_delete"));
 
 		venusService.setCreateTime(rs.getTimestamp("create_time"));
 		venusService.setUpdateTime(rs.getTimestamp("update_time"));

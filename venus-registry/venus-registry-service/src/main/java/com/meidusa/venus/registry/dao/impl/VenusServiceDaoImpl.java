@@ -25,7 +25,7 @@ import com.meidusa.venus.registry.domain.VenusServiceDO;
 
 public class VenusServiceDaoImpl implements VenusServiceDAO {
 
-	private static final String SELECT_FIELDS = "select id, name,interface_name,version, description, app_id,registe_type,methods,is_delete,create_time, update_time ";
+	private static final String SELECT_FIELDS = "select id, name,interface_name,version,version_range, description, app_id,registe_type,methods,is_delete,create_time, update_time ";
 	
 	private JdbcTemplate jdbcTemplate;
 
@@ -69,6 +69,10 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		if (StringUtils.isNotBlank(vs.getVersion()) && !"null".equals(vs.getVersion())) {
 			columns.append("version,");
 			values.append("'" + vs.getVersion() + "',");
+		}
+		if (StringUtils.isNotBlank(vs.getVersionRange()) && !"null".equals(vs.getVersionRange())) {
+			columns.append("version_range,");
+			values.append("'" + vs.getVersionRange() + "',");
 		}
 		
 		if (StringUtils.isNotBlank(vs.getDescription()) && !"null".equals(vs.getDescription())) {
@@ -131,7 +135,7 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		vs.setRegisteType(RegisteConstant.AUTO_REGISTE);
 		vs.setMethods(u.getMethods());
 		vs.setDescription("desc");
-		vs.setIsDelete(false);
+		vs.setDelete(false);
 		System.out.println(genInsertSql(vs));
 	}
 
@@ -199,17 +203,19 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 
 	@Override
 	public VenusServiceDO getService(String interfaceName, String serviceName, String version) throws DAOException {
-		String sql = SELECT_FIELDS + " from t_venus_service where ";
-		Object[] params = new Object[] { serviceName, version };
+		String sql = SELECT_FIELDS + " from t_venus_service where version=? ";
+		List<Object> params = new ArrayList<Object>();
+		params.add(version);
 		if (StringUtils.isNotBlank(serviceName)) {
-			sql = sql + " name=? and version=?";
+			sql = sql + " and name=? ";
+			params.add(serviceName);
 		}
 		if (StringUtils.isNotBlank(interfaceName)) {
 			sql = sql + " and interface_name=?";
-			params = new Object[] { serviceName, version, interfaceName };
+			params.add(interfaceName);
 		}
 		try {
-			return this.jdbcTemplate.query(sql, params, new ResultSetExtractor<VenusServiceDO>() {
+			return this.jdbcTemplate.query(sql, listToArray(params), new ResultSetExtractor<VenusServiceDO>() {
 				@Override
 				public VenusServiceDO extractData(ResultSet rs) throws SQLException, DataAccessException {
 					if (rs.next()) {
@@ -318,6 +324,7 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		}
 	}
 	
+	@Deprecated
 	public List<VenusServiceDO> getServices(String interfaceName, String serviceName) throws DAOException {
 		String sql = SELECT_FIELDS + " from t_venus_service where ";
 		Object[] params = new Object[] { serviceName};
@@ -345,7 +352,7 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		}
 	}
 
-	@Override
+	@Deprecated
 	public List<VenusServiceDO> getServices(Collection<Integer> ids) throws DAOException {
 		if (ids.isEmpty()) {
 			return new ArrayList<VenusServiceDO>();

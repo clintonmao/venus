@@ -31,6 +31,8 @@ public class VenusServiceDO implements Serializable {
 	private String methods;
 
 	private boolean isDelete;
+	
+	private String versionRange;
 
 	public Integer getId() {
 		return id;
@@ -116,8 +118,16 @@ public class VenusServiceDO implements Serializable {
 		return isDelete;
 	}
 
-	public void setIsDelete(boolean isDelete) {
+	public void setDelete(boolean isDelete) {
 		this.isDelete = isDelete;
+	}
+
+	public String getVersionRange() {
+		return versionRange;
+	}
+
+	public void setVersionRange(String versionRange) {
+		this.versionRange = versionRange;
 	}
 
 	@Override

@@ -152,7 +152,8 @@ public class MysqlRegisterService implements RegisterService {
 			venusServiceDO.setVersion(url.getVersion());
 			venusServiceDO.setRegisteType(RegisteConstant.AUTO_REGISTE);
 			venusServiceDO.setMethods(url.getMethods());
-			venusServiceDO.setIsDelete(false);
+			venusServiceDO.setVersionRange(url.getVersionRange());
+			venusServiceDO.setDelete(false);
 			serviceId = venusServiceDAO.addService(venusServiceDO);
 		} else {
 			serviceId = service.getId();
@@ -229,7 +230,7 @@ public class MysqlRegisterService implements RegisterService {
 			venusServiceDO.setRegisteType(RegisteConstant.OPERATOR_REGISTE);
 			venusServiceDO.setMethods(null);
 			venusServiceDO.setDescription(description);
-			venusServiceDO.setIsDelete(false);
+			venusServiceDO.setDelete(false);
 			serviceId = venusServiceDAO.addService(venusServiceDO);
 		}
 		return serviceId;
@@ -387,7 +388,7 @@ public class MysqlRegisterService implements RegisterService {
 				def.setActive(true);
 				def.setDescription(service.getDescription());
 				def.setVersion(service.getVersion());
-				def.setVersionRange(service.getVersion());
+				def.setVersionRange(service.getVersionRange());
 				if (null != application) {
 					def.setProvider(application.getAppCode());
 				}
@@ -476,7 +477,7 @@ public class MysqlRegisterService implements RegisterService {
 //					def.setIpAddress(hostPortSet);
 //					def.setActive(true);
 //					def.setDescription(venusServiceDO.getDescription());
-//					def.setVersionRange(venusServiceDO.getVersion());
+//					def.setVersionRange(venusServiceDO.getVersionRange());
 //					List<VenusServiceConfigDO> serviceConfigs = venusServiceConfigDAO.getServiceConfigs(serviceId);
 //					ResultUtils.setServiceConfigs(serviceConfigs);
 //					def.setServiceConfigs(serviceConfigs);
