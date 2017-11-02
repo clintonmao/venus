@@ -59,6 +59,12 @@ public class DefaultHelloService implements HelloService {
         return new Hello(name,name);
     }
 
+    @Override
+    public Hello getHelloForBench(byte[] params) {
+        logger.info("invoke getHello,len:{}.",params.length);
+        return new Hello("hi","bench");
+    }
+
     public Application getApplication() {
         return application;
     }

@@ -1,18 +1,10 @@
 package com.chexiang.venus.demo.consumer.controller;
 
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
+import com.chexiang.venus.demo.provider.HelloService;
+import com.chexiang.venus.demo.provider.model.Hello;
+import com.google.common.util.concurrent.AtomicDouble;
+import com.meidusa.venus.Result;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +12,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.chexiang.venus.demo.provider.HelloService;
-import com.chexiang.venus.demo.provider.model.Hello;
-import com.meidusa.venus.Result;
-
-import ch.qos.logback.core.net.SyslogOutputStream;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * ManagerController
@@ -39,21 +30,31 @@ public class BenchmarkController {
     @Autowired
     HelloService helloService;
 
-    AtomicInteger totalCount = new AtomicInteger(0);
+    AtomicLong totalCount = new AtomicLong(0);
 
-    AtomicInteger currentCount = new AtomicInteger(0);
+    AtomicLong currentCount = new AtomicLong(0);
 
-    AtomicInteger failCount = new AtomicInteger(0);
-    AtomicInteger thread_count = new AtomicInteger(0);
-    
-    ConcurrentMap<Integer,Long> concurrentMap=new ConcurrentHashMap<Integer,Long>();
+    AtomicLong failCount = new AtomicLong(0);
 
-    long bTime;
+    AtomicDouble minCostTime = new AtomicDouble(0);
+
+    AtomicDouble maxCostTime = new AtomicDouble(0);
+
+    //开始时间
+    long beginTime;
 
     static boolean isRunning = false;
 
-    @RequestMapping("/start/{threadCount}/{total}/{packetSize}")
-    public Result start(@PathVariable String threadCount,@PathVariable int total,@PathVariable int packetSize){
+    @RequestMapping("/start/{threadCount}/{total}/{packet}")
+    public Result start(@PathVariable String threadCount,@PathVariable int total,@PathVariable String packet){
+        //valid
+        if(StringUtils.isEmpty(threadCount) || total==0  || StringUtils.isEmpty(packet)){
+            Result result = new Result();
+            result.setErrorCode(500);
+            result.setErrorMessage("param invalid,please check.");
+            return result;
+        }
+
         if(isRunning){
             Result result = new Result();
             result.setErrorCode(500);
@@ -64,10 +65,10 @@ public class BenchmarkController {
 
         //set
         totalCount.set(total);
-        thread_count.set(Integer.valueOf(threadCount));
         currentCount.set(0);
         failCount.set(0);
-        concurrentMap.clear();
+        minCostTime.set(0);
+        maxCostTime.set(0);
         int thrCount = Integer.parseInt(threadCount);
 
         //测试服务可用
@@ -83,30 +84,49 @@ public class BenchmarkController {
             result.setErrorMessage(e.getLocalizedMessage());
             return result;
         }
+
+        //构造数据大小
+        int packetNum = 0;
+        if(packet.endsWith("b")){
+            String len  = packet.substring(0,packet.length()-1);
+            packetNum = Integer.parseInt(len);
+        }else if(packet.endsWith("k")){
+            String len  = packet.substring(0,packet.length()-1);
+            packetNum = Integer.parseInt(len)*1024;
+        }else{
+            throw new IllegalArgumentException("字节包参数无效。");
+        }
+        logger.error("build packet,len:{}..",packetNum);
+        final byte[] packets = new byte[packetNum];
+        for(int i=0;i<packetNum;i++){
+            packets[i] = '0';
+        }
+        logger.error("build packet end.");
+
         try {
             TimeUnit.MICROSECONDS.sleep(500);
         } catch (InterruptedException e) {}
-        
-        StringBuilder sendPacket=new StringBuilder();
-        for (int i = 0; i < packetSize; i++) {
-        	sendPacket.append("q");
-		}
-        final String sendPacketStr=sendPacket.toString();
 
         //启动测试线程
-        bTime = System.currentTimeMillis();
+        beginTime = System.nanoTime();
         for(int i=0;i<thrCount;i++){
             Thread thread = new Thread(new Runnable() {
+                final byte[] bb = packets;
                 @Override
                 public void run() {
                     while(currentCount.get() < totalCount.get()){
                         try {
-                        	Long start=System.nanoTime();
-                            Hello hello = helloService.getHello(sendPacketStr);
-                            Long end=System.nanoTime();
-                            Long constTime=end-start;
-                            int andIncrement = currentCount.getAndIncrement();
-                            concurrentMap.put(Integer.valueOf(andIncrement), constTime);
+                            long bTime = System.nanoTime();
+                            Hello hello = helloService.getHelloForBench(bb);
+                            long eTime = System.nanoTime();
+                            long costTime = eTime - bTime;
+                            if(costTime < minCostTime.get()){
+                                minCostTime.set(costTime);
+                            }
+                            if(costTime > maxCostTime.get()){
+                                maxCostTime.set(costTime);
+                            }
+                            currentCount.getAndIncrement();
                         } catch (Exception e) {
                             failCount.getAndIncrement();
                             logger.error("occur error.",e);
@@ -136,54 +156,26 @@ public class BenchmarkController {
     class CountTask extends TimerTask {
 
         //上一秒最后记录数
-        int lastSecCount = 0;
+        long lastCount = 0;
 
         @Override
         public void run() {
             try {
-                long totalCostTime = (System.currentTimeMillis() - bTime)/1000;
+                long endTime = System.nanoTime();
+                long totalCostTime = (endTime - beginTime)/(1000*1000*1000);
                 if(currentCount.get() < totalCount.get()){
-                    long thisSecTps = currentCount.get() - lastSecCount;
+                    long thisSecTps = currentCount.get() - lastCount;
                     logger.error("current count:{},total time:{},tps:{}.",currentCount.get(),totalCostTime,thisSecTps);
-                    lastSecCount = currentCount.get();
+                    lastCount = currentCount.get();
                 }else{//总计
-                    logger.error("###########complete###########"+concurrentMap.size());
-                    
-                    Collection<Long> values = concurrentMap.values();
-                    
-					Long total_const_time = 0L;
-					List<Long> list = new ArrayList<Long>();
-					for (Iterator<Long> iterator = values.iterator(); iterator.hasNext();) {
-						Long l =  iterator.next();
-						total_const_time = total_const_time + l;
-						list.add(l);
-						iterator.remove();
+                    logger.error("###########complete###########");
+                    long totalTps = totalCount.get() / totalCostTime;
+                    logger.error("total count:{},fail count:{},total time:{},tps:{}.",totalCount.get(),failCount.get(),totalCostTime,totalTps);
 
-					}
-					
-					logger.error("###########complete###########"+total_const_time);
-					Collections.sort(list);
-					long min = list.get(0);
-					long max = list.get(list.size() - 1);
-					long tcount = Long.valueOf(totalCount.get());
-					double minTime = (double) (TimeUnit.MICROSECONDS.convert(min, TimeUnit.NANOSECONDS)) / (double) 1000;
-					logger.error("min=" + minTime + " ms");
-					double maxTime = (double) TimeUnit.MICROSECONDS.convert(max, TimeUnit.NANOSECONDS) / (double) 1000;
-	                logger.error("max=" + maxTime + " ms");
-	                
-					double avgTime = (double) TimeUnit.MICROSECONDS.convert(total_const_time, TimeUnit.NANOSECONDS)
-							/ (double) (tcount * 1000);
-					DecimalFormat fmt = new DecimalFormat("#.###");
-					logger.error("average=" + fmt.format(avgTime) + " ms");
-					logger.error("minTime=>{},maxTime=>{},avgTime=>{}", min, max, avgTime);
-					
-					long totalseconds =  TimeUnit.SECONDS.convert(total_const_time, TimeUnit.NANOSECONDS);
-
-					long totalTps = totalCount.get() / totalCostTime;
-					logger.error("totalCostTime=>{}",totalCostTime);
-					logger.error("totalseconds=>{}",totalseconds);
-					logger.error("total count:{},total time:{},fail count:{},tps:{}.", totalCount.get(),
-							total_const_time, failCount.get(), totalTps);
+                    double minTime = minCostTime.get()/(1000*1000);
+                    double maxTime = maxCostTime.get()/(1000*1000);
+                    double avgTime = ((endTime - beginTime)/(1000*1000))/totalCount.get();
+                    logger.error("min time:{},max time:{},avg time:{}.",minTime,maxTime,avgTime);
 
                     this.cancel();
                 }
@@ -192,13 +184,5 @@ public class BenchmarkController {
             }
         }
     }
-    
-    public static void main(String args[]){
-    	System.out.println("a".getBytes().length);
-    	System.out.println(System.nanoTime());
-    	System.out.println(System.nanoTime());
-    	System.out.println(Long.MAX_VALUE);
-    	System.out.println(0.334*1000);
-    }
-    
+
 }
