@@ -6,7 +6,7 @@ import java.util.Map;
 import com.meidusa.venus.backend.interceptor.config.InterceptorConfig;
 import com.meidusa.venus.backend.services.PerformanceLogger;
 
-public class EndpointConfig {
+public class ServiceEndpointConfig {
 
     private String name;
 
@@ -20,7 +20,7 @@ public class EndpointConfig {
 
     Map<String, InterceptorConfig> interceptorConfigs;
 
-    public EndpointConfig() {
+    public ServiceEndpointConfig() {
         this.interceptorConfigs = new HashMap<String, InterceptorConfig>();
     }
 

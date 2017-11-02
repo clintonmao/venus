@@ -22,9 +22,8 @@ public class RightConditionRule implements RuleDef {
 
     private String hostValues;
 
-    private String versionExp;
-
-    private String versionValues;
+    //private String versionExp;
+    //private String versionValues;
 
     public boolean isReject(ClientInvocation invocation, URL url){
         if(StringUtils.isNotBlank(appExp) && StringUtils.isNotBlank(appValues)){
@@ -45,14 +44,15 @@ public class RightConditionRule implements RuleDef {
             }
         }
 
+        /*
         if(StringUtils.isNotBlank(versionExp) && StringUtils.isNotBlank(versionValues)){
-            //获取提供者版本号
             String providerVersion = url.getVersion();
             boolean isReject = VersionRuleDetermin.isReject(versionExp,providerVersion,versionValues);
             if(isReject){
                 return true;
             }
         }
+        */
         return false;
     }
 
@@ -88,19 +88,4 @@ public class RightConditionRule implements RuleDef {
         this.hostValues = hostValues;
     }
 
-    public String getVersionExp() {
-        return versionExp;
-    }
-
-    public void setVersionExp(String versionExp) {
-        this.versionExp = versionExp;
-    }
-
-    public String getVersionValues() {
-        return versionValues;
-    }
-
-    public void setVersionValues(String versionValues) {
-        this.versionValues = versionValues;
-    }
 }

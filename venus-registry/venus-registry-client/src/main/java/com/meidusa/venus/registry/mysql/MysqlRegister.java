@@ -200,17 +200,27 @@ public class MysqlRegister implements Register {
 	}
 
 	private static String getKeyFromUrl(URL url) {
-		String interfaceName = url.getInterfaceName();
-		String serviceName = url.getServiceName();
-		String version = url.getVersion();
-		return interfaceName + "/" + serviceName + "/?version=" + version;
+		StringBuffer buf = new StringBuffer();
+		buf.append("/");
+		buf.append(url.getInterfaceName());
+		buf.append("/");
+		buf.append(url.getServiceName());
+		if(StringUtils.isNotEmpty(url.getVersion())){
+			buf.append("?version=").append(url.getVersion());
+		}
+		return buf.toString();
 	}
 
 	private static String getKey(VenusServiceDefinitionDO url) {
-		String serviceName = url.getName();
-		String interfaceName = url.getInterfaceName();
-		String version = url.getVersionRange();
-		return interfaceName + "/" + serviceName + "/?version=" + version;
+		StringBuffer buf = new StringBuffer();
+		buf.append("/");
+		buf.append(url.getInterfaceName());
+		buf.append("/");
+		buf.append(url.getName());
+		if(StringUtils.isNotEmpty(url.getVersion())){
+			buf.append("?version=").append(url.getVersion());
+		}
+		return buf.toString();
 	}
 
 	@Override

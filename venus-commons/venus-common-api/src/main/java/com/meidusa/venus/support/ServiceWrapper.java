@@ -83,7 +83,6 @@ public class ServiceWrapper {
         ServiceWrapper sw = new ServiceWrapper();
         sw.setName(service.name());
         sw.setVersion(service.version());
-        sw.setVersionx(service.versionx());
         sw.setImplement(service.implement());
         sw.setAthenaFlag(service.athenaFlag());
         sw.setDescription(service.description());

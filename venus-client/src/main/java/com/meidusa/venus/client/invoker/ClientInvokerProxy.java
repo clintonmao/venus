@@ -120,7 +120,7 @@ public class ClientInvokerProxy implements Invoker {
                 }
             }
 
-            //根据配置选择内部调用还是跨实例/远程调用
+            //本地路由优先，根据配置选择内部调用还是跨实例/远程调用
             if(isInjvmInvoke(clientInvocation)){
                 Result result = getInjvmInvoker().invoke(invocation, url);
                 VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);

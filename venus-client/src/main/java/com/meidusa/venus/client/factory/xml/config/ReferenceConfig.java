@@ -16,15 +16,18 @@ package com.meidusa.venus.client.factory.xml.config;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ServiceConfig {
-
-    private String beanName;
+/**
+ * 服务引用配置
+ */
+public class ReferenceConfig {
 
     private Class<?> type;
 
+    private String beanName;
+
     private Object instance;
 
-    private String versionx;
+    private int version;
 
     /**
      * 远程配置名称
@@ -36,7 +39,7 @@ public class ServiceConfig {
      */
     private String ipAddressList;
 
-    private Map<String, EndpointConfig> endPointMap = new HashMap<String, EndpointConfig>();
+    private Map<String, ReferenceEndpointConfig> endPointMap = new HashMap<String, ReferenceEndpointConfig>();
 
     private int timeWait;
 
@@ -107,11 +110,11 @@ public class ServiceConfig {
         this.instance = implement;
     }
 
-    public void addEndPointConfig(EndpointConfig config) {
+    public void addEndPointConfig(ReferenceEndpointConfig config) {
         endPointMap.put(config.getName(), config);
     }
 
-    public EndpointConfig getEndpointConfig(String key) {
+    public ReferenceEndpointConfig getEndpointConfig(String key) {
         return endPointMap.get(key);
     }
 
@@ -171,11 +174,11 @@ public class ServiceConfig {
         this.coreConnections = coreConnections;
     }
 
-    public String getVersionx() {
-        return versionx;
+    public int getVersion() {
+        return version;
     }
 
-    public void setVersionx(String versionx) {
-        this.versionx = versionx;
+    public void setVersion(int version) {
+        this.version = version;
     }
 }

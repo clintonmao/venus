@@ -35,7 +35,7 @@ public class VenusServiceDefinitionDO implements ServiceDefinitionExtra,java.io.
 	private String version;
 
 	/**
-	 * 服务版本范围 TODO 兼容性处理
+	 * 服务版本范围
 	 */
 	private String versionRange;
 

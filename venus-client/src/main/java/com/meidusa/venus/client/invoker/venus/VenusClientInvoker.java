@@ -479,13 +479,13 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @param endpoint
      * @throws SocketException
      */
-    void setConnectionConfig(AbstractBIOConnection conn, ServiceConfig serviceConfig, Endpoint endpoint) throws SocketException {
+    void setConnectionConfig(AbstractBIOConnection conn, ReferenceConfig serviceConfig, Endpoint endpoint) throws SocketException {
         int soTimeout = 0;
         int oldTimeout = 0;
 
         oldTimeout = conn.getSoTimeout();
         if (serviceConfig != null) {
-            EndpointConfig endpointConfig = serviceConfig.getEndpointConfig(endpoint.name());
+            ReferenceEndpointConfig endpointConfig = serviceConfig.getEndpointConfig(endpoint.name());
             if (endpointConfig != null) {
                 int eTimeOut = endpointConfig.getTimeWait();
                 if (eTimeOut > 0) {

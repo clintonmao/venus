@@ -29,7 +29,7 @@ public class VenusConstants {
     public static int VENUS_PROTOCOL_DEFAULT_CORE_THREADS = 100;
 
     //服务默认版本号
-    public static String VERSION_DEFAULT = "0.0.0";
+    public static int VERSION_DEFAULT = 0;
 
 
 }

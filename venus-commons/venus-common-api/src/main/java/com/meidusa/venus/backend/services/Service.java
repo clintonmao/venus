@@ -18,8 +18,10 @@ public abstract class Service {
 
     private String name;
 
-    private String versionx;
+    //当前版本号
+    private int version;
 
+    //当前版本向下支持版本范围
     private Range versionRange;
 
     private Multimap<String, Endpoint> endpoints;
@@ -110,11 +112,11 @@ public abstract class Service {
         this.description = description;
     }
 
-    public String getVersionx() {
-        return versionx;
+    public int getVersion() {
+        return version;
     }
 
-    public void setVersionx(String versionx) {
-        this.versionx = versionx;
+    public void setVersion(int version) {
+        this.version = version;
     }
 }
