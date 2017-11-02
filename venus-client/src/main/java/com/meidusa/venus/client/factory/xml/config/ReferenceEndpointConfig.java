@@ -1,6 +1,6 @@
 package com.meidusa.venus.client.factory.xml.config;
 
-public class EndpointConfig {
+public class ReferenceEndpointConfig {
     private String name;
     private int timeWait;
 

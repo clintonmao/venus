@@ -21,6 +21,7 @@ import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.VenusRegistryFactory;
 import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.support.VenusContext;
@@ -32,7 +33,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.digester.Digester;
 import org.apache.commons.digester.RuleSet;
 import org.apache.commons.digester.xmlrules.FromXmlRuleSet;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -308,8 +308,8 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         } else {
             service.setName(type.getCanonicalName());
         }
-        if(StringUtils.isNotEmpty(serviceAnnotation.versionx())){
-            service.setVersionx(serviceAnnotation.versionx());
+        if(serviceAnnotation.version() != 0){
+            service.setVersion(serviceAnnotation.version());
         }
         service.setDescription(serviceAnnotation.description());
 
@@ -337,7 +337,13 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         URL serviceRegisterUrl = parseRegisterUrl(serviceConfig,service);
 
         //注册服务
-        register.registe(serviceRegisterUrl);
+        try {
+            register.registe(serviceRegisterUrl);
+        } catch (Exception e) {
+            if(logger.isErrorEnabled()){
+                logger.error("registe service failed,will retry.",e);
+            }
+        }
     }
 
     /**
@@ -347,28 +353,43 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      */
     URL parseRegisterUrl(ServiceConfig serviceConfig, Service service){
         String appName = application.getName();
-        String protocol = "venus";
+        //String protocol = "venus";
         String serviceInterfaceName = serviceConfig.getType().getName();
-        String serviceName = service.getName();
-        String version = VenusConstants.VERSION_DEFAULT;
-        if(StringUtils.isNotEmpty(service.getVersionx())){
-            version = service.getVersionx();
+        //服务名设置为"null"，v4以后采用interfaceName+version，之前采用serviceName+version标识唯一服务
+        String serviceName = "null";
+        int version = VenusConstants.VERSION_DEFAULT;
+        if(service.getVersion() != 0){
+            version = service.getVersion();
         }
         String host = NetUtil.getLocalIp();
         String port = String.valueOf(venusProtocol.getPort());
         //获取方法定义列表
         String methodsDef = getMethodsDef(service);
+        StringBuffer buf = new StringBuffer();
+        buf.append("/").append(serviceInterfaceName);
+        buf.append("/").append(serviceName);
+        buf.append("?version=").append(String.valueOf(version));
+        buf.append("&application=").append(appName);
+        buf.append("&host=").append(host);
+        buf.append("&port=").append(port);
+        buf.append("&methods=").append(methodsDef);
+        if(serviceConfig.getVersionRange() != null){
+            buf.append("&versionRange=").append(serviceConfig.getVersionRange().toString());
+        }
+        String registerUrl = buf.toString();
+        /*
         String registerUrl = String.format(
-                "%s://%s/%s?version=%s&application=%s&host=%s&port=%s&methods=%s",
+                "/%s/%s?version=%s&application=%s&host=%s&port=%s&methods=%s",
                 protocol,
                 serviceInterfaceName,
                 serviceName,
-                version,
+                String.valueOf(version),
                 appName,
                 host,
                 port,
                 methodsDef
         );
+        */
         URL url = URL.parse(registerUrl);
         return url;
     }
@@ -388,7 +409,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                 String methodDef = getMethodDef(endpoint);
                 buf.append(methodDef);
                 if(i < (endpoints.size()-1)){
-                    buf.append(",");
+                    buf.append(";");
                 }
                 i++;
             }
@@ -435,7 +456,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
             if (method.isAnnotationPresent(com.meidusa.venus.annotations.Endpoint.class)) {
                 Endpoint ep = loadEndpoint(method);
 
-                EndpointConfig endpointConfig = serviceConfig.getEndpointConfig(ep.getName());
+                ServiceEndpointConfig endpointConfig = serviceConfig.getEndpointConfig(ep.getName());
 
                 String id = (endpointConfig == null ? serviceConfig.getInterceptorStack() : endpointConfig.getInterceptorStack());
                 Map<String, InterceptorConfig> interceptorConfigs = null;

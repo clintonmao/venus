@@ -247,8 +247,8 @@ public class VenusPoolFactory implements BeanFactoryAware, InitializingBean {
             try {
                 InputStream is = ResourceUtils.getURL(configFile.trim()).openStream();
                 VenusClientConfig venus = (VenusClientConfig) digester.parse(is);
-                for (ServiceConfig config : venus.getServiceConfigs()) {
-                    if (config.getType() == null) {
+                for (ReferenceConfig referenceConfig : venus.getServiceConfigs()) {
+                    if (referenceConfig.getType() == null) {
                         throw new ConfigurationException("Service type can not be null:" + configFile);
                     }
                 }

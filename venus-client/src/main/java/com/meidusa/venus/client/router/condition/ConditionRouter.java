@@ -12,6 +12,7 @@ import com.meidusa.venus.registry.domain.RouterRule;
 import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +34,7 @@ public class ConditionRouter implements Router {
             }
         }
         if(CollectionUtils.isEmpty(alllowUrlList)){
-            throw new RpcException("no allowed service providers.");
+            throw new RpcException("with rule filter,no allowed service providers.");
         }
         return alllowUrlList;
     }
@@ -78,14 +79,30 @@ public class ConditionRouter implements Router {
         }
 
         for(VenusServiceConfigDO srvCfg:srvCfgList){
-            RouterRule rule = srvCfg.getRouterRule();
-            if(rule != null){
-                //转化为可解析模型
-                rules.add(toConditionRule(rule));
+            RouterRule jsonRuleDef = srvCfg.getRouterRule();
+            if(isValidRule(jsonRuleDef)){
+                //将字符串规则转化为领域模型
+                rules.add(toConditionRule(jsonRuleDef));
             }
         }
 
         return rules;
+    }
+
+    /**
+     * 判断规则是否有效，要有注册中心管理来进行有效性校验
+     * @param ruleDef
+     * @return
+     */
+    boolean isValidRule(RouterRule ruleDef){
+        if(StringUtils.isEmpty(ruleDef.getExpress())){
+            return false;
+        }
+        String[] arr = ruleDef.getExpress().split("=>");
+        if(arr == null || arr.length < 2){
+            return false;
+        }
+        return false;
     }
 
     /**
@@ -97,16 +114,18 @@ public class ConditionRouter implements Router {
         //consumer.host!=192.168.1.1,192.168.1.2 => provider.host=192.168.2.1
         //consumer.host=192.168.1.1&consumer.app=order => provider.version=2.0.0
         String exp = ruleDef.getExpress();
+        String[] strDefArr = exp.split("=>");
         //整条规则
         ConditionRule rule = new ConditionRule();
         //左规则
         LeftConditionRule leftRule = new LeftConditionRule();
+        String leftDef =strDefArr[0];
         leftRule.setHostExp(ConditionRule.EQ);
-        //TODO 改动态
         leftRule.setHostValues("10.47.16.40");
         rule.setLeftRule(leftRule);
         //右规则
         RightConditionRule rightRule = new RightConditionRule();
+        String rightDef =strDefArr[1];
         rightRule.setHostExp(ConditionRule.EQ);
         rightRule.setHostValues("10.47.16.40");
         rule.setRightRule(rightRule);
@@ -117,12 +136,10 @@ public class ConditionRouter implements Router {
      * 获取所有规则映射表
      * @return
      */
-    List<ConditionRule> getRouteRulesByStatic(URL url){
-        //String serviceUrl = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=1.0.0";
-
+    List<ConditionRule> getTempsRouteRules(URL url){
+        //consumer.host=10.47.16.40 => provider.host=10.47.16.40
         //构造rules
         List<ConditionRule> rules = new ArrayList<ConditionRule>();
-        //rule1[consumer.host=10.47.16.40 => provider.host=10.47.16.40]
         //整条规则
         ConditionRule rule = new ConditionRule();
         //左规则

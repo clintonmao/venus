@@ -104,7 +104,7 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean {
             RegisterService registerService = new MysqlRegisterService(connectUrl);
             return registerService;
         } catch (Exception e) {
-                throw new RpcException(e);
+            throw new RpcException(e);
         }
     }
 
@@ -114,9 +114,14 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean {
      * @return
      */
     RegisterService newHessianRegisterService(String registerUrl){
-        HessianProxyFactory factory = new HessianProxyFactory();
+        //连接、读写默认3000ms
+        int readTimeout = 3000;
+        int connectTimeout = 3000;
+        HessianProxyFactory proxyFactory = new HessianProxyFactory();
+        proxyFactory.setReadTimeout(readTimeout);
+        proxyFactory.setConnectTimeout(connectTimeout);
         try {
-            RegisterService registerService = (RegisterService) factory.create(RegisterService.class, registerUrl);
+            RegisterService registerService = (RegisterService) proxyFactory.create(RegisterService.class, registerUrl);
             return registerService;
         } catch (MalformedURLException e) {
             logger.error("newHessianRegisterService error.",e);

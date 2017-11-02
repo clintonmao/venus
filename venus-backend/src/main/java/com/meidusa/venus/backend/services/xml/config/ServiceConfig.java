@@ -9,6 +9,9 @@ import org.apache.commons.lang.StringUtils;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 服务发布配置
+ */
 public class ServiceConfig {
     private Class<?> type;
 
@@ -21,7 +24,7 @@ public class ServiceConfig {
 
     private Range versionRange;
 
-    private Map<String, EndpointConfig> endpointConfigMap = new HashMap<String, EndpointConfig>();
+    private Map<String, ServiceEndpointConfig> endpointConfigMap = new HashMap<String, ServiceEndpointConfig>();
 
     private String interceptorStack;
 
@@ -101,11 +104,11 @@ public class ServiceConfig {
         this.instance = instance;
     }
 
-    public EndpointConfig getEndpointConfig(String name) {
+    public ServiceEndpointConfig getEndpointConfig(String name) {
         return endpointConfigMap.get(name);
     }
 
-    public void addEndpointConfig(EndpointConfig config) {
+    public void addEndpointConfig(ServiceEndpointConfig config) {
         endpointConfigMap.put(config.getName(), config);
     }
 

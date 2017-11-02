@@ -319,7 +319,6 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 			trimWhere = trimWhere.substring(trimWhere.indexOf("and") + 3);
 		}
 		sql = sql + " " + trimWhere;
-		System.out.println(sql);
 		
 		try {
 			return this.jdbcTemplate.query(sql, listToArray(params), new ResultSetExtractor<List<VenusServiceDO>>() {

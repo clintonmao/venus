@@ -8,10 +8,13 @@ import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRouter;
 import com.meidusa.venus.exception.RpcException;
+import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.util.JSONUtil;
+import com.meidusa.venus.util.Range;
+import com.meidusa.venus.util.RangeUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -98,10 +101,10 @@ public class ClientRemoteInvoker implements Invoker{
      */
     Result invokeByRegisterLookup(Invocation invocation, URL url) throws RpcException {
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
-        //注册中心寻址
+        //注册中心寻址及版本校验
         List<URL> urlList = lookupByRegister(clientInvocation);
 
-        //自定义路由过滤 TODO 版本号访问控制
+        //自定义路由过滤
         //urlList = router.filte(clientInvocation, urlList);
 
         //集群容错调用
@@ -119,7 +122,7 @@ public class ClientRemoteInvoker implements Invoker{
         }else if(register != null){//走注册中心寻址
             return true;
         }else{
-            throw new RpcException("remoteConfig and registerUrl not allow empty.");
+            throw new VenusConfigException("remoteConfig and registerUrl not allow empty.");
         }
     }
 
@@ -183,32 +186,38 @@ public class ClientRemoteInvoker implements Invoker{
      */
     List<URL> lookupByRegister(ClientInvocation invocation){
         List<URL> urlList = new ArrayList<URL>();
-
         //解析请求Url
         URL requestUrl = parseRequestUrl(invocation);
+
         //查找服务定义
-        List<VenusServiceDefinitionDO> serviceDefinitionDOList = getRegister().lookup(requestUrl);
-        if(CollectionUtils.isEmpty(serviceDefinitionDOList)){
+        List<VenusServiceDefinitionDO> srvDefList = getRegister().lookup(requestUrl);
+        if(CollectionUtils.isEmpty(srvDefList)){
             throw new RpcException(String.format("not found available service %s providers.",requestUrl.toString()));
         }
 
-        //TODO 多组集群选择，根据兼容范围选择
-        for(VenusServiceDefinitionDO srvDef:serviceDefinitionDOList){
-            for(String addresss:srvDef.getIpAddress()){
-                String[] arr = addresss.split(":");
-                URL url = new URL();
-                url.setHost(arr[0]);
-                url.setPort(Integer.parseInt(arr[1]));
-                url.setServiceDefinition(srvDef);
-                if(StringUtils.isNotEmpty(srvDef.getProvider())){
-                    url.setApplication(srvDef.getProvider());
+        //当前接口定义版本号
+        int currentVersion = Integer.parseInt(invocation.getVersion());
+        //判断是否允许访问版本
+        for(VenusServiceDefinitionDO srvDef:srvDefList){
+            if(isAllowVersion(srvDef,currentVersion)){
+                for(String addresss:srvDef.getIpAddress()){
+                    String[] arr = addresss.split(":");
+                    URL url = new URL();
+                    url.setHost(arr[0]);
+                    url.setPort(Integer.parseInt(arr[1]));
+                    url.setServiceDefinition(srvDef);
+                    if(StringUtils.isNotEmpty(srvDef.getProvider())){
+                        url.setApplication(srvDef.getProvider());
+                    }
+                    urlList.add(url);
                 }
-                urlList.add(url);
+                //若找到，则跳出
+                break;
             }
         }
 
         if(CollectionUtils.isEmpty(urlList)){
-            throw new RpcException("not found avalid providers.");
+            throw new RpcException("with version valid,not found allowed service providers.");
         }
 
         //输出寻址结果信息
@@ -237,6 +246,26 @@ public class ClientRemoteInvoker implements Invoker{
     }
 
     /**
+     * 判断是否允许访问版本
+     * @param srvDef
+     * @return
+     */
+    boolean isAllowVersion(VenusServiceDefinitionDO srvDef,int currentVersion){
+        //若版本号相同，则允许
+        if(Integer.parseInt(srvDef.getVersion()) == currentVersion){
+            return true;
+        }
+
+        //否则，根据版本兼容定义判断是否许可
+        String versionRange = srvDef.getVersionRange();
+        if(StringUtils.isEmpty(versionRange)){
+            return false;
+        }
+        Range supportVersioRange = RangeUtil.getVersionRange(versionRange);
+        return supportVersioRange.contains(currentVersion);
+    }
+
+    /**
      * 解析请求url
      * @param invocation
      * @return
@@ -250,21 +279,12 @@ public class ClientRemoteInvoker implements Invoker{
         if(invocation.getService() != null){
             serviceName = invocation.getService().getName();
         }
-        //若不指定版本号，则使用默认版本号
-        String versionx = VenusConstants.VERSION_DEFAULT;
-        if(StringUtils.isNotEmpty(invocation.getVersionx())){
-            versionx = invocation.getVersionx();
-        }
 
-        StringBuilder stringBuilder = new StringBuilder()
-                .append("venus://")
-                .append(serviceInterfaceName).append("/")
-                .append(serviceName);
-        if(StringUtils.isNotEmpty(versionx)){
-            stringBuilder
-                    .append("?version=").append(versionx);
-        }
-        String serviceUrl = stringBuilder.toString();
+        StringBuffer buf = new StringBuffer();
+        buf.append("/").append(serviceInterfaceName);
+        buf.append("/").append(serviceName);
+        buf.append("?");
+        String serviceUrl = buf.toString();
         URL url = URL.parse(serviceUrl);
         return url;
     }

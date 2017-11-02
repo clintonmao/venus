@@ -10,7 +10,7 @@ public class BetweenRange implements Range {
         if (arrays != null && arrays.length == 2) {
             Arrays.sort(this.arrays);
         } else {
-            throw new InvalidParameterException("paramters size error");
+            throw new IllegalArgumentException("paramters size error");
         }
     }
 

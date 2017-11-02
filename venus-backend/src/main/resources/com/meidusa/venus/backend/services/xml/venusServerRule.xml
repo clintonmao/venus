@@ -38,7 +38,7 @@
 
 			<pattern value="endpoint">
 				<object-create-rule-with-init
-						classname="com.meidusa.venus.backend.services.xml.config.EndpointConfig" />
+						classname="com.meidusa.venus.backend.services.xml.config.ServiceEndpointConfig" />
 				<set-properties-rule>
 					<alias attr-name="interceptor-stack" prop-name="interceptorStack" />
 				</set-properties-rule>

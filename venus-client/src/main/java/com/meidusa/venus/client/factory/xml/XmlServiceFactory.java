@@ -25,7 +25,7 @@ import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.factory.InvokerInvocationHandler;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
-import com.meidusa.venus.client.factory.xml.config.ServiceConfig;
+import com.meidusa.venus.client.factory.xml.config.ReferenceConfig;
 import com.meidusa.venus.client.factory.xml.config.VenusClientConfig;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanContext;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanUtilsBean;
@@ -90,7 +90,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
     /**
      * 服务配置映射表
      */
-    private Map<Class<?>, ServiceConfig> serviceConfigMap = new HashMap<Class<?>, ServiceConfig>();
+    private Map<Class<?>, ReferenceConfig> serviceConfigMap = new HashMap<Class<?>, ReferenceConfig>();
 
     /**
      * 服务实例映射表
@@ -211,7 +211,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         VenusClientConfig venusClientConfig = parseClientConfig();
 
         //初始化service实例
-        for (ServiceConfig serviceConfig : venusClientConfig.getServiceConfigs()) {
+        for (ReferenceConfig serviceConfig : venusClientConfig.getServiceConfigs()) {
             initService(serviceConfig,venusClientConfig);
         }
         /*
@@ -237,13 +237,19 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      * 初始化service
      * @param serviceConfig
      */
-    void initService(ServiceConfig serviceConfig, VenusClientConfig venusClientConfig) {
+    void initService(ReferenceConfig serviceConfig, VenusClientConfig venusClientConfig) {
         //初始化服务代理
         initServiceProxy(serviceConfig,venusClientConfig);
 
         //若走注册中心，则订阅服务
         if(isNeedSubscrible(serviceConfig)){
-            subscribleService(serviceConfig);
+            try {
+                subscribleService(serviceConfig);
+            } catch (Exception e) {
+                if(logger.isErrorEnabled()){
+                    logger.error("subscrible service failed,will retry.",e);
+                }
+            }
         }
     }
 
@@ -252,7 +258,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      * @param serviceConfig
      * @return
      */
-    boolean isNeedSubscrible(ServiceConfig serviceConfig){
+    boolean isNeedSubscrible(ReferenceConfig serviceConfig){
         //若直连，则不订阅
         if(StringUtils.isNotEmpty(serviceConfig.getRemote()) || StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
             return false;
@@ -266,7 +272,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      * @param serviceConfig
      * @param venusClientConfig
      */
-    void initServiceProxy(ServiceConfig serviceConfig, VenusClientConfig venusClientConfig) {
+    void initServiceProxy(ReferenceConfig serviceConfig, VenusClientConfig venusClientConfig) {
         //创建服务代理invocation
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
         invocationHandler.setServiceInterface(serviceConfig.getType());
@@ -303,7 +309,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
                 Service service = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
                 if(service != null){
                     serviceConfig.setBeanName(service.name());
-                    serviceConfig.setVersionx(service.versionx());
+                    serviceConfig.setVersion(service.version());
                 }
 
                 Class[] eclazz = method.getExceptionTypes();
@@ -328,23 +334,27 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
     /**
      * 订阅服务
      */
-    void subscribleService(ServiceConfig serviceConfig){
+    void subscribleService(ReferenceConfig referenceConfig){
         //若配置静态地址，则跳过
-        if(StringUtils.isNotEmpty(serviceConfig.getRemote()) || StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
+        if(StringUtils.isNotEmpty(referenceConfig.getRemote()) || StringUtils.isNotEmpty(referenceConfig.getIpAddressList())){
             return;
         }
         String appName = application.getName();
-        String serviceInterfaceName = null;
-        if(serviceConfig.getType() != null){
-            serviceInterfaceName = serviceConfig.getType().getName();
+        String serviceInterfaceName = "null";
+        if(referenceConfig.getType() != null){
+            serviceInterfaceName = referenceConfig.getType().getName();
         }
-        String serivceName = serviceConfig.getBeanName();
-        String versionx = VenusConstants.VERSION_DEFAULT;
-        if(StringUtils.isNotEmpty(serviceConfig.getVersionx())){
-            versionx = serviceConfig.getVersionx();
-        }
+        String serivceName = referenceConfig.getBeanName();
+        //int version = VenusConstants.VERSION_DEFAULT;
         String consumerHost = NetUtil.getLocalIp();
 
+        StringBuffer buf = new StringBuffer();
+        buf.append("/").append(serviceInterfaceName);
+        buf.append("/").append(serivceName);
+        buf.append("?application=").append(appName);
+        buf.append("&host=").append(consumerHost);
+        String subscribleUrl = buf.toString();
+        /*
         String subscribleUrl = String.format(
                 "subscrible://%s/%s?version=%s&application=%s&host=%s",
                 serviceInterfaceName,
@@ -353,6 +363,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
                 appName,
                 consumerHost
                 );
+        */
         com.meidusa.venus.URL url = com.meidusa.venus.URL.parse(subscribleUrl);
         if(logger.isInfoEnabled()){
             logger.info("subscrible service:{}",url);
@@ -367,7 +378,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      * @param venusClientConfig
      * @return
      */
-    ClientRemoteConfig getRemoteConfig(ServiceConfig serviceConfig, VenusClientConfig venusClientConfig){
+    ClientRemoteConfig getRemoteConfig(ReferenceConfig serviceConfig, VenusClientConfig venusClientConfig){
         if(StringUtils.isNotEmpty(serviceConfig.getRemote())){
             ClientRemoteConfig remoteConfig = venusClientConfig.getRemoteConfigMap().get(serviceConfig.getRemote());
             if(remoteConfig == null){
@@ -404,7 +415,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
                 InputStream is = configFile.getInputStream();
                 try{
                     VenusClientConfig venus = (VenusClientConfig) digester.parse(is);
-                    for (ServiceConfig config : venus.getServiceConfigs()) {
+                    for (ReferenceConfig config : venus.getServiceConfigs()) {
                         if (config.getType() == null) {
                             logger.error("Service type can not be null:" + configFile);
                             throw new ConfigurationException("Service type can not be null:" + configFile);
@@ -513,7 +524,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
 		this.applicationContext = applicationContext;
 	}
 
-    public ServiceConfig getServiceConfig(Class<?> type) {
+    public ReferenceConfig getServiceConfig(Class<?> type) {
         return serviceConfigMap.get(type);
     }
 

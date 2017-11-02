@@ -23,11 +23,11 @@ import java.util.Map;
  */
 public class VenusClientConfig {
 
-    private List<ServiceConfig> serviceConfigs = new ArrayList<ServiceConfig>();
+    private List<ReferenceConfig> serviceConfigs = new ArrayList<ReferenceConfig>();
 
     private Map<String, ClientRemoteConfig> remoteConfigMap = new HashMap<String, ClientRemoteConfig>();
 
-    public void addService(ServiceConfig config) {
+    public void addService(ReferenceConfig config) {
         serviceConfigs.add(config);
     }
 
@@ -35,7 +35,7 @@ public class VenusClientConfig {
         remoteConfigMap.put(remoteConfig.getName(), remoteConfig);
     }
 
-    public List<ServiceConfig> getServiceConfigs() {
+    public List<ReferenceConfig> getServiceConfigs() {
         return serviceConfigs;
     }
 

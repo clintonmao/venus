@@ -7,7 +7,7 @@ import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
-import com.meidusa.venus.client.factory.xml.config.ServiceConfig;
+import com.meidusa.venus.client.factory.xml.config.ReferenceConfig;
 import com.meidusa.venus.client.invoker.ClientInvokerProxy;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
@@ -63,7 +63,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
     /**
      * 引用服务配置
      */
-    private ServiceConfig serviceConfig;
+    private ReferenceConfig serviceConfig;
 
     /**
      * 静态配置地址
@@ -108,15 +108,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
                 Throwable exception = result.getException();
                 if(exception != null){
                     //若是rpc异常，则判断是否为包装异常
-                    if(exception instanceof RpcException){
-                        if(exception.getCause() != null){
-                            throw exception.getCause();
-                        }else{
-                            throw exception;
-                        }
-                    }else{
-                        throw exception;
-                    }
+                    throw exception;
                 }else{
                     throw new RpcException(String.format("%s-%s",String.valueOf(result.getErrorCode()),result.getErrorMessage()));
                 }
@@ -152,21 +144,15 @@ public class InvokerInvocationHandler implements InvocationHandler {
     ClientInvocation buildInvocation(Object proxy, Method method, Object[] args){
         ClientInvocation invocation = new ClientInvocation();
         invocation.setServiceInterface(serviceInterface);
-        //TODO 注解信息cache
         Endpoint endpoint =  AnnotationUtil.getAnnotation(method.getAnnotations(), Endpoint.class);
         EndpointWrapper endpointWrapper = EndpointWrapper.wrapper(endpoint);
         invocation.setEndpoint(endpointWrapper);
         Service service = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
         ServiceWrapper serviceWrapper = ServiceWrapper.wrapper(service);
-        invocation.setVersionx(serviceWrapper.getVersionx());
         invocation.setService(serviceWrapper);
+        invocation.setVersion(String.valueOf(service.version()));
         EndpointParameter[] params = EndpointParameterUtil.getPrameters(method);
         invocation.setParams(params);
-        //TODO 本地实现?
-        /*
-        if (service != null && StringUtils.isEmpty(service.implement())) {
-        }
-        */
         invocation.setMethod(method);
         invocation.setArgs(args);
         invocation.setRequestTime(new Date());
@@ -264,11 +250,11 @@ public class InvokerInvocationHandler implements InvocationHandler {
         this.serviceFactory = serviceFactory;
     }
 
-    public ServiceConfig getServiceConfig() {
+    public ReferenceConfig getServiceConfig() {
         return serviceConfig;
     }
 
-    public void setServiceConfig(ServiceConfig serviceConfig) {
+    public void setServiceConfig(ReferenceConfig serviceConfig) {
         this.serviceConfig = serviceConfig;
     }
 }
