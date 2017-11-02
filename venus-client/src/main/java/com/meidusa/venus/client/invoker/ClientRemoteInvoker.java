@@ -34,6 +34,11 @@ public class ClientRemoteInvoker implements Invoker{
     private ClientRemoteConfig remoteConfig;
 
     /**
+     * 静态地址列表，第一次调用初始化
+     */
+    private List<URL> cacheUrlList;
+
+    /**
      * 注册中心
      */
     private Register register;
@@ -125,34 +130,48 @@ public class ClientRemoteInvoker implements Invoker{
      */
     List<URL> lookupByStatic(ClientInvocation invocation){
         List<URL> urlList = new ArrayList<URL>();
-        String ipAddressList = remoteConfig.getFactory().getIpAddressList();
-        String[] addressArr = ipAddressList.split(";");
-        for(String address:addressArr){
-            String[] arr = address.split(":");
-            URL url = new URL();
-            url.setHost(arr[0]);
-            url.setPort(Integer.parseInt(arr[1]));
-            url.setRemoteConfig(remoteConfig);
-            urlList.add(url);
+        if(cacheUrlList == null){
+            String ipAddressList = remoteConfig.getFactory().getIpAddressList();
+            String[] addressArr = ipAddressList.split(";");
+            for(String address:addressArr){
+                String[] arr = address.split(":");
+                URL url = new URL();
+                url.setHost(arr[0]);
+                url.setPort(Integer.parseInt(arr[1]));
+                url.setRemoteConfig(remoteConfig);
+                urlList.add(url);
+            }
+            cacheUrlList = urlList;
+        }else {
+            urlList = cacheUrlList;
         }
 
         if(CollectionUtils.isEmpty(urlList)){
             throw new RpcException("not found avalid providers.");
         }
+
+
         //输出寻址结果信息
-        List<String> targets = new ArrayList<String>();
-        if(CollectionUtils.isNotEmpty(urlList)){
-            for(URL url:urlList){
-                String target = new StringBuilder()
-                        .append(url.getHost())
-                        .append(":")
-                        .append(url.getPort())
-                        .toString();
-                targets.add(target);
+        boolean isPrintDetailInfo = false;
+        if(isPrintDetailInfo){
+            List<String> targets = new ArrayList<String>();
+            if(CollectionUtils.isNotEmpty(urlList)){
+                for(URL url:urlList){
+                    String target = new StringBuilder()
+                            .append(url.getHost())
+                            .append(":")
+                            .append(url.getPort())
+                            .toString();
+                    targets.add(target);
+                }
             }
-        }
-        if(logger.isInfoEnabled()){
-            logger.info("static lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
+            if(logger.isInfoEnabled()){
+                logger.info("static lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
+            }
+        }else{
+            if(logger.isInfoEnabled()){
+                logger.info("static lookup service providers num:{}.",urlList.size());
+            }
         }
         return urlList;
     }
@@ -173,7 +192,7 @@ public class ClientRemoteInvoker implements Invoker{
             throw new RpcException(String.format("not found available service %s providers.",requestUrl.toString()));
         }
 
-        //TODO group/urls关系
+        //TODO 多组集群选择，根据兼容范围选择
         for(VenusServiceDefinitionDO srvDef:serviceDefinitionDOList){
             for(String addresss:srvDef.getIpAddress()){
                 String[] arr = addresss.split(":");
@@ -191,20 +210,28 @@ public class ClientRemoteInvoker implements Invoker{
         if(CollectionUtils.isEmpty(urlList)){
             throw new RpcException("not found avalid providers.");
         }
+
         //输出寻址结果信息
-        List<String> targets = new ArrayList<String>();
-        if(CollectionUtils.isNotEmpty(urlList)){
-            for(URL url:urlList){
-                String target = new StringBuilder()
-                        .append(url.getHost())
-                        .append(":")
-                        .append(url.getPort())
-                        .toString();
-                targets.add(target);
+        boolean isPrintDetailInfo = false;
+        if(isPrintDetailInfo){
+            List<String> targets = new ArrayList<String>();
+            if(CollectionUtils.isNotEmpty(urlList)){
+                for(URL url:urlList){
+                    String target = new StringBuilder()
+                            .append(url.getHost())
+                            .append(":")
+                            .append(url.getPort())
+                            .toString();
+                    targets.add(target);
+                }
             }
-        }
-        if(logger.isInfoEnabled()){
-            logger.info("register lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
+            if(logger.isInfoEnabled()){
+                logger.info("register lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
+            }
+        }else{
+            if(logger.isInfoEnabled()){
+                logger.info("register lookup service providers num:{}.",urlList.size());
+            }
         }
         return urlList;
     }
