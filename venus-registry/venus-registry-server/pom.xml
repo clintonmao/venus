@@ -122,44 +122,11 @@
             <artifactId>hessian</artifactId>
             <version>4.0.38</version>
         </dependency>
-        <!--
-        <dependency>
-            <groupId>com.meidusa.venus</groupId>
-            <artifactId>venus-registry-client</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
-        </dependency>
-        -->
         <dependency>
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-registry-service</artifactId>
             <version>4.0.0-SNAPSHOT</version>
         </dependency>
-<<<<<<< HEAD
-<!--         <dependency>
-=======
-        <!--
-        <dependency>
->>>>>>> bb756624bac11312289975b5e926fe632424bfe2
-            <groupId>com.meidusa.venus</groupId>
-            <artifactId>venus-monitor-delegate</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
-            <exclusions>
-            	<exclusion>
-            		<groupId>org.springframework.data</groupId>
-            		<artifactId>spring-data-gemfire</artifactId>
-            	</exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.meidusa.venus</groupId>
-            <artifactId>venus-backend</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
-<<<<<<< HEAD
-        </dependency> -->
-=======
-        </dependency>
-        -->
->>>>>>> bb756624bac11312289975b5e926fe632424bfe2
 		<dependency>
 			<groupId>com.gagu</groupId>
 			<artifactId>gagu-ucm-agent</artifactId>
