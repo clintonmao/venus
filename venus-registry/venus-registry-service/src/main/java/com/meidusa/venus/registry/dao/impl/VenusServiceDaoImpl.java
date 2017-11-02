@@ -58,24 +58,26 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		StringBuilder columns = new StringBuilder();
 		StringBuilder values = new StringBuilder();
 		
-		columns.append("name,");
-		values.append("'" + vs.getName() + "',");
+		if (isNotBlank(vs.getName())) {
+			columns.append("name,");
+			values.append("'" + vs.getName() + "',");
+		}
 		
-		if (StringUtils.isNotBlank(vs.getInterfaceName()) && !"null".equals(vs.getInterfaceName())) {
+		if (isNotBlank(vs.getInterfaceName())) {
 			columns.append("interface_name,");
 			values.append("'" + vs.getInterfaceName() + "',");
 		}
 		
-		if (StringUtils.isNotBlank(vs.getVersion()) && !"null".equals(vs.getVersion())) {
+		if (isNotBlank(vs.getVersion())) {
 			columns.append("version,");
 			values.append("'" + vs.getVersion() + "',");
 		}
-		if (StringUtils.isNotBlank(vs.getVersionRange()) && !"null".equals(vs.getVersionRange())) {
+		if (isNotBlank(vs.getVersionRange())) {
 			columns.append("version_range,");
 			values.append("'" + vs.getVersionRange() + "',");
 		}
 		
-		if (StringUtils.isNotBlank(vs.getDescription()) && !"null".equals(vs.getDescription())) {
+		if (isNotBlank(vs.getDescription())) {
 			columns.append("description,");
 			values.append("'" + vs.getDescription() + "',");
 		}else{
@@ -110,6 +112,10 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		return "insert into t_venus_service (" + columnsStr.substring(0, columnsStr.length() - 1) + ") values ("
 				+ values.substring(0, valuesStr.length() - 1) + ")";
 
+	}
+
+	private static boolean isNotBlank(String param) {
+		return StringUtils.isNotBlank(param) && !"null".equals(param);
 	}
 	
 	public static void main(String args[]){
@@ -206,11 +212,11 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		String sql = SELECT_FIELDS + " from t_venus_service where version=? ";
 		List<Object> params = new ArrayList<Object>();
 		params.add(version);
-		if (StringUtils.isNotBlank(serviceName)) {
+		if (isNotBlank(serviceName)) {
 			sql = sql + " and name=? ";
 			params.add(serviceName);
 		}
-		if (StringUtils.isNotBlank(interfaceName)) {
+		if (isNotBlank(interfaceName)) {
 			sql = sql + " and interface_name=?";
 			params.add(interfaceName);
 		}
@@ -287,22 +293,33 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		String sql = SELECT_FIELDS + " from t_venus_service where ";
 		StringBuilder whereSql = new StringBuilder();
 		List<Object> params = new ArrayList<Object>();
-		if (StringUtils.isNotBlank(serviceName) && !"null".equalsIgnoreCase(serviceName)) {
-			whereSql.append(" and name=? ");
+		
+		if(isNotBlank(serviceName) && isNotBlank(interfaceName)){
+			whereSql.append(" (name=? or interface_name=?) ");
 			params.add(serviceName);
-		}
-		if (StringUtils.isNotBlank(interfaceName) && !"null".equalsIgnoreCase(interfaceName)) {
-			whereSql.append(" and interface_name=? ");
 			params.add(interfaceName);
+		}else{
+			if (isNotBlank(serviceName)) {
+				whereSql.append(" and name=? ");
+				params.add(serviceName);
+			}
+			if (isNotBlank(interfaceName)) {
+				whereSql.append(" and interface_name=? ");
+				params.add(interfaceName);
+			}
 		}
 
-		if (StringUtils.isNotBlank(version) && !"null".equalsIgnoreCase(version)) {
+		if (isNotBlank(version)) {
 			whereSql.append(" and version=? ");
 			params.add(version);
 		}
 		
-		String wsql = whereSql.toString().trim().substring(whereSql.toString().trim().indexOf("and") + 3);
-		sql = sql + " " + wsql;
+		String trimWhere = whereSql.toString().trim();
+		if (trimWhere.startsWith("and")) {
+			trimWhere = trimWhere.substring(trimWhere.indexOf("and") + 3);
+		}
+		sql = sql + " " + trimWhere;
+		System.out.println(sql);
 		
 		try {
 			return this.jdbcTemplate.query(sql, listToArray(params), new ResultSetExtractor<List<VenusServiceDO>>() {

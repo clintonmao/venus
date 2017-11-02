@@ -134,7 +134,7 @@
             <artifactId>venus-registry-service</artifactId>
             <version>4.0.0-SNAPSHOT</version>
         </dependency>
-        <dependency>
+<!--         <dependency>
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-monitor-delegate</artifactId>
             <version>4.0.0-SNAPSHOT</version>
@@ -149,7 +149,7 @@
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-backend</artifactId>
             <version>4.0.0-SNAPSHOT</version>
-        </dependency>
+        </dependency> -->
 		<dependency>
 			<groupId>com.gagu</groupId>
 			<artifactId>gagu-ucm-agent</artifactId>
