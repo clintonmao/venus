@@ -2,6 +2,7 @@ package com.meidusa.venus.client.invoker.venus;
 
 import com.meidusa.toolkit.net.BackendConnection;
 import com.meidusa.venus.ClientInvocation;
+import com.meidusa.venus.Result;
 import com.meidusa.venus.io.packet.AbstractServicePacket;
 
 import java.util.concurrent.CountDownLatch;
@@ -15,11 +16,11 @@ public class VenusReqRespWrapper {
     //请求对象
     private ClientInvocation invocation;
 
-    //响应报文
-    private AbstractServicePacket packet;
-
     //当前请求使用连接
     private BackendConnection backendConnection;
+
+    //响应结果
+    private Result result = null;
 
     //计数latch
     private CountDownLatch reqRespLatch = new CountDownLatch(1);
@@ -36,12 +37,12 @@ public class VenusReqRespWrapper {
         this.invocation = invocation;
     }
 
-    public AbstractServicePacket getPacket() {
-        return packet;
+    public Result getResult() {
+        return result;
     }
 
-    public void setPacket(AbstractServicePacket packet) {
-        this.packet = packet;
+    public void setResult(Result result) {
+        this.result = result;
     }
 
     public CountDownLatch getReqRespLatch() {

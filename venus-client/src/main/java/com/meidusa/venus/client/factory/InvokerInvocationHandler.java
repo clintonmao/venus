@@ -105,11 +105,26 @@ public class InvokerInvocationHandler implements InvocationHandler {
             if(result.getErrorCode() == 0){//调用成功
                 return result.getResult();
             }else{//调用失败
-                //TODO 细化异常信息
-                throw new RpcException(String.format("%s-%s",String.valueOf(result.getErrorCode()),result.getErrorMessage()));
+                Throwable exception = result.getException();
+                if(exception != null){
+                    //若是rpc异常，则判断是否为包装异常
+                    if(exception instanceof RpcException){
+                        if(exception.getCause() != null){
+                            throw exception.getCause();
+                        }else{
+                            throw exception;
+                        }
+                    }else{
+                        throw exception;
+                    }
+                }else{
+                    throw new RpcException(String.format("%s-%s",String.valueOf(result.getErrorCode()),result.getErrorMessage()));
+                }
             }
         } catch (Throwable e) {
-            logger.error("invoke error.",e);
+            if(logger.isErrorEnabled()){
+                logger.error("invoke error.",e);
+            }
             throw e;
         }
     }

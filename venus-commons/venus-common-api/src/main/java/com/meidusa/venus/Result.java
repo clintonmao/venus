@@ -12,7 +12,7 @@ public class Result {
 
     private String errorMessage;
 
-    private Exception exception;
+    private Throwable exception;
 
     public Result(){}
 
@@ -44,11 +44,15 @@ public class Result {
         this.errorMessage = errorMessage;
     }
 
-    public Exception getException() {
+    public Throwable getException() {
         return exception;
     }
 
-    public void setException(Exception exception) {
+    public Result setException(Throwable exception) {
         this.exception = exception;
+        if(this.errorCode == 0){
+            this.errorCode = 500;
+        }
+        return this;
     }
 }
