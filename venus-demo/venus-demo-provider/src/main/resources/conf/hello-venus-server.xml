@@ -2,7 +2,7 @@
 
 <venus-server>
 	<services>
-		<service type="com.chexiang.venus.demo.provider.HelloService">
+		<service type="com.chexiang.venus.demo.provider.HelloService" version="{2,3,4}">
 			<property name="instance">${helloService}</property>
 			<!--
 			<instance class="com.chexiang.venus4.greeting.impl.GreetingServiceImpl" />
