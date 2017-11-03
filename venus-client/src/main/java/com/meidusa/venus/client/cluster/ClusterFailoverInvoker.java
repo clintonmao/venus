@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 /**
- * failover集群容错invoker
+ * failover集群容错invoker，封装invoker调用，将集群容错透明化
  * Created by Zhangzhihua on 2017/7/31.
  */
 public class ClusterFailoverInvoker extends AbstractClusterInvoker implements ClusterInvoker {

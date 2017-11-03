@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 集群容错调用抽象类
+ * 集群容错调用抽象类，将集群容错透明化
  * Created by Zhangzhihua on 2017/9/13.
  */
 public abstract class AbstractClusterInvoker implements ClusterInvoker {

@@ -4,8 +4,7 @@ import com.meidusa.toolkit.net.ConnectionConnector;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
-import com.meidusa.venus.bus.util.VenusTrafficCollector;
-import com.meidusa.venus.exception.VenusConfigException;
+import com.meidusa.venus.bus.util.BusTrafficCollector;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.support.ShutdownListener;
 import com.meidusa.venus.io.support.VenusStatus;
@@ -42,7 +41,7 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
 
     @Override
     public void handle(BusFrontendConnection srcConn, final byte[] message) {
-    	VenusTrafficCollector.getInstance().addInput(message.length);
+    	BusTrafficCollector.getInstance().addInput(message.length);
         int type = AbstractServicePacket.getType(message);
         switch (type) {
             case PacketConstant.PACKET_TYPE_PING:

@@ -82,6 +82,16 @@ public class ServerActivesLimitFilter implements Filter {
     }
 
     /**
+     * 判断是否开启并发流控
+     * @param invocation
+     * @param url
+     * @return
+     */
+    boolean isEnableActiveLimit(ServerInvocation invocation, URL url){
+        return false;
+    }
+
+    /**
      * 判断是否超过并发流控阈值
      * @param methodPath
      * @param activeLimit
@@ -89,33 +99,12 @@ public class ServerActivesLimitFilter implements Filter {
      */
     boolean isExceedActiveLimit(String methodPath,AtomicInteger activeLimit){
         int actives = activeLimit.get();
-        //TODO 从本地及注册中心获取流控设置
         return actives > DEFAULT_ACTIVES_LIMIT;
     }
 
-    /**
-     * 判断是否开启并发流控
-     * @param invocation
-     * @param url
-     * @return
-     */
-    boolean isEnableActiveLimit(ServerInvocation invocation, URL url){
-        String limitType = getLimitType(invocation, url);
-        return LIMIT_TYPE_ACTIVE.equalsIgnoreCase(limitType);
-    }
 
     @Override
     public void destroy() throws RpcException {
     }
 
-    /**
-     * 获取流控类型
-     * @param invocation
-     * @param url
-     * @return
-     */
-    String getLimitType(ServerInvocation invocation, URL url){
-        //TODO 获取流控类型
-        return LIMIT_TYPE_ACTIVE;
-    }
 }

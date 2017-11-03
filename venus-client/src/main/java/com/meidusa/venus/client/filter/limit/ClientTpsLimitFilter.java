@@ -78,26 +78,26 @@ public class ClientTpsLimitFilter implements Filter {
     }
 
     /**
-     * 判断是否超过并发流控阈值
-     * @param methodPath
-     * @return
-     */
-    boolean isExceedTpsLimit(String methodPath,AtomicInteger tpsLimit){
-        int tps = tpsLimit.get();
-        //TODO 从本地及注册中心获取流控设置
-        return tps > DEFAULT_TPS_LIMIT;
-    }
-
-    /**
      * 判断是否开启TPS流控
      * @param invocation
      * @param url
      * @return
      */
     boolean isEnableTpsLimit(ClientInvocation invocation, URL url){
-        String limitType = getLimitType(invocation, url);
-        return LIMIT_TYPE_TPS.equalsIgnoreCase(limitType);
+        return false;
     }
+
+    /**
+     * 判断是否超过并发流控阈值
+     * @param methodPath
+     * @return
+     */
+    boolean isExceedTpsLimit(String methodPath,AtomicInteger tpsLimit){
+        int tps = tpsLimit.get();
+        return tps > DEFAULT_TPS_LIMIT;
+    }
+
+
 
     @Override
     public Result throwInvoke(Invocation invocation, URL url, Throwable e) throws RpcException {
@@ -112,17 +112,6 @@ public class ClientTpsLimitFilter implements Filter {
     @Override
     public void destroy() throws RpcException {
 
-    }
-
-    /**
-     * 获取流控类型
-     * @param invocation
-     * @param url
-     * @return
-     */
-    String getLimitType(ClientInvocation invocation, URL url){
-        //TODO 获取流控类型
-        return LIMIT_TYPE_ACTIVE;
     }
 
     /**

@@ -1,11 +1,15 @@
 package com.meidusa.venus.client.filter.limit;
 
 import com.meidusa.venus.*;
+import com.meidusa.venus.client.filter.ServiceConfigUtil;
 import com.meidusa.venus.exception.RpcException;
+import com.meidusa.venus.registry.domain.FlowControl;
 import com.meidusa.venus.support.VenusUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,7 +41,6 @@ public class ClientActivesLimitFilter implements Filter {
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
-        //TODO 查找服务流控配置，并根据配置进行处理
         if(!isEnableActiveLimit(clientInvocation, url)){
             return null;
         }
@@ -49,7 +52,7 @@ public class ClientActivesLimitFilter implements Filter {
             methodActivesMapping.put(methodPath,activeLimit);
         }
         //判断是否超过流控阈值
-        boolean isExceedActiveLimit = isExceedActiveLimit(methodPath,activeLimit);
+        boolean isExceedActiveLimit = isExceedActiveLimit(clientInvocation,url,methodPath,activeLimit);
         if(isExceedActiveLimit){
             throw new RpcException("exceed actives limit.");
         }
@@ -87,41 +90,51 @@ public class ClientActivesLimitFilter implements Filter {
     }
 
     /**
-     * 判断是否超过并发流控阈值
-     * @param methodPath
-     * @param activeLimit
-     * @return
-     */
-    boolean isExceedActiveLimit(String methodPath,AtomicInteger activeLimit){
-        int actives = activeLimit.get();
-        //TODO 从本地及注册中心获取流控设置
-        return actives > DEFAULT_ACTIVES_LIMIT;
-    }
-
-    /**
      * 判断是否开启并发流控
      * @param invocation
      * @param url
      * @return
      */
     boolean isEnableActiveLimit(ClientInvocation invocation, URL url){
-        String limitType = getLimitType(invocation, url);
-        return LIMIT_TYPE_ACTIVE.equalsIgnoreCase(limitType);
-    }
-
-    @Override
-    public void destroy() throws RpcException {
+        FlowControl flowControl = filteMatchConfig(invocation, url);
+        return LIMIT_TYPE_ACTIVE.equalsIgnoreCase(flowControl.getFcType());
     }
 
     /**
-     * 获取流控类型
+     * 判断是否超过并发流控阈值
+     * @param methodPath
+     * @param activeLimit
+     * @return
+     */
+    boolean isExceedActiveLimit(ClientInvocation invocation, URL url,String methodPath,AtomicInteger activeLimit){
+        int actives = activeLimit.get();
+        FlowControl flowControl = filteMatchConfig(invocation, url);
+        return actives > flowControl.getThreshold();
+    }
+
+    /**
+     * 过滤匹配的规则定义
      * @param invocation
      * @param url
      * @return
      */
-    String getLimitType(ClientInvocation invocation, URL url){
-        //TODO 获取流控类型
-        return LIMIT_TYPE_ACTIVE;
+    FlowControl filteMatchConfig(ClientInvocation invocation, URL url){
+        List<FlowControl> configList = ServiceConfigUtil.getFlowConfigList(url);
+        if(CollectionUtils.isEmpty(configList)){
+            return null;
+        }
+        for(FlowControl control:configList){
+            if(control.isActive() && "consumer".equalsIgnoreCase(control.getPosition())){
+                if(invocation.getMethod().getName().equalsIgnoreCase(control.getMethod())){
+                    return control;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void destroy() throws RpcException {
     }
 
 }

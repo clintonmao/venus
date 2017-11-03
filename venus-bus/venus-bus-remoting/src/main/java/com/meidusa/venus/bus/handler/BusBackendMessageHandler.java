@@ -1,6 +1,6 @@
 package com.meidusa.venus.bus.handler;
 
-import com.meidusa.venus.bus.util.VenusTrafficCollector;
+import com.meidusa.venus.bus.util.BusTrafficCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +36,7 @@ public class BusBackendMessageHandler implements MessageHandler<BusBackendConnec
 
     @Override
     public void handle(BusBackendConnection conn,final byte[] message) {
-    	VenusTrafficCollector.getInstance().addInput(message.length);
+    	BusTrafficCollector.getInstance().addInput(message.length);
         int type = AbstractServicePacket.getType(message);
         if (type == AbstractVenusPacket.PACKET_TYPE_ROUTER) {
 
