@@ -97,6 +97,9 @@ public class ClientActivesLimitFilter implements Filter {
      */
     boolean isEnableActiveLimit(ClientInvocation invocation, URL url){
         FlowControl flowControl = filteMatchConfig(invocation, url);
+        if(flowControl == null){
+            return false;
+        }
         return LIMIT_TYPE_ACTIVE.equalsIgnoreCase(flowControl.getFcType());
     }
 
@@ -109,6 +112,9 @@ public class ClientActivesLimitFilter implements Filter {
     boolean isExceedActiveLimit(ClientInvocation invocation, URL url,String methodPath,AtomicInteger activeLimit){
         int actives = activeLimit.get();
         FlowControl flowControl = filteMatchConfig(invocation, url);
+        if(flowControl == null){
+            return false;
+        }
         return actives > flowControl.getThreshold();
     }
 

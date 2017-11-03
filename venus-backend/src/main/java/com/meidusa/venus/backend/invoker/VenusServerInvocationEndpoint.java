@@ -83,7 +83,6 @@ public class VenusServerInvocationEndpoint implements EndpointInvocation {
 
     @Override
     public Object invoke() {
-        //TODO 统一interceptor、filter一致实现，合并proxy/invoker
         if (executed) {
             throw new IllegalStateException("Request has already executed");
         }

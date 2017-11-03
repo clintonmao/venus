@@ -219,8 +219,6 @@ public class VenusServerInvoker implements Invoker {
 //            Object result = invocation.invoke();
 //            return result;
 //        } catch (Exception e) {
-//            throw e;
-//            /* TODO log exception
 //            if (e instanceof ServiceInvokeException) {
 //                e = ((ServiceInvokeException) e).getTargetException();
 //            }

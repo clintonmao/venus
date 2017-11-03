@@ -25,6 +25,9 @@ public class ServiceConfigUtil {
     public static List<FlowControl> getFlowConfigList(URL url){
         List<FlowControl> controls = new ArrayList<FlowControl>();
 
+        if(url == null){
+            return controls;
+        }
         VenusServiceDefinitionDO srvDef = (VenusServiceDefinitionDO)url.getServiceDefinition();
         if(srvDef == null){
             return controls;
