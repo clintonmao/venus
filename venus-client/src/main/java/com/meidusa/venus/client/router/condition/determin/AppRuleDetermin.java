@@ -1,6 +1,7 @@
 package com.meidusa.venus.client.router.condition.determin;
 
-import com.meidusa.venus.client.router.condition.rule.ConditionRule;
+import com.meidusa.venus.client.router.condition.ConditionRuleConstants;
+import com.meidusa.venus.client.router.condition.rule.FullConditionRule;
 
 /**
  * App语义规则判断逻辑
@@ -17,11 +18,11 @@ public class AppRuleDetermin {
      */
     public static boolean isReject(String appExp,String sourceApp,String targetApps){
         appExp = appExp.trim();
-        if(appExp.equalsIgnoreCase(ConditionRule.EQ)){//EQ/白名单
+        if(appExp.equalsIgnoreCase(ConditionRuleConstants.EQ)){//EQ/白名单
             //允许APP名单
             String allowApps = targetApps;
             return !allowApps.contains(sourceApp);
-        }else if(appExp.equalsIgnoreCase(ConditionRule.NEQ)){//NEQ/黑名单
+        }else if(appExp.equalsIgnoreCase(ConditionRuleConstants.NEQ)){//NEQ/黑名单
             //拒绝APP名单
             String refuseApps = targetApps;
             return refuseApps.contains(sourceApp);

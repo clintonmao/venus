@@ -6,7 +6,7 @@ import com.meidusa.venus.client.cluster.ClusterFastfailInvoker;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.client.router.Router;
-import com.meidusa.venus.client.router.condition.ConditionRouter;
+import com.meidusa.venus.client.router.condition.ConditionRuleRouter;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.registry.Register;
@@ -49,7 +49,7 @@ public class ClientRemoteInvoker implements Invoker{
     /**
      * 条件路由服务
      */
-    private Router router = new ConditionRouter();
+    private Router router = new ConditionRuleRouter();
 
     /**
      * venus协议调用invoker

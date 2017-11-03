@@ -5,7 +5,7 @@ import com.meidusa.venus.bus.BusInvocation;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.client.cluster.ClusterFastfailInvoker;
 import com.meidusa.venus.client.router.Router;
-import com.meidusa.venus.client.router.condition.ConditionRouter;
+import com.meidusa.venus.client.router.condition.ConditionRuleRouter;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
@@ -34,7 +34,7 @@ public class BusRemoteDispatcher implements Dispatcher{
 
     private ClusterInvoker clusterInvoker;
 
-    private Router router = new ConditionRouter();
+    private Router router = new ConditionRuleRouter();
 
     @Override
     public void init() throws RpcException {

@@ -2,7 +2,6 @@ package com.meidusa.venus.client.router.condition.rule;
 
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.URL;
-import com.meidusa.venus.client.router.condition.RuleDef;
 import com.meidusa.venus.client.router.condition.determin.AppRuleDetermin;
 import com.meidusa.venus.client.router.condition.determin.HostRuleDetermin;
 import org.apache.commons.lang.StringUtils;
@@ -11,7 +10,7 @@ import org.apache.commons.lang.StringUtils;
  * 左侧规则定义，也即消费者规则
  * Created by Zhangzhihua on 2017/8/15.
  */
-public class LeftConditionRule implements RuleDef {
+public class LeftConditionRule implements ConditionRule {
 
     private String appExp;
 
