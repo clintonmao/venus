@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.*;
 
 /**
  * 服务调用NIO消息响应处理
@@ -56,10 +56,54 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
 
     private static boolean isEnableRandomPrint = false;
 
-    public void handle(VenusBackendConnection conn, byte[] message) {
+    //默认不使用业务线程池模式
+    private static boolean isEnableExecuteModel = false;
+    private static Executor executor = null;
+    private int coreThread = Runtime.getRuntime().availableProcessors();
+    private int maxThread = 50;
+    private int maxQueue = 50000;
+
+    public VenusClientInvokerMessageHandler(){
+        init();
+    }
+
+    void init() {
+        if(isEnableExecuteModel){
+            synchronized (VenusClientInvokerMessageHandler.class){
+                if (executor == null) {
+                    executor = new ThreadPoolExecutor(coreThread,maxThread,0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(maxQueue),new RejectedExecutionHandler(){
+                        @Override
+                        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+                            logger.error("exceed max process,maxThread:{},maxQueue:{}.",maxThread,maxQueue);
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    public void handle(final VenusBackendConnection conn, final byte[] message) {
+        if(isEnableExecuteModel){
+            Runnable task = new Runnable() {
+                @Override
+                public void run() {
+                    doHandle(conn, message);
+                }
+            };
+            executor.execute(task);
+        }else{
+            doHandle(conn, message);
+        }
+    }
+
+    /**
+     * 处理消息
+     * @param conn
+     * @param message
+     */
+    void doHandle(VenusBackendConnection conn, byte[] message) {
         //获取序列化
         Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
-
         int type = AbstractServicePacket.getType(message);
         switch (type) {
             case PacketConstant.PACKET_TYPE_ERROR:
@@ -165,6 +209,8 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         } finally {
             if(reqRespWrapper != null){
                 reqRespWrapper.getReqRespLatch().countDown();
+            }else{
+                logger.error("#########reqRespWrapper is null########");
             }
         }
     }

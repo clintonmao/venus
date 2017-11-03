@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Created by Zhangzhihua on 2017/8/15.
  */
@@ -61,7 +63,9 @@ public class DefaultHelloService implements HelloService {
 
     @Override
     public Hello getHelloForBench(byte[] params) {
-        logger.info("invoke getHello,len:{}.",params.length);
+        if(logger.isInfoEnabled()){
+            logger.info("invoke getHello,len:{}.",params.length);
+        }
         return new Hello("hi","bench");
     }
 

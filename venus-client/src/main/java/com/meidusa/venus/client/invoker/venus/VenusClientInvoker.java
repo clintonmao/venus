@@ -101,6 +101,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     public VenusClientInvoker(){
         synchronized (this){
+            //构造连接
             if(connector == null && connectionManagers == null){
                 try {
                     logger.error("###################init connector############");
@@ -319,7 +320,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                     Type type = method.getGenericParameterTypes()[i];
                     if (type instanceof ParameterizedType) {
                         ParameterizedType genericType = ((ParameterizedType) type);
-                        //TODO 兼容旧版本方案 改由invocation保存回调信息 是否允许多个listener?
                         //container.putInvocationListener((InvocationListener) args[i], genericType.getActualTypeArguments()[0]);
                         invocation.setInvocationListener((InvocationListener)args[i]);
                         invocation.setType(genericType.getActualTypeArguments()[0]);
