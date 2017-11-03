@@ -3,6 +3,7 @@ package com.chexiang.venus.demo.provider.impl;
 import com.chexiang.venus.demo.provider.EchoService;
 import com.chexiang.venus.demo.provider.HelloService;
 import com.chexiang.venus.demo.provider.model.Hello;
+import com.chexiang.venus.demo.provider.model.OrderDO;
 import com.meidusa.venus.Application;
 import com.meidusa.venus.backend.VenusProtocol;
 import com.meidusa.venus.notify.InvocationListener;
@@ -84,5 +85,13 @@ public class DefaultHelloService implements HelloService {
     public void setVenusProtocol(VenusProtocol venusProtocol) {
         this.venusProtocol = venusProtocol;
     }
+
+	@Override
+	public OrderDO testOrder(String name,byte[] params) {
+		OrderDO o=new OrderDO();
+		o.setName(name);
+		o.setBytes(params);
+		return o;
+	}
 
 }

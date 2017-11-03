@@ -2,6 +2,7 @@ package com.chexiang.venus.demo.consumer.controller;
 
 import com.chexiang.venus.demo.provider.HelloService;
 import com.chexiang.venus.demo.provider.model.Hello;
+import com.chexiang.venus.demo.provider.model.OrderDO;
 import com.google.common.util.concurrent.AtomicDouble;
 import com.meidusa.venus.Result;
 import org.apache.commons.lang.StringUtils;
@@ -118,7 +119,7 @@ public class BenchmarkController {
                     while(currentCount.get() < totalCount.get()){
                         try {
                             long bTime = System.nanoTime();
-                            Hello hello = helloService.getHelloForBench(bb);
+                            OrderDO hello = helloService.testOrder("name", bb);
                             long eTime = System.nanoTime();
                             long costTime = eTime - bTime;
                             if(minCostTime.get() == 0 && costTime != 0){

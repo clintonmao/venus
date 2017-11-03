@@ -47,6 +47,6 @@
 
     <root level="error">
         <appender-ref ref="APP" />
-        <appender-ref ref="stdout" />
+       <!--  <appender-ref ref="stdout" /> -->
     </root>
 </configuration>
