@@ -59,7 +59,7 @@
 		<!--
 		<service type="com.chexiang.venus.demo.provider.HelloService" retries="3"/>
 		-->
-		<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.32.174.226:16800"/>
+		<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.128.250:16800"/>
 		<!--  <service type="com.chexiang.venus.demo.provider.HelloService" loadbalance="random"/> -->
 	</services>
 </venus-client>
