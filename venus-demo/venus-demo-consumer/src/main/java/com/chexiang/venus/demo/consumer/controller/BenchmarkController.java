@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,9 +37,9 @@ public class BenchmarkController {
 
     AtomicLong failCount = new AtomicLong(0);
 
-    AtomicDouble minCostTime = new AtomicDouble(0);
+    AtomicLong minCostTime = new AtomicLong(0);
 
-    AtomicDouble maxCostTime = new AtomicDouble(0);
+    AtomicLong maxCostTime = new AtomicLong(0);
 
     //开始时间
     long beginTime;
@@ -120,7 +121,9 @@ public class BenchmarkController {
                             Hello hello = helloService.getHelloForBench(bb);
                             long eTime = System.nanoTime();
                             long costTime = eTime - bTime;
-                            if(costTime < minCostTime.get()){
+                            if(minCostTime.get() == 0 && costTime != 0){
+                              minCostTime.set(costTime);
+                            } else if(costTime < minCostTime.get()){
                                 minCostTime.set(costTime);
                             }
                             if(costTime > maxCostTime.get()){
@@ -162,26 +165,32 @@ public class BenchmarkController {
         public void run() {
             try {
                 long endTime = System.nanoTime();
-                long totalCostTime = (endTime - beginTime)/(1000*1000*1000);
+                long totalCostTime = (endTime - beginTime);
                 if(currentCount.get() < totalCount.get()){
                     long thisSecTps = currentCount.get() - lastCount;
-                    logger.error("current count:{},total time:{},tps:{}.",currentCount.get(),totalCostTime,thisSecTps);
+                    logger.error("current count:{},total time:{},tps:{}.",currentCount.get(),totalCostTime/(1000*1000*1000),thisSecTps);
                     lastCount = currentCount.get();
                 }else{//总计
                     logger.error("###########complete###########");
-                    long totalTps = totalCount.get() / totalCostTime;
-                    logger.error("total count:{},fail count:{},total time:{},tps:{}.",totalCount.get(),failCount.get(),totalCostTime,totalTps);
+                    long avgTps = totalCount.get() / (totalCostTime/(1000*1000*1000));
+                    logger.error("total count:{},fail count:{},total time:{},avg tps:{}.",totalCount.get(),failCount.get(),totalCostTime/(1000*1000*1000),avgTps);
 
-                    double minTime = minCostTime.get()/(1000*1000);
-                    double maxTime = maxCostTime.get()/(1000*1000);
-                    double avgTime = ((endTime - beginTime)/(1000*1000))/totalCount.get();
-                    logger.error("min time:{},max time:{},avg time:{}.",minTime,maxTime,avgTime);
+                    float minTime = (float)(minCostTime.get()/(1000));
+                    float maxTime = (float)(maxCostTime.get()/(1000));
+                    float avgTime = (float)((totalCostTime/1000)/totalCount.get());
+                    logger.error("min time:{}ms,max time:{}ms,avg time:{}ms.",format(minTime),format(maxTime),format(avgTime));
 
                     this.cancel();
                 }
             } catch (Exception e) {
                 logger.error("count task error.",e);
             }
+        }
+
+        String format(float f){
+            DecimalFormat df = new DecimalFormat("0.00");//格式化小数
+            String s = df.format(f);//返回的是String类型
+            return s;
         }
     }
 
