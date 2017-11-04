@@ -6,20 +6,23 @@ import java.util.List;
 import java.util.Map;
 
 import com.meidusa.venus.backend.services.InterceptorMapping;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * venus服务端配置
  */
+@XStreamAlias("venus-server")
 public class VenusServerConfig {
 
-    private List<ServiceConfig> serviceConfigs = new ArrayList<ServiceConfig>();
+    @XStreamAlias("services")
+    private List<ExportService> exportServices = new ArrayList<ExportService>();
 
     private Map<String, InterceptorMapping> interceptors = new HashMap<String, InterceptorMapping>();
 
     private Map<String, InterceptorStackConfig> interceptorStatcks = new HashMap<String, InterceptorStackConfig>();
 
-    public void addService(ServiceConfig service) {
-        serviceConfigs.add(service);
+    public void addService(ExportService service) {
+        exportServices.add(service);
     }
 
     public void addInterceptor(InterceptorMapping mapping) {
@@ -34,8 +37,8 @@ public class VenusServerConfig {
         interceptorStatcks.put(stack.getName(), stack);
     }
 
-    public List<ServiceConfig> getServiceConfigs() {
-        return serviceConfigs;
+    public List<ExportService> getExportServices() {
+        return exportServices;
     }
 
     public Map<String, InterceptorMapping> getInterceptors() {
@@ -46,8 +49,8 @@ public class VenusServerConfig {
         return interceptorStatcks;
     }
 
-    public void setServiceConfigs(List<ServiceConfig> serviceConfigs) {
-        this.serviceConfigs = serviceConfigs;
+    public void setExportServices(List<ExportService> exportServices) {
+        this.exportServices = exportServices;
     }
 
     public void setInterceptors(Map<String, InterceptorMapping> interceptors) {

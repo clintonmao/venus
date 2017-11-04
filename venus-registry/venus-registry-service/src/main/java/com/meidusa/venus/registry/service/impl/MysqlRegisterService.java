@@ -478,7 +478,7 @@ public class MysqlRegisterService implements RegisterService {
 //					def.setIpAddress(hostPortSet);
 //					def.setActive(true);
 //					def.setDescription(venusServiceDO.getDescription());
-//					def.setVersionRange(venusServiceDO.getVersionRange());
+//					def.setSupportVersionRange(venusServiceDO.getSupportVersionRange());
 //					List<VenusServiceConfigDO> serviceConfigs = venusServiceConfigDAO.getServiceConfigs(serviceId);
 //					ResultUtils.setServiceConfigs(serviceConfigs);
 //					def.setServiceConfigs(serviceConfigs);

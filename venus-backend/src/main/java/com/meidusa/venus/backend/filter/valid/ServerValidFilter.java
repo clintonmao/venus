@@ -151,7 +151,7 @@ public class ServerValidFilter implements Filter {
         Service service = endpoint.getService();
 
         // service version check
-        Range range = service.getVersionRange();
+        Range range = service.getSupportVersionRange();
         if (range == null || range.contains(request.serviceVersion)) {
             return;
         } else {

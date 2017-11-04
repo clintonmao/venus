@@ -5,7 +5,7 @@
     <parent>
         <artifactId>venus-monitor</artifactId>
         <groupId>com.meidusa.venus</groupId>
-        <version>4.0.0-SNAPSHOT</version>
+        <version>4.0.0-2017110401-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -19,17 +19,17 @@
         <dependency>
             <groupId>com.meidusa.venus.commons</groupId>
             <artifactId>venus-common-base</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus.commons</groupId>
             <artifactId>venus-common-api</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-remoting</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.saike.athena</groupId>

@@ -7,7 +7,8 @@ import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
-import com.meidusa.venus.client.factory.xml.config.ReferenceConfig;
+import com.meidusa.venus.client.factory.xml.config.ReferenceMethod;
+import com.meidusa.venus.client.factory.xml.config.ReferenceService;
 import com.meidusa.venus.client.invoker.ClientInvokerProxy;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
@@ -22,6 +23,7 @@ import com.meidusa.venus.support.ServiceWrapper;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusTracerUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -63,7 +66,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
     /**
      * 引用服务配置
      */
-    private ReferenceConfig serviceConfig;
+    private ReferenceService referenceService;
 
     /**
      * 静态配置地址
@@ -159,13 +162,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
         String consumerApp = VenusContext.getInstance().getApplication();
         invocation.setConsumerApp(consumerApp);
         invocation.setConsumerIp(NetUtil.getLocalIp(true));
-        //是否async
-        /*
-        boolean async = false;
-        if (endpoint != null && endpoint.async()) {
-            async = true;
-        }
-        */
         invocation.setAsync(false);
         //clientId
         invocation.setClientId(PacketConstant.VENUS_CLIENT_ID);
@@ -181,25 +177,49 @@ public class InvokerInvocationHandler implements InvocationHandler {
         if(register != null){
             invocation.setLookupType(1);
         }
-        //设置服务引用自定义参数
-        if(serviceConfig != null){
-            if(serviceConfig.getTimeout() != 0){
-                invocation.setTimeout(serviceConfig.getTimeout());
+        //设置自定义参数
+        if(referenceService != null){
+            ReferenceMethod referenceMethod = getReferenceMethod(method);
+            if(referenceService.getCoreConnections() != 0){
+                invocation.setCoreConnections(referenceService.getCoreConnections());
             }
-            if(StringUtils.isNotEmpty(serviceConfig.getLoadbalance())){
-                invocation.setLoadbalance(serviceConfig.getLoadbalance());
+            //timeout、retries支持方法级设置
+            if(referenceMethod.getTimeout() != 0){
+                invocation.setTimeout(referenceMethod.getTimeout());
+            }else if(referenceService.getTimeout() != 0){
+                invocation.setTimeout(referenceService.getTimeout());
             }
-            if(StringUtils.isNotEmpty(serviceConfig.getCluster())){
-                invocation.setCluster(serviceConfig.getCluster());
+            if(referenceMethod.getRetries() != 0){
+                invocation.setRetries(referenceMethod.getRetries());
+            }else if(referenceService.getRetries() != 0){
+                invocation.setRetries(referenceService.getRetries());
             }
-            if(serviceConfig.getRetries() != 0){
-                invocation.setRetries(serviceConfig.getRetries());
+            if(StringUtils.isNotEmpty(referenceService.getCluster())){
+                invocation.setCluster(referenceService.getCluster());
             }
-            if(serviceConfig.getCoreConnections() != 0){
-                invocation.setCoreConnections(serviceConfig.getCoreConnections());
+            if(StringUtils.isNotEmpty(referenceService.getLoadbalance())){
+                invocation.setLoadbalance(referenceService.getLoadbalance());
             }
         }
         return invocation;
+    }
+
+    /**
+     * 查找方法自定义配置项
+     * @param method
+     * @return
+     */
+    ReferenceMethod getReferenceMethod(Method method){
+        List<ReferenceMethod> methodList = referenceService.getMethodList();
+        if(CollectionUtils.isEmpty(methodList)){
+            return null;
+        }
+        for(ReferenceMethod rMethod:methodList){
+            if(rMethod.getName() != null && method.getName().equals(rMethod.getName())){
+                return rMethod;
+            }
+        }
+        return null;
     }
 
     public Class<?> getServiceInterface() {
@@ -250,11 +270,11 @@ public class InvokerInvocationHandler implements InvocationHandler {
         this.serviceFactory = serviceFactory;
     }
 
-    public ReferenceConfig getServiceConfig() {
-        return serviceConfig;
+    public ReferenceService getReferenceService() {
+        return referenceService;
     }
 
-    public void setServiceConfig(ReferenceConfig serviceConfig) {
-        this.serviceConfig = serviceConfig;
+    public void setReferenceService(ReferenceService referenceService) {
+        this.referenceService = referenceService;
     }
 }

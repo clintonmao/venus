@@ -247,13 +247,13 @@ public class VenusPoolFactory implements BeanFactoryAware, InitializingBean {
             try {
                 InputStream is = ResourceUtils.getURL(configFile.trim()).openStream();
                 VenusClientConfig venus = (VenusClientConfig) digester.parse(is);
-                for (ReferenceConfig referenceConfig : venus.getServiceConfigs()) {
+                for (ReferenceService referenceConfig : venus.getReferenceServices()) {
                     if (referenceConfig.getType() == null) {
                         throw new ConfigurationException("Service type can not be null:" + configFile);
                     }
                 }
                 all.getRemoteConfigMap().putAll(venus.getRemoteConfigMap());
-                all.getServiceConfigs().addAll(venus.getServiceConfigs());
+                all.getReferenceServices().addAll(venus.getReferenceServices());
             } catch (Exception e) {
                 throw new ConfigurationException("can not parser xml:" + configFile, e);
             }
