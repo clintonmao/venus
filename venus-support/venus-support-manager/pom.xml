@@ -5,7 +5,7 @@
     <parent>
         <artifactId>venus-support</artifactId>
         <groupId>com.meidusa.venus</groupId>
-        <version>4.0.0-2017110401-SNAPSHOT</version>
+        <version>4.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 

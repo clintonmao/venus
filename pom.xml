@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.meidusa.venus</groupId>
 	<artifactId>venus</artifactId>
-	<version>4.0.0-2017110401-SNAPSHOT</version>
+	<version>4.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	
 	<name>${project.artifactId}</name>
@@ -12,7 +12,6 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring.version>3.2.4.RELEASE</spring.version>
-		<venus.version>com.meidusa.venus</venus.version>
 		<junit.version>4.10</junit.version>
 		<slf4j.version>1.7.5</slf4j.version>
 		<logback.version>1.0.13</logback.version>
@@ -208,23 +207,23 @@
 			<!-- venus -->
 			<dependency>
 				<groupId>com.meidusa.venus.commons</groupId>
-				<artifactId>venus-commons-annotation</artifactId>
-				<version>${venus.version}</version>
+				<artifactId>venus-common-annotation</artifactId>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.meidusa.venus.commons</groupId>
 				<artifactId>venus-common-base</artifactId>
-				<version>${venus.version}</version>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.meidusa.venus.commons</groupId>
 				<artifactId>venus-common-validator</artifactId>
-				<version>${venus.version}</version>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.meidusa.venus.commons</groupId>
 				<artifactId>venus-common-exception</artifactId>
-				<version>${venus.version}</version>
+				<version>${project.version}</version>
 			</dependency>
 			<!-- meidusa toolkit -->
 			<dependency>
@@ -273,7 +272,6 @@
 				<version>1.0.3</version>
 			</dependency>
 		</dependencies>
-
 	</dependencyManagement>
 
 	<build>
