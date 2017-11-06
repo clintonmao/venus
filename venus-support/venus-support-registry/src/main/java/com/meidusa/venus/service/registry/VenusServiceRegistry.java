@@ -25,8 +25,8 @@ public class VenusServiceRegistry implements ServiceRegistry{
             definition.setActive(service.isActive());
             definition.setName(service.getName());
             definition.setDescription(service.getDescription());
-            if (service.getVersionRange() != null) {
-                definition.setVersionRange(service.getVersionRange().toString());
+            if (service.getSupportVersionRange() != null) {
+                definition.setVersionRange(service.getSupportVersionRange().toString());
             }
             sdList.add(definition);
         }
@@ -36,13 +36,13 @@ public class VenusServiceRegistry implements ServiceRegistry{
     @Override
     public ServiceDefinition getServiceDefinition(String name, int version) {
         Service service = getServices().get(name);
-        if (service.getVersionRange().contains(version)) {
+        if (service.getSupportVersionRange().contains(version)) {
             ServiceDefinition definition = new ServiceDefinition();
             definition.setActive(service.isActive());
             definition.setName(service.getName());
             definition.setDescription(service.getDescription());
-            if (service.getVersionRange() != null) {
-                definition.setVersionRange(service.getVersionRange().toString());
+            if (service.getSupportVersionRange() != null) {
+                definition.setVersionRange(service.getSupportVersionRange().toString());
             }
             return definition;
         }

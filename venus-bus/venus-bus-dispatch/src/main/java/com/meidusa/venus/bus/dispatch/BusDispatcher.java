@@ -51,11 +51,14 @@ public class BusDispatcher implements Dispatcher{
     private BusDispatchMessageHandler dispatchMessageHandler;
 
     public BusDispatcher(Map<String, BusFrontendConnection> requestConnectionMap){
-        if(!isInited){
-            init();
-            if(dispatchMessageHandler == null){
-                dispatchMessageHandler = new BusDispatchMessageHandler();
-                dispatchMessageHandler.setRequestConnectionMap(requestConnectionMap);
+        synchronized (this){
+            if(!isInited){
+                init();
+                if(dispatchMessageHandler == null){
+                    dispatchMessageHandler = new BusDispatchMessageHandler();
+                    dispatchMessageHandler.setRequestConnectionMap(requestConnectionMap);
+                }
+                isInited = true;
             }
         }
     }
@@ -63,30 +66,25 @@ public class BusDispatcher implements Dispatcher{
     @Override
     public void init() throws RpcException {
         if(!isInitConnector){
-            if (enableAsync) {//TODO 开启async意义？
-                if (connector == null) {
-                    try {
-                        connector = new ConnectionConnector("connection Connector");
-                    } catch (IOException e) {
-                        throw new RpcException(e);
-                    }
-                    connector.setDaemon(true);
-
+            if (connector == null) {
+                try {
+                    connector = new ConnectionConnector("connection Connector");
+                } catch (IOException e) {
+                    throw new RpcException(e);
                 }
-
-                if (connManager == null) {
-                    try {
-                        connManager = new ConnectionManager("Connection Manager", this.getAsyncExecutorSize());
-                    } catch (IOException e) {
-                        throw new RpcException(e);
-                    }
-                    connManager.setDaemon(true);
-                    connManager.start();
-                }
-
-                connector.setProcessors(new ConnectionManager[]{connManager});
-                connector.start();
             }
+
+            if (connManager == null) {
+                try {
+                    connManager = new ConnectionManager("Connection Manager", this.getAsyncExecutorSize());
+                } catch (IOException e) {
+                    throw new RpcException(e);
+                }
+                connManager.start();
+            }
+
+            connector.setProcessors(new ConnectionManager[]{connManager});
+            connector.start();
 
             isInitConnector = true;
         }
@@ -162,10 +160,9 @@ public class BusDispatcher implements Dispatcher{
             //remoteConn.write(VenusRouterPacket.toByteBuffer(routerPacket));
             remoteConn.write(byteBuffer);
 
-            //TODO 确认日志输出功能
             //VenusTracerUtil.logRouter(traceId, apiName, srcConn.getInetAddress().getHostAddress(), remoteConn.getHost()+":"+remoteConn.getPort());
         } catch (Exception e) {
-            /* TODO 此段代码功能确认？
+            /*
             srcConn.addUnCompleted(routerPacket.frontendRequestID, routerPacket);
             srcConn.getRetryHandler().addRetry(srcConn, routerPacket);
             */

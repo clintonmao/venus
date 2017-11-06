@@ -3,9 +3,9 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.meidusa.venus.commons</groupId>
 		<artifactId>venus-commons</artifactId>
-		<version>4.0.0-SNAPSHOT</version>
+		<groupId>com.meidusa.venus.commons</groupId>
+		<version>4.0.0</version>
 	</parent>
 	<artifactId>venus-common-validator</artifactId>
 
@@ -25,12 +25,17 @@
 		<dependency>
 			<groupId>com.meidusa.venus.commons</groupId>
 			<artifactId>venus-common-exception</artifactId>
-			<version>4.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.meidusa.venus.commons</groupId>
 			<artifactId>venus-common-base</artifactId>
-			<version>4.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.meidusa.venus.commons</groupId>
+			<artifactId>venus-common-annotation</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 

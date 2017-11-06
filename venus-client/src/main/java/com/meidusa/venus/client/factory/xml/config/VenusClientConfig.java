@@ -13,6 +13,8 @@
  */
 package com.meidusa.venus.client.factory.xml.config;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,22 +23,25 @@ import java.util.Map;
 /**
  * venus客户端配置
  */
+@XStreamAlias("venus-client")
 public class VenusClientConfig {
 
-    private List<ReferenceConfig> serviceConfigs = new ArrayList<ReferenceConfig>();
+    //@XStreamImplicit(itemFieldName = "services")
+    @XStreamAlias("services")
+    private List<ReferenceService> referenceServices = new ArrayList<ReferenceService>();
 
     private Map<String, ClientRemoteConfig> remoteConfigMap = new HashMap<String, ClientRemoteConfig>();
 
-    public void addService(ReferenceConfig config) {
-        serviceConfigs.add(config);
+    public void addService(ReferenceService config) {
+        referenceServices.add(config);
     }
 
     public void addRemote(ClientRemoteConfig remoteConfig) {
         remoteConfigMap.put(remoteConfig.getName(), remoteConfig);
     }
 
-    public List<ReferenceConfig> getServiceConfigs() {
-        return serviceConfigs;
+    public List<ReferenceService> getReferenceServices() {
+        return referenceServices;
     }
 
     public Map<String, ClientRemoteConfig> getRemoteConfigMap() {

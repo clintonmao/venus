@@ -8,13 +8,13 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.meidusa.venus.bus.util.BusTrafficCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.bus.handler.BusBackendMessageHandler;
 import com.meidusa.venus.bus.handler.ClientConnectionObserver;
-import com.meidusa.venus.bus.util.VenusTrafficCollector;
 import com.meidusa.venus.io.network.VenusBackendConnection;
 import com.meidusa.venus.io.packet.PingPacket;
 import com.meidusa.venus.io.utils.Bits;
@@ -53,7 +53,7 @@ public class BusBackendConnection extends VenusBackendConnection {
     }
 	
 	public void write(ByteBuffer buffer){
-		VenusTrafficCollector.getInstance().addOutput(buffer.remaining());
+		BusTrafficCollector.getInstance().addOutput(buffer.remaining());
 		super.write(buffer);
 	}
     

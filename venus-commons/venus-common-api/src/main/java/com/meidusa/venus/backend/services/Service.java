@@ -22,7 +22,7 @@ public abstract class Service {
     private int version;
 
     //当前版本向下支持版本范围
-    private Range versionRange;
+    private Range supportVersionRange;
 
     private Multimap<String, Endpoint> endpoints;
 
@@ -32,12 +32,12 @@ public abstract class Service {
 
     private boolean active = true;
 
-    public Range getVersionRange() {
-        return versionRange;
+    public Range getSupportVersionRange() {
+        return supportVersionRange;
     }
 
-    public void setVersionRange(Range versionRange) {
-        this.versionRange = versionRange;
+    public void setSupportVersionRange(Range supportVersionRange) {
+        this.supportVersionRange = supportVersionRange;
     }
 
     public void setAthenaFlag(boolean athenaFlag) {

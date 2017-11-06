@@ -13,15 +13,25 @@
  */
 package com.meidusa.venus.client.factory.xml.config;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamImplicit;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * 服务引用配置
  */
-public class ReferenceConfig {
+@XStreamAlias("service")
+public class ReferenceService {
 
-    private Class<?> type;
+    @XStreamAsAttribute
+    private String type;
+
+    private Class<?> clzType;
 
     private String beanName;
 
@@ -29,46 +39,39 @@ public class ReferenceConfig {
 
     private int version;
 
-    /**
-     * 远程配置名称
-     */
+    //远程配置名称
     private String remote;
 
-    /**
-     * ip地址列表
-     */
+    //ip地址列表
+    @XStreamAsAttribute
     private String ipAddressList;
 
-    private Map<String, ReferenceEndpointConfig> endPointMap = new HashMap<String, ReferenceEndpointConfig>();
+    //连接数
+    @XStreamAsAttribute
+    private int coreConnections;
 
-    private int timeWait;
-
-    private boolean enabled = true;
-
-    /**
-     * 集群容错策略
-     */
-    private String cluster;
-
-    /**
-     * 重试次数
-     */
-    private int retries;
-
-    /**
-     * 负载均衡策略
-     */
-    private String loadbalance;
-
-    /**
-     * 超时时间
-     */
+    //超时时间
+    @XStreamAsAttribute
     private int timeout;
 
-    /**
-     * 连接数
-     */
-    private int coreConnections;
+    //重试次数
+    @XStreamAsAttribute
+    private int retries;
+
+    //集群容错策略
+    @XStreamAsAttribute
+    private String cluster;
+
+    //负载均衡策略
+    @XStreamAsAttribute
+    private String loadbalance;
+
+    @XStreamImplicit
+    private List<ReferenceMethod> methodList = new ArrayList<ReferenceMethod>();
+
+    private Map<String, ReferenceServiceConfig> endPointMap = new HashMap<String, ReferenceServiceConfig>();
+    private int timeWait;
+    private boolean enabled = true;
     
     public int getTimeWait() {
         return timeWait;
@@ -94,12 +97,20 @@ public class ReferenceConfig {
         this.remote = remote;
     }
 
-    public Class<?> getType() {
+    public String getType() {
         return type;
     }
 
-    public void setType(Class<?> type) {
+    public void setType(String type) {
         this.type = type;
+    }
+
+    public Class<?> getClzType() {
+        return clzType;
+    }
+
+    public void setClzType(Class<?> clzType) {
+        this.clzType = clzType;
     }
 
     public Object getInstance() {
@@ -110,11 +121,11 @@ public class ReferenceConfig {
         this.instance = implement;
     }
 
-    public void addEndPointConfig(ReferenceEndpointConfig config) {
+    public void addEndPointConfig(ReferenceServiceConfig config) {
         endPointMap.put(config.getName(), config);
     }
 
-    public ReferenceEndpointConfig getEndpointConfig(String key) {
+    public ReferenceServiceConfig getEndpointConfig(String key) {
         return endPointMap.get(key);
     }
 
@@ -180,5 +191,13 @@ public class ReferenceConfig {
 
     public void setVersion(int version) {
         this.version = version;
+    }
+
+    public List<ReferenceMethod> getMethodList() {
+        return methodList;
+    }
+
+    public void setMethodList(List<ReferenceMethod> methodList) {
+        this.methodList = methodList;
     }
 }

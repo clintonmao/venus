@@ -29,7 +29,7 @@
 	<!--应用配置-->
 	<bean id="application" class="com.meidusa.venus.Application">
 		<property name="name" value="${application.name}"/>
-		<property name="enableFilter" value="false"/>
+		<property name="enableFilter" value="true"/>
 	</bean>
 
 	<!--注册配置-->

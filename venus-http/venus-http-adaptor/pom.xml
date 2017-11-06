@@ -3,12 +3,12 @@
 	<parent>
 		<artifactId>venus-http</artifactId>
 		<groupId>com.meidusa.venus</groupId>
-		<version>4.0.0-SNAPSHOT</version>
+		<version>4.0.0</version>
 	</parent>
 
 
 	<artifactId>venus-http-adaptor</artifactId>
-	<name>${project.artifactId} v${project.version}</name>
+	<name>${project.artifactId}</name>
 	<properties>
 		<project.home>.</project.home>
 	</properties>
@@ -54,19 +54,24 @@
 			<version>1.0.0</version>
 		</dependency>
 		<dependency>
+			<groupId>com.meidusa.venus.commons</groupId>
+			<artifactId>venus-common-base</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>com.meidusa.venus</groupId>
 			<artifactId>venus-client</artifactId>
-			<version>4.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.meidusa.venus</groupId>
 			<artifactId>venus-backend</artifactId>
-			<version>4.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.meidusa.venus</groupId>
 			<artifactId>venus-http-filter</artifactId>
-			<version>4.0.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 

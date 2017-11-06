@@ -65,19 +65,7 @@ public class ClientReturnMockFilter implements Filter {
      * @return
      */
     boolean isEnableReturnMock(ClientInvocation invocation, URL url){
-        String mockType = getMockType(invocation, url);
-        return MOCK_TYPE_RETURN.equalsIgnoreCase(mockType);
-    }
-
-    /**
-     * 获取降级类型
-     * @param invocation
-     * @param url
-     * @return
-     */
-    String getMockType(ClientInvocation invocation, URL url){
-        //TODO 获取流控类型
-        return null;//MOCK_TYPE_RETURN;
+        return false;
     }
 
     @Override

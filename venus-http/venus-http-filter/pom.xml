@@ -3,10 +3,10 @@
   <parent>
     <groupId>com.meidusa.venus</groupId>
     <artifactId>venus-http</artifactId>
-    <version>4.0.0-SNAPSHOT</version>
+    <version>4.0.0</version>
   </parent>
   <artifactId>venus-http-filter</artifactId>
-  <name>${project.artifactId} v${project.version}</name>
+  <name>${project.artifactId}</name>
   <dependencies>
 	  <!--
   	<dependency>
@@ -31,7 +31,7 @@
 	  <dependency>
 		  <groupId>com.meidusa.venus.commons</groupId>
 		  <artifactId>venus-common-base</artifactId>
-		  <version>4.0.0-SNAPSHOT</version>
+		  <version>${project.version}</version>
 	  </dependency>
   </dependencies>
 </project>

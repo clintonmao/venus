@@ -58,8 +58,7 @@ public class ClientThrowMockFilter implements Filter {
      * @return
      */
     boolean isEnableThrowMock(ClientInvocation invocation, URL url){
-        String mockType = getMockType(invocation, url);
-        return MOCK_TYPE_THROW.equalsIgnoreCase(mockType);
+        return false;
     }
 
     @Override
@@ -77,14 +76,4 @@ public class ClientThrowMockFilter implements Filter {
 
     }
 
-    /**
-     * 获取降级类型
-     * @param invocation
-     * @param url
-     * @return
-     */
-    String getMockType(ClientInvocation invocation, URL url){
-        //TODO 获取流控类型
-        return null;//MOCK_TYPE_RETURN;
-    }
 }

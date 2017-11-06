@@ -4,13 +4,13 @@
 	<parent>
 		<artifactId>venus</artifactId>
 		<groupId>com.meidusa.venus</groupId>
-		<version>4.0.0-SNAPSHOT</version>
+		<version>4.0.0</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.meidusa.venus.commons</groupId>
 	<artifactId>venus-commons</artifactId>
 	<packaging>pom</packaging>
-	<name>${project.artifactId} v${project.version}</name>
+	<name>${project.artifactId}</name>
 	
 	<modules>
 		<module>venus-common-base</module>
@@ -19,13 +19,8 @@
 		<module>venus-common-api</module>
         <module>venus-common-annotation</module>
     </modules>
+
 	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<type>jar</type>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 
 </project>

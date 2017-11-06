@@ -43,7 +43,7 @@ public class BenchmarkController {
     AtomicLong maxCostTime = new AtomicLong(0);
 
     //开始时间
-    long beginTime;
+    static long beginTime;
 
     static boolean isRunning = false;
 
@@ -165,13 +165,15 @@ public class BenchmarkController {
         @Override
         public void run() {
             try {
-                long endTime = System.nanoTime();
-                long totalCostTime = (endTime - beginTime);
                 if(currentCount.get() < totalCount.get()){
+                    long endTime = System.nanoTime();
+                    long totalCostTime = (endTime - beginTime);
                     long thisSecTps = currentCount.get() - lastCount;
                     logger.error("current count:{},total time:{},tps:{}.",currentCount.get(),totalCostTime/(1000*1000*1000),thisSecTps);
                     lastCount = currentCount.get();
                 }else{//总计
+                    long endTime = System.nanoTime();
+                    long totalCostTime = (endTime - beginTime);
                     logger.error("###########complete###########");
                     long avgTps = totalCount.get() / (totalCostTime/(1000*1000*1000));
                     logger.error("total count:{},fail count:{},total time:{},avg tps:{}.",totalCount.get(),failCount.get(),totalCostTime/(1000*1000*1000),avgTps);
@@ -193,5 +195,5 @@ public class BenchmarkController {
         return s;
         }
     }
-    
+
 }

@@ -8,7 +8,7 @@ import com.meidusa.venus.bus.BusInvocation;
 import com.meidusa.venus.bus.dispatch.BusDispatcherProxy;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.bus.support.BusResponseHandler;
-import com.meidusa.venus.bus.util.VenusTrafficCollector;
+import com.meidusa.venus.bus.util.BusTrafficCollector;
 import com.meidusa.venus.registry.VenusRegistryFactory;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.io.packet.*;
@@ -60,7 +60,7 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
     //TODO 将连接统一为VenusFrontendConnection，可能出现不兼容问题?
     @Override
     public void handle(BusFrontendConnection srcConn, final byte[] message) {
-    	VenusTrafficCollector.getInstance().addInput(message.length);
+    	BusTrafficCollector.getInstance().addInput(message.length);
         int type = AbstractServicePacket.getType(message);
         switch (type) {
             case PacketConstant.PACKET_TYPE_PING:
@@ -104,7 +104,6 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
             SerializeServiceRequestPacket serviceRequestPacket = new SerializeServiceRequestPacket(serializer, null);
             serviceRequestPacket.init(message);
 
-            //TODO 处理使用过清理问题
             String rpcId = RpcIdUtil.getRpcId(serviceRequestPacket);
             requestConnectionMap.put(rpcId,srcConn);
 
@@ -141,7 +140,7 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
     BusInvocation parseInvocation(BusFrontendConnection conn, final byte[] message,SerializeServiceRequestPacket serviceRequestPacket){
         BusInvocation invocation = new BusInvocation();
 
-        VenusTrafficCollector.getInstance().increaseRequest();
+        BusTrafficCollector.getInstance().increaseRequest();
         ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
 
         try {
@@ -173,7 +172,6 @@ public class BusReceiveMessageHandler extends BusFrontendMessageHandler implemen
             //TODO 少serviceInterfaceName属性
             //routerPacket.api = apiName;
             int version = packetBuffer.readInt();
-            //TODO version是1而不是1.0.0形式
             //解析traceID
             packetBuffer.skipLengthCodedBytes();
             byte[] traceId = new byte[16];

@@ -5,7 +5,7 @@ import com.meidusa.venus.Invocation;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.client.router.Router;
-import com.meidusa.venus.client.router.condition.rule.ConditionRule;
+import com.meidusa.venus.client.router.condition.rule.FullConditionRule;
 import com.meidusa.venus.client.router.condition.rule.LeftConditionRule;
 import com.meidusa.venus.client.router.condition.rule.RightConditionRule;
 import com.meidusa.venus.registry.domain.RouterRule;
@@ -21,7 +21,9 @@ import java.util.List;
  * 条件路由
  * Created by Zhangzhihua on 2017/7/31.
  */
-public class ConditionRouter implements Router {
+public class ConditionRuleRouter implements Router {
+
+    private ConditionRuleParser ruleParser = new ConditionRuleParser();
 
     @Override
     public List<URL> filte(Invocation invocation, List<URL> urlList) {
@@ -47,13 +49,13 @@ public class ConditionRouter implements Router {
      */
     boolean isReject(ClientInvocation clientInvocation, URL url){
         //获取服务定义规则列表
-        List<ConditionRule> ruleDefList = getRouteRules(url);
+        List<FullConditionRule> ruleDefList = getRouteRules(url);
         //若规则定义为空，则可访问
         if(CollectionUtils.isEmpty(ruleDefList)){
             return false;
         }
 
-        for (ConditionRule rule : ruleDefList) {
+        for (FullConditionRule rule : ruleDefList) {
             if (rule.isReject(clientInvocation,url )) {
                 return true;
             }
@@ -66,8 +68,8 @@ public class ConditionRouter implements Router {
      * @param
      * @return
      */
-    List<ConditionRule> getRouteRules(URL url){
-        List<ConditionRule> rules = new ArrayList<ConditionRule>();
+    List<FullConditionRule> getRouteRules(URL url){
+        List<FullConditionRule> rules = new ArrayList<FullConditionRule>();
 
         VenusServiceDefinitionDO srvDef = (VenusServiceDefinitionDO)url.getServiceDefinition();
         if(srvDef == null){
@@ -82,7 +84,8 @@ public class ConditionRouter implements Router {
             RouterRule jsonRuleDef = srvCfg.getRouterRule();
             if(isValidRule(jsonRuleDef)){
                 //将字符串规则转化为领域模型
-                rules.add(toConditionRule(jsonRuleDef));
+                FullConditionRule conditionRule = ruleParser.parse(jsonRuleDef);
+                rules.add(conditionRule);
             }
         }
 
@@ -106,55 +109,30 @@ public class ConditionRouter implements Router {
     }
 
     /**
-     * 将字符串格式转化为可解析的格式
-     * @param ruleDef
-     * @return
-     */
-    ConditionRule toConditionRule(RouterRule ruleDef){
-        //consumer.host!=192.168.1.1,192.168.1.2 => provider.host=192.168.2.1
-        //consumer.host=192.168.1.1&consumer.app=order => provider.version=2.0.0
-        String exp = ruleDef.getExpress();
-        String[] strDefArr = exp.split("=>");
-        //整条规则
-        ConditionRule rule = new ConditionRule();
-        //左规则
-        LeftConditionRule leftRule = new LeftConditionRule();
-        String leftDef =strDefArr[0];
-        leftRule.setHostExp(ConditionRule.EQ);
-        leftRule.setHostValues("10.47.16.40");
-        rule.setLeftRule(leftRule);
-        //右规则
-        RightConditionRule rightRule = new RightConditionRule();
-        String rightDef =strDefArr[1];
-        rightRule.setHostExp(ConditionRule.EQ);
-        rightRule.setHostValues("10.47.16.40");
-        rule.setRightRule(rightRule);
-        return rule;
-    }
-
-    /**
      * 获取所有规则映射表
      * @return
      */
-    List<ConditionRule> getTempsRouteRules(URL url){
+    /*
+    List<FullConditionRule> buildTempsRouteRules(URL url){
         //consumer.host=10.47.16.40 => provider.host=10.47.16.40
         //构造rules
-        List<ConditionRule> rules = new ArrayList<ConditionRule>();
+        List<FullConditionRule> rules = new ArrayList<FullConditionRule>();
         //整条规则
-        ConditionRule rule = new ConditionRule();
+        FullConditionRule rule = new FullConditionRule();
         //左规则
         LeftConditionRule leftRule = new LeftConditionRule();
-        leftRule.setHostExp(ConditionRule.EQ);
+        leftRule.setHostExp(FullConditionRule.EQ);
         leftRule.setHostValues("10.47.16.40");
         rule.setLeftRule(leftRule);
         //右规则
         RightConditionRule rightRule = new RightConditionRule();
-        rightRule.setHostExp(ConditionRule.EQ);
+        rightRule.setHostExp(FullConditionRule.EQ);
         rightRule.setHostValues("10.47.16.40");
         rule.setRightRule(rightRule);
         rules.add(rule);
 
         return rules;
     }
+    */
 
 }

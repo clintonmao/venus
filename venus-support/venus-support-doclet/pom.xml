@@ -5,7 +5,7 @@
     <parent>
         <artifactId>venus-support</artifactId>
         <groupId>com.meidusa.venus</groupId>
-        <version>4.0.0-SNAPSHOT</version>
+        <version>4.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -87,26 +87,28 @@
         <dependency>
             <groupId>com.meidusa.venus.commons</groupId>
             <artifactId>venus-common-base</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus.commons</groupId>
             <artifactId>venus-common-annotation</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.7</version>
                 <configuration>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+
     <!--
     <distributionManagement>
         <repository>

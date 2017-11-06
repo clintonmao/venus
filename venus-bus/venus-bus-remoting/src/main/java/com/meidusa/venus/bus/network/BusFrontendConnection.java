@@ -7,12 +7,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.meidusa.venus.bus.util.BusTrafficCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.bus.handler.RetryMessageHandler;
-import com.meidusa.venus.bus.util.VenusTrafficCollector;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.ServiceAPIPacket;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
@@ -61,7 +61,7 @@ public class BusFrontendConnection extends VenusFrontendConnection {
     }
     
     public void write(ByteBuffer buffer){
-    	VenusTrafficCollector.getInstance().addOutput(buffer.remaining());
+    	BusTrafficCollector.getInstance().addOutput(buffer.remaining());
 		super.write(buffer);
 	}
 

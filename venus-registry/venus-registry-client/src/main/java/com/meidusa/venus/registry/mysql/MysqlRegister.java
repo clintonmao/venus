@@ -617,8 +617,8 @@ public class MysqlRegister implements Register {
 		def2.setServiceConfigs(serviceConfigs);
 		def1.setName("orderService");
 		def2.setName("userService");
-		def1.setVersionRange("1.0.0");
-		def2.setVersionRange("1.0.0");
+		def1.setSupportVersionRange("1.0.0");
+		def2.setSupportVersionRange("1.0.0");
 		def1.setInterfaceName("com.chexiang.Orderservice");
 		def2.setInterfaceName("com.chexiang.Userservice");
 

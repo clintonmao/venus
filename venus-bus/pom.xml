@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>venus</artifactId>
 		<groupId>com.meidusa.venus</groupId>
-		<version>4.0.0-SNAPSHOT</version>
+		<version>4.0.0</version>
 	</parent>
 	
 	<modelVersion>4.0.0</modelVersion>
@@ -12,18 +12,30 @@
 	<groupId>com.meidusa.venus</groupId>
 	<artifactId>venus-bus</artifactId>
 	<packaging>pom</packaging>
-	<name>${project.artifactId} v${project.version}</name>
+	<name>${project.artifactId}</name>
 
     <modules>
         <module>venus-bus-remoting</module>
 		<module>venus-bus-dispatch</module>
 	</modules>
 
-    <properties>
-   		<timestamp>${maven.build.timestamp}</timestamp>
-   		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+	<properties>
 		<project.home>.</project.home>
+		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+		<timestamp>${maven.build.timestamp}</timestamp>
 		<venus.version>${project.version}</venus.version>
 	</properties>
 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.7</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>

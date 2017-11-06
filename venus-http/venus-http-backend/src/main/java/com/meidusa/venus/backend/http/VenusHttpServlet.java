@@ -261,7 +261,7 @@ public class VenusHttpServlet extends HttpServlet {
         Service service = endpoint.getService();
 
         // service version check
-        Range range = service.getVersionRange();
+        Range range = service.getSupportVersionRange();
         if (version <= 0 || range == null || range.contains(version)) {
             return null;
         } else {

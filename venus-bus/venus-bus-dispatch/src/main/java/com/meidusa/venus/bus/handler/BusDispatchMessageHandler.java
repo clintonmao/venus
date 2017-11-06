@@ -4,7 +4,7 @@ import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.venus.bus.network.BusBackendConnection;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.bus.support.BusResponseHandler;
-import com.meidusa.venus.bus.util.VenusTrafficCollector;
+import com.meidusa.venus.bus.util.BusTrafficCollector;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceResponsePacket;
 import com.meidusa.venus.io.serializer.Serializer;
@@ -31,7 +31,7 @@ public class BusDispatchMessageHandler extends BusBackendMessageHandler implemen
 
     @Override
     public void handle(BusBackendConnection conn,byte[] message) {
-        VenusTrafficCollector.getInstance().addInput(message.length);
+        BusTrafficCollector.getInstance().addInput(message.length);
         int type = AbstractServicePacket.getType(message);
         logger.info("bus dispatch recevier msg,type:{}.",type);
         Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
@@ -112,7 +112,7 @@ public class BusDispatchMessageHandler extends BusBackendMessageHandler implemen
 
 //    @Override
 //    public void handle(BusBackendConnection conn,final byte[] message) {
-//    	VenusTrafficCollector.getInstance().addInput(message.length);
+//    	BusTrafficCollector.getInstance().addInput(message.length);
 //        int type = AbstractServicePacket.getType(message);
 //        logger.info("bus dispatch recevier msg,type:{}.",type);
 //        if (type == AbstractVenusPacket.PACKET_TYPE_ROUTER) {
