@@ -107,6 +107,7 @@
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <version>${spring.boot.version}</version>
         </dependency>
+        <!--依赖api-->
         <dependency>
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-demo-api</artifactId>
@@ -117,13 +118,8 @@
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-client</artifactId>
             <version>${project.version}</version>
-            <exclusions>
-            	<exclusion>
-            		<groupId>org.springframework.data</groupId>
-            		<artifactId>spring-data-gemfire</artifactId>
-            	</exclusion>
-            </exclusions>
         </dependency>
+        <!--若监控上报，则该jar需要引入-->
         <dependency>
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-monitor-delegate</artifactId>

@@ -118,11 +118,6 @@
         </dependency>
         -->
         <dependency>
-            <groupId>com.caucho</groupId>
-            <artifactId>hessian</artifactId>
-            <version>4.0.38</version>
-        </dependency>
-        <dependency>
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-registry-service</artifactId>
             <version>${project.version}</version>

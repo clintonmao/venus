@@ -105,11 +105,7 @@
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <version>${spring.boot.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.caucho</groupId>
-            <artifactId>hessian</artifactId>
-            <version>4.0.38</version>
-        </dependency>
+        <!--api依赖-->
         <dependency>
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-demo-api</artifactId>
@@ -120,12 +116,6 @@
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-backend</artifactId>
             <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.servlet</groupId>
-                    <artifactId>servlet-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus</groupId>
