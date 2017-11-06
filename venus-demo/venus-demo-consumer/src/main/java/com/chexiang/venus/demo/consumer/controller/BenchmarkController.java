@@ -178,23 +178,21 @@ public class BenchmarkController {
                     long avgTps = totalCount.get() / (totalCostTime/(1000*1000*1000));
                     logger.error("total count:{},fail count:{},total time:{},avg tps:{}.",totalCount.get(),failCount.get(),totalCostTime/(1000*1000*1000),avgTps);
 
-                    float minTime = (float)(minCostTime.get()/(1000));
-                    float maxTime = (float)(maxCostTime.get()/(1000));
-                    //long avgTimeOfNan = totalCostTime/totalCount.get();
-                    //float avgTime = (float)(avgTimeOfNan);
-                    logger.error("min time:{}ms,max time:{}ms.",format(minTime),format(maxTime));
-
+                    float minTime = (Float.valueOf(minCostTime.get()/1000)/1000);
+                    float maxTime = (Float.valueOf(maxCostTime.get()/1000)/1000);
+                    float avgTime = (Float.valueOf(totalCostTime/1000)/totalCount.get());
+                    logger.error("min time:{}ms,max time:{}ms,avg time:{}ms.",format(minTime),format(maxTime),format(avgTime));
+                    
                     this.cancel();
                 }
             } catch (Exception e) {
                 logger.error("count task error.",e);
             }
         }
-
         String format(float f){
-            DecimalFormat df = new DecimalFormat("0.00");//格式化小数
-            String s = df.format(f);//返回的是String类型
-            return s;
+        DecimalFormat df = new DecimalFormat("0.000");//格式化小数
+        String s = df.format(f);//返回的是String类型
+        return s;
         }
     }
 
