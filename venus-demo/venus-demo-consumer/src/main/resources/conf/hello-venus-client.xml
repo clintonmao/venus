@@ -21,6 +21,6 @@
 		<!--<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.32.174.226:16800"/>-->
 		<service type="com.chexiang.venus.demo.provider.HelloService" loadbalance="random">
 			<method name="getHello" timeout="5000" retries="3"/>
-		</service>>
+		</service>
 	</services>
 </venus-client>

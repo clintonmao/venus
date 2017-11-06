@@ -399,7 +399,7 @@ public class MysqlRegister implements Register {
 			String str = null;
 			try {
 				while ((str = randomAccessFile.readLine()) != null) {
-					fileContents.add(str);
+					fileContents.add(new String(str.getBytes("ISO-8859-1"),"UTF-8"));
 				}
 			} catch (IOException e) {
 				logger.error("readFile filePath=>" + filePath + " is error", e);
@@ -530,8 +530,8 @@ public class MysqlRegister implements Register {
 				
 				randomAccessFile = new RandomAccessFile(file, "rw");
 				for (String json : need_write_list) {
-					randomAccessFile.writeBytes(json);
-					randomAccessFile.writeBytes("\n");
+					randomAccessFile.write(json.getBytes("UTF-8"));
+					randomAccessFile.write("\n".getBytes("UTF-8"));
 				}
 				randomAccessFile.close();
 			}
@@ -602,8 +602,8 @@ public class MysqlRegister implements Register {
 					map.put(getKey(parseObject.get(0)), parseObject);
 				}
 			}
-		}
-
+		}*/
+	public static void main(String args[]) {
 		VenusServiceDefinitionDO def1 = new VenusServiceDefinitionDO();
 		VenusServiceDefinitionDO def2 = new VenusServiceDefinitionDO();
 
@@ -617,10 +617,12 @@ public class MysqlRegister implements Register {
 		def2.setServiceConfigs(serviceConfigs);
 		def1.setName("orderService");
 		def2.setName("userService");
-		def1.setSupportVersionRange("1.0.0");
-		def2.setSupportVersionRange("1.0.0");
+		def1.setVersionRange("1.0.0");
+		def2.setVersionRange("1.0.0");
 		def1.setInterfaceName("com.chexiang.Orderservice");
 		def2.setInterfaceName("com.chexiang.Userservice");
+		def1.setDescription("中国北中华天线网");
+		def2.setDescription("史可隽");
 
 		List<VenusServiceDefinitionDO> list1=new ArrayList<VenusServiceDefinitionDO>();
 		List<VenusServiceDefinitionDO> list2=new ArrayList<VenusServiceDefinitionDO>();
@@ -638,5 +640,5 @@ public class MysqlRegister implements Register {
 		}
 
 	}
-*/
+
 }
