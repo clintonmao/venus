@@ -602,7 +602,7 @@ public class MysqlRegister implements Register {
 					map.put(getKey(parseObject.get(0)), parseObject);
 				}
 			}
-		}*/
+		}
 	public static void main(String args[]) {
 		VenusServiceDefinitionDO def1 = new VenusServiceDefinitionDO();
 		VenusServiceDefinitionDO def2 = new VenusServiceDefinitionDO();
@@ -639,6 +639,6 @@ public class MysqlRegister implements Register {
 			System.out.println(str);
 		}
 
-	}
+	}*/
 
 }
