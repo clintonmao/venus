@@ -184,12 +184,12 @@ public class InvokerInvocationHandler implements InvocationHandler {
                 invocation.setCoreConnections(referenceService.getCoreConnections());
             }
             //timeout、retries支持方法级设置
-            if(referenceMethod.getTimeout() != 0){
+            if(referenceMethod != null && referenceMethod.getTimeout() != 0){
                 invocation.setTimeout(referenceMethod.getTimeout());
             }else if(referenceService.getTimeout() != 0){
                 invocation.setTimeout(referenceService.getTimeout());
             }
-            if(referenceMethod.getRetries() != 0){
+            if(referenceMethod != null && referenceMethod.getRetries() != 0){
                 invocation.setRetries(referenceMethod.getRetries());
             }else if(referenceService.getRetries() != 0){
                 invocation.setRetries(referenceService.getRetries());
