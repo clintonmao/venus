@@ -180,18 +180,17 @@ public class BenchmarkController {
                     float maxTime = (Float.valueOf(maxCostTime.get()/1000)/1000);
                     float avgTime = (Float.valueOf(totalCostTime/1000)/totalCount.get());
                     logger.error("min time:{}ms,max time:{}ms,avg time:{}ms.",format(minTime),format(maxTime),format(avgTime));
-
+                    
                     this.cancel();
                 }
             } catch (Exception e) {
                 logger.error("count task error.",e);
             }
         }
-
         String format(float f){
-            DecimalFormat df = new DecimalFormat("0.000");//格式化小数
-            String s = df.format(f);//返回的是String类型
-            return s;
+        DecimalFormat df = new DecimalFormat("0.000");//格式化小数
+        String s = df.format(f);//返回的是String类型
+        return s;
         }
     }
     
