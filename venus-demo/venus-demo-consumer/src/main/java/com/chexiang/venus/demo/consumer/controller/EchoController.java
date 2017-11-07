@@ -34,9 +34,6 @@ public class EchoController {
 
     @RequestMapping("/getEcho/{name}")
     public Result getEcho(@PathVariable String name){
-        if("A".equalsIgnoreCase("B")){
-            return new Result(new Hello("hi","meme"));
-        }
         Echo echo = null;
         try {
             logger.info("getEcho begin...");

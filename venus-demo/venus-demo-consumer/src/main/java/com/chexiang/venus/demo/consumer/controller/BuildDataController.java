@@ -36,26 +36,40 @@ public class BuildDataController {
         if(total < 1){
             return new Result("param invalid.");
         }
+        new Thread(new BuildTask(count)).start();
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
+        logger.info("end.");
+        return new Result("start ok");
+    }
+
+    class BuildTask implements Runnable{
+        int count;
+        public BuildTask(int coumt){
+            this.count = coumt;
+        }
+        @Override
+        public void run() {
+            int loop = 10000;
+            for(int j=0;j<loop;j++){
+                //begin for
                 for(int i=0;i<count;i++){
-                    if(ThreadLocalRandom.current().nextInt(100) < 50){
-                        helloService.sayHello("jack" + i);
-                    }else{
-                        echoService.getEcho("jack" + i);
+                    try {
+                        if(ThreadLocalRandom.current().nextInt(100) < 50){
+                            helloService.getHello("jack" + i);
+                        }else{
+                            echoService.getEcho("jack" + i);
+                        }
+                        logger.info("current index:{}.",i);
+                    } catch (Exception e) {
+                        logger.error("invoke error.",e);
                     }
                     try {
-                        Thread.sleep(50);
+                        Thread.sleep(1000);
                     } catch (InterruptedException e) {}
-                    logger.info("current index:{}.",i);
                 }
-                logger.info("end.");
+                //end for
             }
-        }).start();
-
-        return new Result("start ok");
+        }
     }
 
 }

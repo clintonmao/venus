@@ -175,7 +175,13 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
             //通过代理调用服务
             result = getVenusServerInvokerProxy().invoke(invocation, null);
         } catch (Throwable t) {
+            if(logger.isErrorEnabled()){
+                logger.error("handle error.",t);
+            }
             result = new Result();
+            //TODO 错误编码
+            result.setErrorCode(500);
+            result.setErrorMessage(t.getMessage());
             result.setException(t);
         }
 

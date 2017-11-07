@@ -11,8 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 /**
  * Created by Zhangzhihua on 2017/8/15.
  */
@@ -27,7 +25,7 @@ public class DefaultHelloService implements HelloService {
     @Autowired
     EchoService echoService;
 
-    boolean isBuildDataModel = true;
+
 
     @Override
     public void sayHello(String name, InvocationListener<Hello> invocationListener) {
@@ -58,22 +56,8 @@ public class DefaultHelloService implements HelloService {
 
     @Override
     public Hello getHello(String name) {
-        //logger.info("invoke getHello.");
-        if(isBuildDataModel){
-            //构造慢操作
-            if(ThreadLocalRandom.current().nextInt(100) > 95){
-                try {
-                    Thread.sleep(5);
-                } catch (InterruptedException e) {
-                }
-            }
-            //构造异常操作
-            if(ThreadLocalRandom.current().nextInt(100) > 99){
-                if("A".equals("A")){
-                    throw new IllegalArgumentException("param invalid.");
-                }
-            }
-        }
+        logger.info("invoke getHello,param:" + name);
+        RandomBuildUtil.randomSleepOrThrow();
         return new Hello(name,name);
     }
 

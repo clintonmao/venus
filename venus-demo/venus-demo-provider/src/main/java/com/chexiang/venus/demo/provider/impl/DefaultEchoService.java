@@ -6,8 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.Random;
 
 /**
  * Created by Zhangzhihua on 2017/10/29.
@@ -19,6 +18,8 @@ public class DefaultEchoService implements EchoService {
 
     boolean isBuildDataModel = true;
 
+    Random random = new Random();
+
     @Override
     public void echo(String name) {
         logger.info("invoke echo,param:" + name);
@@ -27,21 +28,7 @@ public class DefaultEchoService implements EchoService {
     @Override
     public Echo getEcho(String name) {
         logger.info("invoke getEcho,param:" + name);
-        if(isBuildDataModel){
-            //构造慢操作
-            if(ThreadLocalRandom.current().nextInt(100) > 95){
-                try {
-                    Thread.sleep(5);
-                } catch (InterruptedException e) {
-                }
-            }
-            //构造异常操作
-            if(ThreadLocalRandom.current().nextInt(100) > 99){
-                if("A".equals("A")){
-                    throw new IllegalArgumentException("param invalid.");
-                }
-            }
-        }
+        RandomBuildUtil.randomSleepOrThrow();
         return new Echo("hi",name);
     }
 }
