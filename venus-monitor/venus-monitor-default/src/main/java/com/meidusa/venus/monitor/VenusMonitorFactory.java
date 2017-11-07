@@ -113,6 +113,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     }
 
     void init(){
+        //applicationContext.getBean(Athena.class);
         //手动扫描athena以注解定义的包
         scanAndRegisteAthenaPackage();
 
@@ -147,18 +148,6 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     }
 
     /**
-     * 初始化simpleServiceFactory
-     */
-    void initSimpleServiceFactory(){
-        String className = "com.meidusa.venus.client.factory.simple.SimpleServiceFactory";
-        Object obj = ReftorUtil.newInstance(className);
-        if(obj == null){
-            throw new VenusConfigException("init simpleServiceFactory failed.");
-        }
-        this.serviceFactoryExtra = (ServiceFactoryExtra)obj;
-    }
-
-    /**
      * 初始化athena配置信息
      */
     void initAthenaConfigManager(){
@@ -177,6 +166,18 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         }
         Object clientConfigManager = clientConfigManagerDelegate.initConfigManager(appName,true);
         this.clientConfigManager = clientConfigManager;
+    }
+
+    /**
+     * 初始化simpleServiceFactory
+     */
+    void initSimpleServiceFactory(){
+        String className = "com.meidusa.venus.client.factory.simple.SimpleServiceFactory";
+        Object obj = ReftorUtil.newInstance(className);
+        if(obj == null){
+            throw new VenusConfigException("init simpleServiceFactory failed.");
+        }
+        this.serviceFactoryExtra = (ServiceFactoryExtra)obj;
     }
 
     /**

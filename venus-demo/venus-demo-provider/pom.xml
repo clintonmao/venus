@@ -23,17 +23,14 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.21</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.1.7</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>1.1.7</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -105,11 +102,7 @@
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <version>${spring.boot.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.caucho</groupId>
-            <artifactId>hessian</artifactId>
-            <version>4.0.38</version>
-        </dependency>
+        <!--api依赖-->
         <dependency>
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-demo-api</artifactId>
@@ -129,7 +122,6 @@
 		<dependency>
 			<groupId>org.codehaus.plexus</groupId>
 			<artifactId>plexus-classworlds</artifactId>
-			<version>2.4.4-HEXNOVA</version>
 		</dependency>
     </dependencies>
 

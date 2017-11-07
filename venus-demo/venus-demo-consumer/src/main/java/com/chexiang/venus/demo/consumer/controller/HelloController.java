@@ -28,9 +28,7 @@ public class HelloController {
 
     @RequestMapping("/sayHello")
     public Result sayHello(){
-        logger.info("testSayHello begin...");
         helloService.sayHello("jack");
-        logger.info("testSayHello end...");
         return new Result("ok");
     }
 
