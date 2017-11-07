@@ -13,14 +13,13 @@
 		cluster:集群容错策略，支持failover/fastfail，默认fastfail即正常模式
 		loadbalance:负载均衡策略，支持random/round，默认random,,loadbalance="random"
 		-->
-		<!--<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.16.9:16800"/>-->
+		<!--<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.17.238:16800"/>-->
 		<!--<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.17.135:16800" coreConnections="10" timeout="5000"/>-->
-		<!--
-		<service type="com.chexiang.venus.demo.provider.HelloService" retries="3"/>
-		-->
-		<!--<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.32.174.226:16800"/>-->
+		<!--<service type="com.chexiang.venus.demo.provider.HelloService" retries="3"/>-->
 		<service type="com.chexiang.venus.demo.provider.HelloService" loadbalance="random">
+			<!--方法级配置，方法级若配置则会覆盖服务级配置-->
 			<method name="getHello" timeout="5000" retries="3"/>
 		</service>
+		<service type="com.chexiang.venus.demo.provider.EchoService"/>
 	</services>
 </venus-client>

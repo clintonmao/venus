@@ -104,7 +104,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             //构造连接
             if(connector == null && connectionManagers == null){
                 try {
-                    logger.error("###################init connector############");
+                    if(logger.isInfoEnabled()){
+                        logger.info("###################init connector############");
+                    }
                     connector = new ConnectionConnector("connection connector-0");
                     int ioThreads = Runtime.getRuntime().availableProcessors();
                     connectionManagers = new ConnectionManager[ioThreads];
@@ -227,8 +229,8 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
         if(isEnableRandomPrint){
             if(ThreadLocalRandom.current().nextInt(100000) > 99995){
-                if(logger.isErrorEnabled()){
-                    logger.error("build,send->fecth cost time:{}.",System.currentTimeMillis()-bWaitTime);
+                if(logger.isInfoEnabled()){
+                    logger.info("build,send->fecth cost time:{}.",System.currentTimeMillis()-bWaitTime);
                 }
             }
         }
@@ -375,7 +377,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             if (performanceLogger.isDebugEnabled()) {
                 long end = TimeUtil.currentTimeMillis();
                 long time = end - borrowed;
-                StringBuffer buffer = new StringBuffer();
+                StringBuilder buffer = new StringBuilder();
                 buffer.append("[").append(borrowed - start).append(",").append(time).append("]ms (client-callback) traceID=").append(UUID.toString(traceID)).append(", api=").append(serviceRequestPacket.apiName);
 
                 performanceLogger.debug(buffer.toString());
@@ -427,7 +429,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @throws Exception
      */
     private BackendConnectionPool createNioPool(URL url,ClientInvocation invocation,ClientRemoteConfig remoteConfig) throws Exception {
-        logger.error("#########create nio pool#############:{}.",url);
+        if(logger.isInfoEnabled()){
+            logger.info("#########create nio pool#############:{}.",url);
+        }
         //初始化连接工厂
         VenusBackendConnectionFactory nioFactory = new VenusBackendConnectionFactory();
         nioFactory.setHost(url.getHost());
@@ -472,45 +476,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     }
 
 
-    /**
-     * 设置连接超时时间
-     * @param conn
-     * @param serviceConfig
-     * @param endpoint
-     * @throws SocketException
-     */
-    /*
-    void setConnectionConfig(AbstractBIOConnection conn, ReferenceService serviceConfig, Endpoint endpoint) throws SocketException {
-        int soTimeout = 0;
-        int oldTimeout = 0;
-
-        oldTimeout = conn.getSoTimeout();
-        if (serviceConfig != null) {
-            ReferenceServiceConfig endpointConfig = serviceConfig.getEndpointConfig(endpoint.name());
-            if (endpointConfig != null) {
-                int eTimeOut = endpointConfig.getTimeWait();
-                if (eTimeOut > 0) {
-                    soTimeout = eTimeOut;
-                }
-            } else {
-                if (serviceConfig.getTimeWait() > 0) {
-                    soTimeout = serviceConfig.getTimeWait();
-                } else {
-                    if (endpoint.timeWait() > 0) {
-                        soTimeout = endpoint.timeWait();
-                    }
-                }
-            }
-        } else {
-            if (endpoint.timeWait() > 0) {
-                soTimeout = endpoint.timeWait();
-            }
-        }
-        if (soTimeout > 0) {
-            conn.setSoTimeout(soTimeout);
-        }
-    }
-    */
 
     /**
      * 获取对应请求的响应结果
@@ -542,34 +507,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     Result fetchResponseFromMock(String rpcId){
         return new Result(new Echo("@hi","@mock result"));
     }
-
-    /**
-     * 设置transactionId
-     */
-    /*
-    private void setTransactionId(AthenaTransactionId athenaTransactionId, SerializeServiceRequestPacket serviceRequestPacket, ClientInvocation invocation) {
-        if (athenaTransactionId != null) {
-            if (athenaTransactionId.getRootId() != null) {
-                byte[] athenaId = athenaTransactionId.getRootId().getBytes();
-                serviceRequestPacket.rootId = athenaId;
-                invocation.setAthenaId(athenaId);
-            }
-
-            if (athenaTransactionId.getParentId() != null) {
-                byte[] parentId = athenaTransactionId.getParentId().getBytes();
-                serviceRequestPacket.parentId = parentId;
-                invocation.setParentId(parentId);
-            }
-
-            if (athenaTransactionId.getMessageId() != null) {
-                byte[] messageId = athenaTransactionId.getMessageId().getBytes();
-                serviceRequestPacket.messageId = messageId;
-                invocation.setMessageId(messageId);
-            }
-        }
-    }
-    */
-
 
     public VenusExceptionFactory getVenusExceptionFactory() {
         return venusExceptionFactory;

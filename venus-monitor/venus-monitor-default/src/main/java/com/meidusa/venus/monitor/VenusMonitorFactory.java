@@ -5,9 +5,8 @@ import com.meidusa.venus.Application;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.ServiceFactoryBean;
 import com.meidusa.venus.ServiceFactoryExtra;
-import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.exception.VenusConfigException;
-import com.meidusa.venus.monitor.config.ClientConfigManagerDelegate;
+import com.meidusa.venus.monitor.config.ClientConfigManagerRegister;
 import com.meidusa.venus.monitor.support.CustomScanAndRegisteUtil;
 import com.meidusa.venus.monitor.support.ApplicationContextHolder;
 import com.meidusa.venus.util.ReftorUtil;
@@ -16,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
@@ -46,26 +44,19 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      */
     private String url;
 
-    /**
-     * athena配置信息管理委托
-     */
-    private ClientConfigManagerDelegate clientConfigManagerDelegate;
-
-    /**
-     * athena配置信息管理
-     */
-    private Object clientConfigManager;
-
-    private ServiceFactoryExtra serviceFactoryExtra;
+    private Application application;
 
     private ApplicationContext applicationContext;
 
-    private Application application;
+    /**
+     * athena配置信息注册实例
+     */
+    private ClientConfigManagerRegister clientConfigManagerRegister;
 
     /**
-     * athena上报服务
+     * 直连服务实例化工厂
      */
-    private AthenaDataService athenaDataService;
+    private ServiceFactoryExtra serviceFactoryExtra;
 
     /**
      * 是否开启athena上报
@@ -77,9 +68,22 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      */
     private boolean enableVenusReport = true;
 
+    /**
+     * 判断是否有必须的依赖，如configManager、athena-client.jar、athenaDataService等
+     */
+    private boolean hasNeededDependences = true;
+
     private static VenusMonitorFactory venusMonitorFactory;
 
-    //private ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
+    /**
+     * athena配置管理
+     */
+    private Object clientConfigManager;
+
+    /**
+     * athena上报服务
+     */
+    private AthenaDataService athenaDataService;
 
     private VenusMonitorFactory(){
         venusMonitorFactory = this;
@@ -113,18 +117,19 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     }
 
     void init(){
-        //applicationContext.getBean(Athena.class);
         //手动扫描athena以注解定义的包
         scanAndRegisteAthenaPackage();
 
-        //初始化simpleServiceFactory
-        initSimpleServiceFactory();
+        try {
+            //初始化athenaConfigManager
+            initAthenaConfigManager();
 
-        //初始化athenaConfigManager
-        initAthenaConfigManager();
-
-        //初始化athenaDataService
-        initAthenaDataService(url);
+            //初始化athenaDataService
+            initAthenaDataService(url);
+        } catch (Exception e) {
+            logger.error("init monitor factory failed.",e);
+            hasNeededDependences = false;
+        }
     }
 
 
@@ -152,32 +157,23 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      */
     void initAthenaConfigManager(){
         //创建配置信息代理实例
-        String className = "com.meidusa.venus.monitor.athena.config.impl.DefaultClientConfigManagerDelegate";
-        ClientConfigManagerDelegate clientConfigManagerDelegate = ReftorUtil.newInstance(className);
-        if(clientConfigManagerDelegate == null){
-            throw new VenusConfigException("instance clientConfigManager failed.");
+        String className = "com.meidusa.venus.monitor.athena.config.impl.DefaultClientConfigManagerRegister";
+        ClientConfigManagerRegister clientConfigManagerRegister = ReftorUtil.newInstance(className);
+        if(clientConfigManagerRegister == null){
+            throw new VenusConfigException("instance clientConfigManagerRegister failed.");
         }
-        this.clientConfigManagerDelegate = clientConfigManagerDelegate;
+        this.clientConfigManagerRegister = clientConfigManagerRegister;
 
         //初始化配置信息实例
         String appName = application.getName();
         if(StringUtils.isEmpty(appName)){
             throw new VenusConfigException("application not config.");
         }
-        Object clientConfigManager = clientConfigManagerDelegate.initConfigManager(appName,true);
-        this.clientConfigManager = clientConfigManager;
-    }
-
-    /**
-     * 初始化simpleServiceFactory
-     */
-    void initSimpleServiceFactory(){
-        String className = "com.meidusa.venus.client.factory.simple.SimpleServiceFactory";
-        Object obj = ReftorUtil.newInstance(className);
-        if(obj == null){
-            throw new VenusConfigException("init simpleServiceFactory failed.");
+        Object clientConfigManager = clientConfigManagerRegister.initConfigManager(appName,true);
+        if(clientConfigManager == null){
+            throw new VenusConfigException("init clientConfigManager failed.");
         }
-        this.serviceFactoryExtra = (ServiceFactoryExtra)obj;
+        this.clientConfigManager = clientConfigManager;
     }
 
     /**
@@ -185,11 +181,17 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      * @param url
      */
     void initAthenaDataService(String url){
+        //通过ref实例化serviceFactory，避免client、monitor互相引用
+        String className = "com.meidusa.venus.client.factory.simple.SimpleServiceFactory";
+        Object obj = ReftorUtil.newInstance(className);
+        if(obj == null){
+            throw new VenusConfigException("init simpleServiceFactory failed.");
+        }
+        serviceFactoryExtra = (ServiceFactoryExtra)obj;
         String[] addressArr = {url};
-        //List<String> addressList = Arrays.asList(address);
         serviceFactoryExtra.setAddressList(addressArr);
-        AthenaDataService athenaDataService = serviceFactoryExtra.getService(AthenaDataService.class);
 
+        AthenaDataService athenaDataService = serviceFactoryExtra.getService(AthenaDataService.class);
         if(athenaDataService == null){
             throw new RpcException("init athenaDataService failed.");
         }
@@ -198,11 +200,16 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        //注册configManager
-        registeClientConfigManager(beanFactory);
+        try {
+            //注册configManager到spring上下文
+            registeClientConfigManager(beanFactory);
 
-        //注册athenaDataService到上下文
-        registeAthenaDataService(beanFactory);
+            //注册athenaDataService到spring上下文
+            registeAthenaDataService(beanFactory);
+        } catch (Exception e) {
+            logger.error("registe clientConfigManager and athenaDataService failed.",e);
+            hasNeededDependences = false;
+        }
     }
 
     /**
@@ -210,21 +217,9 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      * @param beanFactory
      */
     void registeClientConfigManager(ConfigurableListableBeanFactory beanFactory){
-        clientConfigManagerDelegate.registeConfigManager(beanFactory,this.clientConfigManager);
-        /*
-        String beanName = clientConfigManager.getClass().getSimpleName();
-        BeanDefinitionRegistry reg = (BeanDefinitionRegistry) beanFactory;
-        GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
-        beanDefinition.setBeanClass(ServiceFactoryBean.class);
-        beanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, beanName));
-        beanDefinition.setScope(BeanDefinition.SCOPE_SINGLETON);
-        ConstructorArgumentValues args = new ConstructorArgumentValues();
-        args.addIndexedArgumentValue(0, this.clientConfigManager);
-        args.addIndexedArgumentValue(1, ClientConfigManager.class);
-        beanDefinition.setConstructorArgumentValues(args);
-        beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
-        reg.registerBeanDefinition(beanName, beanDefinition);
-        */
+        if(clientConfigManagerRegister != null){
+            clientConfigManagerRegister.registeConfigManager(beanFactory,this.clientConfigManager);
+        }
     }
 
     /**
@@ -289,5 +284,13 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
 
     public void setApplication(Application application) {
         this.application = application;
+    }
+
+    public boolean isHasNeededDependences() {
+        return hasNeededDependences;
+    }
+
+    public void setHasNeededDependences(boolean hasNeededDependences) {
+        this.hasNeededDependences = hasNeededDependences;
     }
 }

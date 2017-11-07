@@ -126,7 +126,7 @@ public class ServerValidFilter implements Filter {
             ErrorPacket error = new ErrorPacket();
             AbstractServicePacket.copyHead(request, error);
             error.errorCode = VenusExceptionCodeConstant.SERVICE_INACTIVE_EXCEPTION;
-            StringBuffer buffer = new StringBuffer();
+            StringBuilder buffer = new StringBuilder();
             buffer.append("Service=").append(endpoint.getService().getName());
             if (!service.isActive()) {
                 buffer.append(" is not active");

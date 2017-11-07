@@ -74,7 +74,7 @@ import java.util.Map;
  */
 public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware, InitializingBean, DisposableBean,BeanFactoryPostProcessor {
 
-    private static Logger logger = LoggerFactory.getLogger(ServiceFactory.class);
+    private static Logger logger = LoggerFactory.getLogger(XmlServiceFactory.class);
 
     /**
      * 配置文件列表
@@ -340,9 +340,6 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
                 );
         */
         com.meidusa.venus.URL url = com.meidusa.venus.URL.parse(subscribleUrl);
-        if(logger.isInfoEnabled()){
-            logger.info("subscrible service:{}",url);
-        }
         venusRegistryFactory.getRegister().subscrible(url);
     }
 

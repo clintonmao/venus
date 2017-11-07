@@ -65,8 +65,6 @@ public class ClientInvokerProxy implements Invoker {
      */
     private ClientRemoteInvoker clientRemoteInvoker = new ClientRemoteInvoker();
 
-    private static boolean isEnableFilter = false;
-
     //前置filters
     private List<Filter> beforeFilters = new ArrayList<Filter>();
     //异常filters
@@ -99,7 +97,7 @@ public class ClientInvokerProxy implements Invoker {
     @Override
     public void init() throws RpcException {
         synchronized (this){
-            isEnableFilter = Application.getInstance().isEnableFilter();
+            boolean isEnableFilter = Application.getInstance().isEnableFilter();
             if(isEnableFilter){
                 initFilters();
             }
@@ -147,8 +145,8 @@ public class ClientInvokerProxy implements Invoker {
             for(Filter filter : getAfterFilters()){
                 filter.afterInvoke(invocation,url);
             }
-            if(logger.isWarnEnabled()){
-                logger.warn("request rpcId:{} cost time:{}.", RpcIdUtil.getRpcId(clientInvocation.getClientId(),clientInvocation.getClientRequestId()),System.currentTimeMillis()-bTime);
+            if(logger.isInfoEnabled()){
+                logger.info("invoke rpcId:{} cost time:{}ms.", RpcIdUtil.getRpcId(clientInvocation.getClientId(),clientInvocation.getClientRequestId()),System.currentTimeMillis()-bTime);
             }
         }
     }
@@ -235,7 +233,7 @@ public class ClientInvokerProxy implements Invoker {
      */
     void addMonitorFilters(List<Filter> filterList){
         VenusMonitorFactory venusMonitorFactory = getVenusMonitorFactory();
-        if(venusMonitorFactory != null){
+        if(venusMonitorFactory != null && venusMonitorFactory.isHasNeededDependences()){
             if(venusMonitorFactory.isEnableAthenaReport()){
                 filterList.add(clientAthenaMonitorFilter);
             }
@@ -275,21 +273,6 @@ public class ClientInvokerProxy implements Invoker {
         }
         return clientMonitorFilter;
     }
-
-    /**
-     * 获取athena监控filter
-     * @return
-     */
-    Filter getAthenaMonitorFilter(){
-        try {
-            Filter filter = (Filter) Class.forName("com.meidusa.venus.monitor.athena.filter.ClientAthenaMonitorFilter").newInstance();
-            return filter;
-        } catch (Exception e) {
-            logger.error("new ClientAthenaMonitorFilter error.",e);
-            return null;
-        }
-    }
-
 
     @Override
     public void destroy() throws RpcException {

@@ -94,7 +94,9 @@ public class MysqlRegister implements Register {
 						+ ".venusCache.txt";
 			}
 		}
-		logger.error("@@@@@@@@@fileCachePath=>{}",fileCachePath);
+		if(logger.isInfoEnabled()){
+			logger.info("fileCachePath=>{}",fileCachePath);
+		}
 		if (!loadRunning) {
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 10, failRetryInterval, TimeUnit.SECONDS);
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefLoaderRunnable(), 10, srvDefLoaderInterval, TimeUnit.SECONDS);
@@ -105,7 +107,9 @@ public class MysqlRegister implements Register {
 	@Override
 	public void registe(URL url) throws VenusRegisteException {
 		try {
-			logger.info("registe service:{}.",url);
+			if(logger.isInfoEnabled()){
+				logger.info("registe service:{}.",url);
+			}
 			registerService.registe(url);
 			heartbeat();
 		} catch (Exception e) {
@@ -118,7 +122,9 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public void unregiste(URL url) throws VenusRegisteException {
-		logger.info("unregiste service:{}.",url);
+		if(logger.isInfoEnabled()){
+			logger.info("unregiste service:{}.",url);
+		}
 		if (StringUtils.isBlank(url.getVersion())) {
 			throw new VenusRegisteException("取消注册异常" + url.getServiceName() + ",version为空");
 		}
@@ -134,7 +140,9 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public boolean subscrible(URL url) throws VenusRegisteException {
-		logger.info("subscrible service:{}.", url);
+		if(logger.isInfoEnabled()){
+			logger.info("subscrible service:{}.", url);
+		}
 		boolean success = true;
 		try {
 			registerService.subscrible(url);
@@ -151,7 +159,9 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public void unsubscrible(URL url) throws VenusRegisteException {
-		logger.info("unsubscrible service:{}.",url);
+		if(logger.isInfoEnabled()){
+			logger.info("unsubscrible service:{}.",url);
+		}
 		if (StringUtils.isBlank(url.getVersion())) {
 			throw new VenusRegisteException("取消订阅异常" + url.getServiceName() + ",version为空");
 		}
@@ -200,7 +210,7 @@ public class MysqlRegister implements Register {
 	}
 
 	private static String getKeyFromUrl(URL url) {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		buf.append("/");
 		buf.append(url.getInterfaceName());
 		buf.append("/");
@@ -212,7 +222,7 @@ public class MysqlRegister implements Register {
 	}
 
 	private static String getKey(VenusServiceDefinitionDO url) {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		buf.append("/");
 		buf.append(url.getInterfaceName());
 		buf.append("/");
@@ -322,12 +332,13 @@ public class MysqlRegister implements Register {
 	private class HeartBeatRunnable implements Runnable {
 		@Override
 		public void run() {
-			//logger.info(registeUrls.size()+"HeartBeatRunnable run() start");
 			if (CollectionUtils.isNotEmpty(registeUrls)) {
 				for (Iterator<URL> iterator = registeUrls.iterator(); iterator.hasNext();) {
 					URL url = iterator.next();
 					try {
-						logger.info("report register heatbeat:{}.",url);
+						if(logger.isDebugEnabled()){
+							logger.debug("report register heatbeat:{}.",url);
+						}
 						registerService.heartbeatRegister(url);
 					} catch (Exception e) {
 						logger.error("服务{}registe更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);
@@ -339,7 +350,9 @@ public class MysqlRegister implements Register {
 				for (Iterator<URL> iterator = subscribleUrls.iterator(); iterator.hasNext();) {
 					URL url = iterator.next();
 					try {
-						logger.info("report subscrible heatbeat:{}.",url);
+						if(logger.isDebugEnabled()){
+							logger.debug("report subscrible heatbeat:{}.",url);
+						}
 						registerService.heartbeatSubcribe(url);
 					} catch (Exception e) {
 						logger.error("服务{}subscrible更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);
@@ -347,7 +360,6 @@ public class MysqlRegister implements Register {
 					break;
 				}
 			}
-			//logger.info(subscribleUrls.size()+"HeartBeatRunnable run() end");
 		}
 	}
 
@@ -504,13 +516,11 @@ public class MysqlRegister implements Register {
 			return;
 		}
 		//List<String> readFiles = readFile(filePath);
-		//List<String> need_write_list = get_write_list(readFiles, jsons);
+		//List<String> need_write_list = getWriteList(readFiles, jsons);
 		List<String> need_write_list = jsons;
 		if (CollectionUtils.isEmpty(need_write_list)) {
 			return;
 		}
-//		FileWriter fileWriter = null;
-//		BufferedWriter bufferWriter = null;
 		RandomAccessFile randomAccessFile =null;
 		try {
 			File file = new File(filePath);
@@ -547,7 +557,8 @@ public class MysqlRegister implements Register {
 					// ingore
 				}
 			}
-/*			if (null != bufferWriter) {
+			/*
+			if (null != bufferWriter) {
 				try {
 					bufferWriter.close();
 				} catch (IOException e) {
@@ -564,7 +575,7 @@ public class MysqlRegister implements Register {
 		}
 	}
 
-	private static List<String> get_write_list(List<String> oldList, List<String> newList) {
+	private static List<String> getWriteList(List<String> oldList, List<String> newList) {
 		if (CollectionUtils.isEmpty(oldList)) {
 			return newList;
 		}
@@ -592,7 +603,8 @@ public class MysqlRegister implements Register {
 		return os.toLowerCase().startsWith("win");
 	}
 
-	/*public static void main(String args[]) {
+	/*
+	public static void main(String args[]) {
 		List<String> readFileJsons = readFile("D:\\Users\\longhaisheng\\venus\\.venusCache.txt");
 		Map<String, List<VenusServiceDefinitionDO>> map = new HashMap<String, List<VenusServiceDefinitionDO>>();
 		if (CollectionUtils.isNotEmpty(readFileJsons)) {
@@ -602,7 +614,7 @@ public class MysqlRegister implements Register {
 					map.put(getKey(parseObject.get(0)), parseObject);
 				}
 			}
-		}
+	}
 	public static void main(String args[]) {
 		VenusServiceDefinitionDO def1 = new VenusServiceDefinitionDO();
 		VenusServiceDefinitionDO def2 = new VenusServiceDefinitionDO();
@@ -638,7 +650,7 @@ public class MysqlRegister implements Register {
 		for (String str : readFile) {
 			System.out.println(str);
 		}
-
-	}*/
+	}
+	*/
 
 }

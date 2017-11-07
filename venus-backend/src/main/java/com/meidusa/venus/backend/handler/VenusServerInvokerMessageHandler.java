@@ -168,8 +168,8 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
             //不要打印bytes信息流，会导致后续无法获取
             rpcId = invocation.getRpcId();
-            if(logger.isWarnEnabled()){
-                logger.warn("recv request,rpcId:{},message size:{}.", rpcId,data.getRight().length);
+            if(logger.isInfoEnabled()){
+                logger.info("recv request,rpcId:{},message size:{}.", rpcId,data.getRight().length);
             }
 
             //通过代理调用服务
@@ -186,19 +186,21 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
             ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
 
             if (invocation.getResultType() == EndpointInvocation.ResultType.RESPONSE) {
-                if(logger.isWarnEnabled()){
-                    logger.warn("write normal response,rpcId:{},cost time:{},result:{}",rpcId,System.currentTimeMillis()-bTime, JSONUtil.toJSONString(result));
+                if(logger.isInfoEnabled()){
+                    logger.info("write normal response,rpcId:{},cost time:{},result:{}",rpcId,System.currentTimeMillis()-bTime, JSONUtil.toJSONString(result));
                 }
                 responseHandler.writeResponseForResponse(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
-                if(logger.isWarnEnabled()){
-                    logger.warn("write normal response,rpcId:{},cost time:{},result:{}",rpcId,System.currentTimeMillis()-bTime,JSONUtil.toJSONString(result));
+                if(logger.isInfoEnabled()){
+                    logger.info("write normal response,rpcId:{},cost time:{},result:{}",rpcId,System.currentTimeMillis()-bTime,JSONUtil.toJSONString(result));
                 }
                 responseHandler.writeResponseForOk(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.NOTIFY) {
                 //callback回调异常情况
                 if(result.getErrorCode() != 0){
-                    logger.info("write notify response,rpcId:{},result:{}",rpcId,JSONUtil.toJSONString(result));
+                    if(logger.isInfoEnabled()){
+                        logger.info("write notify response,rpcId:{},result:{}",rpcId,JSONUtil.toJSONString(result));
+                    }
                     responseHandler.writeResponseForNotify(responseEntityWrapper);
                 }
             }
@@ -209,8 +211,8 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
         }finally {
             if(isEnableRandomPrint){
                 if(ThreadLocalRandom.current().nextInt(50000) > 49990){
-                    if(logger.isErrorEnabled()){
-                        logger.error("curent thread:{},instance:{},cost time:{}.",Thread.currentThread(),this,System.currentTimeMillis()-bTime);
+                    if(logger.isInfoEnabled()){
+                        logger.info("curent thread:{},instance:{},cost time:{}.",Thread.currentThread(),this,System.currentTimeMillis()-bTime);
                     }
                 }
             }
@@ -557,7 +559,7 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
     protected void logPerformance(Endpoint endpoint,String traceId,String apiName,long queuedTime,
                                   long executTime,String remoteIp,String sourceIP, long clientId,long requestId,
                                   Map<String,Object > parameterMap,Object result){
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         buffer.append("[").append(queuedTime).append(",").append(executTime).append("]ms, (*server*) traceID=").append(traceId).append(", api=").append(apiName).append(", ip=")
                 .append(remoteIp).append(", sourceIP=").append(sourceIP).append(", clientID=")
                 .append(clientId).append(", requestID=").append(requestId);

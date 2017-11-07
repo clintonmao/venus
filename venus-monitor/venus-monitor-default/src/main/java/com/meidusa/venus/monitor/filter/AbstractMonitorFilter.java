@@ -57,7 +57,7 @@ public abstract class AbstractMonitorFilter {
     //一次上报记录条数
     private static int perDetailReportNum = 100;
     //慢操作耗时
-    private static int SLOW_COST_TIME = 0;
+    private static int SLOW_COST_TIME = 5;
     //支持最大队列长度
     private static int QUEU_MAX_SIZE = 50000;
     //Athena接口名称定义
@@ -149,9 +149,6 @@ public abstract class AbstractMonitorFilter {
             while(true){
                 try {
                     int fetchNum = perDetailProcessNum;
-                    if(logger.isErrorEnabled()){
-                        //logger.error("current detail queue size:{}.",detailQueue.size());
-                    }
                     if(detailQueue.size() < fetchNum){
                         fetchNum = detailQueue.size();
                     }
@@ -201,8 +198,8 @@ public abstract class AbstractMonitorFilter {
                     VenusMonitorReporter monitorReporter = getMonitorReporter();
 
                     //1、明细上报
-                    if(logger.isErrorEnabled()){
-                        logger.error("current detail report queue size:{}.", reportDetailQueue.size());
+                    if(logger.isInfoEnabled()){
+                        logger.info("current detail report queue size:{}.", reportDetailQueue.size());
                     }
                     List<InvocationDetail> detailList = new ArrayList<InvocationDetail>();
                     int fetchNum = perDetailReportNum;
@@ -223,8 +220,8 @@ public abstract class AbstractMonitorFilter {
 
                     //2、汇总上报
                     if(getRole() == ROLE_CONSUMER){//只consumer进行统计上报
-                        if(logger.isErrorEnabled()){
-                            logger.error("current statistic report queue size:{}.",statisticMap.size());
+                        if(logger.isInfoEnabled()){
+                            logger.info("current statistic report queue size:{}.",statisticMap.size());
                         }
                         Collection<InvocationStatistic> statisticCollection = statisticMap.values();
                         if(CollectionUtils.isNotEmpty(statisticCollection)){

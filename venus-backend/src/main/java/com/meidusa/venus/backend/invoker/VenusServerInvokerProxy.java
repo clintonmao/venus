@@ -19,8 +19,6 @@ public class VenusServerInvokerProxy implements Invoker {
 
     private VenusServerInvoker venusServerInvoker = new VenusServerInvoker();
 
-    private static boolean isEnableFilter = false;
-
     //前置filters
     private List<Filter> beforeFilters = new ArrayList<Filter>();
     //异常filters
@@ -42,7 +40,7 @@ public class VenusServerInvokerProxy implements Invoker {
     @Override
     public void init() throws RpcException {
         synchronized (this){
-            isEnableFilter = Application.getInstance().isEnableFilter();
+            boolean isEnableFilter = Application.getInstance().isEnableFilter();
             if(isEnableFilter){
                 initFilters();
             }
@@ -126,7 +124,7 @@ public class VenusServerInvokerProxy implements Invoker {
 
     void addMonitorFilters(List<Filter> filterList){
         VenusMonitorFactory venusMonitorFactory = getVenusMonitorFactory();
-        if(venusMonitorFactory != null){
+        if(venusMonitorFactory != null && venusMonitorFactory.isHasNeededDependences()){
             if(venusMonitorFactory.isEnableAthenaReport()){
                 filterList.add(serverAthenaMonitorFilter);
             }

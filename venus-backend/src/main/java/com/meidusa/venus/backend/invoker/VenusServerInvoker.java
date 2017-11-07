@@ -272,7 +272,7 @@ public class VenusServerInvoker implements Invoker {
     protected void logPerformance(Endpoint endpoint,String traceId,String apiName,long queuedTime,
                                   long executTime,String remoteIp,String sourceIP, long clientId,long requestId,
                                   Map<String,Object > parameterMap,Object result){
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         buffer.append("[").append(queuedTime).append(",").append(executTime).append("]ms, (*server*) traceID=").append(traceId).append(", api=").append(apiName).append(", ip=")
                 .append(remoteIp).append(", sourceIP=").append(sourceIP).append(", clientID=")
                 .append(clientId).append(", requestID=").append(requestId);

@@ -1,7 +1,7 @@
 package com.chexiang.venus.demo.provider;
 
 import com.chexiang.venus.demo.provider.model.Hello;
-import com.chexiang.venus.demo.provider.model.OrderDO;
+import com.chexiang.venus.demo.provider.model.HelloEx;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Param;
 import com.meidusa.venus.annotations.Service;
@@ -36,8 +36,5 @@ public interface HelloService {
     Hello getHello(@Param(name = "name") String name);
 
     @Endpoint(name = "getHelloForBench")
-    Hello getHelloForBench(@Param(name = "name") byte[] params);
-    
-    @Endpoint(name = "testOrder")
-    OrderDO testOrder(@Param(name = "name") String name,@Param(name = "params") byte[] params);
+    HelloEx getHelloForBench(@Param(name = "name") String name, @Param(name = "params") byte[] params);
 }

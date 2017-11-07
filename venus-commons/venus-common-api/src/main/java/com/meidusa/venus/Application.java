@@ -22,8 +22,8 @@ public class Application implements InitializingBean {
     //应用名称
     private String name;
 
-    //是否开启filter
-    private boolean enableFilter = false;
+    //是否开启filter，默认开启
+    private boolean enableFilter = true;
 
     private static boolean isInitedSerializer = false;
 

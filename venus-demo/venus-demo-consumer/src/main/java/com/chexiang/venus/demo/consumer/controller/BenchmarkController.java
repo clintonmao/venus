@@ -1,9 +1,7 @@
 package com.chexiang.venus.demo.consumer.controller;
 
 import com.chexiang.venus.demo.provider.HelloService;
-import com.chexiang.venus.demo.provider.model.Hello;
-import com.chexiang.venus.demo.provider.model.OrderDO;
-import com.google.common.util.concurrent.AtomicDouble;
+import com.chexiang.venus.demo.provider.model.HelloEx;
 import com.meidusa.venus.Result;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -16,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -119,7 +116,7 @@ public class BenchmarkController {
                     while(currentCount.get() < totalCount.get()){
                         try {
                             long bTime = System.nanoTime();
-                            OrderDO hello = helloService.testOrder("name", bb);
+                            HelloEx hello = helloService.getHelloForBench("name", bb);
                             long eTime = System.nanoTime();
                             long costTime = eTime - bTime;
                             if(minCostTime.get() == 0 && costTime != 0){

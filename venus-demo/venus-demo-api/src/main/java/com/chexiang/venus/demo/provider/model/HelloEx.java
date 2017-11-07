@@ -1,6 +1,6 @@
 package com.chexiang.venus.demo.provider.model;
 
-public class OrderDO {
+public class HelloEx {
 	
 	private String name;
 	

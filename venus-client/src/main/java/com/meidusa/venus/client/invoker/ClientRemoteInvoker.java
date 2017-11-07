@@ -235,11 +235,11 @@ public class ClientRemoteInvoker implements Invoker{
                 }
             }
             if(logger.isInfoEnabled()){
-                logger.info("register lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
+                logger.info("lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
             }
         }else{
             if(logger.isInfoEnabled()){
-                logger.info("register lookup service providers num:{}.",urlList.size());
+                logger.info("lookup service providers num:{}.",urlList.size());
             }
         }
         return urlList;
@@ -280,7 +280,7 @@ public class ClientRemoteInvoker implements Invoker{
             serviceName = invocation.getService().getName();
         }
 
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append("/").append(serviceInterfaceName);
         buf.append("/").append(serviceName);
         buf.append("?");

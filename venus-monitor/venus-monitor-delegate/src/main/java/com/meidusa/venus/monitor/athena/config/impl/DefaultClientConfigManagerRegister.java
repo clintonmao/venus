@@ -2,7 +2,7 @@ package com.meidusa.venus.monitor.athena.config.impl;
 
 import com.meidusa.venus.ServiceFactoryBean;
 import com.meidusa.venus.exception.VenusConfigException;
-import com.meidusa.venus.monitor.config.ClientConfigManagerDelegate;
+import com.meidusa.venus.monitor.config.ClientConfigManagerRegister;
 import com.saic.framework.athena.configuration.ClientConfigManager;
 import com.saic.framework.athena.configuration.DefaultClientConfigManager;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,7 +18,7 @@ import org.springframework.beans.factory.support.GenericBeanDefinition;
  * athena配置信息管理代理，目的将athena-client依赖独立出来
  * Created by Zhangzhihua on 2017/10/9.
  */
-public class DefaultClientConfigManagerDelegate implements ClientConfigManagerDelegate{
+public class DefaultClientConfigManagerRegister implements ClientConfigManagerRegister {
 
     @Override
     public Object initConfigManager(String appName, boolean enabled) {
@@ -30,26 +30,20 @@ public class DefaultClientConfigManagerDelegate implements ClientConfigManagerDe
         return clientConfigManager;
     }
 
-    @Override
-    public void registeConfigManager(ConfigurableListableBeanFactory beanFactory, Object clientConfigManager) {
-        ClientConfigManager clientConfigMgr = (ClientConfigManager)clientConfigManager;
-        registeAthenaConfigManager(beanFactory,clientConfigMgr);
-    }
-
     /**
      * 初始化athena配置信息
      */
     ClientConfigManager initAthenaConfigManager(String appName,boolean enable){
         DefaultClientConfigManager clientConfigManager = new DefaultClientConfigManager();
-        /*
-        String appName = VenusContext.getInstance().getApplication();
-        if(StringUtils.isEmpty(appName)){
-            throw new VenusConfigException("application not inited.");
-        }
-        */
         clientConfigManager.setAppName(appName);
         clientConfigManager.setMonitorEnabled(enable);
         return clientConfigManager;
+    }
+
+    @Override
+    public void registeConfigManager(ConfigurableListableBeanFactory beanFactory, Object clientConfigManager) {
+        ClientConfigManager clientConfigMgr = (ClientConfigManager)clientConfigManager;
+        registeAthenaConfigManager(beanFactory,clientConfigMgr);
     }
 
     /**

@@ -29,7 +29,6 @@
 	<!--应用配置-->
 	<bean id="application" class="com.meidusa.venus.Application">
 		<property name="name" value="${application.name}"/>
-		<property name="enableFilter" value="true"/>
 	</bean>
 
 	<!--注册配置-->
@@ -42,14 +41,6 @@
 	<!--可选，若不配置则监控不上报-->
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
 		<property name="url" value="${monitor.url}"/>
-		<!--
-		enableAthenaReport:是否开启athena上报，默认true
-		enableVenusReport:是否开启venus上报，默认true
-		-->
-		<!--
-		<property name="enableAthenaReport" value="true"/>
-		<property name="enableVenusReport" value="true"/>
-		-->
 	</bean>
 
 	<!--venus协议配置-->

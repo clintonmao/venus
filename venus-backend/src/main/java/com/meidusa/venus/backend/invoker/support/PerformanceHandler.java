@@ -57,7 +57,7 @@ public class PerformanceHandler {
         }
 
 
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         buffer.append("[").append(queuedTime).append(",").append(executeTime).append("]ms, (*server*) traceID=").append(traceId).append(", api=").append(apiName).append(", ip=")
                 .append(remoteIp).append(", sourceIP=").append(sourceIP).append(", clientID=")
                 .append(clientId).append(", requestID=").append(requestId);

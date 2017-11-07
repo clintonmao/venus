@@ -3,10 +3,10 @@ package com.meidusa.venus.monitor.config;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 
 /**
- * athena配置信息委托
+ * ClientConfigManager初始化delegate
  * Created by Zhangzhihua on 2017/10/9.
  */
-public interface ClientConfigManagerDelegate {
+public interface ClientConfigManagerRegister {
 
 
     /**
