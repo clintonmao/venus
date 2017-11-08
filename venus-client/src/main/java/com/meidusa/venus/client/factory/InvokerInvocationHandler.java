@@ -11,7 +11,6 @@ import com.meidusa.venus.client.factory.xml.config.ReferenceMethod;
 import com.meidusa.venus.client.factory.xml.config.ReferenceService;
 import com.meidusa.venus.client.invoker.ClientInvokerProxy;
 import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.metainfo.AnnotationUtil;
@@ -47,11 +46,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * 服务接口类型
      */
     private Class<?> serviceInterface;
-
-    /**
-     * 异常处理
-     */
-    private VenusExceptionFactory venusExceptionFactory;
 
     /**
      * service工厂
@@ -111,7 +105,16 @@ public class InvokerInvocationHandler implements InvocationHandler {
                 Throwable exception = result.getException();
                 if(exception != null){
                     //若是rpc异常，则判断是否为包装异常
-                    throw exception;
+                    if(exception instanceof RpcException){
+                        Throwable t = exception.getCause();
+                        if(t != null){
+                            throw t;
+                        }else{
+                            throw exception;
+                        }
+                    }else{
+                        throw exception;
+                    }
                 }else{
                     throw new RpcException(String.format("%s-%s",String.valueOf(result.getErrorCode()),result.getErrorMessage()));
                 }
@@ -129,11 +132,9 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * @return
      */
     public ClientInvokerProxy getClientInvokerProxy() {
-        //TODO auth/exceptionFactory通过懒加载注入
-        clientInvokerProxy.setAuthenticator(getAuthenticator());
-        clientInvokerProxy.setVenusExceptionFactory(getVenusExceptionFactory());
-        clientInvokerProxy.setRegister(register);
         clientInvokerProxy.setRemoteConfig(getRemoteConfig());
+        clientInvokerProxy.setRegister(register);
+        clientInvokerProxy.setAuthenticator(getAuthenticator());
         return clientInvokerProxy;
     }
 
@@ -236,14 +237,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
     public void setRemoteConfig(ClientRemoteConfig remoteConfig) {
         this.remoteConfig = remoteConfig;
-    }
-
-    public VenusExceptionFactory getVenusExceptionFactory() {
-        return venusExceptionFactory;
-    }
-
-    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
-        this.venusExceptionFactory = venusExceptionFactory;
     }
 
     public DummyAuthenticator getAuthenticator() {

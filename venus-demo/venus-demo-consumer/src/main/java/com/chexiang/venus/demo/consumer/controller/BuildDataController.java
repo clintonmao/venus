@@ -49,7 +49,7 @@ public class BuildDataController {
         }
         @Override
         public void run() {
-            int loop = 10000;
+            int loop = 1;
             for(int j=0;j<loop;j++){
                 //begin for
                 for(int i=0;i<count;i++){

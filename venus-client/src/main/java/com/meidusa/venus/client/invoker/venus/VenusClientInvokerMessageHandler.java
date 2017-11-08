@@ -17,7 +17,7 @@ import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.exception.VenusExceptionFactory;
+import com.meidusa.venus.exception.XmlVenusExceptionFactory;
 import com.meidusa.venus.io.handler.VenusClientMessageHandler;
 import com.meidusa.venus.io.network.VenusBackendConnection;
 import com.meidusa.venus.io.packet.*;
@@ -41,8 +41,6 @@ import java.util.concurrent.*;
 public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler implements MessageHandler<VenusBackendConnection, byte[]> {
 
     private static Logger logger = LoggerFactory.getLogger(VenusClientInvokerMessageHandler.class);
-
-    private VenusExceptionFactory venusExceptionFactory;
 
     /**
      * rpcId-请求&响应映射表
@@ -155,7 +153,8 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 //TODO 处理此种情况，记录异常？
                 return;
             }
-            Throwable exception = ErrorPacketConvert.toExceptionFromErrorPacket(errorPacket,serializer,venusExceptionFactory);
+
+            Throwable exception = ErrorPacketConvert.toExceptionFromErrorPacket(errorPacket,serializer, XmlVenusExceptionFactory.getInstance());
             reqRespWrapper.setResult(new Result().setException(exception));
         } catch (Exception e) {
             if(logger.isErrorEnabled()){
@@ -278,7 +277,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             VenusTracerUtil.logRequest(nofityPacket.traceId, nofityPacket.apiName);
 
             if (nofityPacket.errorCode != 0) {
-                Throwable t = ErrorPacketConvert.toExceptionFromNotifyPacket(nofityPacket,serializer,venusExceptionFactory);
+                Throwable t = ErrorPacketConvert.toExceptionFromNotifyPacket(nofityPacket,serializer,XmlVenusExceptionFactory.getInstance());
                 Exception exception = null;
                 if(t instanceof  Exception){
                     exception = (Exception)t;
@@ -311,14 +310,6 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         OKPacket okPacket = new OKPacket();
         okPacket.init(message);
         return okPacket;
-    }
-
-    public VenusExceptionFactory getVenusExceptionFactory() {
-        return venusExceptionFactory;
-    }
-
-    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
-        this.venusExceptionFactory = venusExceptionFactory;
     }
 
     public Map<String, ClientInvocation> getServiceReqCallbackMap() {

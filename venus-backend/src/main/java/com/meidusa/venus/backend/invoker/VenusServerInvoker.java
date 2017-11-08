@@ -66,8 +66,6 @@ public class VenusServerInvoker implements Invoker {
 
     private ServiceManager serviceManager;
 
-    private VenusExceptionFactory venusExceptionFactory;
-
     @Override
     public void init() throws RpcException {
 
@@ -105,13 +103,13 @@ public class VenusServerInvoker implements Invoker {
             Object result = invocationEndpoint.invoke();
             return new Result(result);
         } catch (Exception e) {
-            throw new RpcException(e);
+            throw e;
         } catch (OutOfMemoryError e) {
             VenusStatus.getInstance().setStatus(PacketConstant.VENUS_STATUS_OUT_OF_MEMORY);
-            throw new RpcException(e);
+            throw e;
         } catch (Error e) {
             //PerformanceHandler.logPerformance(endpoint, request, queuedTime, executeTime, invocation.getHost(), sourceIp, result);
-            throw new RpcException(e);
+            throw e;
         } finally {
             ThreadLocalMap.remove(ThreadLocalConstant.REQUEST_CONTEXT);
             ThreadLocalMap.remove(VenusTracerUtil.REQUEST_TRACE_ID);
@@ -410,11 +408,4 @@ public class VenusServerInvoker implements Invoker {
         this.serviceManager = serviceManager;
     }
 
-    public VenusExceptionFactory getVenusExceptionFactory() {
-        return venusExceptionFactory;
-    }
-
-    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
-        this.venusExceptionFactory = venusExceptionFactory;
-    }
 }

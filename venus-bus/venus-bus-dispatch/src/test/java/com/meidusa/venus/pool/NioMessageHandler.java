@@ -13,12 +13,12 @@
  */
 package com.meidusa.venus.pool;
 
+import com.meidusa.venus.exception.XmlVenusExceptionFactory;
 import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.meidusa.toolkit.net.MessageHandler;
-import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.network.VenusBackendConnection;
 import com.meidusa.venus.io.packet.AbstractServicePacket;
 import com.meidusa.venus.io.packet.ErrorPacket;
@@ -34,23 +34,13 @@ import com.meidusa.venus.util.Utils;
 public class NioMessageHandler implements MessageHandler<VenusBackendConnection, byte[]> {
     private static Logger logger = LoggerFactory.getLogger(NioMessageHandler.class);
 
-    private VenusExceptionFactory venusExceptionFactory;
-
-    public VenusExceptionFactory getVenusExceptionFactory() {
-        return venusExceptionFactory;
-    }
-
-    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
-        this.venusExceptionFactory = venusExceptionFactory;
-    }
-
     public void handle(VenusBackendConnection conn, byte[] message) {
         int type = AbstractServicePacket.getType(message);
         switch (type) {
             case PacketConstant.PACKET_TYPE_ERROR:
                 ErrorPacket error = new ErrorPacket();
                 error.init(message);
-                Exception e = venusExceptionFactory.getException(error.errorCode, error.message);
+                Exception e = XmlVenusExceptionFactory.getInstance().getException(error.errorCode, error.message);
 
                 if (e == null) {
                     logger.error("receive error packet,errorCode=" + error.errorCode + ",message=" + error.message);

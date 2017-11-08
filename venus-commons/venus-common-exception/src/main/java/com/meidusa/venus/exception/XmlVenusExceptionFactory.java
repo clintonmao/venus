@@ -29,7 +29,9 @@ import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.exception.xml.ExceptionConfig;
 import com.meidusa.venus.util.ClasspathAnnotationScanner;
 
-@SuppressWarnings("deprecation")
+/**
+ * 异常工厂类，errorCode与exception之间的转换
+ */
 public class XmlVenusExceptionFactory implements VenusExceptionFactory {
 
     private static Logger logger = LoggerFactory.getLogger(XmlVenusExceptionFactory.class);
@@ -45,6 +47,8 @@ public class XmlVenusExceptionFactory implements VenusExceptionFactory {
     private static Map<Integer, ExceptionConfig> codeMap = new HashMap<Integer, ExceptionConfig>();
 
     private static Map<Class, ExceptionConfig> classMap = new HashMap<Class, ExceptionConfig>();
+
+    private static XmlVenusExceptionFactory xmlVenusExceptionFactory;
 
     static {
         scanAnnotitionException();
@@ -75,6 +79,17 @@ public class XmlVenusExceptionFactory implements VenusExceptionFactory {
         //初始化venus异常定义
         VenusExceptionLoader.init();
     }
+
+    private XmlVenusExceptionFactory(){}
+
+    public static XmlVenusExceptionFactory getInstance(){
+        if(xmlVenusExceptionFactory == null){
+            xmlVenusExceptionFactory = new XmlVenusExceptionFactory();
+            return xmlVenusExceptionFactory;
+        }
+        return xmlVenusExceptionFactory;
+    }
+
     public String[] getConfigFiles() {
         return configFiles;
     }
@@ -159,6 +174,7 @@ public class XmlVenusExceptionFactory implements VenusExceptionFactory {
 
     public void init() {
         doScan();
+        //venusExceptionFactory.setConfigFiles(new String[]{"classpath:com/meidusa/venus/exception/VenusSystemException.xml"});
         //兼容 3.0.8以前版本
         if(configFiles == null){
             return;

@@ -11,7 +11,6 @@ import com.meidusa.venus.client.filter.mock.ClientThrowMockFilter;
 import com.meidusa.venus.client.filter.valid.ClientValidFilter;
 import com.meidusa.venus.client.invoker.injvm.InjvmClientInvoker;
 import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.monitor.athena.filter.ClientAthenaMonitorFilter;
@@ -34,11 +33,6 @@ import java.util.List;
 public class ClientInvokerProxy implements Invoker {
 
     private static Logger logger = LoggerFactory.getLogger(ClientInvokerProxy.class);
-
-    /**
-     * 异常处理
-     */
-    private VenusExceptionFactory venusExceptionFactory;
 
     /**
      * 认证配置
@@ -277,14 +271,6 @@ public class ClientInvokerProxy implements Invoker {
     @Override
     public void destroy() throws RpcException {
 
-    }
-
-    public VenusExceptionFactory getVenusExceptionFactory() {
-        return venusExceptionFactory;
-    }
-
-    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
-        this.venusExceptionFactory = venusExceptionFactory;
     }
 
     public DummyAuthenticator getAuthenticator() {

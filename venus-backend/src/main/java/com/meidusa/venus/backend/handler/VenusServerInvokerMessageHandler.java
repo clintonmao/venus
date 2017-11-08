@@ -1,8 +1,6 @@
 package com.meidusa.venus.backend.handler;
 
-import com.meidusa.fastbson.exception.SerializeException;
 import com.meidusa.fastjson.JSON;
-import com.meidusa.fastjson.JSONException;
 import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.toolkit.common.bean.util.Initialisable;
 import com.meidusa.toolkit.common.bean.util.InitialisationException;
@@ -10,7 +8,6 @@ import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.TimeUtil;
-import com.meidusa.venus.ErrorPacketWrapperException;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.ServerInvocation;
 import com.meidusa.venus.backend.invoker.VenusServerInvocationListener;
@@ -19,9 +16,11 @@ import com.meidusa.venus.backend.invoker.support.ServerRequestHandler;
 import com.meidusa.venus.backend.invoker.support.ServerResponseHandler;
 import com.meidusa.venus.backend.invoker.support.ServerResponseWrapper;
 import com.meidusa.venus.backend.services.*;
-import com.meidusa.venus.backend.services.PerformanceLogger;
 import com.meidusa.venus.backend.support.Response;
-import com.meidusa.venus.exception.*;
+import com.meidusa.venus.exception.DefaultVenusException;
+import com.meidusa.venus.exception.ExceptionLevel;
+import com.meidusa.venus.exception.RpcException;
+import com.meidusa.venus.exception.XmlVenusExceptionFactory;
 import com.meidusa.venus.io.handler.VenusServerMessageHandler;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.*;
@@ -39,7 +38,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -93,10 +91,6 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
     private VenusRouterPacket routerPacket;
 
     private ServiceManager serviceManager;
-
-    private VenusExceptionFactory venusExceptionFactory;
-
-    static Map<Class<?>,Integer> codeMap = new HashMap<Class<?>,Integer>();
 
     private ServerResponseHandler responseHandler = new ServerResponseHandler();
 
@@ -179,10 +173,17 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
                 logger.error("handle error.",t);
             }
             result = new Result();
-            //TODO 错误编码
-            result.setErrorCode(500);
-            result.setErrorMessage(t.getMessage());
-            result.setException(t);
+            int errorCode = XmlVenusExceptionFactory.getInstance().getErrorCode(t.getClass());
+            if(errorCode != 0){//自定义异常
+                result.setErrorCode(errorCode);
+                result.setErrorMessage(t.getMessage());
+                result.setException(t);
+            }else{//jdk内置异常
+                DefaultVenusException ex = new DefaultVenusException(t.getMessage(),t);
+                result.setErrorCode(ex.getErrorCode());
+                result.setErrorMessage(ex.getMessage());
+                result.setException(ex);
+            }
         }
 
         // 输出响应
@@ -697,14 +698,6 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
     public void setServiceManager(ServiceManager serviceManager) {
         this.serviceManager = serviceManager;
-    }
-
-    public VenusExceptionFactory getVenusExceptionFactory() {
-        return venusExceptionFactory;
-    }
-
-    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
-        this.venusExceptionFactory = venusExceptionFactory;
     }
 
     /**

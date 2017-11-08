@@ -45,8 +45,6 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
      */
     private int coTimeout = 5 * 1000;
 
-    private VenusExceptionFactory venusExceptionFactory;
-
     private Authenticator authenticator;
 
     private Map<Class<?>, Tuple<Object, InvokerInvocationHandler>> servicesMap = new HashMap<Class<?>, Tuple<Object, InvokerInvocationHandler>>();
@@ -73,14 +71,6 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
 
     public void setAuthenticator(Authenticator authenticator) {
         this.authenticator = authenticator;
-    }
-
-    public VenusExceptionFactory getVenusExceptionFactory() {
-        return venusExceptionFactory;
-    }
-
-    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
-        this.venusExceptionFactory = venusExceptionFactory;
     }
 
     public int getSoTimeout() {
@@ -136,21 +126,12 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
     <T> T initServiceProxy(Class<T> t) {
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
         invocationHandler.setServiceInterface(t);
-        //TODO serviceName、version
-
         if(StringUtils.isNotEmpty(ipAddressList)){
             invocationHandler.setRemoteConfig(ClientRemoteConfig.newInstace(ipAddressList));
         }else{
             throw new VenusConfigException("ipAddressList not allow empty.");
         }
 
-        if(this.venusExceptionFactory == null){
-            XmlVenusExceptionFactory venusExceptionFactory = new XmlVenusExceptionFactory();
-            venusExceptionFactory.setConfigFiles(new String[]{"classpath:com/meidusa/venus/exception/VenusSystemException.xml"});
-            venusExceptionFactory.init();
-            this.venusExceptionFactory = venusExceptionFactory;
-        }
-        invocationHandler.setVenusExceptionFactory(this.getVenusExceptionFactory());
         if(this.getAuthenticator() == null){
             this.authenticator = new DummyAuthenticator<DummyAuthenPacket>();
         }
@@ -158,6 +139,7 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
 
         T object = (T) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[] { t }, invocationHandler);
 
+        VenusExceptionFactory venusExceptionFactory = XmlVenusExceptionFactory.getInstance();
         for (Method method : t.getMethods()) {
             Endpoint endpoint = method.getAnnotation(Endpoint.class);
             if (endpoint != null) {
