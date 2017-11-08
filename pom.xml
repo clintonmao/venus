@@ -19,7 +19,7 @@
 		<jdk.version>1.7</jdk.version>
 		
 		<plexus-classworlds.version>2.4.4-HEXNOVA</plexus-classworlds.version>
-		<asm-all.version>2.4.4-HEXNOVA</asm-all.version>
+		<asm-all.version>3.3.1</asm-all.version>
 		<ognl.version>3.0.8</ognl.version>
 		<ini4j.version>0.5.2</ini4j.version>
 		<javassist.version>3.12.1.GA</javassist.version>
