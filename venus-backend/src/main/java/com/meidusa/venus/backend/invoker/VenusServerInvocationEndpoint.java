@@ -5,9 +5,8 @@ import com.meidusa.venus.backend.services.EndpointInvocation;
 import com.meidusa.venus.backend.services.InterceptorMapping;
 import com.meidusa.venus.backend.services.RequestContext;
 import com.meidusa.venus.backend.support.UtilTimerStack;
-import com.meidusa.venus.exception.ServiceInvokeException;
+import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.notify.InvocationListener;
-import com.meidusa.venus.util.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,15 +113,15 @@ public class VenusServerInvocationEndpoint implements EndpointInvocation {
                 }
                 result = ep.getMethod().invoke(ep.getService().getInstance(), parameters);
             } catch (IllegalArgumentException e) {
-                throw new ServiceInvokeException(e);
+                throw e;
             } catch (InvocationTargetException e) {
                 if (e.getTargetException() != null) {
-                    throw new ServiceInvokeException(e.getTargetException());
+                    throw new RpcException(e.getTargetException());
                 } else {
-                    throw new ServiceInvokeException(e);
+                    throw new RpcException(e);
                 }
             } catch (IllegalAccessException e) {
-                throw new ServiceInvokeException(e);
+                throw new RpcException(e);
             }finally {
                 UtilTimerStack.pop(ENDPOINT_INVOKED);
             }

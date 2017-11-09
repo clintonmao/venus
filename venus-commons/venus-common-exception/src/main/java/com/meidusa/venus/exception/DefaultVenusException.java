@@ -22,9 +22,11 @@ public class DefaultVenusException extends AbstractVenusException {
         this.errorCode = errorCode;
     }
 
+    /*
     public String getMessage(){
     	return "errorCode="+this.getErrorCode()+", message="+super.getMessage();
     }
+    */
     
     @Override
     public int getErrorCode() {

@@ -31,12 +31,13 @@ public abstract class AbstractClientInvoker implements Invoker {
         ServiceWrapper service = clientInvocation.getService();
         EndpointWrapper endpoint = clientInvocation.getEndpoint();
 
-        try {
-            init();
+        init();
 
-            //调用相应协议实现
-            Result result = doInvoke(clientInvocation, url);
-            return result;
+        //调用相应协议实现
+        Result result = doInvoke(clientInvocation, url);
+        return result;
+        /*
+        try {
         } catch (Throwable e) {
             if (!(e instanceof CodedException)) {
                 if (exceptionLogger.isInfoEnabled()) {
@@ -51,6 +52,7 @@ public abstract class AbstractClientInvoker implements Invoker {
             }
             throw new RpcException(e);
         }
+        */
     }
 
     /**

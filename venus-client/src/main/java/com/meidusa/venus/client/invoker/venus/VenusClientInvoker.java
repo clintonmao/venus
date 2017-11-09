@@ -139,15 +139,10 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     @Override
     public Result doInvoke(ClientInvocation invocation, URL url) throws RpcException {
-        long bTime = System.currentTimeMillis();
-        try {
-            if(!isCallbackInvocation(invocation)){
-                return doInvokeWithSync(invocation, url);
-            }else{
-                return doInvokeWithCallback(invocation, url);
-            }
-        } catch (Exception e) {
-            throw new RpcException(e);
+        if(!isCallbackInvocation(invocation)){
+            return doInvokeWithSync(invocation, url);
+        }else{
+            return doInvokeWithCallback(invocation, url);
         }
     }
 
@@ -176,7 +171,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @return
      * @throws Exception
      */
-    public Result doInvokeWithSync(ClientInvocation invocation, URL url) throws Exception {
+    public Result doInvokeWithSync(ClientInvocation invocation, URL url) throws RpcException {
         Result result = null;
 
         long bWaitTime = System.currentTimeMillis();
@@ -193,33 +188,26 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         //发送消息
         sendRequest(invocation, request, url,reqRespWrapper);
 
-        boolean isReturnMock = false;
-        if(!isReturnMock){
-            //latch阻塞等待
+        //latch阻塞等待
+        boolean isAwaitException = false;
+        try {
             reqRespWrapper.getReqRespLatch().await(timeout,TimeUnit.MILLISECONDS);
-
-            //处理响应
-            result = fetchResponse(rpcId);
-        }else{
-            if(mockReturnExecutor == null){
-                mockReturnExecutor = new ThreadPoolExecutor(10,20,0,TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(100000),new RejectedExecutionHandler(){
-                    @Override
-                    public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-                        logger.error("mock return,exceed max process,maxThread:{},maxQueue:{}.",5,100);
-                    }
-                });
+        } catch (InterruptedException e) {
+            isAwaitException = true;
+            throw new RpcException(e);
+        }finally {
+            if(isAwaitException){
+                if(serviceReqRespMap.get(rpcId) != null){
+                    serviceReqRespMap.remove(rpcId);
+                }
             }
-            //mock接收消息处理
-            mockReturnExecutor.execute(new MockReturnProcess(reqRespWrapper));
-
-            reqRespWrapper.getReqRespLatch().await(timeout,TimeUnit.MILLISECONDS);
-
-            result = fetchResponseFromMock(rpcId);
         }
 
-        //TODO 改为methodPath
+        //处理响应
+        result = fetchResponse(rpcId);
+
         if(result == null){
-            throw new RpcException(String.format("invoke service:%s,timeout:%dms",url.getPath(),timeout));
+            throw new RpcException(RpcException.TIMEOUT_EXCEPTION,String.format("invoke service:%s,timeout:%dms",url.getPath(),timeout));
         }
 
         if(isEnableRandomPrint){
@@ -260,7 +248,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @return
      * @throws Exception
      */
-    public Result doInvokeWithCallback(ClientInvocation invocation, URL url) throws Exception {
+    public Result doInvokeWithCallback(ClientInvocation invocation, URL url) throws RpcException {
         //构造请求消息
         SerializeServiceRequestPacket request = buildRequest(invocation);
 
@@ -341,7 +329,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @return
      * @throws Exception
      */
-    void sendRequest(ClientInvocation invocation, SerializeServiceRequestPacket serviceRequestPacket, URL url,VenusReqRespWrapper reqRespWrapper) throws Exception{
+    void sendRequest(ClientInvocation invocation, SerializeServiceRequestPacket serviceRequestPacket, URL url,VenusReqRespWrapper reqRespWrapper) throws RpcException{
         long start = TimeUtil.currentTimeMillis();
         long borrowed = start;
         byte[] traceID = invocation.getTraceID();
@@ -354,6 +342,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             //TODO 地址变化对连接的影响；地址未变但连接已断开其影响
             nioConnPool = getNioConnPool(url,invocation,null);
             conn = nioConnPool.borrowObject();
+            if(!conn.isActive()){
+                throw new RpcException(RpcException.NETWORK_EXCEPTION,"connetion not active.");
+            }
             borrowed = System.currentTimeMillis();
             if(reqRespWrapper != null){
                 reqRespWrapper.setBackendConnection(conn);
@@ -365,9 +356,13 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
             conn.write(buffer);
             VenusTracerUtil.logRequest(traceID, serviceRequestPacket.apiName, JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
-        } catch (Exception e){
+        } catch (Throwable e){
             logger.error("send request error.",e);
-            throw e;
+            if(e instanceof RpcException){
+                throw (RpcException)e;
+            }else{
+                throw new RpcException(e);
+            }
         }finally {
             if (performanceLogger.isDebugEnabled()) {
                 long end = TimeUtil.currentTimeMillis();
@@ -392,7 +387,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @throws Exception
      * @param url
      */
-    public BackendConnectionPool getNioConnPool(URL url,ClientInvocation invocation,ClientRemoteConfig remoteConfig) throws Exception {
+    public BackendConnectionPool getNioConnPool(URL url,ClientInvocation invocation,ClientRemoteConfig remoteConfig){
         String address = new StringBuilder()
                 .append(url.getHost())
                 .append(":")
@@ -423,7 +418,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @return
      * @throws Exception
      */
-    private BackendConnectionPool createNioPool(URL url,ClientInvocation invocation,ClientRemoteConfig remoteConfig) throws Exception {
+    private BackendConnectionPool createNioPool(URL url,ClientInvocation invocation,ClientRemoteConfig remoteConfig){
         if(logger.isInfoEnabled()){
             logger.info("#########create nio pool#############:{}.",url);
         }
@@ -465,7 +460,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                     logger.error("close invalid connection pool error.");
                 }
             }
-            throw new RpcException("init connection pool failed.");
+            throw new RpcException(RpcException.NETWORK_EXCEPTION,"init connection pool failed.");
         }
         return nioPool;
     }
@@ -492,15 +487,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             serviceReqRespMap.remove(rpcId);
             return result;
         }
-    }
-
-    /**
-     * mock获取
-     * @param rpcId
-     * @return
-     */
-    Result fetchResponseFromMock(String rpcId){
-        return new Result(new Echo("@hi","@mock result"));
     }
 
     public short getSerializeType() {

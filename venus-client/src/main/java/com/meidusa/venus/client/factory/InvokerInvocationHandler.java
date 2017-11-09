@@ -102,22 +102,11 @@ public class InvokerInvocationHandler implements InvocationHandler {
             if(result.getErrorCode() == 0){//调用成功
                 return result.getResult();
             }else{//调用失败
-                Throwable exception = result.getException();
-                if(exception != null){
-                    //若是rpc异常，则判断是否为包装异常
-                    if(exception instanceof RpcException){
-                        Throwable t = exception.getCause();
-                        if(t != null){
-                            throw t;
-                        }else{
-                            throw exception;
-                        }
-                    }else{
-                        throw exception;
-                    }
-                }else{
-                    throw new RpcException(String.format("%s-%s",String.valueOf(result.getErrorCode()),result.getErrorMessage()));
+                Throwable ex = buildException(result);
+                if(logger.isErrorEnabled()){
+                    logger.error("invoke provider error.",ex);
                 }
+                throw ex;
             }
         } catch (Throwable e) {
             if(logger.isErrorEnabled()){
@@ -221,6 +210,32 @@ public class InvokerInvocationHandler implements InvocationHandler {
             }
         }
         return null;
+    }
+
+    /**
+     * 将错误信息转化为异常
+     * @param result
+     * @return
+     */
+    Throwable buildException(Result result){
+        Throwable rex = null;
+        Throwable exception = result.getException();
+        if(exception == null){
+            rex = new RpcException(String.format("%s-%s",String.valueOf(result.getErrorCode()),result.getErrorMessage()));
+        }
+
+        //若是rpc异常，则判断是否为包装异常
+        if(exception instanceof RpcException){
+            Throwable cause = exception.getCause();
+            if(cause != null){
+                rex = cause;
+            }else{
+                rex = exception;
+            }
+        }else{
+            rex = exception;
+        }
+        return rex;
     }
 
     public Class<?> getServiceInterface() {
