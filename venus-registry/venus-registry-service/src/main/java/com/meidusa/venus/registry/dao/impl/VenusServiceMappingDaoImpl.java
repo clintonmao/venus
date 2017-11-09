@@ -84,7 +84,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	@Override
 	public boolean updateHeartBeatTime(int serverId, String role)
 			throws DAOException {
-		String sql = "update t_venus_service_mapping set heartbeat_time = now() where server_id = ? and role=? ";
+		String sql = "update t_venus_service_mapping set is_delete=0,heartbeat_time = now() where server_id = ? and role=? ";
 		int update = 0;
 		try {
 			update = this.jdbcTemplate.update(sql, serverId, role);
@@ -194,9 +194,31 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	}
 
 	public List<VenusServiceMappingDO> getServiceMappings(String dateStr,int second) throws DAOException {
-//		String sql = SELECT_FIELDS_TABLE + " where heartbeat_time <= subdate(now(),interval "+second+" second) ";
 		String sql="select m.id, m.server_id, m.service_id, m.version, m.active, m.sync,m.role,m.provider_app_id,m.consumer_app_id,m.is_delete,m.create_time, m.update_time,m.registe_time,m.heartbeat_time from t_venus_service_mapping as m "
-				+ "left join t_venus_service as v on m.service_id=v.id where v.registe_type=1 and m.heartbeat_time <= subdate(now(),interval "+second+" second) ";
+				+ "left join t_venus_service as v on m.service_id=v.id where v.registe_type=1 and m.is_delete=0 and m.heartbeat_time <= subdate(now(),interval "+second+" second) ";
+		
+		try {
+			return this.jdbcTemplate.query(sql, new Object[] {},
+					new ResultSetExtractor<List<VenusServiceMappingDO>>() {
+				@Override
+				public List<VenusServiceMappingDO> extractData(ResultSet rs)
+						throws SQLException, DataAccessException {
+					List<VenusServiceMappingDO> returnList = new ArrayList<VenusServiceMappingDO>();
+					while (rs.next()) {
+						VenusServiceMappingDO mapping = ResultUtils.resultToVenusServiceMappingDO(rs);
+						returnList.add(mapping);
+					}
+					return returnList;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据heartbeat_time小于等于当前时间减去" + second + "秒获取服务映射关系列表异常", e);
+		}
+	}
+	
+	public List<VenusServiceMappingDO> queryServiceMappings(int hour) throws DAOException {
+		String sql="select m.id, m.server_id, m.service_id, m.version, m.active, m.sync,m.role,m.provider_app_id,m.consumer_app_id,m.is_delete,m.create_time, m.update_time,m.registe_time,m.heartbeat_time from t_venus_service_mapping as m "
+				+ "left join t_venus_service as v on m.service_id=v.id where v.registe_type=1 and m.is_delete=1 and m.heartbeat_time <= subdate(now(),interval "+hour+" hour) ";
 
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] {},
@@ -213,7 +235,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 						}
 					});
 		} catch (Exception e) {
-			throw new DAOException("根据heartbeat_time小于等于当前时间减去" + second + "秒获取服务映射关系列表异常", e);
+			throw new DAOException("根据heartbeat_time小于等于当前时间减去" + hour + "小时获取服务映射关系列表异常", e);
 		}
 	}
 
@@ -293,6 +315,26 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 		}
 		String str = sb.substring(0, sb.length() - 1);
 		String sql = "delete from t_venus_service_mapping where id in(" + str + ")";
+		int update = 0;
+		try {
+			update = this.jdbcTemplate.update(sql);
+		} catch (Exception e) {
+			throw new DAOException("逻辑删除更新映射关系异常", e);
+		}
+		return update > 0;
+	}
+	
+	public boolean logicDeleteServiceMappings(List<Integer> ids) throws DAOException {
+		if (ids.isEmpty()) {
+			return false;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (Integer id : ids) {
+			sb.append(id);
+			sb.append(",");
+		}
+		String str = sb.substring(0, sb.length() - 1);
+		String sql = "update t_venus_service_mapping set is_delete=1 where id in(" + str + ")";
 		int update = 0;
 		try {
 			update = this.jdbcTemplate.update(sql);

@@ -18,6 +18,7 @@ import com.meidusa.venus.registry.data.move.OldServerDO;
 import com.meidusa.venus.registry.data.move.OldServiceDO;
 import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
 import com.meidusa.venus.registry.service.RegisterService;
+import com.meidusa.venus.support.VenusConstants;
 
 public class OLdServiceMappingService {
 
@@ -114,19 +115,7 @@ public class OLdServiceMappingService {
 					mapId = services.get(services.size() - 1).getId();
 					for (OldServiceDO oldServiceDO : services) {
 						registerService.addService(oldServiceDO.getServiceName(), oldServiceDO.getDescription(),
-								"0.0.0");
-						/*
-						 * List<String> queryOldServiceVersions =
-						 * oldServiceMappingDAO
-						 * .queryOldServiceVersions(oldServiceDO.getServiceName(
-						 * )); if
-						 * (CollectionUtils.isNotEmpty(queryOldServiceVersions))
-						 * { for (Iterator<String> iterator =
-						 * queryOldServiceVersions.iterator();
-						 * iterator.hasNext();) { String version =
-						 * iterator.next(); if (StringUtils.isBlank(version) ||
-						 * "null".equals(version)) { version = null; } } }
-						 */
+								String.valueOf(VenusConstants.VERSION_DEFAULT));
 					}
 				}
 			}

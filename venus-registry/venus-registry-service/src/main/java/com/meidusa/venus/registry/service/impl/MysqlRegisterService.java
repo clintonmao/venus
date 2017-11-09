@@ -11,6 +11,8 @@ import java.util.Set;
 
 import com.meidusa.venus.registry.domain.*;
 import com.meidusa.venus.registry.service.RegisterService;
+import com.meidusa.venus.support.VenusConstants;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.dbcp.BasicDataSource;
@@ -494,17 +496,7 @@ public class MysqlRegisterService implements RegisterService {
 //	}
 
 	public void heartbeatSubcribe(URL url) {
-		String interfaceName = url.getInterfaceName();
-		String serviceName = url.getServiceName();
-		String version = url.getVersion();
 		try {
-			/*
-			 * List<VenusServiceDO> services =
-			 * venusServiceDAO.queryServices(interfaceName, serviceName,
-			 * version); for (Iterator<VenusServiceDO> iterator =
-			 * services.iterator(); iterator.hasNext();) { VenusServiceDO
-			 * service = iterator.next(); int serviceID = service.getId(); }
-			 */
 			String host = url.getHost();
 			VenusServerDO server = venusServerDAO.getServer(host, 0);
 			if (null != server) {
@@ -522,18 +514,7 @@ public class MysqlRegisterService implements RegisterService {
 	}
 
 	public void heartbeatRegister(URL url) {
-		String interfaceName = url.getInterfaceName();
-		String serviceName = url.getServiceName();
-		String version = url.getVersion();
-
 		try {
-			/*
-			 * List<VenusServiceDO> services =
-			 * venusServiceDAO.queryServices(interfaceName, serviceName,
-			 * version); for (Iterator<VenusServiceDO> iterator =
-			 * services.iterator(); iterator.hasNext();) { VenusServiceDO
-			 * service = iterator.next(); int serviceID = service.getId(); }
-			 */
 			String host = url.getHost();
 			int port = url.getPort();
 			VenusServerDO server = venusServerDAO.getServer(host, port);
@@ -555,73 +536,41 @@ public class MysqlRegisterService implements RegisterService {
 		/* 订阅方提供方都清理 */
 		List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMappings(currentDateTime,second);
 		if (CollectionUtils.isNotEmpty(serviceMappings)) {
-			/*Map<Integer, Integer> map = new HashMap<Integer, Integer>();
+			List<Integer> logic_mapping_ids = new ArrayList<Integer>();
 			for (Iterator<VenusServiceMappingDO> iterator = serviceMappings.iterator(); iterator.hasNext();) {
 				VenusServiceMappingDO mapping = iterator.next();
-				map.put(mapping.getId(), mapping.getServiceId());
+				logic_mapping_ids.add(mapping.getId());
 			}
-
-			List<Integer> delete_mapping_ids = new ArrayList<Integer>();
-			if (MapUtils.isNotEmpty(map)) {
-				List<VenusServiceDO> services = venusServiceDAO.getServices(map.values());
-				if (CollectionUtils.isNotEmpty(services)) {
-					for (VenusServiceDO venusServiceDO : services) {
-						if (null != venusServiceDO.getRegisteType()
-								&& venusServiceDO.getRegisteType() == RegisteConstant.AUTO_REGISTE) {
-							for (Map.Entry<Integer, Integer> ent : map.entrySet()) {
-								if (venusServiceDO.getId().intValue() == ent.getValue().intValue()) {
-									delete_mapping_ids.add(ent.getKey());
-								}
-							}
-						}
-					}
-				}
-			}*/
-			
+			if (CollectionUtils.isNotEmpty(logic_mapping_ids)) {
+				logger.info(
+						"@@@@@@logicDeleteServiceMappings currentDateTime=>{},logic_mapping_ids=>{},serviceMappings=>{}@@@@@@@",
+						currentDateTime, JSON.toJSONString(logic_mapping_ids, true),
+						JSON.toJSONString(serviceMappings));
+				venusServiceMappingDAO.logicDeleteServiceMappings(logic_mapping_ids);
+			}
+		}
+		
+		List<VenusServiceMappingDO> needDeleteServiceMappings = venusServiceMappingDAO.queryServiceMappings(VenusConstants.DELELE_INVALID_SERVICE_HOUR);
+		if (CollectionUtils.isNotEmpty(needDeleteServiceMappings)) {
 			List<Integer> delete_mapping_ids = new ArrayList<Integer>();
 			List<Integer> server_ids = new ArrayList<Integer>();
-			for (Iterator<VenusServiceMappingDO> iterator = serviceMappings.iterator(); iterator.hasNext();) {
+			for (Iterator<VenusServiceMappingDO> iterator = needDeleteServiceMappings.iterator(); iterator.hasNext();) {
 				VenusServiceMappingDO mapping = iterator.next();
 				delete_mapping_ids.add(mapping.getId());
 				server_ids.add(mapping.getServerId());
 			}
 
 			if (CollectionUtils.isNotEmpty(delete_mapping_ids)) {
-				logger.info("@@@@@@currentDateTime=>{},delete_mapping_ids=>{},serviceMappings=>{}@@@@@@@",currentDateTime,JSON.toJSONString(delete_mapping_ids, true),JSON.toJSONString(serviceMappings));
+				logger.info("@@@@@@currentDateTime=>{},delete_mapping_ids=>{},serviceMappings=>{}@@@@@@@",
+						currentDateTime, JSON.toJSONString(delete_mapping_ids, true),
+						JSON.toJSONString(needDeleteServiceMappings));
 				venusServiceMappingDAO.deleteServiceMappings(delete_mapping_ids);
 			}
-			
+
 			for (Iterator<Integer> iterator = server_ids.iterator(); iterator.hasNext();) {
 				Integer serverId = iterator.next();
 				deleteServer(serverId);
 			}
-
-			/*List<VenusServiceMappingDO> deleteServiceMappings = venusServiceMappingDAO
-					.getDeleteServiceMappings(updateTime, RegisteConstant.PROVIDER, true);// 取两分钟内删除的服务提供者
-			Set<Integer> serviceIds = new HashSet<Integer>();
-			if (CollectionUtils.isNotEmpty(deleteServiceMappings)) {
-				for (VenusServiceMappingDO venusServiceMappingDO : deleteServiceMappings) {
-					serviceIds.add(venusServiceMappingDO.getServiceId());
-				}
-
-				if (CollectionUtils.isNotEmpty(serviceIds)) {
-					for (Integer sid : serviceIds) {
-						List<VenusServiceMappingDO> serviceMappings2 = venusServiceMappingDAO.getServiceMappings(sid);
-						int deleteSize = 0;
-						for (Iterator<VenusServiceMappingDO> iterator = serviceMappings2.iterator(); iterator
-								.hasNext();) {
-							VenusServiceMappingDO vsd = iterator.next();
-							if (vsd.getIsDelete()) {
-								deleteSize++;
-							}
-						}
-
-						if (deleteSize != 0 && deleteSize == serviceMappings2.size()) {
-							venusServiceDAO.updateService(sid, true);// 更新service表
-						}
-					}
-				}
-			}*/
 		}
 	}
 

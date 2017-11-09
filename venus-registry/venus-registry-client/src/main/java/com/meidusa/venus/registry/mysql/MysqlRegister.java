@@ -13,6 +13,7 @@ import com.meidusa.venus.registry.domain.RouterRule;
 import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.registry.service.RegisterService;
+import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.registry.VenusRegisteException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -50,15 +51,6 @@ public class MysqlRegister implements Register {
 	private boolean loadRunning = false;
 
 	private boolean heartbeatRunning = false;
-
-	//心跳间隔时间,单位m
-	private int heartBeatInterval = 5;
-
-	//服务定义加载间隔时间
-	private int srvDefLoaderInterval = 10;
-
-	//失败重试间隔时间
-	private int failRetryInterval = 30;
 
 	private RegisterService registerService = null;
 
@@ -98,8 +90,8 @@ public class MysqlRegister implements Register {
 			logger.info("fileCachePath=>{}",fileCachePath);
 		}
 		if (!loadRunning) {
-			GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 10, failRetryInterval, TimeUnit.SECONDS);
-			GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefLoaderRunnable(), 10, srvDefLoaderInterval, TimeUnit.SECONDS);
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 10, VenusConstants.FAIL_RETRY_INTERVAL, TimeUnit.SECONDS);
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefLoaderRunnable(), 10, VenusConstants.SERVER_DEFINE_LOAD_INTERVAL, TimeUnit.SECONDS);
 			loadRunning = true;
 		}
 	}
@@ -179,7 +171,7 @@ public class MysqlRegister implements Register {
 	@Override
 	public void heartbeat() throws VenusRegisteException {
 		if (!heartbeatRunning) {
-			GlobalScheduler.getInstance().scheduleAtFixedRate(new HeartBeatRunnable(), 5, heartBeatInterval,
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new HeartBeatRunnable(), 3, VenusConstants.HEARTBEAT_INTERVAL,
 					TimeUnit.SECONDS);
 			heartbeatRunning = true;
 		}

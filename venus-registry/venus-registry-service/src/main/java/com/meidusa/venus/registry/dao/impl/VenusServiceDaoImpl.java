@@ -318,7 +318,7 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		if (trimWhere.startsWith("and")) {
 			trimWhere = trimWhere.substring(trimWhere.indexOf("and") + 3);
 		}
-		sql = sql + " " + trimWhere;
+		sql = sql + " " + trimWhere +" order by version desc ";
 		
 		try {
 			return this.jdbcTemplate.query(sql, listToArray(params), new ResultSetExtractor<List<VenusServiceDO>>() {

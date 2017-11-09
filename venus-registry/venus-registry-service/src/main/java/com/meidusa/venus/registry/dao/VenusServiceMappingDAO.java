@@ -26,6 +26,8 @@ public interface VenusServiceMappingDAO {
 	List<VenusServiceMappingDO> getServiceMappings(Integer serverId) throws DAOException;
 
 	List<VenusServiceMappingDO> getServiceMappings(String dateStr,int second) throws DAOException;
+	
+	List<VenusServiceMappingDO> queryServiceMappings(int hour) throws DAOException;
 
 	List<VenusServiceMappingDO> getDeleteServiceMappings(String updateTime, String role, boolean isDelete)
 			throws DAOException;
@@ -33,6 +35,8 @@ public interface VenusServiceMappingDAO {
 	boolean updateServiceMappings(List<Integer> ids) throws DAOException;
 	
 	boolean deleteServiceMappings(List<Integer> ids) throws DAOException;
+	
+	boolean logicDeleteServiceMappings(List<Integer> ids) throws DAOException;
 	
 	List<VenusServiceMappingDO> getServiceMappings(int serviceId) throws DAOException;
 	
