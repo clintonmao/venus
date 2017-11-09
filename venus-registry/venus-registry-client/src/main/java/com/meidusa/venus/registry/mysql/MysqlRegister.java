@@ -388,7 +388,17 @@ public class MysqlRegister implements Register {
 							iterator.remove();
 						}
 					} catch (Exception e) {
-						logger.error("Fail服务{}重新订阅异常 ,异常原因：{}", url.getServiceName(), e);
+						String name = "";
+						if (StringUtils.isNotBlank(url.getServiceName()) && !"null".equals(url.getServiceName())) {
+							name = url.getServiceName();
+						} else {
+							name = url.getInterfaceName();
+						}
+						String version = "";
+						if (StringUtils.isNotBlank(url.getVersion()) && !"null".equals(url.getVersion())) {
+							version = url.getVersion();
+						}
+						logger.error("Fail服务{}重新订阅异常 ,version:{},异常原因：{}", name, version, e);
 					}
 				}
 			}
