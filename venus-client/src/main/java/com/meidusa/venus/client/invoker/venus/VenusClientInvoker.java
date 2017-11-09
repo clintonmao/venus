@@ -8,13 +8,12 @@ import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.Invoker;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.URL;
-import com.meidusa.venus.annotations.Endpoint;
-import com.meidusa.venus.client.factory.xml.config.*;
+import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
+import com.meidusa.venus.client.factory.xml.config.FactoryConfig;
+import com.meidusa.venus.client.factory.xml.config.PoolConfig;
 import com.meidusa.venus.client.invoker.AbstractClientInvoker;
 import com.meidusa.venus.exception.InvalidParameterException;
 import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.exception.VenusExceptionFactory;
-import com.meidusa.venus.io.network.AbstractBIOConnection;
 import com.meidusa.venus.io.network.VenusBackendConnectionFactory;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.packet.ServicePacketBuffer;
@@ -34,7 +33,6 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,8 +58,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * 远程连接配置，包含ip相关信息
      */
     private ClientRemoteConfig remoteConfig;
-
-    private VenusExceptionFactory venusExceptionFactory;
 
     /*
     private boolean enableAsync = true;
@@ -134,7 +130,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     @Override
     public void init() throws RpcException {
         if(!isInit){
-            messageHandler.setVenusExceptionFactory(venusExceptionFactory);
             messageHandler.setServiceReqCallbackMap(serviceReqCallbackMap);
             messageHandler.setServiceReqRespMap(serviceReqRespMap);
             isInit = true;
@@ -506,14 +501,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      */
     Result fetchResponseFromMock(String rpcId){
         return new Result(new Echo("@hi","@mock result"));
-    }
-
-    public VenusExceptionFactory getVenusExceptionFactory() {
-        return venusExceptionFactory;
-    }
-
-    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
-        this.venusExceptionFactory = venusExceptionFactory;
     }
 
     public short getSerializeType() {

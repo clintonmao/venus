@@ -1,5 +1,6 @@
 package com.meidusa.venus;
 
+import com.meidusa.venus.exception.XmlVenusExceptionFactory;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.io.serializer.SerializerFactory;
@@ -78,6 +79,9 @@ public class Application implements InitializingBean {
 
         //初始化序列化工厂
         initSerializer();
+
+        //初始化异常配置
+        XmlVenusExceptionFactory.getInstance().init();
     }
 
     /**

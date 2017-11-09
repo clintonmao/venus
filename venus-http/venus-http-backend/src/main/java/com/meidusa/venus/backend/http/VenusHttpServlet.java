@@ -43,7 +43,6 @@ public class VenusHttpServlet extends HttpServlet {
     private static String ENDPOINT_INVOKED_TIME = "invoked Total Time: ";
     // private static String patternString = "([a-zA-Z_0-9.]+)/([a-zA-Z_0-9]+)(?:/(\\d+))*(?:/\\S*)*(?:\\?(?:.*?)*)*";
     private transient ServiceManager serviceManager;
-    private transient VenusExceptionFactory venusExceptionFactory;
     private transient Pattern servicePattern = null;
     private transient Serializer serializer = SerializerFactory.getSerializer(PacketConstant.CONTENT_TYPE_JSON);
     private transient ConvertService convertService = new DefaultConvertService();
@@ -81,11 +80,6 @@ public class VenusHttpServlet extends HttpServlet {
         }
         
         serviceManager = context.getBean(ServiceManager.class);
-        try {
-            venusExceptionFactory = context.getBean(VenusExceptionFactory.class);
-        } catch (BeansException e) {
-
-        }
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -279,7 +273,6 @@ public class VenusHttpServlet extends HttpServlet {
     }
 
     private Response handleRequest(RequestInfo info, Endpoint endpoint, Map<String, Object> paramters) {
-
         RequestContext context = new RequestContext();
         context.setParameters(paramters);
         context.setEndPointer(endpoint);
@@ -288,6 +281,7 @@ public class VenusHttpServlet extends HttpServlet {
 
         VenusServerInvocationEndpoint invocation = new VenusServerInvocationEndpoint(context, endpoint);
 
+        VenusExceptionFactory venusExceptionFactory = XmlVenusExceptionFactory.getInstance();
         try {
             UtilTimerStack.push(ENDPOINT_INVOKED_TIME);
             response.setResult(invocation.invoke());

@@ -102,8 +102,6 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
 
     private boolean inited = false;
 
-    private VenusExceptionFactory venusExceptionFactory;
-
     private ApplicationContext applicationContext;
 
     private BeanContext beanContext;
@@ -169,10 +167,6 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      */
     void initContext(){
         logger.trace("current Venus Client id=" + PacketConstant.VENUS_CLIENT_ID);
-        if (venusExceptionFactory == null) {
-            this.venusExceptionFactory = initXmlVenusExceptionFactory();
-        }
-
         if(applicationContext != null){
             VenusContext.getInstance().setApplicationContext(applicationContext);
         }
@@ -182,18 +176,6 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             VenusContext.getInstance().setBeanContext(beanContext);
         }
         VenusBeanUtilsBean.setInstance(new ClientBeanUtilsBean(new ConvertUtilsBean(), new PropertyUtilsBean(), beanContext));
-    }
-
-    /**
-     * 初始化XML异常配置工厂
-     * @return
-     */
-    XmlVenusExceptionFactory initXmlVenusExceptionFactory(){
-        XmlVenusExceptionFactory xmlVenusExceptionFactory = new XmlVenusExceptionFactory();
-        //3.0.8版本将采用自动扫描的方式获得 exception 相关的配置
-        //xmlVenusExceptionFactory.setConfigFiles(new String[] { "classpath:com/meidusa/venus/exception/VenusSystemException.xml" });
-        xmlVenusExceptionFactory.init();
-        return xmlVenusExceptionFactory;
     }
 
     /**
@@ -267,7 +249,6 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             invocationHandler.setRegister(venusRegistryFactory.getRegister());
         }
         invocationHandler.setReferenceService(referenceService);
-        invocationHandler.setVenusExceptionFactory(this.getVenusExceptionFactory());
         invocationHandler.setServiceFactory(this);
         /*
         if (remoteConfig != null && remoteConfig.getAuthenticator() != null) {
@@ -278,6 +259,7 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         //创建服务代理
         Object object = Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{referenceService.getClzType()}, invocationHandler);
 
+        VenusExceptionFactory venusExceptionFactory = XmlVenusExceptionFactory.getInstance();
         for (Method method : referenceService.getClzType().getMethods()) {
             Endpoint endpoint = method.getAnnotation(Endpoint.class);
             if (endpoint != null) {
@@ -548,14 +530,6 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
 
     public void setNeedPing(boolean needPing) {
         this.needPing = needPing;
-    }
-
-    public VenusExceptionFactory getVenusExceptionFactory() {
-        return venusExceptionFactory;
-    }
-
-    public void setVenusExceptionFactory(VenusExceptionFactory venusExceptionFactory) {
-        this.venusExceptionFactory = venusExceptionFactory;
     }
 
     public Resource[] getConfigFiles() {
