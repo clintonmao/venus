@@ -116,6 +116,7 @@ public class ErrorPacketConvert {
             return rpcException;
         }
 
+        //反序列化异常
         Exception exception = venusExceptionFactory.getException(errorPacket.errorCode, errorPacket.message);
         if (exception == null) {
             logger.error("receive error packet,errorCode=" + errorPacket.errorCode + ",message=" + errorPacket.message);

@@ -17,10 +17,7 @@ import com.meidusa.venus.backend.invoker.support.ServerResponseHandler;
 import com.meidusa.venus.backend.invoker.support.ServerResponseWrapper;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.support.Response;
-import com.meidusa.venus.exception.DefaultVenusException;
-import com.meidusa.venus.exception.ExceptionLevel;
-import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.exception.XmlVenusExceptionFactory;
+import com.meidusa.venus.exception.*;
 import com.meidusa.venus.io.handler.VenusServerMessageHandler;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.*;
@@ -172,23 +169,10 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
             if(logger.isErrorEnabled()){
                 logger.error("handle error.",t);
             }
-            result = new Result();
-            int errorCode = XmlVenusExceptionFactory.getInstance().getErrorCode(t.getClass());
-            if(errorCode != 0){//自定义异常
-                result.setErrorCode(errorCode);
-                result.setErrorMessage(t.getMessage());
-                result.setException(t);
-            }else{//jdk内置异常
-                DefaultVenusException ex = new DefaultVenusException(t.getMessage(),t);
-                result.setErrorCode(ex.getErrorCode());
-                result.setErrorMessage(ex.getMessage());
-                result.setException(ex);
-            }
+            result = buildResult(t);
         }
 
-        // 输出响应
-        // 1、将exception转化为errorPacket方式输出
-        // 2、对于rpcException包装异常输出其原始异常，因client不升级可能不存在类定义
+        // 输出响应，将exception转化为errorPacket方式输出
         try {
             ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
 
@@ -561,6 +545,68 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
         RequestInfo requestInfo = requestHandler.getRequestInfo(packetSerializeType, routerPacket, rpcInvocation);
         RequestContext requestContext = requestHandler.createContext(requestInfo, endpoint, request);
         return requestContext;
+    }
+
+    /**
+     * 将异常转化为result
+     * @param t
+     * @return
+     */
+    Result buildResult(Throwable t){
+        Result result = new Result();
+        //将rpcException包装异常转化为v3内置异常
+        Throwable ex = restoreExceptions(t);
+
+        int errorCode = XmlVenusExceptionFactory.getInstance().getErrorCode(ex.getClass());
+        if(errorCode != 0){//自定义异常
+            result.setErrorCode(errorCode);
+            result.setErrorMessage(ex.getMessage());
+            result.setException(ex);
+        }else{//内置异常
+            //包装为venus默认异常，以便到client能还原异常信息
+            DefaultVenusException dex = new DefaultVenusException(VenusExceptionCodeConstant.UNKNOW_EXCEPTION,ex.getMessage(),ex);
+            result.setErrorCode(dex.getErrorCode());
+            result.setErrorMessage(dex.getMessage());
+            result.setException(dex);
+        }
+        return result;
+    }
+
+    /**
+     * 将rpcExcpetion包装异常转换为V3版本已内置异常，为不兼容升级
+     * @param t
+     * @return
+     */
+    Throwable restoreExceptions(Throwable t){
+        Throwable ex = null;
+        for(int i=0;i<10;i++){
+            ex = restoreException(t);
+            if(ex != null && ex instanceof RpcException){
+                ex = restoreException(ex);
+            }else{
+                break;
+            }
+        }
+        return ex;
+    }
+
+    /**
+     * 将rpcExcpetion包装异常转换为V3版本已内置异常，为不兼容升级
+     * @param t
+     * @return
+     */
+    Throwable restoreException(Throwable t){
+        if(t instanceof RpcException){
+            RpcException rex = (RpcException)t;
+            if(rex.getCause() != null){
+                return rex.getCause();
+            }else{
+                DefaultVenusException dex = new DefaultVenusException(rex.getCode(),rex.getMessage());
+                return dex;
+            }
+        }else{
+            return t;
+        }
     }
 
     protected void logPerformance(Endpoint endpoint,String traceId,String apiName,long queuedTime,
