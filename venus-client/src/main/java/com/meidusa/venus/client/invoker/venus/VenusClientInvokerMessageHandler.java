@@ -28,6 +28,7 @@ import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.support.ErrorPacketConvert;
 import com.meidusa.venus.util.JSONUtil;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import com.meidusa.venus.util.VenusTracerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,10 @@ import java.util.concurrent.*;
 public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler implements MessageHandler<VenusBackendConnection, byte[]> {
 
     private static Logger logger = LoggerFactory.getLogger(VenusClientInvokerMessageHandler.class);
+
+    private static Logger tracerLogger = VenusLoggerFactory.getClientTracerLogger();
+
+    private static Logger exceptionLogger = VenusLoggerFactory.getClientExceptionLogger();
 
     /**
      * rpcId-请求&响应映射表
@@ -143,23 +148,22 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         try {
             ErrorPacket errorPacket = new ErrorPacket();
             errorPacket.init(message);
-            if(logger.isInfoEnabled()){
-                logger.info("recv error response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(errorPacket), JSONUtil.toJSONString(errorPacket));
+            String rpcId = RpcIdUtil.getRpcId(errorPacket);
+            if(tracerLogger.isInfoEnabled()){
+                tracerLogger.info("recv error message,rpcId:{}.",rpcId);
             }
 
-            String rpcId = RpcIdUtil.getRpcId(errorPacket);
             reqRespWrapper = serviceReqRespMap.get(rpcId);
             if(reqRespWrapper == null){
-                //TODO 处理此种情况，记录异常？
+                if(exceptionLogger.isErrorEnabled()){
+                    exceptionLogger.error("handle error message failed,rpcId:{},reason:{}.",rpcId,"Already handled.");
+                }
                 return;
             }
 
             Throwable exception = ErrorPacketConvert.toExceptionFromErrorPacket(errorPacket,serializer, XmlVenusExceptionFactory.getInstance());
             reqRespWrapper.setResult(new Result().setException(exception));
         } catch (Exception e) {
-            if(logger.isErrorEnabled()){
-                logger.error("recv and handle error message error.",e);
-            }
             reqRespWrapper.setResult(new Result().setException(e));
         } finally {
             if(reqRespWrapper != null){
@@ -180,9 +184,16 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         try {
             AbstractServicePacket packet = parseServicePacket(message);
             String rpcId = RpcIdUtil.getRpcId(packet);
+            if(tracerLogger.isInfoEnabled()){
+                tracerLogger.info("recv reponse message,rpcId:{}.",rpcId);
+            }
+
             //获取clientId/clientRequestId，用于获取invocation请求信息
             reqRespWrapper = serviceReqRespMap.get(rpcId);
             if(reqRespWrapper == null){
+                if(exceptionLogger.isErrorEnabled()){
+                    exceptionLogger.error("handle response message failed,rpcId:{},reason:{}.",rpcId,"Already handled.");
+                }
                 return;
             }
 
@@ -191,25 +202,13 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             ServiceResponsePacket responsePacket = new SerializeServiceResponsePacket(serializer, syncInvocation.getMethod().getGenericReturnType());
             responsePacket.init(message);
 
-            if(isEnableRandomPrint){
-                if(ThreadLocalRandom.current().nextInt(100000) > 99995){
-                    if(logger.isErrorEnabled()){
-                        logger.error("recv resp response,rpcId:{},thread:{},instance:{}.",rpcId,Thread.currentThread(),this);
-                    }
-                }
-            }
             //添加rpcId->response映射表
             reqRespWrapper.setResult(new Result(responsePacket.result));
         } catch (Exception e) {
-            if(logger.isErrorEnabled()){
-                logger.error("recv and handle message error.",e);
-            }
             reqRespWrapper.setResult(new Result().setException(e));
         } finally {
             if(reqRespWrapper != null){
                 reqRespWrapper.getReqRespLatch().countDown();
-            }else{
-                logger.error("#########reqRespWrapper is null########");
             }
         }
     }
@@ -226,21 +225,21 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         try {
             OKPacket okPacket = new OKPacket();
             okPacket.init(message);
-            if(logger.isInfoEnabled()){
-                logger.info("recv ok response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(okPacket),JSONUtil.toJSONString(okPacket));
+            String rpcId = RpcIdUtil.getRpcId(okPacket);
+            if(tracerLogger.isInfoEnabled()){
+                tracerLogger.info("recv ok message,rpcId:{}.",rpcId);
             }
 
-            String rpcId = RpcIdUtil.getRpcId(okPacket);
             reqRespWrapper = serviceReqRespMap.get(rpcId);
             if(reqRespWrapper == null){
+                if(exceptionLogger.isErrorEnabled()){
+                    exceptionLogger.error("handle error message failed,rpcId:{},reason:{}.",rpcId,"Already handled.");
+                }
                 return;
             }
 
             reqRespWrapper.setResult(new Result(null));
         } catch (Exception e) {
-            if(logger.isErrorEnabled()){
-                logger.error("recv and handle message error.",e);
-            }
             reqRespWrapper.setResult(new Result().setException(e));
         } finally {
             if(reqRespWrapper != null){
@@ -261,6 +260,10 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
 
         try {
             rpcId = RpcIdUtil.getRpcId(parseServicePacket(message));
+            if(tracerLogger.isInfoEnabled()){
+                tracerLogger.info("recv notify message,rpcId:{}.",rpcId);
+            }
+
             asyncInvocation = serviceReqCallbackMap.get(rpcId);
 
             ServicePacketBuffer buffer = new ServicePacketBuffer(message);
@@ -270,11 +273,6 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             int identityHashCode = buffer.readInt();
             SerializeServiceNofityPacket nofityPacket = new SerializeServiceNofityPacket(serializer, asyncInvocation.getType());
             nofityPacket.init(message);
-
-            if(logger.isInfoEnabled()){
-                logger.info("recv notify response,rpcId:{},response:{}.",RpcIdUtil.getRpcId(nofityPacket),JSONUtil.toJSONString(nofityPacket));
-            }
-            VenusTracerUtil.logRequest(nofityPacket.traceId, nofityPacket.apiName);
 
             if (nofityPacket.errorCode != 0) {
                 Throwable t = ErrorPacketConvert.toExceptionFromNotifyPacket(nofityPacket,serializer,XmlVenusExceptionFactory.getInstance());
@@ -289,9 +287,6 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 asyncInvocation.getInvocationListener().callback(nofityPacket.callbackObject);
             }
         } catch (Exception e) {
-            if(logger.isErrorEnabled()){
-                logger.error("recv and handle message error.",e);
-            }
             asyncInvocation.getInvocationListener().onException(e);
         } finally {
             if(rpcId != null && asyncInvocation != null){

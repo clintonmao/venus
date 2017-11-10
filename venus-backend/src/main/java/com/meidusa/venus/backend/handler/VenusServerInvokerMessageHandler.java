@@ -47,23 +47,11 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
     private static Logger logger = LoggerFactory.getLogger(VenusServerInvokerMessageHandler.class);
 
-    private static Logger performanceLogger = LoggerFactory.getLogger("venus.backend.performance");
-
-    private static Logger performancePrintResultLogger = LoggerFactory.getLogger("venus.backend.print.result");
-
-    private static Logger performancePrintParamsLogger = LoggerFactory.getLogger("venus.backend.print.params");
-
     private static Logger tracerLogger = VenusLoggerFactory.getBackendTracerLogger();
 
     private static Logger exceptionLogger = VenusLoggerFactory.getBackendExceptionLogger();
 
-    private static Logger INVOKER_LOGGER = LoggerFactory.getLogger("venus.service.invoker");
-
-    private static final String TIMEOUT = "waiting-timeout for execution,api=%s,ip=%s,time=%d (ms)";
-
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
-
-    private static String ENDPOINT_INVOKED_TIME = "invoked Total Time: ";
 
     private byte[] traceID;
 
@@ -83,8 +71,6 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
      * 服务调用代理
      */
     private VenusServerInvokerProxy venusServerInvokerProxy = new VenusServerInvokerProxy();
-
-    private static boolean isEnableRandomPrint = true;
 
     @Override
     public void init() throws InitialisationException {
@@ -378,79 +364,6 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
         return request;
     }
 
-//    SerializeServiceRequestPacket parseRequest(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
-//        final long waitTime = TimeUtil.currentTimeMillis() - data.left;
-//        byte[] message = data.right;
-//        int type = AbstractServicePacket.getType(message);
-//        byte serializeType = conn.getSerializeType();
-//        String sourceIp = conn.getHost();
-//        VenusRouterPacket routerPacket = null;
-//        if (PacketConstant.PACKET_TYPE_ROUTER == type) {
-//            routerPacket = new VenusRouterPacket();
-//            routerPacket.original = message;
-//            routerPacket.init(message);
-//            type = AbstractServicePacket.getType(routerPacket.data);
-//            message = routerPacket.data;
-//            serializeType = routerPacket.serializeType;
-//            sourceIp = InetAddressUtil.intToAddress(routerPacket.srcIP);
-//        }
-//
-//        SerializeServiceRequestPacket request = null;
-//        Endpoint ep = null;
-//        ServiceAPIPacket apiPacket = new ServiceAPIPacket();
-//        try {
-//            ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
-//            apiPacket.init(packetBuffer);
-//
-//            ep = getServiceManager().getEndpoint(apiPacket.apiName);
-//
-//            Serializer serializer = SerializerFactory.getSerializer(serializeType);
-//            request = new SerializeServiceRequestPacket(serializer, ep.getParameterTypeDict());
-//
-//            packetBuffer.setPosition(0);
-//            request.init(packetBuffer);
-//            VenusTracerUtil.logReceive(request.traceId, request.apiName, JSON.toJSONString(request.parameterMap,JSON_FEATURE) );
-//
-//            return request;
-//        } catch (Exception e) {
-//            ErrorPacket error = new ErrorPacket();
-//            AbstractServicePacket.copyHead(apiPacket, error);
-//            if (e instanceof CodedException || codeMap.containsKey(e.getClass())) {
-//                if(e instanceof CodedException){
-//                    CodedException codeEx = (CodedException) e;
-//                    error.errorCode = codeEx.getErrorCode();
-//                }else{
-//                    error.errorCode = codeMap.get(e.getClass());
-//                }
-//            } else {
-//                if (e instanceof JSONException || e instanceof SerializeException) {
-//                    error.errorCode = VenusExceptionCodeConstant.REQUEST_ILLEGAL;
-//                } else {
-//                    error.errorCode = VenusExceptionCodeConstant.UNKNOW_EXCEPTION;
-//                }
-//            }
-//            error.message = e.getMessage();
-//
-//            if(request != null){
-//                logPerformance(ep,request.traceId == null ? UUID.toString(PacketConstant.EMPTY_TRACE_ID) : UUID.toString(request.traceId),apiPacket.apiName,waitTime,0,conn.getHost(),sourceIp,request.clientId,request.clientRequestId,request.parameterMap, error);
-//
-//                if (e instanceof VenusExceptionLevel) {
-//                    if (((VenusExceptionLevel) e).getLevel() != null) {
-//                        logDependsOnLevel(((VenusExceptionLevel) e).getLevel(), logger, e.getMessage() + " client:{clientID=" + apiPacket.clientId
-//                                + ",ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + sourceIp + ", apiName=" + apiPacket.apiName
-//                                + "}", e);
-//                    }
-//                } else {
-//                    logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + sourceIp + ", apiName="+ apiPacket.apiName + "]", e);
-//                }
-//            }else{
-//                logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + sourceIp + ", apiName="+ apiPacket.apiName + "]", e);
-//            }
-//
-//            throw new ErrorPacketWrapperException(error);
-//        }
-//
-//    }
 
     /**
      * 解析endpoint
@@ -488,74 +401,6 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
         return ep;
     }
 
-//    Endpoint parseEndpoint(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
-//        final long waitTime = TimeUtil.currentTimeMillis() - data.left;
-//        byte[] message = data.right;
-//        int type = AbstractServicePacket.getType(message);
-//        VenusRouterPacket routerPacket = null;
-//        byte serializeType = conn.getSerializeType();
-//        String sourceIp = conn.getHost();
-//        if (PacketConstant.PACKET_TYPE_ROUTER == type) {
-//            routerPacket = new VenusRouterPacket();
-//            routerPacket.original = message;
-//            routerPacket.init(message);
-//            type = AbstractServicePacket.getType(routerPacket.data);
-//            message = routerPacket.data;
-//            serializeType = routerPacket.serializeType;
-//            sourceIp = InetAddressUtil.intToAddress(routerPacket.srcIP);
-//        }
-//        final byte packetSerializeType = serializeType;
-//        final String finalSourceIp = sourceIp;
-//
-//        SerializeServiceRequestPacket request = null;
-//        Endpoint ep = null;
-//        ServiceAPIPacket apiPacket = new ServiceAPIPacket();
-//        try {
-//            ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
-//            apiPacket.init(packetBuffer);
-//
-//            ep = getServiceManager().getEndpoint(apiPacket.apiName);
-//
-//            return ep;
-//        } catch (Exception e) {
-//            ErrorPacket error = new ErrorPacket();
-//            AbstractServicePacket.copyHead(apiPacket, error);
-//            if (e instanceof CodedException || codeMap.containsKey(e.getClass())) {
-//                if(e instanceof CodedException){
-//                    CodedException codeEx = (CodedException) e;
-//                    error.errorCode = codeEx.getErrorCode();
-//                }else{
-//                    error.errorCode = codeMap.get(e.getClass());
-//                }
-//            } else {
-//                if (e instanceof JSONException || e instanceof SerializeException) {
-//                    error.errorCode = VenusExceptionCodeConstant.REQUEST_ILLEGAL;
-//                } else {
-//                    error.errorCode = VenusExceptionCodeConstant.UNKNOW_EXCEPTION;
-//                }
-//            }
-//            error.message = e.getMessage();
-//
-//            if(request != null){
-//                logPerformance(ep,request.traceId == null ? UUID.toString(PacketConstant.EMPTY_TRACE_ID) : UUID.toString(request.traceId),apiPacket.apiName,waitTime,0,conn.getHost(),finalSourceIp,request.clientId,request.clientRequestId,request.parameterMap, error);
-//
-//                if (e instanceof VenusExceptionLevel) {
-//                    if (((VenusExceptionLevel) e).getLevel() != null) {
-//                        logDependsOnLevel(((VenusExceptionLevel) e).getLevel(), logger, e.getMessage() + " client:{clientID=" + apiPacket.clientId
-//                                + ",ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + finalSourceIp + ", apiName=" + apiPacket.apiName
-//                                + "}", e);
-//                    }
-//                } else {
-//                    logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + finalSourceIp + ", apiName="+ apiPacket.apiName + "]", e);
-//                }
-//            }else{
-//                logger.error(e.getMessage() + " [ip=" + conn.getHost() + ":" + conn.getPort() + ",sourceIP=" + finalSourceIp + ", apiName="+ apiPacket.apiName + "]", e);
-//            }
-//
-//            throw new ErrorPacketWrapperException(error);
-//        }
-//
-//    }
 
     /**
      * 设置invocationListener回调参数
@@ -619,7 +464,7 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
     Result buildResult(Throwable t){
         Result result = new Result();
         //将rpcException包装异常转化为v3内置异常
-        Throwable ex = restoreExceptions(t);
+        Throwable ex = restoreException(t);
 
         int errorCode = XmlVenusExceptionFactory.getInstance().getErrorCode(ex.getClass());
         if(errorCode != 0){//自定义异常
@@ -641,24 +486,6 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
      * @param t
      * @return
      */
-    Throwable restoreExceptions(Throwable t){
-        Throwable ex = null;
-        for(int i=0;i<10;i++){
-            ex = restoreException(t);
-            if(ex != null && ex instanceof RpcException){
-                ex = restoreException(ex);
-            }else{
-                break;
-            }
-        }
-        return ex;
-    }
-
-    /**
-     * 将rpcExcpetion包装异常转换为V3版本已内置异常，为不兼容升级
-     * @param t
-     * @return
-     */
     Throwable restoreException(Throwable t){
         if(t instanceof RpcException){
             RpcException rex = (RpcException)t;
@@ -670,135 +497,6 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
             }
         }else{
             return t;
-        }
-    }
-
-    protected void logPerformance(Endpoint endpoint,String traceId,String apiName,long queuedTime,
-                                  long executTime,String remoteIp,String sourceIP, long clientId,long requestId,
-                                  Map<String,Object > parameterMap,Object result){
-        StringBuilder buffer = new StringBuilder();
-        buffer.append("[").append(queuedTime).append(",").append(executTime).append("]ms, (*server*) traceID=").append(traceId).append(", api=").append(apiName).append(", ip=")
-                .append(remoteIp).append(", sourceIP=").append(sourceIP).append(", clientID=")
-                .append(clientId).append(", requestID=").append(requestId);
-
-        PerformanceLogger pLevel = null;
-
-        if(endpoint != null){
-            pLevel = endpoint.getPerformanceLogger();
-        }
-
-        if (pLevel != null) {
-
-            if (pLevel.isPrintParams()) {
-                buffer.append(", params=");
-                buffer.append(JSON.toJSONString(parameterMap,JSON_FEATURE));
-            }
-            if (pLevel.isPrintResult()) {
-                buffer.append(", result=");
-                if(result instanceof ErrorPacket){
-                    buffer.append("{ errorCode=").append(((ErrorPacket) result).errorCode);
-                    buffer.append(", message=").append(((ErrorPacket) result).message);
-                    buffer.append("}");
-                }else if(result instanceof Response){
-                    if(((Response) result).getErrorCode()>0){
-                        buffer.append("{ errorCode=").append(((Response) result).getErrorCode());
-                        buffer.append(", message=\"").append(((Response) result).getErrorMessage()).append("\"");
-                        buffer.append(", className=\"").append(((Response) result).getException().getClass().getSimpleName()).append("\"");
-                        buffer.append("}");
-                    }else{
-                        buffer.append(JSON.toJSONString(result,JSON_FEATURE));
-                    }
-                }
-            }
-
-            if (queuedTime >= pLevel.getError() || executTime >= pLevel.getError() || queuedTime + executTime >= pLevel.getError()) {
-                if (performanceLogger.isErrorEnabled()) {
-                    performanceLogger.error(buffer.toString());
-                }
-            } else if (queuedTime >= pLevel.getWarn() || executTime >= pLevel.getWarn() || queuedTime + executTime >= pLevel.getWarn()) {
-                if (performanceLogger.isWarnEnabled()) {
-                    performanceLogger.warn(buffer.toString());
-                }
-            } else if (queuedTime >= pLevel.getInfo() || executTime >= pLevel.getInfo() || queuedTime + executTime >= pLevel.getInfo()) {
-                if (performanceLogger.isInfoEnabled()) {
-                    performanceLogger.info(buffer.toString());
-                }
-            } else {
-                if (performanceLogger.isDebugEnabled()) {
-                    performanceLogger.debug(buffer.toString());
-                }
-            }
-
-        } else {
-            buffer.append(", params=");
-            if (performancePrintParamsLogger.isDebugEnabled()) {
-                buffer.append(JSON.toJSONString(parameterMap,JSON_FEATURE));
-            }else{
-                buffer.append("{print.params:disabled}");
-            }
-
-            if (result == null) {
-                buffer.append(", result=<null>");
-            } else {
-                buffer.append(", result=");
-                if(result instanceof ErrorPacket){
-                    buffer.append("{ errorCode=").append(((ErrorPacket) result).errorCode);
-                    buffer.append(", message=").append(((ErrorPacket) result).message);
-                    buffer.append("}");
-                }else if(result instanceof Response){
-                    if(((Response) result).getErrorCode()>0){
-                        buffer.append("{errorCode=").append(((Response) result).getErrorCode());
-                        buffer.append(", message=\"").append(((Response) result).getErrorMessage()).append("\"");
-                        buffer.append(", className=\"").append(((Response) result).getException().getClass().getSimpleName()).append("\"");
-                        buffer.append("}");
-                    }else{
-                        if (performancePrintResultLogger.isDebugEnabled()) {
-                            buffer.append(JSON.toJSONString(result,new SerializerFeature[]{SerializerFeature.ShortString}));
-                        }else{
-                            buffer.append("{print.result:disabled}");
-                        }
-                    }
-                }
-            }
-            if (queuedTime >= 5 * 1000 || executTime >= 5 * 1000 || queuedTime + executTime >= 5 * 1000) {
-                if (performanceLogger.isErrorEnabled()) {
-                    performanceLogger.error(buffer.toString());
-                }
-            } else if (queuedTime >= 3 * 1000 || executTime >= 3 * 1000 || queuedTime + executTime >= 3 * 1000) {
-                if (performanceLogger.isWarnEnabled()) {
-                    performanceLogger.warn(buffer.toString());
-                }
-            } else if (queuedTime >= 1 * 1000 || executTime >= 1 * 1000 || queuedTime + executTime >= 1 * 1000) {
-                if (performanceLogger.isInfoEnabled()) {
-                    performanceLogger.info(buffer.toString());
-                }
-            } else {
-                if (performanceLogger.isDebugEnabled()) {
-                    performanceLogger.debug(buffer.toString());
-                }
-            }
-        }
-    }
-
-    private void logDependsOnLevel(ExceptionLevel level, Logger specifiedLogger, String msg, Throwable e) {
-        switch (level) {
-            case DEBUG:
-                specifiedLogger.debug(msg, e);
-                break;
-            case INFO:
-                specifiedLogger.info(msg, e);
-                break;
-            case TRACE:
-                specifiedLogger.trace(msg, e);
-                break;
-            case WARN:
-                specifiedLogger.warn(msg, e);
-                break;
-            case ERROR:
-                specifiedLogger.error(msg, e);
-                break;
-            default:
-                break;
         }
     }
 

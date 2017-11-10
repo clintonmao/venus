@@ -5,6 +5,7 @@ import com.meidusa.venus.backend.invoker.support.ServerResponseWrapper;
 import com.meidusa.venus.backend.invoker.support.ServerResponseHandler;
 import com.meidusa.venus.ServerInvocation;
 import com.meidusa.venus.util.JSONUtil;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +22,10 @@ import com.meidusa.venus.notify.ReferenceInvocationListener;
 public class VenusServerInvocationListener<T> implements InvocationListener<T> {
 
     private static Logger logger = LoggerFactory.getLogger(VenusServerInvocationListener.class);
+
+    private static Logger tracerLogger = VenusLoggerFactory.getBackendTracerLogger();
+
+    private static Logger exceptionLogger = VenusLoggerFactory.getBackendExceptionLogger();
 
     private VenusFrontendConnection conn;
 
@@ -54,12 +59,14 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
         Result result = new Result(object);
         ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
         try {
-            if(logger.isInfoEnabled()){
-                logger.info("write notify response,result:{}", JSONUtil.toJSONString(result));
+            if(tracerLogger.isInfoEnabled()){
+                tracerLogger.info("write notify callback response,rpcId:{}.",invocation.getRpcId());
             }
             responseHandler.writeResponseForNotify(responseEntityWrapper);
         } catch (Exception e) {
-            logger.error("response callback error.",e);
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("write callback response error.",e);
+            }
         }
     }
 
@@ -69,12 +76,14 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
         result.setException(e);
         ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
         try {
-            if(logger.isInfoEnabled()){
-                logger.info("write notify response,result:{}", JSONUtil.toJSONString(result));
+            if(tracerLogger.isInfoEnabled()){
+                tracerLogger.info("write notify exception response,rpcId:{}.",invocation.getRpcId());
             }
             responseHandler.writeResponseForNotify(responseEntityWrapper);
         } catch (Exception ex) {
-            logger.error("response onException error.",ex);
+            if(exceptionLogger.isErrorEnabled()){
+                logger.error("write exception response error.",ex);
+            }
         }
     }
 

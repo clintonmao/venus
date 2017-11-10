@@ -1,6 +1,5 @@
 package com.meidusa.venus.client.invoker.venus;
 
-import com.meidusa.fastjson.JSON;
 import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.toolkit.net.*;
 import com.meidusa.toolkit.util.TimeUtil;
@@ -23,9 +22,11 @@ import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
-import com.meidusa.venus.support.*;
-import com.meidusa.venus.util.UUID;
-import com.meidusa.venus.util.VenusTracerUtil;
+import com.meidusa.venus.support.EndpointWrapper;
+import com.meidusa.venus.support.ServiceWrapper;
+import com.meidusa.venus.support.VenusThreadContext;
+import com.meidusa.venus.support.VenusUtil;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +39,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 /**
  * venus协议服务调用实现
@@ -48,7 +52,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     private static Logger logger = LoggerFactory.getLogger(VenusClientInvoker.class);
 
-    private static Logger performanceLogger = LoggerFactory.getLogger("venus.client.performance");
+    private static Logger tracerLogger = VenusLoggerFactory.getClientTracerLogger();
 
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
 
@@ -202,36 +206,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         if(result == null){
             throw new RpcException(RpcException.TIMEOUT_EXCEPTION,String.format("invoke service:%s,timeout:%dms",url.getPath(),timeout));
         }
-
-        if(isEnableRandomPrint){
-            if(ThreadLocalRandom.current().nextInt(100000) > 99995){
-                if(logger.isInfoEnabled()){
-                    logger.info("build,send->fecth cost time:{}.",System.currentTimeMillis()-bWaitTime);
-                }
-            }
-        }
         return result;
-    }
-
-    /**
-     * mock接收处理线程
-     */
-    class MockReturnProcess implements Runnable{
-
-        VenusReqRespWrapper reqRespWrapper;
-
-        public MockReturnProcess(VenusReqRespWrapper reqRespWrapper){
-            this.reqRespWrapper = reqRespWrapper;
-        }
-
-        @Override
-        public void run() {
-            try {
-                reqRespWrapper.setResult(null);
-            } finally {
-                reqRespWrapper.getReqRespLatch().countDown();
-            }
-        }
     }
 
     /**
@@ -328,6 +303,8 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         byte[] traceID = invocation.getTraceID();
         BackendConnectionPool nioConnPool = null;
         BackendConnection conn = null;
+        String rpcId = invocation.getRpcId();
+        Throwable exception = null;
         try {
             //获取连接
             //TODO 心跳处理确认
@@ -348,23 +325,44 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             VenusThreadContext.set(VenusThreadContext.CLIENT_OUTPUT_SIZE,Integer.valueOf(buffer.limit()));
 
             conn.write(buffer);
-            VenusTracerUtil.logRequest(traceID, serviceRequestPacket.apiName, JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
         } catch (RpcException e){
+            exception = e;
             throw e;
         }catch (Throwable e){
+            exception = e;
             throw new RpcException(e);
         }finally {
-            if (performanceLogger.isDebugEnabled()) {
-                long end = TimeUtil.currentTimeMillis();
-                long time = end - borrowed;
-                StringBuilder buffer = new StringBuilder();
-                buffer.append("[").append(borrowed - start).append(",").append(time).append("]ms (client-callback) traceID=").append(UUID.toString(traceID)).append(", api=").append(serviceRequestPacket.apiName);
-
-                performanceLogger.debug(buffer.toString());
-            }
-
+            //返连接
             if (conn != null && nioConnPool != null) {
                 nioConnPool.returnObject(conn);
+            }
+
+            //打印trace logger
+            long connTime = borrowed - start;
+            long totalTime = System.currentTimeMillis() - start;
+            if(exception != null){
+                if (tracerLogger.isErrorEnabled()) {
+                    String tpl = "send request failed,rpcId:{},methodPath:{},target:{},used time:{},exception:{}.";
+                    Object[] arguments = new Object[]{
+                            rpcId,
+                            invocation.getMethodPath(),
+                            url.getHost(),
+                            "[" + totalTime + "," + connTime + "]",
+                            exception
+                    };
+                    tracerLogger.error(tpl,arguments);
+                }
+            }else{
+                if(tracerLogger.isInfoEnabled()){
+                    String tpl = "send request success,rpcId:{},methodPath:{},target:{},used time:{}ms.";
+                    Object[] arguments = new Object[]{
+                            rpcId,
+                            invocation.getMethodPath(),
+                            url.getHost(),
+                            "[" + totalTime + "," + connTime + "]"
+                    };
+                    tracerLogger.info(tpl,arguments);
+                }
             }
         }
     }
@@ -442,12 +440,16 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         if(!isValid){
             boolean isClosed = nioPool.isClosed();
             if(!isClosed){
-                logger.warn("connection pool is invalid,close connection pool.");
+                if(logger.isWarnEnabled()){
+                    logger.warn("connection pool is invalid,close connection pool.");
+                }
                 try {
                     nioPool.close();
                 } catch (Exception e) {
                     //捕获关闭异常，避免影响处理流程
-                    logger.error("close invalid connection pool error.");
+                    if(logger.isErrorEnabled()){
+                        logger.error("close invalid connection pool error.");
+                    }
                 }
             }
             throw new RpcException(RpcException.NETWORK_EXCEPTION,"init connection pool failed.");

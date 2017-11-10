@@ -204,22 +204,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                     exportService.setActive(true);
                     exportService.setInstance(refBean);
                 }
-                /*
-                ConfigurableListableBeanFactory cbf = (ConfigurableListableBeanFactory) beanFactory;
-                if(CollectionUtils.isNotEmpty(venusServerConfig.getExportServices())){
-                    for(ExportService serviceConfig : venusServerConfig.getExportServices()){
-                        if(serviceConfig.getInstance() == null){
-                            Object serivceInstance = beanFactory.getBean(serviceConfig.getType());
-                            if(serivceInstance == null){
-                                String errorMsg = String.format("init venus config instance %s error.",serviceConfig.getType().getName());
-                                throw new VenusConfigException(errorMsg);
-                            }
-                            serviceConfig.setInstance(serivceInstance);
-                        }
-                    }
-
-                }
-                */
                 serviceConfigList.addAll(venusServerConfig.getExportServices());
                 if(venusServerConfig.getInterceptors() != null){
                     interceptors.putAll(venusServerConfig.getInterceptors());
@@ -258,34 +242,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         beanDefinition.setConstructorArgumentValues(args);
         beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
         reg.registerBeanDefinition(beanName, beanDefinition);
-    }
-    */
-
-    /**
-     * 添加服务监听实例配置
-     * @param serviceConfigList
-     */
-    /*
-    void addMonitorServiceConfig(List<ExportService> serviceConfigList){
-        ExportService monitorServiceConfig = new ExportService();
-        monitorServiceConfig.setActive(true);
-        //monitorServiceConfig.setType(MonitorService.class);
-        //monitorServiceConfig.setInstance(new VenusMonitorService());
-        //serviceConfigList.add(monitorServiceConfig);
-    }
-    */
-
-    /**
-     * 添加服务注册实例配置
-     * @param serviceConfigList
-     */
-    /*
-    void addRegistryServiceConfig(List<ExportService> serviceConfigList) {
-        ExportService registerServiceConfig = new ExportService();
-        registerServiceConfig.setActive(true);
-        //registerServiceConfig.setType(ServiceRegistry.class);
-        //registerServiceConfig.setInstance(new VenusServiceRegistry(getServiceMappings()));
-        //serviceConfigList.add(registerServiceConfig);
     }
     */
 
