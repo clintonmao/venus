@@ -267,12 +267,14 @@ public class MysqlRegisterService implements RegisterService {
 		for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
 			VenusServiceDO service = iterator.next();
 		if (null == service && url.isConsumerCheck()) {// 服务不存在并且配置了检测则抛出异常
-			logger.error("服务订阅异常,原因:服务{}不存在 ", url.getServiceName());
-			throw new VenusRegisteException("服务订阅异常,原因:服务" + url.getServiceName() + "不存在");
+			String name=log_service_name(url);
+			logger.error("服务订阅异常,原因:服务{}不存在 ", name);
+			throw new VenusRegisteException("服务订阅异常,原因:服务" + name + "不存在");
 		}
 		if (service.getIsDelete() && url.isConsumerCheck()) {// 服务不存在并且配置了检测则抛出异常
-			logger.error("服务订阅异常,原因:服务{}已删除", url.getServiceName());
-			throw new VenusRegisteException("服务订阅异常,原因:服务" + url.getServiceName() + "不存在");
+			String name=log_service_name(url);
+			logger.error("服务订阅异常,原因:服务{}已删除", name);
+			throw new VenusRegisteException("服务订阅异常,原因:服务" + name + "不存在");
 		}
 		String appCode = url.getApplication();
 		int appId = 0;
@@ -403,7 +405,7 @@ public class MysqlRegisterService implements RegisterService {
 			}
 		} catch (Exception e) {
 			logger.error("findServiceDefinitions调用异常,url=>{},异常原因：{}", url, e);
-			throw new VenusRegisteException("findServiceDefinitions调用异常,服务名：" + url.getServiceName(), e);
+			throw new VenusRegisteException("findServiceDefinitions调用异常,服务名：" + log_service_name(url), e);
 		}
 		return returnList;
 	}
@@ -507,8 +509,9 @@ public class MysqlRegisterService implements RegisterService {
 						serverID, RegisteConstant.CONSUMER, update, new Date(), url);
 			}
 		} catch (Exception e) {
-			logger.error("服务{}subscrible更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);
-			throw new VenusRegisteException("subscrible更新heartBeatTime异常,服务名：" + url.getServiceName(), e);
+			String name=log_service_name(url);
+			logger.error("服务{}subscrible更新heartBeatTime异常 ,异常原因：{}", name, e);
+			throw new VenusRegisteException("subscrible更新heartBeatTime异常,服务名：" + name, e);
 		}
 
 	}
@@ -526,8 +529,9 @@ public class MysqlRegisterService implements RegisterService {
 						RegisteConstant.PROVIDER, update, new Date(), url);
 			}
 		} catch (Exception e) {
-			logger.error("服务{}registe更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);
-			throw new VenusRegisteException("registe更新heartBeatTime异常,服务名：" + url.getServiceName(), e);
+			String name=log_service_name(url);
+			logger.error("服务{}registe更新heartBeatTime异常 ,异常原因：{}", name, e);
+			throw new VenusRegisteException("registe更新heartBeatTime异常,服务名：" + name, e);
 		}
 
 	}
@@ -542,7 +546,7 @@ public class MysqlRegisterService implements RegisterService {
 				logic_mapping_ids.add(mapping.getId());
 			}
 			if (CollectionUtils.isNotEmpty(logic_mapping_ids)) {
-				logger.info(
+				logger.error(
 						"@@@@@@logicDeleteServiceMappings currentDateTime=>{},logic_mapping_ids=>{},serviceMappings=>{}@@@@@@@",
 						currentDateTime, JSON.toJSONString(logic_mapping_ids, true),
 						JSON.toJSONString(serviceMappings));
@@ -561,7 +565,7 @@ public class MysqlRegisterService implements RegisterService {
 			}
 
 			if (CollectionUtils.isNotEmpty(delete_mapping_ids)) {
-				logger.info("@@@@@@currentDateTime=>{},delete_mapping_ids=>{},serviceMappings=>{}@@@@@@@",
+				logger.error("@@@@@@currentDateTime=>{},delete_mapping_ids=>{},serviceMappings=>{}@@@@@@@",
 						currentDateTime, JSON.toJSONString(delete_mapping_ids, true),
 						JSON.toJSONString(needDeleteServiceMappings));
 				venusServiceMappingDAO.deleteServiceMappings(delete_mapping_ids);
@@ -677,5 +681,14 @@ public class MysqlRegisterService implements RegisterService {
 			}
 		}
 	}
-
+	
+	private static String log_service_name(URL url) {
+		String name = "";
+		if (StringUtils.isNotBlank(url.getServiceName()) && !"null".equals(url.getServiceName())) {
+			name = url.getServiceName();
+		} else {
+			name = url.getInterfaceName();
+		}
+		return name;
+	}
 }
