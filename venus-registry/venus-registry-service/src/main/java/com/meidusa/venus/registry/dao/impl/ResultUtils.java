@@ -23,14 +23,14 @@ import com.meidusa.venus.registry.domain.VenusServiceMappingDO;
 public class ResultUtils {
 
 	public final static VenusServerDO resultToVenusServerDO(ResultSet rs) throws SQLException {
-		VenusServerDO venusService = new VenusServerDO();
-		venusService.setId(rs.getInt("id"));
-		venusService.setHostname(rs.getString("hostname"));
-		venusService.setPort(rs.getInt("port"));
+		VenusServerDO venusServer = new VenusServerDO();
+		venusServer.setId(rs.getInt("id"));
+		venusServer.setHostname(rs.getString("hostname"));
+		venusServer.setPort(rs.getInt("port"));
 
-		venusService.setCreateTime(rs.getTimestamp("create_time"));
-		venusService.setUpdateTime(rs.getTimestamp("update_time"));
-		return venusService;
+		venusServer.setCreateTime(rs.getTimestamp("create_time"));
+		venusServer.setUpdateTime(rs.getTimestamp("update_time"));
+		return venusServer;
 	}
 
 	public final static VenusServiceConfigDO resultToVenusServiceConfigDO(ResultSet rs) throws SQLException {
@@ -90,37 +90,37 @@ public class ResultUtils {
 	}
 
 	public final static VenusApplicationDO resultToVenusApplicationDO(ResultSet rs) throws SQLException {
-		VenusApplicationDO venusServiceMapping = new VenusApplicationDO();
-		venusServiceMapping.setId(rs.getInt("id"));
-		venusServiceMapping.setAppCode(rs.getString("app_code"));
-		venusServiceMapping.setProvider(rs.getBoolean("provider"));
+		VenusApplicationDO application = new VenusApplicationDO();
+		application.setId(rs.getInt("id"));
+		application.setAppCode(rs.getString("app_code"));
+		application.setProvider(rs.getBoolean("provider"));
 
-		venusServiceMapping.setConsumer(rs.getBoolean("consumer"));
-		venusServiceMapping.setCreateName(rs.getString("create_name"));
-		venusServiceMapping.setUpdateName(rs.getString("update_name"));
+		application.setConsumer(rs.getBoolean("consumer"));
+		application.setCreateName(rs.getString("create_name"));
+		application.setUpdateName(rs.getString("update_name"));
 
-		venusServiceMapping.setCreateTime(rs.getTimestamp("create_time"));
-		venusServiceMapping.setUpdateTime(rs.getTimestamp("update_time"));
-		return venusServiceMapping;
+		application.setCreateTime(rs.getTimestamp("create_time"));
+		application.setUpdateTime(rs.getTimestamp("update_time"));
+		return application;
 	}
 
 	public final static void setServiceConfigs(List<VenusServiceConfigDO> serviceConfigs) {
 		if (CollectionUtils.isNotEmpty(serviceConfigs)) {
 			for (Iterator<VenusServiceConfigDO> iterator = serviceConfigs.iterator(); iterator.hasNext();) {
-				VenusServiceConfigDO c = iterator.next();
-				int type = c.getType();
+				VenusServiceConfigDO serviceConfig = iterator.next();
+				int type = serviceConfig.getType();
 				// 1- 路由规则，2-流控配置，3-降级配置
 				if (type == 1) {
-					RouterRule routerRule = JSON.parseObject(c.getConfig(), RouterRule.class);
-					c.setRouterRule(routerRule);
+					RouterRule routerRule = JSON.parseObject(serviceConfig.getConfig(), RouterRule.class);
+					serviceConfig.setRouterRule(routerRule);
 				}
 				if (type == 2) {
-					FlowControl flowControl = JSON.parseObject(c.getConfig(), FlowControl.class);
-					c.setFlowControl(flowControl);
+					FlowControl flowControl = JSON.parseObject(serviceConfig.getConfig(), FlowControl.class);
+					serviceConfig.setFlowControl(flowControl);
 				}
 				if (type == 3) {
-					MockConfig mockConfig = JSON.parseObject(c.getConfig(), MockConfig.class);
-					c.setMockConfig(mockConfig);
+					MockConfig mockConfig = JSON.parseObject(serviceConfig.getConfig(), MockConfig.class);
+					serviceConfig.setMockConfig(mockConfig);
 				}
 			}
 		}
@@ -148,19 +148,19 @@ public class ResultUtils {
 	}
 
 	public final static OldServiceDO rsToOldServiceDO(ResultSet rs) throws SQLException {
-		OldServiceDO service = new OldServiceDO();
-		service.setId(rs.getInt("id"));
-		service.setServiceName(rs.getString("service_name"));
-		service.setDescription(rs.getString("description"));
-		return service;
+		OldServiceDO oldService = new OldServiceDO();
+		oldService.setId(rs.getInt("id"));
+		oldService.setServiceName(rs.getString("service_name"));
+		oldService.setDescription(rs.getString("description"));
+		return oldService;
 	}
 
 	public final static OldServerDO rsToOldServerDO(ResultSet rs) throws SQLException {
-		OldServerDO server = new OldServerDO();
-		server.setId(rs.getInt("id"));
-		server.setHostName(rs.getString("hostname"));
-		server.setPort(rs.getInt("port"));
-		return server;
+		OldServerDO oldServer = new OldServerDO();
+		oldServer.setId(rs.getInt("id"));
+		oldServer.setHostName(rs.getString("hostname"));
+		oldServer.setPort(rs.getInt("port"));
+		return oldServer;
 	}
 
 }
