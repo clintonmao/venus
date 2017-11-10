@@ -401,4 +401,20 @@ public class ServerInvocation implements Invocation {
     public void setProviderIp(String providerIp) {
         this.providerIp = providerIp;
     }
+
+    public String getInvokeModel(){
+        return "sync";
+    }
+
+    public String getMethodPath(){
+        return "";
+    }
+
+    public boolean isEnablePrintParam(){
+        return true;
+    }
+
+    public boolean isEnablePrintResult(){
+        return true;
+    }
 }

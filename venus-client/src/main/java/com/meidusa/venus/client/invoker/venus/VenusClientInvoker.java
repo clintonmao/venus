@@ -59,13 +59,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      */
     private ClientRemoteConfig remoteConfig;
 
-    /*
-    private boolean enableAsync = true;
-    private static AtomicLong sequenceId = new AtomicLong(1);
-    private boolean needPing = false;
-    private XmlServiceFactory serviceFactory;
-    */
-
     //nio连接映射表
     private Map<String, BackendConnectionPool> nioPoolMap = new ConcurrentHashMap<String, BackendConnectionPool>();
 
@@ -356,13 +349,10 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
             conn.write(buffer);
             VenusTracerUtil.logRequest(traceID, serviceRequestPacket.apiName, JSON.toJSONString(serviceRequestPacket.parameterMap,JSON_FEATURE));
-        } catch (Throwable e){
-            logger.error("send request error.",e);
-            if(e instanceof RpcException){
-                throw (RpcException)e;
-            }else{
-                throw new RpcException(e);
-            }
+        } catch (RpcException e){
+            throw e;
+        }catch (Throwable e){
+            throw new RpcException(e);
         }finally {
             if (performanceLogger.isDebugEnabled()) {
                 long end = TimeUtil.currentTimeMillis();

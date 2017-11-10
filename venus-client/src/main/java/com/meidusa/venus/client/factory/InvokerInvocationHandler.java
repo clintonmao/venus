@@ -20,7 +20,9 @@ import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.support.EndpointWrapper;
 import com.meidusa.venus.support.ServiceWrapper;
 import com.meidusa.venus.support.VenusContext;
+import com.meidusa.venus.util.JSONUtil;
 import com.meidusa.venus.util.NetUtil;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import com.meidusa.venus.util.VenusTracerUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -42,6 +44,10 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
     private static Logger logger = LoggerFactory.getLogger(InvokerInvocationHandler.class);
 
+    private static Logger tracerLogger = VenusLoggerFactory.getClientTracerLogger();
+
+    private static Logger exceptionLogger = VenusLoggerFactory.getClientExceptionLogger();
+
     /**
      * 服务接口类型
      */
@@ -51,11 +57,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * service工厂
      */
     private ServiceFactory serviceFactory;
-
-    /**
-     * 认证配置
-     */
-    private DummyAuthenticator authenticator;
 
     /**
      * 引用服务配置
@@ -76,44 +77,126 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
     private static AtomicLong sequenceId = new AtomicLong(1);
 
-    static boolean isInited;
-
     public InvokerInvocationHandler(){
-        if(!isInited){
-            init();
-            isInited = true;
-        }
-    }
-
-    /**
-     * 初始化操作
-     */
-    void init(){
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        long bTime = System.currentTimeMillis();
+        ClientInvocation invocation = null;
+        Object object = null;
+        Throwable exception = null;
         try {
             //构造请求
-            ClientInvocation invocation = buildInvocation(proxy, method, args);
+            invocation = buildInvocation(proxy, method, args);
 
             //通过代理调用服务
             Result result = getClientInvokerProxy().invoke(invocation,null);
 
-            if(result.getErrorCode() == 0){//调用成功
-                return result.getResult();
+            //处理结果
+            if(result.getErrorCode() == 0 && result.getException() == null){//调用成功
+                object = result.getResult();
+                return object;
             }else{//调用失败
-                Throwable ex = buildException(result);
-                if(logger.isErrorEnabled()){
-                    logger.error("invoke provider error.",ex);
+                exception = buildException(result);
+                throw exception;
+            }
+        } catch (Throwable t) {
+            exception = t;
+            throw exception;
+        } finally {
+            try {
+                //输出error日志
+                if(exception != null){
+                    printExceptionLogger(invocation,exception,bTime);
                 }
-                throw ex;
+                //输出tracer日志
+                printTracerLogger(invocation,object,exception,bTime);
+            } catch (Exception e) {
+                if(logger.isErrorEnabled()){
+                    logger.error("print logger error.",e);
+                }
             }
-        } catch (Throwable e) {
-            if(logger.isErrorEnabled()){
-                logger.error("invoke error.",e);
-            }
-            throw e;
         }
+    }
+
+    /**
+     * 打印异常日志
+     * @param invocation
+     * @param exception
+     * @param bTime
+     */
+    void printExceptionLogger(ClientInvocation invocation,Throwable exception,long bTime){
+        if(exceptionLogger.isErrorEnabled()){
+            String errorMsg = String.format("invoke exception,rpcId:%s,methodPath:%s.",invocation.getRpcId(),invocation.getMethodPath());
+            exceptionLogger.error(errorMsg,exception);
+        }
+    }
+
+    /**
+     * 输出tracer日志
+     * @param invocation
+     * @param object
+     * @param exception
+     * @param bTime
+     */
+    void printTracerLogger(ClientInvocation invocation,Object object,Throwable exception,long bTime){
+        //构造参数
+        boolean hasException = false;
+        long usedTime = System.currentTimeMillis() - bTime;
+        String invokeModel = invocation.getInvokeModel();
+        String rpcId = invocation.getRpcId();
+        String methodPath = invocation.getMethodPath();
+        String param = "";
+        if(invocation.isEnablePrintParam() && invocation.getArgs() != null){
+            param = JSONUtil.toJSONString(invocation.getArgs());
+        }
+        String result = "";
+        if(invocation.isEnablePrintResult()){
+            if(object != null){
+                result = JSONUtil.toJSONString(object);
+            }else if(exception != null){
+                hasException = true;
+                result = JSONUtil.toJSONString(exception);
+            }
+        }
+        String status = "";
+        if(hasException){
+            status = "failed";
+        }else if(usedTime > 1000){
+            status = "slow>1000ms";
+        }else if(usedTime > 500){
+            status = "slow>500ms";
+        }else if(usedTime > 200){
+            status = "slow>200ms";
+        }else{
+            status = "success";
+        }
+
+        //打印结果
+        String tpl = "{} invoke,rpcId:{},methodPath:{},status:{},used time:{}ms,param:{},result:{}.";
+        Object[] arguments = new Object[]{
+                invokeModel,
+                rpcId,
+                methodPath,
+                status,
+                usedTime,
+                param,
+                result
+        };
+        if(hasException){
+            if(tracerLogger.isErrorEnabled()){
+                tracerLogger.error(tpl,arguments);
+            }
+        }else if(usedTime > 200){
+            if(tracerLogger.isWarnEnabled()){
+                tracerLogger.warn(tpl,arguments);
+            }
+        }else{
+            if(tracerLogger.isInfoEnabled()){
+                tracerLogger.info(tpl,arguments);
+            }
+        }
+
     }
 
     /**
@@ -123,7 +206,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
     public ClientInvokerProxy getClientInvokerProxy() {
         clientInvokerProxy.setRemoteConfig(getRemoteConfig());
         clientInvokerProxy.setRegister(register);
-        clientInvokerProxy.setAuthenticator(getAuthenticator());
         return clientInvokerProxy;
     }
 
@@ -252,14 +334,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
     public void setRemoteConfig(ClientRemoteConfig remoteConfig) {
         this.remoteConfig = remoteConfig;
-    }
-
-    public DummyAuthenticator getAuthenticator() {
-        return authenticator;
-    }
-
-    public void setAuthenticator(DummyAuthenticator authenticator) {
-        this.authenticator = authenticator;
     }
 
     public Register getRegister() {

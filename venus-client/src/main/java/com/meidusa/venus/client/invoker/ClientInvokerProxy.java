@@ -35,11 +35,6 @@ public class ClientInvokerProxy implements Invoker {
     private static Logger logger = LoggerFactory.getLogger(ClientInvokerProxy.class);
 
     /**
-     * 认证配置
-     */
-    private DummyAuthenticator authenticator;
-
-    /**
      * 静态配置地址
      */
     private ClientRemoteConfig remoteConfig;
@@ -118,8 +113,7 @@ public class ClientInvokerProxy implements Invoker {
                 VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
                 return result;
             }else{
-                ClientRemoteInvoker clientRemoteInvoker = getRemoteInvoker();
-                Result result = clientRemoteInvoker.invoke(invocation, url);
+                Result result = getRemoteInvoker().invoke(invocation, url);
                 VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
                 return result;
             }
@@ -271,14 +265,6 @@ public class ClientInvokerProxy implements Invoker {
     @Override
     public void destroy() throws RpcException {
 
-    }
-
-    public DummyAuthenticator getAuthenticator() {
-        return authenticator;
-    }
-
-    public void setAuthenticator(DummyAuthenticator authenticator) {
-        this.authenticator = authenticator;
     }
 
     public ClientRemoteConfig getRemoteConfig() {

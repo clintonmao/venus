@@ -59,12 +59,25 @@
     </appender>
 
     <root level="info">
+        <!--
         <appender-ref ref="APP" />
-         <appender-ref ref="stdout" />
+        -->
+        <appender-ref ref="stdout" />
     </root>
 
     <logger name="venus.report.queue" additivity="false">
         <level value="error"/>
         <appender-ref ref="VENUS"/>
     </logger>
+
+    <logger name="venus.backend.tracer" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="stdout"/>
+    </logger>
+
+    <logger name="venus.backend.exception" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="stdout"/>
+    </logger>
+
 </configuration>

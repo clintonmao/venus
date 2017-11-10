@@ -320,4 +320,16 @@ public class ClientInvocation implements Invocation {
     public void setVersion(String version) {
         this.version = version;
     }
+
+    public boolean isEnablePrintParam(){
+        return true;
+    }
+
+    public boolean isEnablePrintResult(){
+        return true;
+    }
+
+    public String getInvokeModel(){
+        return "sync";
+    }
 }

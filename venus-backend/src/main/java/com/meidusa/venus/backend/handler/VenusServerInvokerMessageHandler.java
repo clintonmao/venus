@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * venus服务端服务调用消息处理
@@ -54,20 +53,9 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
     private static Logger performancePrintParamsLogger = LoggerFactory.getLogger("venus.backend.print.params");
 
-    /*
-    private int threadLiveTime = 30;
-    private boolean executorEnabled = false;
-    private boolean executorProtected;
-    private boolean useThreadLocalExecutor;
-    private Executor executor;
-    private EndpointInvocation.ResultType resultType;
-    private Executor executor;
-    private RequestContext context;
-    private short serializeType;
-    private String apiName;
-    private String sourceIp;
-    private Tuple<Long, byte[]> data;
-    */
+    private static Logger tracerLogger = VenusLoggerFactory.getBackendTracerLogger();
+
+    private static Logger exceptionLogger = VenusLoggerFactory.getBackendExceptionLogger();
 
     private static Logger INVOKER_LOGGER = LoggerFactory.getLogger("venus.service.invoker");
 
@@ -104,11 +92,6 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
 
 
    public void handle(VenusFrontendConnection conn, Tuple<Long, byte[]> data) {
-        /*
-        final long waitTime = TimeUtil.currentTimeMillis() - data.left;
-        byte serializeType = conn.getSerializeType();
-        String sourceIp = conn.getHost();
-        */
         byte[] message = data.right;
         int type = AbstractServicePacket.getType(message);
         if (PacketConstant.PACKET_TYPE_ROUTER == type) {
@@ -116,11 +99,6 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
             routerPacket.original = message;
             routerPacket.init(message);
             type = AbstractServicePacket.getType(routerPacket.data);
-            /*
-            message = routerPacket.data;
-            serializeType = routerPacket.serializeType;
-            sourceIp = InetAddressUtil.intToAddress(routerPacket.srcIP);
-            */
         }
 
         switch (type) {
@@ -156,20 +134,29 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
         try {
             //解析请求对象
             invocation = parseInvocation(conn, data);
-
             //不要打印bytes信息流，会导致后续无法获取
             rpcId = invocation.getRpcId();
-            if(logger.isInfoEnabled()){
-                logger.info("recv request,rpcId:{},message size:{}.", rpcId,data.getRight().length);
+            if(tracerLogger.isInfoEnabled()){
+                tracerLogger.info("recv request,rpcId:{},message size:{}.", rpcId,data.getRight().length);
             }
 
             //通过代理调用服务
             result = getVenusServerInvokerProxy().invoke(invocation, null);
         } catch (Throwable t) {
-            if(logger.isErrorEnabled()){
-                logger.error("handle error.",t);
-            }
             result = buildResult(t);
+        }finally {
+            try {
+                //输出error日志
+                if(result.getErrorCode() != 0 || result.getException() != null){
+                   printExceptionLogger(invocation,result,bTime);
+                }
+                //输出tracer日志
+                printTracerLogger(invocation,result,bTime);
+            } catch (Exception e) {
+                if(logger.isErrorEnabled()){
+                    logger.error("print logger error.",e);
+                }
+            }
         }
 
         // 输出响应，将exception转化为errorPacket方式输出
@@ -177,20 +164,20 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
             ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
 
             if (invocation.getResultType() == EndpointInvocation.ResultType.RESPONSE) {
-                if(logger.isInfoEnabled()){
-                    logger.info("write normal response,rpcId:{},cost time:{},result:{}",rpcId,System.currentTimeMillis()-bTime, JSONUtil.toJSONString(result));
+                if(tracerLogger.isInfoEnabled()){
+                    tracerLogger.info("write normal response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
                 }
                 responseHandler.writeResponseForResponse(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
-                if(logger.isInfoEnabled()){
-                    logger.info("write normal response,rpcId:{},cost time:{},result:{}",rpcId,System.currentTimeMillis()-bTime,JSONUtil.toJSONString(result));
+                if(tracerLogger.isInfoEnabled()){
+                    tracerLogger.info("write normal response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
                 }
                 responseHandler.writeResponseForOk(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.NOTIFY) {
                 //callback回调异常情况
                 if(result.getErrorCode() != 0){
-                    if(logger.isInfoEnabled()){
-                        logger.info("write notify response,rpcId:{},result:{}",rpcId,JSONUtil.toJSONString(result));
+                    if(tracerLogger.isInfoEnabled()){
+                        tracerLogger.info("write notify response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
                     }
                     responseHandler.writeResponseForNotify(responseEntityWrapper);
                 }
@@ -199,13 +186,90 @@ public class VenusServerInvokerMessageHandler extends VenusServerMessageHandler 
             if(logger.isErrorEnabled()){
                 logger.error("write response error.",t);
             }
-        }finally {
-            if(isEnableRandomPrint){
-                if(ThreadLocalRandom.current().nextInt(50000) > 49990){
-                    if(logger.isInfoEnabled()){
-                        logger.info("curent thread:{},instance:{},cost time:{}.",Thread.currentThread(),this,System.currentTimeMillis()-bTime);
-                    }
-                }
+        }
+    }
+
+
+    /**
+     * 输出异常日志
+     * @param invocation
+     * @param result
+     * @param bTime
+     */
+    void printExceptionLogger(ServerInvocation invocation,Result result,long bTime){
+        String errorMsg = String.format("handle exception,rpcId:%s,methodPath:%s.",invocation.getRpcId(),"");
+        if(result.getException() != null){
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error(errorMsg,result.getException());
+            }
+        }else if(result.getErrorCode() != 0){
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error(errorMsg,result.getErrorCode() + "|" + result.getErrorMessage());
+            }
+        }
+    }
+
+    /**
+     * 输出tracer日志
+     * @param invocation
+     * @param result
+     * @param bTime
+     */
+    void printTracerLogger(ServerInvocation invocation,Result result,long bTime){
+        //构造参数
+        boolean hasException = false;
+        long usedTime = System.currentTimeMillis() - bTime;
+        String invokeModel = invocation.getInvokeModel();
+        String rpcId = invocation.getRpcId();
+        String methodPath = invocation.getMethodPath();
+        String param = "";
+        if(invocation.isEnablePrintParam() && invocation.getArgs() != null){
+            param = JSONUtil.toJSONString(invocation.getArgs());
+        }
+        String output = "";
+        if(invocation.isEnablePrintResult()){
+            if(result.getErrorCode() == 0 && result.getException() == null){
+                output = JSONUtil.toJSONString(result.getResult());
+            }else if(result.getException() != null){
+                hasException = true;
+                output = JSONUtil.toJSONString(result.getException());
+            }
+        }
+        String status = "";
+        if(hasException){
+            status = "failed";
+        }else if(usedTime > 1000){
+            status = "slow>1000ms";
+        }else if(usedTime > 500){
+            status = "slow>500ms";
+        }else if(usedTime > 200){
+            status = "slow>200ms";
+        }else{
+            status = "success";
+        }
+
+        //打印结果
+        String tpl = "{} handle,rpcId:{},methodPath:{},status:{},used time:{}ms,param:{},result:{}.";
+        Object[] arguments = new Object[]{
+                invokeModel,
+                rpcId,
+                methodPath,
+                status,
+                usedTime,
+                param,
+                output
+        };
+        if(hasException){
+            if(tracerLogger.isErrorEnabled()){
+                tracerLogger.error(tpl,arguments);
+            }
+        }else if(usedTime > 200){
+            if(tracerLogger.isWarnEnabled()){
+                tracerLogger.warn(tpl,arguments);
+            }
+        }else{
+            if(tracerLogger.isInfoEnabled()){
+                tracerLogger.info(tpl,arguments);
             }
         }
     }

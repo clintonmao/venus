@@ -16,7 +16,7 @@ public class RandomBuildUtil {
         if(isBuildDataModel){
             if(ThreadLocalRandom.current().nextInt(100) > 50){//构造慢操作
                 try {
-                    Thread.sleep(random.nextInt(5));
+                    Thread.sleep(random.nextInt(500));
                 } catch (InterruptedException e) {
                 }
             }else if(ThreadLocalRandom.current().nextInt(100) > 60){//构造异常操作
