@@ -9,7 +9,7 @@ import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.metainfo.AnnotationUtil;
-import com.meidusa.venus.backend.invoker.support.LogHandler;
+import com.meidusa.venus.backend.support.LogHandler;
 import com.meidusa.venus.backend.serializer.MediaTypes;
 import com.meidusa.venus.backend.services.RequestInfo;
 import com.meidusa.venus.backend.support.Response;
@@ -308,7 +308,6 @@ public class VenusHttpServlet2 extends HttpServlet {
             long endTime = TimeUtil.currentTimeMillis();
             VenusTracerUtil.logResult(endTime-startTime, traceId, apiName, JSON.toJSONString(parameterMap,JSON_FEATURE), JSON.toJSONString(result,JSON_FEATURE));
             writeResponse(req, resp, result);
-            //TODO 处理monitorRuntime依赖
             //MonitorRuntime.getInstance().calculateAverage(service, method, endTime - startTime,isError);
         }
 

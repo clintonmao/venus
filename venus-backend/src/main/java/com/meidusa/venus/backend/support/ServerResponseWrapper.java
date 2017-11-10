@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.invoker.support;
+package com.meidusa.venus.backend.support;
 
 import com.meidusa.venus.Result;
 import com.meidusa.venus.ServerInvocation;

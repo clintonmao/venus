@@ -1,122 +1,184 @@
 package com.meidusa.venus.bus.dispatch;
 
 import com.meidusa.venus.*;
-import com.meidusa.venus.bus.BusInvocation;
-import com.meidusa.venus.bus.network.BusFrontendConnection;
+import com.meidusa.venus.client.cluster.ClusterFailoverInvoker;
 import com.meidusa.venus.client.cluster.ClusterFastfailInvoker;
+import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRuleRouter;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
+import com.meidusa.venus.support.VenusConstants;
+import com.meidusa.venus.util.JSONUtil;
+import com.meidusa.venus.util.Range;
+import com.meidusa.venus.util.RangeUtil;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
- * 消息远程分发处理，负责寻址、过滤、集群容错分发调用等
- * Created by Zhangzhihua on 2017/9/1.
+ * bus消息分发调用
+ * Created by Zhangzhihua on 2017/8/24.
  */
-public class BusRemoteDispatcher implements Dispatcher{
+public class BusRemoteDispatcher implements Invoker{
 
     private static Logger logger = LoggerFactory.getLogger(BusRemoteDispatcher.class);
+
+    /**
+     * 静态地址列表，第一次调用初始化
+     */
+    private List<URL> cacheUrlList;
 
     /**
      * 注册中心
      */
     private Register register;
 
-    private Map<String,BusFrontendConnection> requestConnectionMap;
-
-    private ClusterInvoker clusterInvoker;
-
+    /**
+     * 条件路由服务
+     */
     private Router router = new ConditionRuleRouter();
+
+    /**
+     * venus协议调用invoker
+     */
+    private VenusClientInvoker invoker = new VenusClientInvoker();
+
+    private ClusterFailoverInvoker clusterFailoverInvoker = new ClusterFailoverInvoker(invoker);
+
+    private ClusterFastfailInvoker clusterFastfailInvoker = new ClusterFastfailInvoker(invoker);
 
     @Override
     public void init() throws RpcException {
-
     }
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
-        BusInvocation busInvocation = (BusInvocation)invocation;
-        //寻址
-        List<URL> urlList = lookup(busInvocation);
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
+        //TODO 区别于client调用，第一次要订阅
+        //注册中心寻址及版本校验
+        List<URL> urlList = lookupByRegister(clientInvocation);
 
-        //TODO 路由规则过滤/版本号校验 router.filte
-        //路由规则过滤
-        urlList = router.filte(invocation, urlList);
+        //自定义路由过滤
+        //urlList = router.filte(clientInvocation, urlList);
 
-        //集群容错分发调用
-        Result result = getClusterInvoker().invoke(invocation,urlList);
+        //集群容错调用
+        Result result = getClusterInvoker(clientInvocation,url).invoke(invocation, urlList);
         return result;
     }
 
     /**
-     * 查找服务地址
+     * 动态寻址，注册中心查找
+     * @param invocation
      * @return
      */
-    List<URL> lookup(BusInvocation invocation){
+    List<URL> lookupByRegister(ClientInvocation invocation){
         List<URL> urlList = new ArrayList<URL>();
-
         //解析请求Url
         URL requestUrl = parseRequestUrl(invocation);
 
         //查找服务定义
-        Register register = getRegister();
-        List<VenusServiceDefinitionDO> serviceDefinitionDOList = null;
-        //缓存查找
-        serviceDefinitionDOList = register.lookup(requestUrl);
-        //若缓存为空，则从注册中心查找
-        if(CollectionUtils.isEmpty(serviceDefinitionDOList)){
-            serviceDefinitionDOList = register.lookup(requestUrl,true);
-            //若注册中心不为空，则订阅服务，否则报服务没有提供节点错误
-            if(CollectionUtils.isNotEmpty(serviceDefinitionDOList)){
-                //TODO 重复订阅、重复注册、lookup时未订阅
-                register.subscrible(requestUrl);
-            }else{
-                throw new RpcException(String.format("not found available service %s providers.",requestUrl.toString()));
+        List<VenusServiceDefinitionDO> srvDefList = getRegister().lookup(requestUrl);
+        if(CollectionUtils.isEmpty(srvDefList)){
+            throw new RpcException(String.format("not found available service %s providers.",requestUrl.toString()));
+        }
+
+        //当前接口定义版本号
+        int currentVersion = Integer.parseInt(invocation.getVersion());
+        //判断是否允许访问版本
+        for(VenusServiceDefinitionDO srvDef:srvDefList){
+            if(isAllowVersion(srvDef,currentVersion)){
+                for(String addresss:srvDef.getIpAddress()){
+                    String[] arr = addresss.split(":");
+                    URL url = new URL();
+                    url.setHost(arr[0]);
+                    url.setPort(Integer.parseInt(arr[1]));
+                    url.setServiceDefinition(srvDef);
+                    if(StringUtils.isNotEmpty(srvDef.getProvider())){
+                        url.setApplication(srvDef.getProvider());
+                    }
+                    urlList.add(url);
+                }
+                //若找到，则跳出
+                break;
             }
         }
-        logger.info("look up service:{} provider group:{}",requestUrl.toString(),serviceDefinitionDOList.size());
 
-        //TODO group/urls关系
-        for(VenusServiceDefinitionDO srvDef:serviceDefinitionDOList){
-            for(String addresss:srvDef.getIpAddress()){
-                String[] arr = addresss.split(":");
-                URL url = new URL();
-                url.setHost(arr[0]);
-                url.setPort(Integer.parseInt(arr[1]));
-                url.setServiceDefinition(srvDef);
-                urlList.add(url);
+        if(CollectionUtils.isEmpty(urlList)){
+            throw new RpcException("with version valid,not found allowed service providers.");
+        }
+
+        //输出寻址结果信息
+        boolean isPrintDetailInfo = false;
+        if(isPrintDetailInfo){
+            List<String> targets = new ArrayList<String>();
+            if(CollectionUtils.isNotEmpty(urlList)){
+                for(URL url:urlList){
+                    String target = new StringBuilder()
+                            .append(url.getHost())
+                            .append(":")
+                            .append(url.getPort())
+                            .toString();
+                    targets.add(target);
+                }
+            }
+            if(logger.isInfoEnabled()){
+                logger.info("lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
+            }
+        }else{
+            if(logger.isInfoEnabled()){
+                logger.info("lookup service providers num:{}.",urlList.size());
             }
         }
         return urlList;
     }
 
     /**
-     * 解析url
+     * 判断是否允许访问版本
+     * @param srvDef
+     * @return
+     */
+    boolean isAllowVersion(VenusServiceDefinitionDO srvDef,int currentVersion){
+        //若版本号相同，则允许
+        if(Integer.parseInt(srvDef.getVersion()) == currentVersion){
+            return true;
+        }
+
+        //否则，根据版本兼容定义判断是否许可
+        String versionRange = srvDef.getVersionRange();
+        if(StringUtils.isEmpty(versionRange)){
+            return false;
+        }
+        Range supportVersioRange = RangeUtil.getVersionRange(versionRange);
+        return supportVersioRange.contains(currentVersion);
+    }
+
+    /**
+     * 解析请求url
      * @param invocation
      * @return
      */
-    URL parseRequestUrl(BusInvocation invocation){
-        //String path = "venus://com.chexiang.venus.demo.provider.HelloService/helloService?version=0.0.0";
-        String protocol = "venus";
-        String serviceInterfaceName = invocation.getServiceInterfaceName();
-        String serviceName = invocation.getServiceName();
-        String version = invocation.getVersion();
-        String requestUrl = String.format(
-                "%s://%s/%s?version=%s",
-                protocol,
-                serviceInterfaceName,
-                serviceName,
-                version
-                );
-        URL url = URL.parse(requestUrl);
+    URL parseRequestUrl(ClientInvocation invocation){
+        String serviceInterfaceName = "null";
+        if(invocation.getServiceInterface() != null){
+            serviceInterfaceName = invocation.getServiceInterface().getName();
+        }
+        String serviceName = "null";
+        if(invocation.getService() != null){
+            serviceName = invocation.getService().getName();
+        }
+
+        StringBuilder buf = new StringBuilder();
+        buf.append("/").append(serviceInterfaceName);
+        buf.append("/").append(serviceName);
+        buf.append("?");
+        String serviceUrl = buf.toString();
+        URL url = URL.parse(serviceUrl);
         return url;
     }
 
@@ -124,14 +186,15 @@ public class BusRemoteDispatcher implements Dispatcher{
      * 获取集群容错invoker
      * @return
      */
-    ClusterInvoker getClusterInvoker(){
-        //TODO 根据配置获取clusterInvoker
-        if(clusterInvoker == null){
-            clusterInvoker =  new ClusterFastfailInvoker(null);
-            //TODO 根据配置加载invoker
-            //clusterInvoker.setInvoker(new BusDispatcher(this.requestConnectionMap));
+    ClusterInvoker getClusterInvoker(ClientInvocation invocation,URL url){
+        String cluster = invocation.getCluster();
+        if(VenusConstants.CLUSTER_FAILOVER.equals(cluster) || invocation.getRetries() > 0){
+            return clusterFailoverInvoker;
+        }else if(VenusConstants.CLUSTER_FASTFAIL.equals(cluster)){
+            return clusterFastfailInvoker;
+        }else{
+            throw new RpcException(String.format("invalid cluster policy:%s.",cluster));
         }
-        return clusterInvoker;
     }
 
     @Override
@@ -145,13 +208,5 @@ public class BusRemoteDispatcher implements Dispatcher{
 
     public void setRegister(Register register) {
         this.register = register;
-    }
-
-    public Map<String, BusFrontendConnection> getRequestConnectionMap() {
-        return requestConnectionMap;
-    }
-
-    public void setRequestConnectionMap(Map<String, BusFrontendConnection> requestConnectionMap) {
-        this.requestConnectionMap = requestConnectionMap;
     }
 }

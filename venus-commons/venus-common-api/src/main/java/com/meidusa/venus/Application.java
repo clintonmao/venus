@@ -77,21 +77,11 @@ public class Application implements InitializingBean {
     void init(){
         VenusContext.getInstance().setApplication(name);
 
-        //初始化序列化工厂
-        initSerializer();
+        //初始化序列化配置
+        SerializerFactory.init();
 
         //初始化异常配置
         XmlVenusExceptionFactory.getInstance().init();
-    }
-
-    /**
-     * 初始化序列化
-     */
-    void initSerializer(){
-        if(!isInitedSerializer){
-            //初始化序列化配置
-            SerializerFactory.init();
-        }
     }
 
     public String getName() {

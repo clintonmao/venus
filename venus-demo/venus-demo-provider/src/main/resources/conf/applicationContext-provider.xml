@@ -24,6 +24,7 @@
 		</property>
 	</bean>
 
+	<!--业务bean，也可通过注解声明-->
 	<bean id="helloService" class="com.chexiang.venus.demo.provider.impl.DefaultHelloService"/>
 
 	<!--应用配置-->
@@ -41,6 +42,8 @@
 	<!--可选，若不配置则监控不上报-->
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
 		<property name="url" value="${monitor.url}"/>
+		<property name="enableAthenaReport" value="false"/>
+		<property name="enableVenusReport" value="false"/>
 	</bean>
 
 	<!--venus协议配置-->

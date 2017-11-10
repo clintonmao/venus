@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.invoker.support;
+package com.meidusa.venus.backend.support;
 
 import com.meidusa.fastjson.JSON;
 import com.meidusa.fastmark.feature.SerializerFeature;

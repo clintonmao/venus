@@ -37,6 +37,8 @@
 	<!--可选，若不配置则监控不上报-->
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
 		<property name="url" value="${monitor.url}"/>
+		<property name="enableAthenaReport" value="false"/>
+		<property name="enableVenusReport" value="false"/>
 	</bean>
 
 	<!--服务引用配置-->

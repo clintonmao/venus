@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend;
+package com.meidusa.venus.bus;
 
 import com.meidusa.toolkit.common.bean.util.InitialisationException;
 import com.meidusa.toolkit.net.ConnectionAcceptor;
@@ -6,8 +6,6 @@ import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.authenticate.server.AuthenticateProvider;
 import com.meidusa.toolkit.net.factory.FrontendConnectionFactory;
 import com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider;
-import com.meidusa.venus.backend.handler.VenusServerReceiveMessageHandler;
-import com.meidusa.venus.backend.services.ServiceManager;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.io.network.VenusBackendFrontendConnectionFactory;
 import com.meidusa.venus.support.VenusConstants;
@@ -20,18 +18,13 @@ import org.springframework.beans.factory.InitializingBean;
  * venus协议，启动/销毁remoting、设置message handler相关操作
  * Created by Zhangzhihua on 2017/9/28.
  */
-public class VenusProtocol implements InitializingBean,DisposableBean {
+public class BusProtocol implements InitializingBean,DisposableBean {
 
     private static boolean isRunning = false;
 
     private ConnectionAcceptor connectionAcceptor;
 
     private MessageHandler messageHandler;
-
-    /**
-     * 不注入依赖，由srvMgr向venusProtocol设置
-     */
-    private ServiceManager serviceManager;
 
     private AuthenticateProvider authenticateProvider;
 
@@ -97,8 +90,8 @@ public class VenusProtocol implements InitializingBean,DisposableBean {
         VenusBackendFrontendConnectionFactory connectionFactory = new VenusBackendFrontendConnectionFactory();
         //connectionFactory.setSendBufferSize(16);
         //connectionFactory.setReceiveBufferSize(8);
-        MessageHandler messageHandler = createMessageHandler();
-        this.messageHandler = messageHandler;
+        //MessageHandler messageHandler = createMessageHandler();
+        //this.messageHandler = messageHandler;
         connectionFactory.setMessageHandler(messageHandler);
         connectionFactory.setAuthenticateProvider(getAuthenticateProvider());
         return connectionFactory;
@@ -108,11 +101,12 @@ public class VenusProtocol implements InitializingBean,DisposableBean {
      * 创建messageHandler
      * @return
      */
+    /*
     MessageHandler createMessageHandler() throws InitialisationException {
-        VenusServerReceiveMessageHandler messageHandler = new VenusServerReceiveMessageHandler();
-        messageHandler.setServiceManager(this.serviceManager);
+        BusReceiveMessageHandler messageHandler = new BusReceiveMessageHandler();
         return messageHandler;
     }
+    */
 
     @Override
     public void destroy() throws Exception {
@@ -152,11 +146,6 @@ public class VenusProtocol implements InitializingBean,DisposableBean {
 
     public void setAuthenticateProvider(AuthenticateProvider authenticateProvider) {
         this.authenticateProvider = authenticateProvider;
-    }
-
-    //不使用属性依赖注入，由srvMgr反向注入
-    public void setSrvMgr(ServiceManager serviceManager) {
-        this.serviceManager = serviceManager;
     }
 
     public int getCoreThreads() {

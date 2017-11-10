@@ -511,6 +511,8 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
                 }
             }
         }
+
+        //TODO 反订阅
         shutdown = true;
     }
 

@@ -212,7 +212,6 @@ public class VenusHttpServlet extends HttpServlet {
             long endTime = TimeUtil.currentTimeMillis();
             VenusTracerUtil.logResult(endTime-startTime, traceId, apiName, JSON.toJSONString(parameterMap,JSON_FEATURE), JSON.toJSONString(result,JSON_FEATURE));
             writeResponse(req, resp, result);
-            //TODO 处理monitorRuntime依赖
             //MonitorRuntime.getInstance().calculateAverage(service, method, endTime - startTime,isError);
         }
 

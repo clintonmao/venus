@@ -1,4 +1,4 @@
-package com.meidusa.venus.backend.invoker.support;
+package com.meidusa.venus.backend.support;
 
 /**
  * Created by godzillahua on 7/4/16.

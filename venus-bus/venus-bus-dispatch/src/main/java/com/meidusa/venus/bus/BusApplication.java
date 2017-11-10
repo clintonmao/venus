@@ -2,7 +2,6 @@ package com.meidusa.venus.bus;
 
 import com.meidusa.toolkit.common.runtime.Application;
 import com.meidusa.toolkit.common.runtime.ApplicationConfig;
-import com.meidusa.toolkit.common.runtime.DefaultApplication;
 
 /**
  * 启动 BUS的 Application
@@ -10,7 +9,7 @@ import com.meidusa.toolkit.common.runtime.DefaultApplication;
  * @author structchen
  * 
  */
-public class ServiceBusApplication extends Application<ApplicationConfig> {
+public class BusApplication extends Application<ApplicationConfig> {
 
     @Override
     public void doRun() {
@@ -27,7 +26,7 @@ public class ServiceBusApplication extends Application<ApplicationConfig> {
     }
 
     public static void main(String[] args) {
-        System.setProperty(ApplicationConfig.PROJECT_MAINCLASS, ServiceBusApplication.class.getName());
+        System.setProperty(ApplicationConfig.PROJECT_MAINCLASS, BusApplication.class.getName());
         Application.main(args);
     }
 }

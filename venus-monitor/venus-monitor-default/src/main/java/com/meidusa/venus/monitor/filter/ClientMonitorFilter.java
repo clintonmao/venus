@@ -186,7 +186,6 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
         //耗时
         long costTime = detail.getResponseTime().getTime()-clientInvocation.getRequestTime().getTime();
         detailDO.setDurationMillisecond(Integer.parseInt(String.valueOf(costTime)));
-        //TODO 响应地址
         //状态相关
         return detailDO;
     }

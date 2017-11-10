@@ -22,7 +22,7 @@
     <bean id="serviceConnectionFactory" class="com.meidusa.venus.io.network.VenusBackendFrontendConnectionFactory">
 		<!--
 		<property name="messageHandler">
-			<bean id="messageHandler" class="com.meidusa.venus.backmessageHandlerdler.VenusServerInvokerMessageHandler" init-method="init">
+			<bean id="messageHandler" class="com.meidusa.venus.backmessageHandlerdVenusServerReceiveMessageHandlerdler" init-method="init">
 				<property name="maxExecutionThread" value="${venus.sermessageHandlerdler.executor.maxThread:128}"></property>
 				<property name="executorProtected" value="${venus.sermessageHandlerdler.executor.protected:false}"></property>
 				<property name="executorEnabled" value="${venus.sermessageHandlerdler.executor.enabled:false}"></property>
@@ -34,7 +34,7 @@
 		<property name="receiveBufferSize" value="${venus.socket.receiveBufferSize:8}" />
 		-->
 		<property name="messageHandler">
-			<bean id="messageHandler" class="com.meidusa.venus.backend.handler.VenusServerInvokerMessageHandler" init-method="init">
+			<bean id="messageHandler" class="com.meidusa.venus.backend.handler.VenusServerReceiveMessageHandler" init-method="init">
 				<property name="maxExecutionThread" value="128"></property>
 				<property name="executorProtected" value="false"></property>
 				<property name="executorEnabled" value="false"></property>

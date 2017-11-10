@@ -155,8 +155,7 @@ public class InvocationStatistic {
         }
         Date responseTime = detail.getResponseTime();
         if(responseTime == null){
-            //TODO 未响应的情况
-            return 3000;
+            return 99999;
         }
         return responseTime.getTime() - requestTime.getTime();
     }
