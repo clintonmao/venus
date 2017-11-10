@@ -106,7 +106,7 @@ public class MysqlRegister implements Register {
 			heartbeat();
 		} catch (Exception e) {
 			registeFailUrls.add(url);
-			throw new VenusRegisteException("服务注册异常" + url.getServiceName(), e);
+			throw new VenusRegisteException("服务注册异常" + log_service_name(url), e);
 		}
 		registeUrls.add(url);
 
@@ -118,7 +118,7 @@ public class MysqlRegister implements Register {
 			logger.info("unregiste service:{}.",url);
 		}
 		if (StringUtils.isBlank(url.getVersion())) {
-			throw new VenusRegisteException("取消注册异常" + url.getServiceName() + ",version为空");
+			throw new VenusRegisteException("取消注册异常" + log_service_name(url) + ",version为空");
 		}
 		try {
 			boolean unregiste = registerService.unregiste(url);
@@ -126,7 +126,7 @@ public class MysqlRegister implements Register {
 				registeUrls.remove(url);
 			}
 		} catch (Exception e) {
-			throw new VenusRegisteException("取消注册异常" + url.getServiceName(), e);
+			throw new VenusRegisteException("取消注册异常" + log_service_name(url), e);
 		}
 	}
 
@@ -141,7 +141,7 @@ public class MysqlRegister implements Register {
 			heartbeat();
 		} catch (Exception e) {
 			subscribleFailUrls.add(url);
-			logger.error("服务{}订阅异常 ,异常原因：{}", url.getServiceName(), e);
+			logger.error("服务{}订阅异常 ,异常原因：{}", log_service_name(url), e);
 			success = false;
 		}
 		subscribleUrls.add(url);
@@ -155,7 +155,7 @@ public class MysqlRegister implements Register {
 			logger.info("unsubscrible service:{}.",url);
 		}
 		if (StringUtils.isBlank(url.getVersion())) {
-			throw new VenusRegisteException("取消订阅异常" + url.getServiceName() + ",version为空");
+			throw new VenusRegisteException("取消订阅异常" + log_service_name(url) + ",version为空");
 		}
 		try {
 			boolean unsubscrible = registerService.unsubscrible(url);
@@ -163,7 +163,7 @@ public class MysqlRegister implements Register {
 				subscribleUrls.remove(url);
 			}
 		} catch (Exception e) {
-			throw new VenusRegisteException("取消订阅异常" + url.getServiceName(), e);
+			throw new VenusRegisteException("取消订阅异常" + log_service_name(url), e);
 		}
 		load();
 	}
@@ -245,7 +245,7 @@ public class MysqlRegister implements Register {
 							|| e instanceof HessianProtocolException || e instanceof HessianServiceException) {
 						hasException = true;
 					}
-					logger.error("服务{}ServiceDefLoaderRunnable 运行异常 ,异常原因：{}", url.getServiceName(), e);
+					logger.error("服务{}ServiceDefLoaderRunnable 运行异常 ,异常原因：{}", log_service_name(url), e);
 				}
 			}
 
@@ -333,7 +333,7 @@ public class MysqlRegister implements Register {
 						}
 						registerService.heartbeatRegister(url);
 					} catch (Exception e) {
-						logger.error("服务{}registe更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);
+						logger.error("服务{}registe更新heartBeatTime异常 ,异常原因：{}", log_service_name(url), e);
 					}
 					break;
 				}
@@ -347,7 +347,7 @@ public class MysqlRegister implements Register {
 						}
 						registerService.heartbeatSubcribe(url);
 					} catch (Exception e) {
-						logger.error("服务{}subscrible更新heartBeatTime异常 ,异常原因：{}", url.getServiceName(), e);
+						logger.error("服务{}subscrible更新heartBeatTime异常 ,异常原因：{}",log_service_name(url), e);
 					}
 					break;
 				}
@@ -365,12 +365,7 @@ public class MysqlRegister implements Register {
 						registe(url);
 						iterator.remove();
 					} catch (Exception e) {
-						String name = "";
-						if (StringUtils.isNotBlank(url.getServiceName()) && !"null".equals(url.getServiceName())) {
-							name = url.getServiceName();
-						} else {
-							name = url.getInterfaceName();
-						}
+						String name = log_service_name(url);
 						String version = "";
 						if (StringUtils.isNotBlank(url.getVersion()) && !"null".equals(url.getVersion())) {
 							version = url.getVersion();
@@ -388,12 +383,7 @@ public class MysqlRegister implements Register {
 							iterator.remove();
 						}
 					} catch (Exception e) {
-						String name = "";
-						if (StringUtils.isNotBlank(url.getServiceName()) && !"null".equals(url.getServiceName())) {
-							name = url.getServiceName();
-						} else {
-							name = url.getInterfaceName();
-						}
+						String name = log_service_name(url);
 						String version = "";
 						if (StringUtils.isNotBlank(url.getVersion()) && !"null".equals(url.getVersion())) {
 							version = url.getVersion();
@@ -405,6 +395,17 @@ public class MysqlRegister implements Register {
 
 		}
 
+
+	}
+	
+	private static String log_service_name(URL url) {
+		String name = "";
+		if (StringUtils.isNotBlank(url.getServiceName()) && !"null".equals(url.getServiceName())) {
+			name = url.getServiceName();
+		} else {
+			name = url.getInterfaceName();
+		}
+		return name;
 	}
 	
 	public static List<String> readFile(String filePath) {
