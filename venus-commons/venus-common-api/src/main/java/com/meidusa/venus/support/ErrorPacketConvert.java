@@ -8,6 +8,7 @@ import com.meidusa.venus.io.packet.ServiceNofityPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceNofityPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.io.serializer.Serializer;
+import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.util.Utils;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import com.meidusa.venus.util.VenusTracerUtil;
@@ -64,7 +65,7 @@ public class ErrorPacketConvert {
      * @return
      * @throws Exception
      */
-    public static ServiceNofityPacket toNotifyPacket(Result result, AbstractServicePacket request, Serializer serializer) throws Exception{
+    public static ServiceNofityPacket toNotifyPacket(Result result, AbstractServicePacket request, ReferenceInvocationListener referenceInvocationListener, Serializer serializer) throws Exception{
         Throwable e = null;
         if (result.getException() == null) {
             e = new DefaultVenusException(result.getErrorCode(), result.getErrorMessage());
@@ -99,7 +100,7 @@ public class ErrorPacketConvert {
         }
 
         response.apiName = ((SerializeServiceRequestPacket)request).apiName;
-        response.identityData = new byte[]{};
+        response.identityData = referenceInvocationListener.getIdentityData();
         byte[] traceID = VenusTracerUtil.getTracerID();
         if (traceID == null) {
             traceID = VenusTracerUtil.randomTracerID();

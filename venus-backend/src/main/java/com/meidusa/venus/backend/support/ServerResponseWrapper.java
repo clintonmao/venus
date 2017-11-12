@@ -6,6 +6,7 @@ import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
+import com.meidusa.venus.notify.InvocationListener;
 
 /**
  * 响应包装处理对象
@@ -16,6 +17,7 @@ public class ServerResponseWrapper {
     VenusRouterPacket routerPacket;
     Endpoint endpoint;
     SerializeServiceRequestPacket request;
+    InvocationListener invocationListener;
     short serializeType;
     Result result;
     boolean athenaFlag;
@@ -29,6 +31,7 @@ public class ServerResponseWrapper {
         wrapper.setRouterPacket(invocation.getRouterPacket());
         wrapper.setEndpoint(invocation.getEndpointDef());
         wrapper.setRequest(invocation.getRequest());
+        wrapper.setInvocationListener(invocation.getInvocationListener());
         wrapper.setSerializeType(invocation.getSerializeType());
         wrapper.setResult(result);
         wrapper.setAthenaFlag(athenaFlag);
@@ -89,5 +92,13 @@ public class ServerResponseWrapper {
 
     public void setAthenaFlag(boolean athenaFlag) {
         this.athenaFlag = athenaFlag;
+    }
+
+    public InvocationListener getInvocationListener() {
+        return invocationListener;
+    }
+
+    public void setInvocationListener(InvocationListener invocationListener) {
+        this.invocationListener = invocationListener;
     }
 }

@@ -137,25 +137,25 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
 
         // 输出响应，将exception转化为errorPacket方式输出
         try {
-            ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
+            ServerResponseWrapper responseWrapper = ServerResponseWrapper.parse(invocation,result,false);
 
             if (invocation.getResultType() == EndpointInvocation.ResultType.RESPONSE) {
                 if(tracerLogger.isInfoEnabled()){
                     tracerLogger.info("send normal response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
                 }
-                responseHandler.writeResponseForResponse(responseEntityWrapper);
+                responseHandler.writeResponseForResponse(responseWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
                 if(tracerLogger.isInfoEnabled()){
                     tracerLogger.info("send normal response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
                 }
-                responseHandler.writeResponseForOk(responseEntityWrapper);
+                responseHandler.writeResponseForOk(responseWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.NOTIFY) {
                 //callback回调异常情况
                 if(result.getErrorCode() != 0){
                     if(tracerLogger.isInfoEnabled()){
                         tracerLogger.info("send notify response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
                     }
-                    responseHandler.writeResponseForNotify(responseEntityWrapper);
+                    responseHandler.writeResponseForNotify(responseWrapper);
                 }
             }
         } catch (Throwable t) {
@@ -223,6 +223,9 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
             if(exceptionLogger.isErrorEnabled()){
                 exceptionLogger.error(tpl,arguments);
             }
+            if(tracerLogger.isErrorEnabled()){
+                tracerLogger.error(tpl,arguments);
+            }
         }else if(usedTime > 200){
             if(tracerLogger.isWarnEnabled()){
                 tracerLogger.warn(tpl,arguments);
@@ -258,6 +261,13 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
         if(MapUtils.isNotEmpty(request.parameterMap)){
             Object[] args = request.parameterMap.values().toArray();
             invocation.setArgs(args);
+            if(args != null && args.length > 0){
+                for(Object arg:args){
+                    if(arg instanceof ReferenceInvocationListener){
+                       invocation.setInvocationListener((ReferenceInvocationListener)arg);
+                    }
+                }
+            }
         }
         this.request = request;
         this.routerPacket = invocation.getRouterPacket();
@@ -333,7 +343,6 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
 
         packetBuffer.setPosition(0);
         request.init(packetBuffer);
-        VenusTracerUtil.logReceive(request.traceId, request.apiName, JSON.toJSONString(request.parameterMap,JSON_FEATURE) );
 
         return request;
     }

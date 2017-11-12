@@ -13,6 +13,7 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceResponsePacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
+import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.support.ErrorPacketConvert;
 import com.meidusa.venus.util.ThreadLocalMap;
 import com.meidusa.venus.util.VenusTracerUtil;
@@ -97,13 +98,14 @@ public class ServerResponseHandler {
         short serializeType = wrapper.getSerializeType();
         Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
         boolean athenaFlag = wrapper.isAthenaFlag();
+        ReferenceInvocationListener referenceInvocationListener = (ReferenceInvocationListener) wrapper.getInvocationListener();
 
         if (result.getErrorCode() == 0) {
             ServiceNofityPacket response = new SerializeServiceNofityPacket(serializer, null);
             AbstractServicePacket.copyHead(request, response);
             response.callbackObject = result.getResult();
             response.apiName = request.apiName;
-            response.identityData = new byte[]{};
+            response.identityData = referenceInvocationListener.getIdentityData();
 
             byte[] traceID = (byte[]) ThreadLocalMap.get(VenusTracerUtil.REQUEST_TRACE_ID);
             if (traceID == null) {
@@ -113,7 +115,7 @@ public class ServerResponseHandler {
             response.traceId = traceID;
             postMessageBack(conn, routerPacket, request, response, athenaFlag);
         }else{
-            ServiceNofityPacket response = ErrorPacketConvert.toNotifyPacket(result,request,serializer);
+            ServiceNofityPacket response = ErrorPacketConvert.toNotifyPacket(result,request,referenceInvocationListener,serializer);
             postMessageBack(conn, routerPacket, request, response, athenaFlag);
         }
     }

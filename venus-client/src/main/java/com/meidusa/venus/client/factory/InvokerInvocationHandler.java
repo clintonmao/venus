@@ -167,6 +167,9 @@ public class InvokerInvocationHandler implements InvocationHandler {
             if(exceptionLogger.isErrorEnabled()){
                 exceptionLogger.error(tpl,arguments);
             }
+            if(tracerLogger.isErrorEnabled()){
+                tracerLogger.error(tpl,arguments);
+            }
         }else if(usedTime > 200){
             if(tracerLogger.isWarnEnabled()){
                 tracerLogger.warn(tpl,arguments);
