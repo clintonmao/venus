@@ -50,9 +50,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class VenusClientInvoker extends AbstractClientInvoker implements Invoker{
 
-    private static Logger logger = LoggerFactory.getLogger(VenusClientInvoker.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
-    private static Logger tracerLogger = VenusLoggerFactory.getClientTracerLogger();
+    private static Logger tracerLogger = VenusLoggerFactory.getTracerLogger();
 
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
 
@@ -98,7 +98,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             if(connector == null && connectionManagers == null){
                 try {
                     if(logger.isInfoEnabled()){
-                        logger.info("###################init connector############");
+                        logger.info("#########init connector#############");
                     }
                     connector = new ConnectionConnector("connection connector-0");
                     int ioThreads = Runtime.getRuntime().availableProcessors();
@@ -342,7 +342,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             long totalTime = System.currentTimeMillis() - start;
             if(exception != null){
                 if (tracerLogger.isErrorEnabled()) {
-                    String tpl = "send request failed,rpcId:{},methodPath:{},target:{},used time:{},exception:{}.";
+                    String tpl = "send request,[failed],rpcId:{},methodPath:{},target:{},used time:{},exception:{}.";
                     Object[] arguments = new Object[]{
                             rpcId,
                             invocation.getMethodPath(),
@@ -354,7 +354,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                 }
             }else{
                 if(tracerLogger.isInfoEnabled()){
-                    String tpl = "send request success,rpcId:{},methodPath:{},target:{},used time:{}ms.";
+                    String tpl = "send request,[success],rpcId:{},methodPath:{},target:{},used time:{}ms.";
                     Object[] arguments = new Object[]{
                             rpcId,
                             invocation.getMethodPath(),

@@ -3,6 +3,7 @@ package com.meidusa.venus.backend.filter.mock;
 import com.meidusa.venus.*;
 import com.meidusa.venus.client.filter.mock.ClientReturnMockFilter;
 import com.meidusa.venus.exception.RpcException;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +13,9 @@ import org.slf4j.LoggerFactory;
  */
 public class ServerReturnMockFilter extends ClientReturnMockFilter implements Filter {
 
-    private static Logger logger = LoggerFactory.getLogger(ServerReturnMockFilter.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
+
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
     //降级类型-return
     static final String MOCK_TYPE_RETURN = "MOCK_TYPE_RETURN ";
@@ -28,14 +31,24 @@ public class ServerReturnMockFilter extends ClientReturnMockFilter implements Fi
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
-        ServerInvocation clientInvocation = (ServerInvocation)invocation;
-        if(!isEnableReturnMock(clientInvocation, url)){
+        try {
+            ServerInvocation clientInvocation = (ServerInvocation)invocation;
+            if(!isEnableReturnMock(clientInvocation, url)){
+                return null;
+            }
+            //获取mock返回值
+            Object retru = getMockReturn(clientInvocation, url);
+            //TODO 校验return
+            return new Result(retru);
+        } catch (RpcException e) {
+            throw e;
+        }catch(Throwable e){
+            //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("ServerReturnMockFilter.beforeInvoke error.",e);
+            }
             return null;
         }
-        //获取mock返回值
-        Object retru = getMockReturn(clientInvocation, url);
-        //TODO 校验return
-        return new Result(retru);
     }
 
     @Override

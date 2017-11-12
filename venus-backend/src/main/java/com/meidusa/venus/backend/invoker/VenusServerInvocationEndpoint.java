@@ -20,7 +20,7 @@ import java.util.Iterator;
  */
 public class VenusServerInvocationEndpoint implements EndpointInvocation {
 
-    private static Logger logger = LoggerFactory.getLogger(VenusServerInvocationEndpoint.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
     private static String ENDPOINT_INVOKED = "handleRequest endpoint: ";
     

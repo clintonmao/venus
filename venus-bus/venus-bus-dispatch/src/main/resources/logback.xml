@@ -191,4 +191,24 @@
         <appender-ref ref="APP"/>
         <appender-ref ref="STDOUT"/>
     </root>
+
+    <logger name="venus.default" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="stdout"/>
+    </logger>
+
+    <logger name="venus.tracer" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="stdout"/>
+    </logger>
+
+    <logger name="venus.exception" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="stdout"/>
+    </logger>
+
+    <logger name="venus.status" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="stdout"/>
+    </logger>
 </configuration>

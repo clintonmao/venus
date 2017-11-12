@@ -3,6 +3,7 @@ package com.meidusa.venus.backend.filter.limit;
 import com.meidusa.venus.*;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.support.VenusUtil;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +21,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ServerTpsLimitFilter implements Filter {
 
-    private static Logger logger = LoggerFactory.getLogger(ServerTpsLimitFilter.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
+
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
     /**
      * method->tps映射表
@@ -55,26 +58,35 @@ public class ServerTpsLimitFilter implements Filter {
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
-        ServerInvocation serverInvocation = (ServerInvocation)invocation;
-        if(!isEnableTpsLimit(serverInvocation, url)){
+        try {
+            ServerInvocation serverInvocation = (ServerInvocation)invocation;
+            if(!isEnableTpsLimit(serverInvocation, url)){
+                return null;
+            }
+            //获取方法路径及当前并发数
+            String methodPath = VenusUtil.getMethodPath(serverInvocation);
+            AtomicInteger activeLimit = methodTpsMapping.get(methodPath);
+            if(activeLimit == null){
+                activeLimit = new AtomicInteger(0);
+                methodTpsMapping.put(methodPath,activeLimit);
+            }
+            boolean isExceedTpsLimit = isExceedTpsLimit(methodPath,activeLimit);
+            if(isExceedTpsLimit){
+                throw new RpcException("exceed tps limit.");
+            }
+            //+1
+            activeLimit.incrementAndGet();
+            methodTpsMapping.put(methodPath,activeLimit);
+            return null;
+        } catch (RpcException e) {
+            throw e;
+        }catch (Throwable e){
+            //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("ServerTpsLimitFilter.beforeInvoke error.",e);
+            }
             return null;
         }
-        //获取方法路径及当前并发数
-        String methodPath = VenusUtil.getMethodPath(serverInvocation);
-        AtomicInteger activeLimit = methodTpsMapping.get(methodPath);
-        if(activeLimit == null){
-            activeLimit = new AtomicInteger(0);
-            methodTpsMapping.put(methodPath,activeLimit);
-        }
-        boolean isExceedTpsLimit = isExceedTpsLimit(methodPath,activeLimit);
-        if(isExceedTpsLimit){
-            throw new RpcException("exceed tps limit.");
-        }
-        //+1
-        activeLimit.incrementAndGet();
-        methodTpsMapping.put(methodPath,activeLimit);
-        logger.info("before invoke methodTpsMapping:{}.", methodTpsMapping);
-        return null;
     }
 
     /**

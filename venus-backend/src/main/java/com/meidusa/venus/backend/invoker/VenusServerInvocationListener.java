@@ -6,7 +6,6 @@ import com.meidusa.venus.backend.support.ServerResponseHandler;
 import com.meidusa.venus.ServerInvocation;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
@@ -20,11 +19,11 @@ import com.meidusa.venus.notify.ReferenceInvocationListener;
  */
 public class VenusServerInvocationListener<T> implements InvocationListener<T> {
 
-    private static Logger logger = LoggerFactory.getLogger(VenusServerInvocationListener.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
-    private static Logger tracerLogger = VenusLoggerFactory.getBackendTracerLogger();
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
-    private static Logger exceptionLogger = VenusLoggerFactory.getBackendExceptionLogger();
+    private static Logger tracerLogger = VenusLoggerFactory.getTracerLogger();
 
     private VenusFrontendConnection conn;
 
@@ -81,7 +80,7 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
             responseHandler.writeResponseForNotify(responseEntityWrapper);
         } catch (Exception ex) {
             if(exceptionLogger.isErrorEnabled()){
-                logger.error("write exception response error.",ex);
+                exceptionLogger.error("write exception response error.",ex);
             }
         }
     }

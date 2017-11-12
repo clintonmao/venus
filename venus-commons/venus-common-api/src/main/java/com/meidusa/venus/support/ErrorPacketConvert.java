@@ -9,6 +9,7 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceNofityPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.util.Utils;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import com.meidusa.venus.util.VenusTracerUtil;
 import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
@@ -24,7 +25,9 @@ import java.util.Map;
  */
 public class ErrorPacketConvert {
 
-    private static Logger logger = LoggerFactory.getLogger(ErrorPacketConvert.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
+
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
     /**
      * 将exception转换为errorPacket
@@ -85,8 +88,10 @@ public class ErrorPacketConvert {
             for (Map.Entry<String, PropertyDescriptor> entry : mpd.entrySet()) {
                 try {
                     additionalData.put(entry.getKey(), entry.getValue().getReadMethod().invoke(e));
-                } catch (Exception e1) {
-                    logger.error("read config properpty error", e1);
+                } catch (Exception ex) {
+                    if(logger.isErrorEnabled()){
+                        exceptionLogger.error("read config properpty error", ex);
+                    }
                 }
             }
             response.additionalData = serializer.encode(additionalData);
@@ -119,17 +124,16 @@ public class ErrorPacketConvert {
         //反序列化异常
         Exception exception = venusExceptionFactory.getException(errorPacket.errorCode, errorPacket.message);
         if (exception == null) {
-            logger.error("receive error packet,errorCode=" + errorPacket.errorCode + ",message=" + errorPacket.message);
+            exceptionLogger.error("receive error packet,errorCode=" + errorPacket.errorCode + ",message=" + errorPacket.message);
         } else {
             if (errorPacket.additionalData != null) {
                 Object obj = serializer.decode(errorPacket.additionalData, Utils.getBeanFieldType(exception.getClass(), Exception.class));
                 try {
                     BeanUtils.copyProperties(exception, obj);
                 } catch (Exception e1) {
-                    logger.error("copy properties error", e1);
+                    exceptionLogger.error("copy properties error", e1);
                 }
             }
-            logger.error("receive error packet", exception);
         }
         return exception;
     }
@@ -155,7 +159,7 @@ public class ErrorPacketConvert {
                 try {
                     BeanUtils.copyProperties(exception, obj);
                 } catch (Exception e1) {
-                    logger.error("copy properties error", e1);
+                    exceptionLogger.error("copy properties error", e1);
                 }
             }
         }

@@ -9,6 +9,7 @@ import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.support.VenusThreadContext;
 import com.meidusa.venus.util.UUIDUtil;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +21,10 @@ import java.util.Date;
  */
 public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter {
 
-    private static Logger logger = LoggerFactory.getLogger(ClientMonitorFilter.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
+
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
+
 
     public ClientMonitorFilter(){
     }
@@ -46,30 +50,40 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
 
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
-        ClientInvocation clientInvocation = (ClientInvocation)invocation;
-        //若不走注册中心，则跳过
-        if(!isNeedReport(clientInvocation)){
+        try {
+            ClientInvocation clientInvocation = (ClientInvocation)invocation;
+            //若不走注册中心，则跳过
+            if(!isNeedReport(clientInvocation)){
+                return null;
+            }
+
+            //请求url
+            url = (URL) VenusThreadContext.get(VenusThreadContext.REQUEST_URL);
+            //响应结果
+            Result result = (Result) VenusThreadContext.get(VenusThreadContext.RESPONSE_RESULT);
+            //响应异常
+            Throwable e = (Throwable)VenusThreadContext.get(VenusThreadContext.RESPONSE_EXCEPTION);
+
+            //组装并添加到明细队列
+            InvocationDetail invocationDetail = new InvocationDetail();
+            invocationDetail.setFrom(InvocationDetail.FROM_CLIENT);
+            invocationDetail.setInvocation(clientInvocation);
+            invocationDetail.setUrl(url);
+            invocationDetail.setResponseTime(new Date());
+            invocationDetail.setResult(result);
+            invocationDetail.setException(e);
+
+            putInvocationDetailQueue(invocationDetail);
+            return null;
+        } catch (RpcException e) {
+            throw e;
+        }catch(Throwable e){
+            //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("ClientMonitorFilter.afterInvoke error.",e);
+            }
             return null;
         }
-
-        //请求url
-        url = (URL) VenusThreadContext.get(VenusThreadContext.REQUEST_URL);
-        //响应结果
-        Result result = (Result) VenusThreadContext.get(VenusThreadContext.RESPONSE_RESULT);
-        //响应异常
-        Throwable e = (Throwable)VenusThreadContext.get(VenusThreadContext.RESPONSE_EXCEPTION);
-
-        //组装并添加到明细队列
-        InvocationDetail invocationDetail = new InvocationDetail();
-        invocationDetail.setFrom(InvocationDetail.FROM_CLIENT);
-        invocationDetail.setInvocation(clientInvocation);
-        invocationDetail.setUrl(url);
-        invocationDetail.setResponseTime(new Date());
-        invocationDetail.setResult(result);
-        invocationDetail.setException(e);
-
-        putInvocationDetailQueue(invocationDetail);
-        return null;
     }
 
     /**

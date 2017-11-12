@@ -7,6 +7,7 @@ import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.client.cluster.loadbalance.Loadbalance;
 import com.meidusa.venus.client.cluster.loadbalance.RandomLoadbalance;
 import com.meidusa.venus.client.cluster.loadbalance.RoundLoadbalance;
+import com.meidusa.venus.support.VenusConstants;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,11 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by Zhangzhihua on 2017/9/13.
  */
 public abstract class AbstractClusterInvoker implements ClusterInvoker {
-
-    //负载策略-随机
-    private static String LB_RANDOM = "random";
-    //负载策略-轮询
-    private static String LB_ROUND = "round";
 
     private RandomLoadbalance randomLoadbanlance = new RandomLoadbalance();
 
@@ -47,13 +43,14 @@ public abstract class AbstractClusterInvoker implements ClusterInvoker {
      * @return
      */
     Loadbalance getLoadbanlance(String lb, ClientInvocation clientInvocation){
+        //目前，选择lb到服务级别
         String servicePath = clientInvocation.getServicePath();
-        if(LB_RANDOM.equals(lb)){
+        if(VenusConstants.LOADBALANCE_RANDOM.equals(lb)){
             if(randomLbMap.get(servicePath) == null){
                 randomLbMap.put(servicePath,randomLoadbanlance);
             }
             return randomLbMap.get(servicePath);
-        }else if(LB_ROUND.equals(lb)){
+        }else if(VenusConstants.LOADBALANCE_ROUND.equals(lb)){
             if(roundLbMap.get(servicePath) == null){
                 roundLbMap.put(servicePath,roundLoadbanlance);
             }

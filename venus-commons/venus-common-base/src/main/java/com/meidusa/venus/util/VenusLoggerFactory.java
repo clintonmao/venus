@@ -9,44 +9,28 @@ import org.slf4j.LoggerFactory;
  */
 public class VenusLoggerFactory {
 
-    //client
-    private static Logger clientDefaultLogger = LoggerFactory.getLogger("venus.client.default");
-    private static Logger clientTracerLogger = LoggerFactory.getLogger("venus.client.tracer");
-    private static Logger clientExceptionLogger = LoggerFactory.getLogger("venus.client.exception");
+    private static Logger defaultLogger = LoggerFactory.getLogger("venus.default");
 
-    //backend
-    private static Logger backendDefaultLogger = LoggerFactory.getLogger("venus.backend.default");
-    private static Logger backendTracerLogger = LoggerFactory.getLogger("venus.backend.tracer");
-    private static Logger backendExceptionLogger = LoggerFactory.getLogger("venus.backend.exception");
+    private static Logger tracerLogger = LoggerFactory.getLogger("venus.tracer");
 
-    //common
+    private static Logger exceptionLogger = LoggerFactory.getLogger("venus.exception");
+
     private static Logger statusLogger = LoggerFactory.getLogger("venus.status");
 
-    public static Logger getClientDefaultLogger(){
-        return clientDefaultLogger;
+    public static Logger getDefaultLogger(){
+        return defaultLogger;
     }
 
-    public static Logger getClientTracerLogger() {
-        return clientTracerLogger;
+    public static Logger getExceptionLogger() {
+        return exceptionLogger;
     }
 
-    public static Logger getClientExceptionLogger() {
-        return clientExceptionLogger;
-    }
-
-    public static Logger getBackendDefaultLogger() {
-        return backendDefaultLogger;
-    }
-
-    public static Logger getBackendTracerLogger() {
-        return backendTracerLogger;
-    }
-
-    public static Logger getBackendExceptionLogger() {
-        return backendExceptionLogger;
+    public static Logger getTracerLogger() {
+        return tracerLogger;
     }
 
     public static Logger getStatusLogger() {
         return statusLogger;
     }
+
 }

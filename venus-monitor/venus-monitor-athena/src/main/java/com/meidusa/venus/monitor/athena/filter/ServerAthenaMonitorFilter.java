@@ -11,6 +11,8 @@ import com.meidusa.venus.monitor.athena.reporter.AthenaReporterDelegate;
 import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionDelegate;
 import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionId;
 import com.meidusa.venus.support.VenusThreadContext;
+import com.meidusa.venus.util.VenusLoggerFactory;
+import org.slf4j.Logger;
 
 /**
  * server athena监控filter
@@ -18,9 +20,11 @@ import com.meidusa.venus.support.VenusThreadContext;
  */
 public class ServerAthenaMonitorFilter implements Filter {
 
-    static boolean isRunning = false;
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
-    boolean isFindderBug = false;
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
+
+    static boolean isRunning = false;
 
     public ServerAthenaMonitorFilter(){
         synchronized (this){
@@ -38,27 +42,36 @@ public class ServerAthenaMonitorFilter implements Filter {
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
-        ServerInvocation rpcInvocation = (ServerInvocation)invocation;
-        Tuple<Long, byte[]> data = rpcInvocation.getData();
-        SerializeServiceRequestPacket request = rpcInvocation.getRequest();
-        String apiName = request.apiName;
-        Endpoint endpoint = rpcInvocation.getEndpointDef();
-        long startTime = TimeUtil.currentTimeMillis();
-        VenusThreadContext.set(VenusThreadContext.SERVER_BEGIN_TIME,Long.valueOf(startTime));
+        try {
+            ServerInvocation rpcInvocation = (ServerInvocation)invocation;
+            Tuple<Long, byte[]> data = rpcInvocation.getData();
+            SerializeServiceRequestPacket request = rpcInvocation.getRequest();
+            String apiName = request.apiName;
+            Endpoint endpoint = rpcInvocation.getEndpointDef();
+            long startTime = TimeUtil.currentTimeMillis();
+            VenusThreadContext.set(VenusThreadContext.SERVER_BEGIN_TIME,Long.valueOf(startTime));
 
-        //TODO 考虑服务端更新，客户端没有更新，athena相关信息为空情况
-        //调用服务
-        boolean athenaFlag = endpoint.getService().getAthenaFlag();
-        if (athenaFlag) {
-            AthenaReporterDelegate.getDelegate().metric(apiName + ".handleRequest");
-            AthenaTransactionId transactionId = new AthenaTransactionId();
-            transactionId.setRootId(new String(rpcInvocation.getAthenaId()));
-            transactionId.setParentId(new String(rpcInvocation.getParentId()));
-            transactionId.setMessageId(new String(rpcInvocation.getMessageId()));
-            AthenaTransactionDelegate.getDelegate().startServerTransaction(transactionId, apiName);
-            AthenaTransactionDelegate.getDelegate().setServerInputSize(data.right.length);
+            //调用服务
+            boolean athenaFlag = endpoint.getService().getAthenaFlag();
+            if (athenaFlag) {
+                AthenaReporterDelegate.getDelegate().metric(apiName + ".handleRequest");
+                AthenaTransactionId transactionId = new AthenaTransactionId();
+                transactionId.setRootId(new String(rpcInvocation.getAthenaId()));
+                transactionId.setParentId(new String(rpcInvocation.getParentId()));
+                transactionId.setMessageId(new String(rpcInvocation.getMessageId()));
+                AthenaTransactionDelegate.getDelegate().startServerTransaction(transactionId, apiName);
+                AthenaTransactionDelegate.getDelegate().setServerInputSize(data.right.length);
+            }
+            return null;
+        } catch (RpcException e) {
+            throw e;
+        }catch(Throwable e){
+            //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("ServerAthenaMonitorFilter.beforeInvoke error.",e);
+            }
+            return null;
         }
-        return null;
     }
 
     @Override
@@ -78,38 +91,45 @@ public class ServerAthenaMonitorFilter implements Filter {
 
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
-        ServerInvocation rpcInvocation = (ServerInvocation)invocation;
-        Endpoint endpoint = rpcInvocation.getEndpointDef();
-        if(isFindderBug){
-            throw new NoSuchMethodError("test NoSuchMethodError error logic.");
-        }
-        Tuple<Long, byte[]> data = rpcInvocation.getData();
-        SerializeServiceRequestPacket request = rpcInvocation.getRequest();
-        String apiName = request.apiName;
-        boolean athenaFlag = endpoint.getService().getAthenaFlag();
-        if (athenaFlag) {
-            AthenaReporterDelegate.getDelegate().metric(apiName + ".complete");
-            Long startTime = (Long) VenusThreadContext.get(VenusThreadContext.SERVER_BEGIN_TIME);
-            long endRunTime = TimeUtil.currentTimeMillis();
-            long queuedTime = startTime.longValue() - data.left;
-            long executeTime = endRunTime - startTime.longValue();
-            //TODO 超时要这样处理吗？
-            if ((endpoint.getTimeWait() < (queuedTime + executeTime)) && athenaFlag) {
-                AthenaReporterDelegate.getDelegate().metric(apiName + ".timeout");
+        try {
+            ServerInvocation rpcInvocation = (ServerInvocation)invocation;
+            Endpoint endpoint = rpcInvocation.getEndpointDef();
+            Tuple<Long, byte[]> data = rpcInvocation.getData();
+            SerializeServiceRequestPacket request = rpcInvocation.getRequest();
+            String apiName = request.apiName;
+            boolean athenaFlag = endpoint.getService().getAthenaFlag();
+            if (athenaFlag) {
+                AthenaReporterDelegate.getDelegate().metric(apiName + ".complete");
+                Long startTime = (Long) VenusThreadContext.get(VenusThreadContext.SERVER_BEGIN_TIME);
+                long endRunTime = TimeUtil.currentTimeMillis();
+                long queuedTime = startTime.longValue() - data.left;
+                long executeTime = endRunTime - startTime.longValue();
+                //TODO 超时要这样处理吗？
+                if ((endpoint.getTimeWait() < (queuedTime + executeTime)) && athenaFlag) {
+                    AthenaReporterDelegate.getDelegate().metric(apiName + ".timeout");
+                }
+
+                //保存输出报文长度
+                //VenusThreadContext.set(VenusThreadContext.SERVER_OUTPUT_SIZE,Integer.valueOf(byteBuffer.limit()));
+
+                //TODO 处理未执行到finally语句中情况，参见VenusServerInvokerTask.handle方法
+                Integer serverOutputSize = (Integer) VenusThreadContext.get(VenusThreadContext.SERVER_OUTPUT_SIZE);
+                if(serverOutputSize != null){
+                    AthenaTransactionDelegate.getDelegate().setServerOutputSize(serverOutputSize.intValue());
+                }
+
+                AthenaTransactionDelegate.getDelegate().completeServerTransaction();
             }
-
-            //保存输出报文长度
-            //VenusThreadContext.set(VenusThreadContext.SERVER_OUTPUT_SIZE,Integer.valueOf(byteBuffer.limit()));
-
-            //TODO 处理未执行到finally语句中情况，参见VenusServerInvokerTask.handle方法
-            Integer serverOutputSize = (Integer) VenusThreadContext.get(VenusThreadContext.SERVER_OUTPUT_SIZE);
-            if(serverOutputSize != null){
-                AthenaTransactionDelegate.getDelegate().setServerOutputSize(serverOutputSize.intValue());
+            return null;
+        } catch (RpcException e) {
+            throw e;
+        }catch (Throwable e){
+            //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("ServerAthenaMonitorFilter.afterInvoke error.",e);
             }
-
-            AthenaTransactionDelegate.getDelegate().completeServerTransaction();
+            return null;
         }
-        return null;
     }
 
     @Override

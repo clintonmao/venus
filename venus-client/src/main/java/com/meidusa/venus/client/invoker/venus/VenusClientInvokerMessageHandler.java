@@ -41,11 +41,11 @@ import java.util.concurrent.*;
  */
 public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler implements MessageHandler<VenusBackendConnection, byte[]> {
 
-    private static Logger logger = LoggerFactory.getLogger(VenusClientInvokerMessageHandler.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
-    private static Logger tracerLogger = VenusLoggerFactory.getClientTracerLogger();
+    private static Logger tracerLogger = VenusLoggerFactory.getTracerLogger();
 
-    private static Logger exceptionLogger = VenusLoggerFactory.getClientExceptionLogger();
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
     /**
      * rpcId-请求&响应映射表
@@ -185,7 +185,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             AbstractServicePacket packet = parseServicePacket(message);
             String rpcId = RpcIdUtil.getRpcId(packet);
             if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("recv reponse message,rpcId:{}.",rpcId);
+                tracerLogger.info("recv reponse,rpcId:{}.",rpcId);
             }
 
             //获取clientId/clientRequestId，用于获取invocation请求信息

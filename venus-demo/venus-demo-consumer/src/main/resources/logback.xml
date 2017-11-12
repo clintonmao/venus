@@ -52,12 +52,22 @@
         <appender-ref ref="stdout" />
     </root>
 
-    <logger name="venus.client.tracer" additivity="false">
+    <logger name="venus.default" additivity="false">
         <level value="info"/>
         <appender-ref ref="stdout"/>
     </logger>
 
-    <logger name="venus.client.exception" additivity="false">
+    <logger name="venus.tracer" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="stdout"/>
+    </logger>
+
+    <logger name="venus.exception" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="stdout"/>
+    </logger>
+
+    <logger name="venus.status" additivity="false">
         <level value="info"/>
         <appender-ref ref="stdout"/>
     </logger>

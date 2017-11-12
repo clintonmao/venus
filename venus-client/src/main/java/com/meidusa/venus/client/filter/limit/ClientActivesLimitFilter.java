@@ -5,6 +5,7 @@ import com.meidusa.venus.client.filter.ServiceConfigUtil;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.registry.domain.FlowControl;
 import com.meidusa.venus.support.VenusUtil;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ClientActivesLimitFilter implements Filter {
 
-    private static Logger logger = LoggerFactory.getLogger(ClientActivesLimitFilter.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
+
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
     /**
      * method->并发数映射表
@@ -40,29 +43,36 @@ public class ClientActivesLimitFilter implements Filter {
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
-        ClientInvocation clientInvocation = (ClientInvocation)invocation;
-        if(!isEnableActiveLimit(clientInvocation, url)){
+        try {
+            ClientInvocation clientInvocation = (ClientInvocation)invocation;
+            if(!isEnableActiveLimit(clientInvocation, url)){
+                return null;
+            }
+            //获取方法路径及当前并发数
+            String methodPath = VenusUtil.getMethodPath(clientInvocation);
+            AtomicInteger activeLimit = methodActivesMapping.get(methodPath);
+            if(activeLimit == null){
+                activeLimit = new AtomicInteger(0);
+                methodActivesMapping.put(methodPath,activeLimit);
+            }
+            //判断是否超过流控阈值
+            boolean isExceedActiveLimit = isExceedActiveLimit(clientInvocation,url,methodPath,activeLimit);
+            if(isExceedActiveLimit){
+                throw new RpcException("exceed actives limit.");
+            }
+            //+1
+            activeLimit.incrementAndGet();
+            methodActivesMapping.put(methodPath,activeLimit);
+            return null;
+        } catch (RpcException e) {
+            throw e;
+        }catch (Throwable e){
+            //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("ClientActivesLimitFilter.beforeInvoke error.",e);
+            }
             return null;
         }
-        //获取方法路径及当前并发数
-        String methodPath = VenusUtil.getMethodPath(clientInvocation);
-        AtomicInteger activeLimit = methodActivesMapping.get(methodPath);
-        if(activeLimit == null){
-            activeLimit = new AtomicInteger(0);
-            methodActivesMapping.put(methodPath,activeLimit);
-        }
-        //判断是否超过流控阈值
-        boolean isExceedActiveLimit = isExceedActiveLimit(clientInvocation,url,methodPath,activeLimit);
-        if(isExceedActiveLimit){
-            throw new RpcException("exceed actives limit.");
-        }
-        //+1
-        activeLimit.incrementAndGet();
-        methodActivesMapping.put(methodPath,activeLimit);
-        if(logger.isDebugEnabled()){
-            logger.debug("method active mappings of before invoke :{}.",methodActivesMapping);
-        }
-        return null;
     }
 
     @Override
@@ -72,21 +82,28 @@ public class ClientActivesLimitFilter implements Filter {
 
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
-        ClientInvocation clientInvocation = (ClientInvocation)invocation;
-        if(!isEnableActiveLimit(clientInvocation, url)){
+        try {
+            ClientInvocation clientInvocation = (ClientInvocation)invocation;
+            if(!isEnableActiveLimit(clientInvocation, url)){
+                return null;
+            }
+            String methodPath = VenusUtil.getMethodPath(clientInvocation);
+            AtomicInteger activeLimit = methodActivesMapping.get(methodPath);
+            if(activeLimit != null){
+                //-1
+                activeLimit.decrementAndGet();
+                methodActivesMapping.put(methodPath,activeLimit);
+            }
+            return null;
+        } catch (RpcException e) {
+            throw e;
+        }catch (Throwable e){
+            //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("ClientActivesLimitFilter.afterInvoke error.",e);
+            }
             return null;
         }
-        String methodPath = VenusUtil.getMethodPath(clientInvocation);
-        AtomicInteger activeLimit = methodActivesMapping.get(methodPath);
-        if(activeLimit != null){
-            //-1
-            activeLimit.decrementAndGet();
-            methodActivesMapping.put(methodPath,activeLimit);
-            if(logger.isDebugEnabled()){
-                logger.debug("method active mappings of after invoke :{}.",methodActivesMapping);
-            }
-        }
-        return null;
     }
 
     /**

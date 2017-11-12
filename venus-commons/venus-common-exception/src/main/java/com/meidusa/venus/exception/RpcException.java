@@ -32,14 +32,17 @@ public class RpcException extends RuntimeException {
 
     public RpcException(String message, Throwable cause) {
         super(message, cause);
+        this.code = UNKNOWN_EXCEPTION;
     }
 
     public RpcException(String message) {
         super(message);
+        this.code = UNKNOWN_EXCEPTION;
     }
 
     public RpcException(Throwable cause) {
         super(cause);
+        this.code = UNKNOWN_EXCEPTION;
     }
 
     public RpcException(int code) {

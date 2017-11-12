@@ -42,11 +42,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class InvokerInvocationHandler implements InvocationHandler {
 
-    private static Logger logger = LoggerFactory.getLogger(InvokerInvocationHandler.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
-    private static Logger tracerLogger = VenusLoggerFactory.getClientTracerLogger();
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
-    private static Logger exceptionLogger = VenusLoggerFactory.getClientExceptionLogger();
+    private static Logger tracerLogger = VenusLoggerFactory.getTracerLogger();
 
     /**
      * 服务接口类型
@@ -105,30 +105,9 @@ public class InvokerInvocationHandler implements InvocationHandler {
             throw exception;
         } finally {
             try {
-                //输出error日志
-                if(exception != null){
-                    printExceptionLogger(invocation,exception,bTime);
-                }
                 //输出tracer日志
                 printTracerLogger(invocation,object,exception,bTime);
-            } catch (Exception e) {
-                if(logger.isErrorEnabled()){
-                    logger.error("print logger error.",e);
-                }
-            }
-        }
-    }
-
-    /**
-     * 打印异常日志
-     * @param invocation
-     * @param exception
-     * @param bTime
-     */
-    void printExceptionLogger(ClientInvocation invocation,Throwable exception,long bTime){
-        if(exceptionLogger.isErrorEnabled()){
-            String errorMsg = String.format("invoke exception,rpcId:%s,methodPath:%s.",invocation.getRpcId(),invocation.getMethodPath());
-            exceptionLogger.error(errorMsg,exception);
+            } catch (Exception e) {}
         }
     }
 
@@ -150,13 +129,13 @@ public class InvokerInvocationHandler implements InvocationHandler {
         if(invocation.isEnablePrintParam() && invocation.getArgs() != null){
             param = JSONUtil.toJSONString(invocation.getArgs());
         }
-        String result = "";
+        Object output = "";
         if(invocation.isEnablePrintResult()){
             if(object != null){
-                result = JSONUtil.toJSONString(object);
+                output = JSONUtil.toJSONString(object);
             }else if(exception != null){
                 hasException = true;
-                result = JSONUtil.toJSONString(exception);
+                output = exception;
             }
         }
         String status = "";
@@ -181,11 +160,12 @@ public class InvokerInvocationHandler implements InvocationHandler {
                 status,
                 usedTime,
                 param,
-                result
+                output
         };
         if(hasException){
-            if(tracerLogger.isErrorEnabled()){
-                tracerLogger.error(tpl,arguments);
+            //输出错误日志
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error(tpl,arguments);
             }
         }else if(usedTime > 200){
             if(tracerLogger.isWarnEnabled()){
@@ -308,9 +288,8 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
         //若是rpc异常，则判断是否为包装异常
         if(exception instanceof RpcException){
-            Throwable cause = exception.getCause();
-            if(cause != null){
-                rex = cause;
+            if(exception.getCause() != null){
+                rex = exception.getCause();
             }else{
                 rex = exception;
             }

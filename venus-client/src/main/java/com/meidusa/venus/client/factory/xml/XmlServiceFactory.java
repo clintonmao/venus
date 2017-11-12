@@ -39,6 +39,7 @@ import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.FileWatchdog;
 import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import com.thoughtworks.xstream.XStream;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
@@ -74,7 +75,9 @@ import java.util.Map;
  */
 public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware, InitializingBean, DisposableBean,BeanFactoryPostProcessor {
 
-    private static Logger logger = LoggerFactory.getLogger(XmlServiceFactory.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
+
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
     /**
      * 配置文件列表
@@ -166,7 +169,9 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      * 初始化应用上下文
      */
     void initContext(){
-        logger.trace("current Venus Client id=" + PacketConstant.VENUS_CLIENT_ID);
+        if(logger.isDebugEnabled()){
+            logger.debug("current Venus Client id=" + PacketConstant.VENUS_CLIENT_ID);
+        }
         if(applicationContext != null){
             VenusContext.getInstance().setApplicationContext(applicationContext);
         }
@@ -208,8 +213,8 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             try {
                 subscribleService(serviceConfig);
             } catch (Exception e) {
-                if(logger.isErrorEnabled()){
-                    logger.error("subscrible service failed,will retry.",e);
+                if(exceptionLogger.isErrorEnabled()){
+                    exceptionLogger.error("subscrible service failed,will retry.",e);
                 }
             }
         }
@@ -477,23 +482,6 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
 				}
 			}
         }
-    }
-
-    class VenusFileWatchdog extends FileWatchdog {
-
-        protected VenusFileWatchdog(File... file) {
-            super(file);
-        }
-
-        @Override
-        protected void doOnChange() {
-            try {
-                XmlServiceFactory.this.initConfiguration();
-            } catch (Exception e) {
-                XmlServiceFactory.logger.error("reload configuration error", e);
-            }
-        }
-
     }
 
     @Override

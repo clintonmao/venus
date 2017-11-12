@@ -3,6 +3,7 @@ package com.meidusa.venus.backend.filter.mock;
 import com.meidusa.venus.*;
 import com.meidusa.venus.client.filter.mock.ClientThrowMockFilter;
 import com.meidusa.venus.exception.RpcException;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +13,9 @@ import org.slf4j.LoggerFactory;
  */
 public class ServerThrowMockFilter extends ClientThrowMockFilter implements Filter {
 
-    private static Logger logger = LoggerFactory.getLogger(ServerThrowMockFilter.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
+
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
     //降级类型-return
     static final String MOCK_TYPE_RETURN = "MOCK_TYPE_RETURN ";
@@ -28,16 +31,26 @@ public class ServerThrowMockFilter extends ClientThrowMockFilter implements Filt
 
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
-        ServerInvocation clientInvocation = (ServerInvocation)invocation;
-        if(!isEnableThrowMock(clientInvocation, url)){
+        try {
+            ServerInvocation clientInvocation = (ServerInvocation)invocation;
+            if(!isEnableThrowMock(clientInvocation, url)){
+                return null;
+            }
+            //获取mock exception
+            Exception exception = getMockException(clientInvocation, url);
+            //TODO 校验exception
+            Result result = new Result();
+            result.setException(exception);
+            return result;
+        } catch (RpcException e) {
+            throw e;
+        }catch(Throwable e){
+            //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("ServerThrowMockFilter.beforeInvoke error.",e);
+            }
             return null;
         }
-        //获取mock exception
-        Exception exception = getMockException(clientInvocation, url);
-        //TODO 校验exception
-        Result result = new Result();
-        result.setException(exception);
-        return result;
     }
 
     /**

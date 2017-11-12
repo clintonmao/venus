@@ -2,6 +2,7 @@ package com.meidusa.venus.client.invoker.venus;
 
 import com.meidusa.toolkit.net.Connection;
 import com.meidusa.toolkit.net.ConnectionObserver;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,9 @@ import java.util.Map;
  */
 public class VenusClientConnectionObserver implements ConnectionObserver {
 
-    private static Logger logger = LoggerFactory.getLogger(VenusClientConnectionObserver.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
+
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
     //是否开启connect监听处理
     public static boolean isEnableConnectObserver = true;
@@ -40,15 +43,15 @@ public class VenusClientConnectionObserver implements ConnectionObserver {
 
     @Override
     public void connectionFailed(Connection conn, Exception fault) {
-        if(logger.isErrorEnabled()){
-            logger.error("connection failed,conn:{},fault:{}.",conn,fault);
+        if(exceptionLogger.isErrorEnabled()){
+            exceptionLogger.error("connection failed,conn:{},fault:{}.",conn,fault);
         }
     }
 
     @Override
     public void connectionClosed(Connection conn) {
-        if(logger.isErrorEnabled()){
-            logger.error("connection close,conn:{}.",conn);
+        if(logger.isWarnEnabled()){
+            logger.warn("connection close,conn:{}.",conn);
         }
         if(!isEnableConnectObserver){
             return;
@@ -83,7 +86,9 @@ public class VenusClientConnectionObserver implements ConnectionObserver {
                 }
             }
         } catch (Exception e) {
-            logger.error("release countDown latch error.",e);
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("release countDown latch error.",e);
+            }
         }
     }
 }

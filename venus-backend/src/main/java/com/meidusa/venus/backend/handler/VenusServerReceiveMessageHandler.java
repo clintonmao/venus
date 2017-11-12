@@ -30,7 +30,6 @@ import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.*;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -44,11 +43,11 @@ import java.util.Map;
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler implements MessageHandler<VenusFrontendConnection, Tuple<Long, byte[]>>, Initialisable {
 
-    private static Logger logger = LoggerFactory.getLogger(VenusServerReceiveMessageHandler.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
-    private static Logger tracerLogger = VenusLoggerFactory.getBackendTracerLogger();
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
-    private static Logger exceptionLogger = VenusLoggerFactory.getBackendExceptionLogger();
+    private static Logger tracerLogger = VenusLoggerFactory.getTracerLogger();
 
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
 
@@ -131,17 +130,9 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
             result = buildResult(t);
         }finally {
             try {
-                //输出error日志
-                if(result.getErrorCode() != 0 || result.getException() != null){
-                   printExceptionLogger(invocation,result,bTime);
-                }
                 //输出tracer日志
                 printTracerLogger(invocation,result,bTime);
-            } catch (Exception e) {
-                if(logger.isErrorEnabled()){
-                    logger.error("print logger error.",e);
-                }
-            }
+            } catch (Exception e) {}
         }
 
         // 输出响应，将exception转化为errorPacket方式输出
@@ -150,49 +141,30 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
 
             if (invocation.getResultType() == EndpointInvocation.ResultType.RESPONSE) {
                 if(tracerLogger.isInfoEnabled()){
-                    tracerLogger.info("write normal response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
+                    tracerLogger.info("send normal response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
                 }
                 responseHandler.writeResponseForResponse(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
                 if(tracerLogger.isInfoEnabled()){
-                    tracerLogger.info("write normal response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
+                    tracerLogger.info("send normal response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
                 }
                 responseHandler.writeResponseForOk(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.NOTIFY) {
                 //callback回调异常情况
                 if(result.getErrorCode() != 0){
                     if(tracerLogger.isInfoEnabled()){
-                        tracerLogger.info("write notify response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
+                        tracerLogger.info("send notify response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
                     }
                     responseHandler.writeResponseForNotify(responseEntityWrapper);
                 }
             }
         } catch (Throwable t) {
-            if(logger.isErrorEnabled()){
-                logger.error("write response error.",t);
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("send response error.",t);
             }
         }
     }
 
-
-    /**
-     * 输出异常日志
-     * @param invocation
-     * @param result
-     * @param bTime
-     */
-    void printExceptionLogger(ServerInvocation invocation,Result result,long bTime){
-        String errorMsg = String.format("handle exception,rpcId:%s,methodPath:%s.",invocation.getRpcId(),"");
-        if(result.getException() != null){
-            if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error(errorMsg,result.getException());
-            }
-        }else if(result.getErrorCode() != 0){
-            if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error(errorMsg,result.getErrorCode() + "|" + result.getErrorMessage());
-            }
-        }
-    }
 
     /**
      * 输出tracer日志
@@ -211,13 +183,15 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
         if(invocation.isEnablePrintParam() && invocation.getArgs() != null){
             param = JSONUtil.toJSONString(invocation.getArgs());
         }
-        String output = "";
+        Object output = "";
         if(invocation.isEnablePrintResult()){
             if(result.getErrorCode() == 0 && result.getException() == null){
                 output = JSONUtil.toJSONString(result.getResult());
             }else if(result.getException() != null){
                 hasException = true;
-                output = JSONUtil.toJSONString(result.getException());
+                output = result.getException();
+            }else if(result.getErrorCode() != 0){
+                output = String.format("%s-%s",result.getErrorCode(),result.getErrorMessage());
             }
         }
         String status = "";
@@ -245,8 +219,9 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
                 output
         };
         if(hasException){
-            if(tracerLogger.isErrorEnabled()){
-                tracerLogger.error(tpl,arguments);
+            //输出错误日志
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error(tpl,arguments);
             }
         }else if(usedTime > 200){
             if(tracerLogger.isWarnEnabled()){

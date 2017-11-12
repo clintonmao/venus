@@ -1,7 +1,6 @@
 package com.meidusa.venus.client.invoker;
 
 import com.meidusa.venus.*;
-import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.filter.limit.ClientActivesLimitFilter;
 import com.meidusa.venus.client.filter.limit.ClientTpsLimitFilter;
@@ -11,7 +10,6 @@ import com.meidusa.venus.client.filter.mock.ClientThrowMockFilter;
 import com.meidusa.venus.client.filter.valid.ClientValidFilter;
 import com.meidusa.venus.client.invoker.injvm.InjvmClientInvoker;
 import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.monitor.athena.filter.ClientAthenaMonitorFilter;
 import com.meidusa.venus.monitor.filter.ClientMonitorFilter;
@@ -19,9 +17,9 @@ import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.support.EndpointWrapper;
 import com.meidusa.venus.support.ServiceWrapper;
 import com.meidusa.venus.support.VenusThreadContext;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +30,7 @@ import java.util.List;
  */
 public class ClientInvokerProxy implements Invoker {
 
-    private static Logger logger = LoggerFactory.getLogger(ClientInvokerProxy.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
     /**
      * 静态配置地址
@@ -132,9 +130,6 @@ public class ClientInvokerProxy implements Invoker {
             //调用结束切面处理
             for(Filter filter : getAfterFilters()){
                 filter.afterInvoke(invocation,url);
-            }
-            if(logger.isInfoEnabled()){
-                logger.info("invoke rpcId:{} cost time:{}ms.", RpcIdUtil.getRpcId(clientInvocation.getClientId(),clientInvocation.getClientRequestId()),System.currentTimeMillis()-bTime);
             }
         }
     }

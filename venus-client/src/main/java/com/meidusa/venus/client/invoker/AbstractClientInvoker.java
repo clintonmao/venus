@@ -21,38 +21,15 @@ public abstract class AbstractClientInvoker implements Invoker {
 
     private static Logger logger = LoggerFactory.getLogger(AbstractClientInvoker.class);
 
-    private static Logger exceptionLogger = LoggerFactory.getLogger("venus.client.exception");
-
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
         VenusThreadContext.set(VenusThreadContext.REQUEST_URL,url);
-        Method method = clientInvocation.getMethod();
-        ServiceWrapper service = clientInvocation.getService();
-        EndpointWrapper endpoint = clientInvocation.getEndpoint();
-
         init();
 
         //调用相应协议实现
         Result result = doInvoke(clientInvocation, url);
         return result;
-        /*
-        try {
-        } catch (Throwable e) {
-            if (!(e instanceof CodedException)) {
-                if (exceptionLogger.isInfoEnabled()) {
-                    //exceptionLogger.info("invoke service error,api=" + VenusAnnotationUtils.getApiname(method, service, endpoint), e);
-                    exceptionLogger.info("invoke service error,api=" + VenusUtil.getApiName(method,service,endpoint), e);
-                }
-            } else {
-                if (exceptionLogger.isDebugEnabled()) {
-                    //exceptionLogger.debug("invoke service error,api=" + VenusAnnotationUtils.getApiname(method, service, endpoint), e);
-                    exceptionLogger.debug("invoke service error,api=" + VenusUtil.getApiName(method,service,endpoint), e);
-                }
-            }
-            throw new RpcException(e);
-        }
-        */
     }
 
     /**

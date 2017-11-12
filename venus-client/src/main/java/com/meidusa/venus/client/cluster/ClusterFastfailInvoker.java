@@ -2,6 +2,7 @@ package com.meidusa.venus.client.cluster;
 
 import com.meidusa.venus.*;
 import com.meidusa.venus.exception.RpcException;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +14,7 @@ import java.util.List;
  */
 public class ClusterFastfailInvoker extends AbstractClusterInvoker implements ClusterInvoker {
 
-    private static Logger logger = LoggerFactory.getLogger(ClusterFastfailInvoker.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
     public ClusterFastfailInvoker(Invoker invoker){
         this.invoker = invoker;
@@ -26,9 +27,8 @@ public class ClusterFastfailInvoker extends AbstractClusterInvoker implements Cl
     @Override
     public Result invoke(Invocation invocation, List<URL> urlList) throws RpcException {
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
-        String lb = clientInvocation.getLoadbalance();
 
-        URL url = getLoadbanlance(lb,clientInvocation).select(urlList);
+        URL url = getLoadbanlance(clientInvocation.getLoadbalance(),clientInvocation).select(urlList);
         if(logger.isInfoEnabled()){
             logger.info("select service provider:【{}】.",new StringBuilder().append(url.getHost()).append(":").append(url.getPort()));
         }

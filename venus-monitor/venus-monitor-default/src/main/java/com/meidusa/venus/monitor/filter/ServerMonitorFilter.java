@@ -9,6 +9,7 @@ import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.support.VenusThreadContext;
 import com.meidusa.venus.util.UUIDUtil;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +21,9 @@ import java.util.Date;
  */
 public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter{
 
-    private static Logger logger = LoggerFactory.getLogger(ServerMonitorFilter.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
+
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
     public ServerMonitorFilter(){}
 
@@ -44,19 +47,29 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
 
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
-        ServerInvocation serverInvocation = (ServerInvocation)invocation;
-        Result result = (Result) VenusThreadContext.get(VenusThreadContext.RESPONSE_RESULT);
-        Throwable e = (Throwable)VenusThreadContext.get(VenusThreadContext.RESPONSE_EXCEPTION);
+        try {
+            ServerInvocation serverInvocation = (ServerInvocation)invocation;
+            Result result = (Result) VenusThreadContext.get(VenusThreadContext.RESPONSE_RESULT);
+            Throwable e = (Throwable)VenusThreadContext.get(VenusThreadContext.RESPONSE_EXCEPTION);
 
-        InvocationDetail invocationDetail = new InvocationDetail();
-        invocationDetail.setFrom(InvocationDetail.FROM_SERVER);
-        invocationDetail.setInvocation(serverInvocation);
-        invocationDetail.setResponseTime(new Date());
-        invocationDetail.setResult(result);
-        invocationDetail.setException(e);
+            InvocationDetail invocationDetail = new InvocationDetail();
+            invocationDetail.setFrom(InvocationDetail.FROM_SERVER);
+            invocationDetail.setInvocation(serverInvocation);
+            invocationDetail.setResponseTime(new Date());
+            invocationDetail.setResult(result);
+            invocationDetail.setException(e);
 
-        putInvocationDetailQueue(invocationDetail);
-        return null;
+            putInvocationDetailQueue(invocationDetail);
+            return null;
+        } catch (RpcException e) {
+            throw e;
+        }catch(Throwable e){
+            //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("ServerMonitorFilter.afterInvoke error.",e);
+            }
+            return null;
+        }
     }
 
     /**

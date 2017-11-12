@@ -15,10 +15,10 @@ import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.util.JSONUtil;
 import com.meidusa.venus.util.Range;
 import com.meidusa.venus.util.RangeUtil;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +29,7 @@ import java.util.List;
  */
 public class ClientRemoteInvoker implements Invoker{
 
-    private static Logger logger = LoggerFactory.getLogger(ClientRemoteInvoker.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
     /**
      * 静态地址配置
@@ -155,8 +155,7 @@ public class ClientRemoteInvoker implements Invoker{
 
 
         //输出寻址结果信息
-        boolean isPrintDetailInfo = false;
-        if(isPrintDetailInfo){
+        if(logger.isDebugEnabled()){
             List<String> targets = new ArrayList<String>();
             if(CollectionUtils.isNotEmpty(urlList)){
                 for(URL url:urlList){
@@ -168,13 +167,7 @@ public class ClientRemoteInvoker implements Invoker{
                     targets.add(target);
                 }
             }
-            if(logger.isInfoEnabled()){
-                logger.info("static lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
-            }
-        }else{
-            if(logger.isInfoEnabled()){
-                logger.info("static lookup service providers num:{}.",urlList.size());
-            }
+            logger.debug("static lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
         }
         return urlList;
     }
@@ -221,8 +214,7 @@ public class ClientRemoteInvoker implements Invoker{
         }
 
         //输出寻址结果信息
-        boolean isPrintDetailInfo = false;
-        if(isPrintDetailInfo){
+        if(logger.isDebugEnabled()){
             List<String> targets = new ArrayList<String>();
             if(CollectionUtils.isNotEmpty(urlList)){
                 for(URL url:urlList){
@@ -234,13 +226,7 @@ public class ClientRemoteInvoker implements Invoker{
                     targets.add(target);
                 }
             }
-            if(logger.isInfoEnabled()){
-                logger.info("lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
-            }
-        }else{
-            if(logger.isInfoEnabled()){
-                logger.info("lookup service providers num:{}.",urlList.size());
-            }
+            logger.debug("lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
         }
         return urlList;
     }

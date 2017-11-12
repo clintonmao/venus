@@ -25,6 +25,7 @@ import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import com.thoughtworks.xstream.XStream;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
@@ -48,7 +49,9 @@ import java.util.*;
  */
 public class XmlFileServiceManager extends AbstractServiceManager implements InitializingBean,BeanFactoryAware,ApplicationContextAware{
 
-    private static Logger logger = LoggerFactory.getLogger(XmlFileServiceManager.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
+
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
     private Resource[] configFiles;
 
@@ -280,7 +283,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         service.setSupportVersionRange(serviceConfig.getSupportVersionRange());
         com.meidusa.venus.annotations.Service serviceAnnotation = type.getAnnotation(com.meidusa.venus.annotations.Service.class);
         if(serviceAnnotation == null){
-        	logger.error("Service annotation not found in class="+type.getClass());
         	throw new VenusConfigException("Service annotation not found in class="+type.getClass());
         }
         service.setAthenaFlag(serviceAnnotation.athenaFlag());
@@ -321,8 +323,8 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         try {
             register.registe(serviceRegisterUrl);
         } catch (Exception e) {
-            if(logger.isErrorEnabled()){
-                logger.error("registe service failed,will retry.",e);
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("registe service failed,will retry.",e);
             }
         }
     }
@@ -488,9 +490,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
             }
 
             endpoint.setService(service);
-            if (logger.isDebugEnabled()) {
-                logger.debug("add endpoint: " + endpoint.getService().getName() + "." + endpoint.getName());
-            }
             endpointMultimap.put(endpoint.getName(), endpoint);
         }
         return endpointMultimap;

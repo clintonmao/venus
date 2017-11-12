@@ -48,9 +48,9 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
 
     private static Logger logger = LoggerFactory.getLogger(BusReceiveMessageHandler.class);
 
-    private static Logger tracerLogger = VenusLoggerFactory.getBackendTracerLogger();
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
-    private static Logger exceptionLogger = VenusLoggerFactory.getBackendExceptionLogger();
+    private static Logger tracerLogger = VenusLoggerFactory.getTracerLogger();
 
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
 
@@ -249,6 +249,10 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
         if(hasException){
             if(tracerLogger.isErrorEnabled()){
                 tracerLogger.error(tpl,arguments);
+            }
+            //输出错误日志
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error(tpl,arguments);
             }
         }else if(usedTime > 200){
             if(tracerLogger.isWarnEnabled()){
