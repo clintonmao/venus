@@ -219,9 +219,6 @@ public class BusDispatcher implements Dispatcher {
         Throwable exception = null;
         try {
             //获取连接
-            //TODO 心跳处理确认
-            //TODO 失败重连确认
-            //TODO 地址变化对连接的影响；地址未变但连接已断开其影响
             nioConnPool = getNioConnPool(url,invocation,null);
             conn = nioConnPool.borrowObject();
             if(!conn.isActive()){
@@ -338,7 +335,7 @@ public class BusDispatcher implements Dispatcher {
         //nioFactory.setReceiveBufferSize(4);
         //nioFactory.setWriteQueueCapcity(16);
 
-        //初始化连接池 TODO 连接数双倍问题
+        //初始化连接池
         int connectionCount = 8;
         BackendConnectionPool nioPool = new PollingBackendConnectionPool("N-" + url.getHost(), nioFactory, connectionCount);
         PoolConfig poolConfig = remoteConfig.getPool();

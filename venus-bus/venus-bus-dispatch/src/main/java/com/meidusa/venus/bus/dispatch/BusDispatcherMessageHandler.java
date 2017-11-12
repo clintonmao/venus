@@ -123,7 +123,6 @@ public class BusDispatcherMessageHandler extends VenusClientMessageHandler imple
             tracerLogger.info("recv reponse,rpcId:{}.",rpcId);
         }
 
-        //TODO 判断空，finally释放资源
         reqFrontConnMap.get(rpcId).write(message);
     }
 
@@ -141,7 +140,6 @@ public class BusDispatcherMessageHandler extends VenusClientMessageHandler imple
             tracerLogger.info("recv ok message,rpcId:{}.",rpcId);
         }
 
-        //TODO 判断空，finally释放资源
         reqFrontConnMap.get(rpcId).write(message);
     }
 
@@ -157,7 +155,6 @@ public class BusDispatcherMessageHandler extends VenusClientMessageHandler imple
             tracerLogger.info("recv notify message,rpcId:{}.",rpcId);
         }
 
-        //TODO 判断空，finally释放资源
         reqFrontConnMap.get(rpcId).write(message);
     }
 
