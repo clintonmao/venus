@@ -53,24 +53,10 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
 
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
 
-    private byte[] traceID;
-
-    private Endpoint endpoint;
-
-    private VenusFrontendConnection conn;
-
-    private SerializeServiceRequestPacket request;
-
-    private VenusRouterPacket routerPacket;
-
-    private ServiceManager serviceManager;
+    //bus请求分发
+    private BusDispatcher busDispatcher = new BusDispatcher();
 
     private ServerResponseHandler responseHandler = new ServerResponseHandler();
-
-    /**
-     * bus请求分发
-     */
-    private BusDispatcher busDispatcher = new BusDispatcher();
 
     @Override
     public void init() throws InitialisationException {
@@ -120,7 +106,7 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
         try {
             //解析请求对象
             invocation = parseInvocation(conn, data);
-            //不要打印bytes信息流，会导致后续无法获取
+
             rpcId = invocation.getRpcId();
 
             //分发调用
@@ -245,6 +231,7 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
      * @return
      */
     ServerInvocation parseInvocation(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
+        byte[] message = data.right;
         ServerInvocation invocation = new ServerInvocation();
         invocation.setConn(conn);
         invocation.setData(data);
@@ -258,182 +245,12 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
         invocation.setProviderApp(providerApp);
         invocation.setProviderIp(providerIp);
         invocation.setConsumerIp(consumerIp);
-        //设置请求报文
-        SerializeServiceRequestPacket request = parseRequest(conn, data);
-        invocation.setRequest(request);
-        if(MapUtils.isNotEmpty(request.parameterMap)){
-            Object[] args = request.parameterMap.values().toArray();
-            invocation.setArgs(args);
-            if(args != null && args.length > 0){
-                for(Object arg:args){
-                    if(arg instanceof ReferenceInvocationListener){
-                        invocation.setInvocationListener((ReferenceInvocationListener)arg);
-                    }
-                }
-            }
-        }
-        this.request = request;
-        this.routerPacket = invocation.getRouterPacket();
-        //设置端点定义
-        Endpoint endpointDef = parseEndpoint(conn, data);
-        if(endpointDef == null){
-            throw new RpcException("find endpoint def failed.");
-        }
-        invocation.setEndpointDef(endpointDef);
-        invocation.setRpcId(RpcIdUtil.getRpcId(request));
-        Service service = endpointDef.getService();
-        invocation.setServiceInterface(service.getType());
-        invocation.setMethod(endpointDef.getMethod());
-        invocation.setResultType(getResultType(endpointDef));
-        //设置参数
-        initParamsForInvocationListener(request,invocation.getConn(),routerPacket,invocation);
-        //获取上下文信息
-        RequestContext requestContext = getRequestContext(invocation);
-        if(requestContext != null){
-            requestContext.setEndPointer(endpointDef);
-        }
-        invocation.setRequestContext(requestContext);
-        //确认监控用，可注掉
-        ThreadLocalMap.put(VenusTracerUtil.REQUEST_TRACE_ID, traceID);
-        ThreadLocalMap.put(ThreadLocalConstant.REQUEST_CONTEXT, requestContext);
-        if(requestContext.getRootId() != null){
-            invocation.setAthenaId(requestContext.getRootId().getBytes());
-        }
-        if(requestContext.getParentId() != null){
-            invocation.setParentId(requestContext.getParentId().getBytes());
-        }
-        if(requestContext.getMessageId() != null){
-            invocation.setMessageId(requestContext.getMessageId().getBytes());
-        }
+        ServiceAPIPacket apiPacket = new ServiceAPIPacket();
+        ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
+        apiPacket.init(packetBuffer);
+        String apiName = apiPacket.apiName;
+        invocation.setRpcId(RpcIdUtil.getRpcId(apiPacket));
         return invocation;
-    }
-
-    /**
-     * 解析请求消息
-     * @param conn
-     * @param data
-     * @return
-     */
-    SerializeServiceRequestPacket parseRequest(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
-        final long waitTime = TimeUtil.currentTimeMillis() - data.left;
-        byte[] message = data.right;
-        int type = AbstractServicePacket.getType(message);
-        byte serializeType = conn.getSerializeType();
-        String sourceIp = conn.getHost();
-        VenusRouterPacket routerPacket = null;
-        if (PacketConstant.PACKET_TYPE_ROUTER == type) {
-            routerPacket = new VenusRouterPacket();
-            routerPacket.original = message;
-            routerPacket.init(message);
-            type = AbstractServicePacket.getType(routerPacket.data);
-            message = routerPacket.data;
-            serializeType = routerPacket.serializeType;
-            sourceIp = InetAddressUtil.intToAddress(routerPacket.srcIP);
-        }
-
-        SerializeServiceRequestPacket request = null;
-        ServiceAPIPacket apiPacket = new ServiceAPIPacket();
-        ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
-        apiPacket.init(packetBuffer);
-
-        Endpoint ep = getServiceManager().getEndpoint(apiPacket.apiName);
-
-        Serializer serializer = SerializerFactory.getSerializer(serializeType);
-        request = new SerializeServiceRequestPacket(serializer, ep.getParameterTypeDict());
-
-        packetBuffer.setPosition(0);
-        request.init(packetBuffer);
-
-        return request;
-    }
-
-
-    /**
-     * 解析endpoint
-     * @param conn
-     * @param data
-     * @return
-     */
-    Endpoint parseEndpoint(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
-        final long waitTime = TimeUtil.currentTimeMillis() - data.left;
-        byte[] message = data.right;
-        int type = AbstractServicePacket.getType(message);
-        VenusRouterPacket routerPacket = null;
-        byte serializeType = conn.getSerializeType();
-        String sourceIp = conn.getHost();
-        if (PacketConstant.PACKET_TYPE_ROUTER == type) {
-            routerPacket = new VenusRouterPacket();
-            routerPacket.original = message;
-            routerPacket.init(message);
-            type = AbstractServicePacket.getType(routerPacket.data);
-            message = routerPacket.data;
-            serializeType = routerPacket.serializeType;
-            sourceIp = InetAddressUtil.intToAddress(routerPacket.srcIP);
-        }
-        final byte packetSerializeType = serializeType;
-        final String finalSourceIp = sourceIp;
-
-        ServiceAPIPacket apiPacket = new ServiceAPIPacket();
-        ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
-        apiPacket.init(packetBuffer);
-
-        Endpoint ep = getServiceManager().getEndpoint(apiPacket.apiName);
-        return ep;
-    }
-
-
-    /**
-     * 设置invocationListener回调参数
-     * @param request
-     * @param conn
-     * @param routerPacket
-     */
-    void initParamsForInvocationListener(SerializeServiceRequestPacket request, VenusFrontendConnection conn, VenusRouterPacket routerPacket,ServerInvocation invocation){
-        for (Map.Entry<String, Object> entry : request.parameterMap.entrySet()) {
-            if (entry.getValue() instanceof ReferenceInvocationListener) {
-                VenusServerInvocationListener<Serializable> invocationListener = new VenusServerInvocationListener<Serializable>(conn, (ReferenceInvocationListener) entry.getValue(), request,
-                        routerPacket,invocation);
-                invocationListener.setResponseHandler(responseHandler);
-                request.parameterMap.put(entry.getKey(), invocationListener);
-            }
-        }
-    }
-
-    /**
-     * 根据方法定义获取返回类型
-     * @param endpoint
-     * @return
-     */
-    EndpointInvocation.ResultType getResultType(Endpoint endpoint){
-        EndpointInvocation.ResultType resultType = EndpointInvocation.ResultType.RESPONSE;
-        if (endpoint.isVoid()) {
-            resultType = EndpointInvocation.ResultType.OK;
-            if (endpoint.isAsync()) {
-                resultType = EndpointInvocation.ResultType.NONE;
-            }
-
-            for (Class clazz : endpoint.getMethod().getParameterTypes()) {
-                if (InvocationListener.class.isAssignableFrom(clazz)) {
-                    resultType = EndpointInvocation.ResultType.NOTIFY;
-                    break;
-                }
-            }
-        }
-        return resultType;
-    }
-
-    /**
-     * 获取上下文信息
-     * @param rpcInvocation
-     * @return
-     */
-    RequestContext getRequestContext(ServerInvocation rpcInvocation){
-        byte packetSerializeType = rpcInvocation.getPacketSerializeType();
-        //构造请求上下文信息
-        ServerRequestHandler requestHandler = new ServerRequestHandler();
-        RequestInfo requestInfo = requestHandler.getRequestInfo(packetSerializeType, routerPacket, rpcInvocation);
-        RequestContext requestContext = requestHandler.createContext(requestInfo, endpoint, request);
-        return requestContext;
     }
 
     /**
@@ -478,14 +295,6 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
         }else{
             return t;
         }
-    }
-
-    public ServiceManager getServiceManager() {
-        return serviceManager;
-    }
-
-    public void setServiceManager(ServiceManager serviceManager) {
-        this.serviceManager = serviceManager;
     }
 
 
