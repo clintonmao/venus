@@ -40,9 +40,9 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     private static Logger logger = LoggerFactory.getLogger(VenusMonitorFactory.class);
 
     /**
-     * 注册中心url地址，injvm或者远程注册中心服务地址
+     * 注册中心地址，多个地址以;分隔
      */
-    private String url;
+    private String address;
 
     private Application application;
 
@@ -111,8 +111,8 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      * 校验
      */
     void valid(){
-        if(StringUtils.isEmpty(url)){
-            throw new VenusConfigException("url not allow empty.");
+        if(StringUtils.isEmpty(address)){
+            throw new VenusConfigException("address not allow empty.");
         }
     }
 
@@ -125,7 +125,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
             initAthenaConfigManager();
 
             //初始化athenaDataService
-            initAthenaDataService(url);
+            initAthenaDataService(address);
         } catch (Exception e) {
             logger.error("init monitor factory failed.",e);
             hasNeededDependences = false;
@@ -241,12 +241,12 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         reg.registerBeanDefinition(beanName, beanDefinition);
     }
 
-    public String getUrl() {
-        return url;
+    public String getAddress() {
+        return address;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public AthenaDataService getAthenaDataService() {

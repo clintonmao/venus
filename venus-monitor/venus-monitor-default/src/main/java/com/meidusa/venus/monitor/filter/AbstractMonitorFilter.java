@@ -8,6 +8,7 @@ import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.monitor.reporter.VenusMonitorReporter;
 import com.meidusa.venus.util.JSONUtil;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public abstract class AbstractMonitorFilter {
 
-    private static Logger logger = LoggerFactory.getLogger(AbstractMonitorFilter.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
     //明细队列
     private Queue<InvocationDetail> detailQueue = new LinkedBlockingQueue<InvocationDetail>();

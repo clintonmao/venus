@@ -23,7 +23,7 @@
 
 	<!--注册配置-->
 	<bean id="venusRegistryFactory" class="com.meidusa.venus.registry.VenusRegistryFactory">
-		<property name="registerUrl" value="${register.registerUrl}"/>
+		<property name="address" value="${register.address}"/>
 	</bean>
 
 	<!--venus bus协议配置-->
@@ -34,41 +34,5 @@
 
 	<!--接收消息处理-->
 	<bean id="messageHandler" class="com.meidusa.venus.bus.handler.BusReceiveMessageHandler"/>
-
-	<!--Acceptor-->
-	<!--
-	<bean id="acceptor" class="com.meidusa.venus.bus.VenusConnectionAcceptor" init-method="start" destroy-method="shutdown">
-		<property name="name" value="Service socket Server"/>
-		<property name="port" value="${venus.server.binding.port}"/>
-		<property name="processors" ref="connectionManagerFactoryBean"/>
-		<property name="connectionFactory" ref="busFrontendConnectionFactory"/>
-		<property name="observer" ref="clientConnectionObserver"/>
-	</bean>
-	-->
-
-	<!--连接工厂管理配置-->
-	<!--
-	<bean name="connectionManagerFactoryBean" class="com.meidusa.venus.bus.ConnectionManagerFactoryBean">
-		<property name="executorSize"><value>-1</value></property>
-		<property name="singleton"><value>false</value></property>
-		<property name="size"><value>${venus.reactor.size}</value></property>
-	</bean>
-	-->
-
-	<!--连接工厂配置-->
-	<!--
-	<bean id="busFrontendConnectionFactory" class="com.meidusa.venus.bus.network.BusFrontendConnectionFactory">
-		<property name="writeQueueCapcity" value="${venus.socket.writeQueueCapcity}"/>
-		<property name="sendBufferSize" value="${venus.socket.sendBufferSize}"/>
-		<property name="receiveBufferSize" value="${venus.socket.receiveBufferSize}"/>
-		<property name="messageHandler" ref="messageHandler"/>
-	</bean>
-
-	<bean id="clientConnectionObserver" class="com.meidusa.venus.bus.handler.ClientConnectionObserver"/>
-
-	<bean id="messageHandler" class="com.meidusa.venus.bus.handler.BusReceiveMessageHandler">
-		<property name="venusRegistryFactory" ref="venusRegistryFactory"/>
-	</bean>
-	-->
 
 </beans>

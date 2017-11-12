@@ -87,11 +87,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     private boolean isInit = false;
 
-    private static boolean isEnableRandomPrint = false;
-
-    //mock返回线程池
-    private static Executor mockReturnExecutor = null;
-
     public VenusClientInvoker(){
         synchronized (this){
             //构造连接

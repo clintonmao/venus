@@ -1,6 +1,5 @@
 package com.meidusa.venus.bus.handler;
 
-import com.meidusa.fastjson.JSON;
 import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.toolkit.common.bean.util.Initialisable;
 import com.meidusa.toolkit.common.bean.util.InitialisationException;
@@ -16,7 +15,7 @@ import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.support.ServerRequestHandler;
 import com.meidusa.venus.backend.support.ServerResponseHandler;
 import com.meidusa.venus.backend.support.ServerResponseWrapper;
-import com.meidusa.venus.bus.dispatch.BusRemoteDispatcher;
+import com.meidusa.venus.bus.dispatch.BusDispatcher;
 import com.meidusa.venus.exception.DefaultVenusException;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
@@ -69,9 +68,9 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
     private ServerResponseHandler responseHandler = new ServerResponseHandler();
 
     /**
-     * 服务调用代理
+     * bus请求分发
      */
-    private BusRemoteDispatcher busRemoteInvoker = new BusRemoteDispatcher();
+    private BusDispatcher busDispatcher = new BusDispatcher();
 
     @Override
     public void init() throws InitialisationException {
@@ -123,30 +122,23 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
             invocation = parseInvocation(conn, data);
             //不要打印bytes信息流，会导致后续无法获取
             rpcId = invocation.getRpcId();
-            if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("recv request,rpcId:{},message size:{}.", rpcId,data.getRight().length);
-            }
 
-            //通过代理调用服务
-            result = busRemoteInvoker.invoke(toClientInvocation(invocation), null);
+            //分发调用
+            busDispatcher.dispatch(invocation,null);
         } catch (Throwable t) {
             result = buildResult(t);
         }finally {
             try {
-                //输出error日志
-                if(result.getErrorCode() != 0 || result.getException() != null){
-                   printExceptionLogger(invocation,result,bTime);
-                }
                 //输出tracer日志
                 printTracerLogger(invocation,result,bTime);
-            } catch (Exception e) {
-                if(logger.isErrorEnabled()){
-                    logger.error("print logger error.",e);
-                }
-            }
+            } catch (Exception e) {}
         }
 
-        // 输出响应，将exception转化为errorPacket方式输出
+        //若分发成功，则直接返回
+        if(result == null){
+            return;
+        }
+        //若分发失败，如服务不存在或无权限访问等，则直接输出错误信息
         try {
             ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
 
@@ -176,26 +168,6 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
         }
     }
 
-
-    /**
-     * 输出异常日志
-     * @param invocation
-     * @param result
-     * @param bTime
-     */
-    void printExceptionLogger(ServerInvocation invocation,Result result,long bTime){
-        String errorMsg = String.format("handle exception,rpcId:%s,methodPath:%s.",invocation.getRpcId(),"");
-        if(result.getException() != null){
-            if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error(errorMsg,result.getException());
-            }
-        }else if(result.getErrorCode() != 0){
-            if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error(errorMsg,result.getErrorCode() + "|" + result.getErrorMessage());
-            }
-        }
-    }
-
     /**
      * 输出tracer日志
      * @param invocation
@@ -213,13 +185,16 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
         if(invocation.isEnablePrintParam() && invocation.getArgs() != null){
             param = JSONUtil.toJSONString(invocation.getArgs());
         }
-        String output = "";
+        Object output = "";
         if(invocation.isEnablePrintResult()){
             if(result.getErrorCode() == 0 && result.getException() == null){
                 output = JSONUtil.toJSONString(result.getResult());
             }else if(result.getException() != null){
                 hasException = true;
-                output = JSONUtil.toJSONString(result.getException());
+                output = result.getException();
+            }else if(result.getErrorCode() != 0){
+                hasException = true;
+                output = String.format("%s-%s",result.getErrorCode(),result.getErrorMessage());
             }
         }
         String status = "";
@@ -247,12 +222,12 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
                 output
         };
         if(hasException){
-            if(tracerLogger.isErrorEnabled()){
-                tracerLogger.error(tpl,arguments);
-            }
             //输出错误日志
             if(exceptionLogger.isErrorEnabled()){
                 exceptionLogger.error(tpl,arguments);
+            }
+            if(tracerLogger.isErrorEnabled()){
+                tracerLogger.error(tpl,arguments);
             }
         }else if(usedTime > 200){
             if(tracerLogger.isWarnEnabled()){
@@ -289,6 +264,13 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
         if(MapUtils.isNotEmpty(request.parameterMap)){
             Object[] args = request.parameterMap.values().toArray();
             invocation.setArgs(args);
+            if(args != null && args.length > 0){
+                for(Object arg:args){
+                    if(arg instanceof ReferenceInvocationListener){
+                        invocation.setInvocationListener((ReferenceInvocationListener)arg);
+                    }
+                }
+            }
         }
         this.request = request;
         this.routerPacket = invocation.getRouterPacket();
@@ -327,17 +309,6 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
     }
 
     /**
-     * 转换为client invocation
-     * @param serverInvocation
-     * @return
-     */
-    ClientInvocation toClientInvocation(ServerInvocation serverInvocation){
-        return null;
-    }
-
-
-
-    /**
      * 解析请求消息
      * @param conn
      * @param data
@@ -361,19 +332,17 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
         }
 
         SerializeServiceRequestPacket request = null;
-        Endpoint ep = null;
         ServiceAPIPacket apiPacket = new ServiceAPIPacket();
         ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
         apiPacket.init(packetBuffer);
 
-        ep = getServiceManager().getEndpoint(apiPacket.apiName);
+        Endpoint ep = getServiceManager().getEndpoint(apiPacket.apiName);
 
         Serializer serializer = SerializerFactory.getSerializer(serializeType);
         request = new SerializeServiceRequestPacket(serializer, ep.getParameterTypeDict());
 
         packetBuffer.setPosition(0);
         request.init(packetBuffer);
-        VenusTracerUtil.logReceive(request.traceId, request.apiName, JSON.toJSONString(request.parameterMap,JSON_FEATURE) );
 
         return request;
     }
@@ -404,14 +373,11 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
         final byte packetSerializeType = serializeType;
         final String finalSourceIp = sourceIp;
 
-        SerializeServiceRequestPacket request = null;
-        Endpoint ep = null;
         ServiceAPIPacket apiPacket = new ServiceAPIPacket();
         ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
         apiPacket.init(packetBuffer);
 
-        ep = getServiceManager().getEndpoint(apiPacket.apiName);
-
+        Endpoint ep = getServiceManager().getEndpoint(apiPacket.apiName);
         return ep;
     }
 

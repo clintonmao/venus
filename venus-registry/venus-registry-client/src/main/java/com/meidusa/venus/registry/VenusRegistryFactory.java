@@ -9,11 +9,8 @@ import com.meidusa.venus.registry.service.impl.MysqlRegisterService;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 
 import java.net.MalformedURLException;
 
@@ -26,9 +23,9 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean {
     private static Logger logger = LoggerFactory.getLogger(VenusRegistryFactory.class);
 
     /**
-     * 注册中心url
+     * 注册中心地址，url地址
      */
-    private String registerUrl;
+    private String address;
 
     /**
      * 注册中心连接Url
@@ -53,8 +50,8 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean {
      * 校验有效性
      */
     void valid(){
-        if(StringUtils.isEmpty(registerUrl) && StringUtils.isEmpty(connectUrl)){
-            throw new VenusConfigException("registerUrl or connectUrl property not config.");
+        if(StringUtils.isEmpty(address) && StringUtils.isEmpty(connectUrl)){
+            throw new VenusConfigException("address or connectUrl property not config.");
         }
     }
 
@@ -80,8 +77,8 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean {
     RegisterService newRegisterService(){
         RegisterService registerService = null;
         //根据配置创建registerService实例，本地依赖或venus远程依赖
-        if(StringUtils.isNotEmpty(registerUrl)){
-            registerService = newHessianRegisterService(registerUrl);
+        if(StringUtils.isNotEmpty(address)){
+            registerService = newHessianRegisterService(address);
         }else{
             registerService = newLocalRegisterService(connectUrl);
         }
@@ -141,12 +138,12 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean {
 
     }
 
-    public String getRegisterUrl() {
-        return registerUrl;
+    public String getAddress() {
+        return address;
     }
 
-    public void setRegisterUrl(String registerUrl) {
-        this.registerUrl = registerUrl;
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public Register getRegister() {

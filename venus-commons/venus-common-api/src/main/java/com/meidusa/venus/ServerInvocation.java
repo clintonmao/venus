@@ -417,4 +417,8 @@ public class ServerInvocation implements Invocation {
     public boolean isEnablePrintResult(){
         return true;
     }
+
+    public String getServicePath(){
+        return null;
+    }
 }

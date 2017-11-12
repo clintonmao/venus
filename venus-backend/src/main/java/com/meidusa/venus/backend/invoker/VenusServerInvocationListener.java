@@ -58,12 +58,12 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
         ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
         try {
             if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("write notify callback response,rpcId:{}.",invocation.getRpcId());
+                tracerLogger.info("send notify response,rpcId:{}.",invocation.getRpcId());
             }
             responseHandler.writeResponseForNotify(responseEntityWrapper);
         } catch (Exception e) {
             if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error("write callback response error.",e);
+                exceptionLogger.error("send notify response error.",e);
             }
         }
     }
@@ -75,12 +75,12 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
         ServerResponseWrapper responseEntityWrapper = ServerResponseWrapper.parse(invocation,result,false);
         try {
             if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("write notify exception response,rpcId:{}.",invocation.getRpcId());
+                tracerLogger.info("send notify response,rpcId:{}.",invocation.getRpcId());
             }
             responseHandler.writeResponseForNotify(responseEntityWrapper);
         } catch (Exception ex) {
             if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error("write exception response error.",ex);
+                exceptionLogger.error("send notify response error.",ex);
             }
         }
     }

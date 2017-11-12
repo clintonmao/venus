@@ -35,15 +35,13 @@
 	<!--注册配置-->
 	<!--可选，若不配置则服务发布不注册-->
 	<bean id="venusRegistryFactory" class="com.meidusa.venus.registry.VenusRegistryFactory">
-		<property name="registerUrl" value="${register.registerUrl}"/>
+		<property name="address" value="${register.address}"/>
 	</bean>
 
 	<!--监控配置-->
 	<!--可选，若不配置则监控不上报-->
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
-		<property name="url" value="${monitor.url}"/>
-		<property name="enableAthenaReport" value="false"/>
-		<property name="enableVenusReport" value="false"/>
+		<property name="address" value="${monitor.address}"/>
 	</bean>
 
 	<!--venus协议配置-->
