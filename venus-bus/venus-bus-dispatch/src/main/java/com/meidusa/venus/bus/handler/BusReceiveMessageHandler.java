@@ -115,6 +115,9 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
         try {
             //解析请求对象
             invocation = parseInvocation(conn, data);
+            if(tracerLogger.isInfoEnabled()){
+                tracerLogger.info("recv request,rpcId:{},message len:{}.",rpcId,data.right.length);
+            }
 
             rpcId = invocation.getRpcId();
             if(StringUtils.isNotEmpty(rpcId) && conn != null){
