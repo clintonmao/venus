@@ -29,7 +29,7 @@ public class CustomScanAndRegisteUtil {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private static final String RESOURCE_PATTERN = "**/%s/**/*.class";
+    private static final String RESOURCE_PATTERN = "%s/**/*.class";
 
     private ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
 
