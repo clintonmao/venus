@@ -8,7 +8,7 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class RandomBuildUtil {
 
-    static boolean isBuildDataModel = true;
+    static boolean isBuildDataModel = false;
 
     static Random random = new Random();
 
