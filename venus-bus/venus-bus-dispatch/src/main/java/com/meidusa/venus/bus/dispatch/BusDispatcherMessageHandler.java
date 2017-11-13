@@ -32,6 +32,7 @@ import com.meidusa.venus.support.ErrorPacketConvert;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -106,8 +107,8 @@ public class BusDispatcherMessageHandler extends VenusClientMessageHandler imple
             tracerLogger.info("recv error message,rpcId:{}.",rpcId);
         }
 
-        //TODO 判断空，finally释放资源
-        reqFrontConnMap.get(rpcId).write(message);
+        //输出消息
+        postMessage(rpcId,message);
     }
 
     /**
@@ -123,7 +124,8 @@ public class BusDispatcherMessageHandler extends VenusClientMessageHandler imple
             tracerLogger.info("recv reponse,rpcId:{}.",rpcId);
         }
 
-        reqFrontConnMap.get(rpcId).write(message);
+        //输出消息
+        postMessage(rpcId,message);
     }
 
     /**
@@ -140,7 +142,8 @@ public class BusDispatcherMessageHandler extends VenusClientMessageHandler imple
             tracerLogger.info("recv ok message,rpcId:{}.",rpcId);
         }
 
-        reqFrontConnMap.get(rpcId).write(message);
+        //输出消息
+        postMessage(rpcId,message);
     }
 
     /**
@@ -155,7 +158,26 @@ public class BusDispatcherMessageHandler extends VenusClientMessageHandler imple
             tracerLogger.info("recv notify message,rpcId:{}.",rpcId);
         }
 
-        reqFrontConnMap.get(rpcId).write(message);
+        //输出消息
+        postMessage(rpcId,message);
+    }
+
+    /**
+     * 输出消息
+     * @param rpcId
+     * @param message
+     */
+    void postMessage(String rpcId,byte[] message){
+        VenusFrontendConnection frontendConnection = reqFrontConnMap.get(rpcId);
+        if(frontendConnection != null){
+            if(!frontendConnection.isClosed()){
+                frontendConnection.write(ByteBuffer.wrap(message));
+            }else{
+                exceptionLogger.error("rpcId:{} rela conn is closed.",rpcId);
+            }
+        }else{
+            exceptionLogger.error("rpcId:{} rela conn is null.",rpcId);
+        }
     }
 
     /**

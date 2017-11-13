@@ -393,7 +393,13 @@ public class ServerInvocation implements Invocation {
 
     @Override
     public String getMethodName() {
-        return this.getMethod().getName();
+        if(this.getMethod() != null){
+            return this.getMethod().getName();
+        }else if(this.methodName != null){
+            return this.methodName;
+        }else{
+            return null;
+        }
     }
 
     public String getConsumerApp() {
