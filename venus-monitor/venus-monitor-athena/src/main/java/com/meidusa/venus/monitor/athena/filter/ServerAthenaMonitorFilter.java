@@ -104,7 +104,6 @@ public class ServerAthenaMonitorFilter implements Filter {
                 long endRunTime = TimeUtil.currentTimeMillis();
                 long queuedTime = startTime.longValue() - data.left;
                 long executeTime = endRunTime - startTime.longValue();
-                //TODO 超时要这样处理吗？
                 if ((endpoint.getTimeWait() < (queuedTime + executeTime)) && athenaFlag) {
                     AthenaReporterDelegate.getDelegate().metric(apiName + ".timeout");
                 }
@@ -112,7 +111,6 @@ public class ServerAthenaMonitorFilter implements Filter {
                 //保存输出报文长度
                 //VenusThreadContext.set(VenusThreadContext.SERVER_OUTPUT_SIZE,Integer.valueOf(byteBuffer.limit()));
 
-                //TODO 处理未执行到finally语句中情况，参见VenusServerInvokerTask.handle方法
                 Integer serverOutputSize = (Integer) VenusThreadContext.get(VenusThreadContext.SERVER_OUTPUT_SIZE);
                 if(serverOutputSize != null){
                     AthenaTransactionDelegate.getDelegate().setServerOutputSize(serverOutputSize.intValue());

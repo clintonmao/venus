@@ -1,6 +1,5 @@
 package com.meidusa.venus.backend.handler;
 
-import com.meidusa.fastjson.JSON;
 import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.toolkit.common.bean.util.Initialisable;
 import com.meidusa.toolkit.common.bean.util.InitialisationException;
@@ -475,7 +474,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
             if(rex.getCause() != null){
                 return rex.getCause();
             }else{
-                DefaultVenusException dex = new DefaultVenusException(rex.getCode(),rex.getMessage());
+                DefaultVenusException dex = new DefaultVenusException(rex.getErrorCode(),rex.getMessage());
                 return dex;
             }
         }else{

@@ -54,7 +54,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     private static Logger tracerLogger = VenusLoggerFactory.getTracerLogger();
 
-    private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
     private byte serializeType = PacketConstant.CONTENT_TYPE_JSON;
 
@@ -295,16 +295,14 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     void sendRequest(ClientInvocation invocation, SerializeServiceRequestPacket serviceRequestPacket, URL url,VenusReqRespWrapper reqRespWrapper) throws RpcException{
         long start = TimeUtil.currentTimeMillis();
         long borrowed = start;
-        byte[] traceID = invocation.getTraceID();
         BackendConnectionPool nioConnPool = null;
         BackendConnection conn = null;
         String rpcId = invocation.getRpcId();
         Throwable exception = null;
         try {
             //获取连接
-            //TODO 心跳处理确认
             //TODO 失败重连确认
-            //TODO 地址变化对连接的影响；地址未变但连接已断开其影响
+            //TODO 地址变化对连接的影响
             nioConnPool = getNioConnPool(url,invocation,null);
             conn = nioConnPool.borrowObject();
             if(!conn.isActive()){
@@ -336,20 +334,24 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             long connTime = borrowed - start;
             long totalTime = System.currentTimeMillis() - start;
             if(exception != null){
+                String tpl = "send request failed,rpcId:{},methodPath:{},target:{},used time:{},exception:{}.";
+                Object[] arguments = new Object[]{
+                        rpcId,
+                        invocation.getMethodPath(),
+                        url.getHost(),
+                        "[" + totalTime + "," + connTime + "]",
+                        exception
+                };
+                //输出异常日志
+                if(exceptionLogger.isErrorEnabled()){
+                    exceptionLogger.error(tpl,arguments);
+                }
                 if (tracerLogger.isErrorEnabled()) {
-                    String tpl = "send request,[failed],rpcId:{},methodPath:{},target:{},used time:{},exception:{}.";
-                    Object[] arguments = new Object[]{
-                            rpcId,
-                            invocation.getMethodPath(),
-                            url.getHost(),
-                            "[" + totalTime + "," + connTime + "]",
-                            exception
-                    };
                     tracerLogger.error(tpl,arguments);
                 }
             }else{
                 if(tracerLogger.isInfoEnabled()){
-                    String tpl = "send request,[success],rpcId:{},methodPath:{},target:{},used time:{}ms.";
+                    String tpl = "send request,rpcId:{},methodPath:{},target:{},used time:{}ms.";
                     Object[] arguments = new Object[]{
                             rpcId,
                             invocation.getMethodPath(),

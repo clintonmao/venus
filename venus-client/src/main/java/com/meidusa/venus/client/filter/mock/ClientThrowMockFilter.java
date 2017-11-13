@@ -38,7 +38,6 @@ public class ClientThrowMockFilter implements Filter {
             }
             //获取mock exception
             Exception exception = getMockException(clientInvocation, url);
-            //TODO 校验exception
             Result result = new Result();
             result.setException(exception);
             return result;

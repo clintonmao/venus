@@ -115,7 +115,7 @@ public class BusProtocol implements InitializingBean,DisposableBean {
             connectionAcceptor.shutdown();
         }
 
-        //TODO 反注册
+        //TODO 反订阅
     }
 
     public String getPort() {

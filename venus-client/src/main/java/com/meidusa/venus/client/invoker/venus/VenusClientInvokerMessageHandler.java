@@ -53,50 +53,12 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
     private Map<String, VenusReqRespWrapper> serviceReqRespMap;
 
     /**
-     * rpcId-请求&回调映射表 TODO 完成、异常清理问题；及监控大小问题
+     * rpcId-请求&回调映射表
      */
     private Map<String, ClientInvocation> serviceReqCallbackMap;
 
-    private static boolean isEnableRandomPrint = false;
-
-    //默认不使用业务线程池模式
-    private static boolean isEnableExecuteModel = false;
-    private static Executor executor = null;
-    private int coreThread = Runtime.getRuntime().availableProcessors();
-    private int maxThread = 50;
-    private int maxQueue = 50000;
-
-    public VenusClientInvokerMessageHandler(){
-        init();
-    }
-
-    void init() {
-        if(isEnableExecuteModel){
-            synchronized (VenusClientInvokerMessageHandler.class){
-                if (executor == null) {
-                    executor = new ThreadPoolExecutor(coreThread,maxThread,0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(maxQueue),new RejectedExecutionHandler(){
-                        @Override
-                        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-                            logger.error("exceed max process,maxThread:{},maxQueue:{}.",maxThread,maxQueue);
-                        }
-                    });
-                }
-            }
-        }
-    }
-
     public void handle(final VenusBackendConnection conn, final byte[] message) {
-        if(isEnableExecuteModel){
-            Runnable task = new Runnable() {
-                @Override
-                public void run() {
-                    doHandle(conn, message);
-                }
-            };
-            executor.execute(task);
-        }else{
-            doHandle(conn, message);
-        }
+        doHandle(conn, message);
     }
 
     /**
@@ -166,7 +128,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         } catch (Exception e) {
             reqRespWrapper.setResult(new Result().setException(e));
         } finally {
-            if(reqRespWrapper != null){
+            if(reqRespWrapper != null && reqRespWrapper.getReqRespLatch() != null){
                 reqRespWrapper.getReqRespLatch().countDown();
             }
         }
@@ -185,7 +147,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             AbstractServicePacket packet = parseServicePacket(message);
             String rpcId = RpcIdUtil.getRpcId(packet);
             if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("recv reponse,rpcId:{}.",rpcId);
+                tracerLogger.info("recv reponse message,rpcId:{}.",rpcId);
             }
 
             //获取clientId/clientRequestId，用于获取invocation请求信息
@@ -289,10 +251,9 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         } catch (Exception e) {
             asyncInvocation.getInvocationListener().onException(e);
         } finally {
-            if(rpcId != null && asyncInvocation != null){
+            if(rpcId != null && serviceReqCallbackMap.containsKey(rpcId)){
                 serviceReqCallbackMap.remove(rpcId);
             }
-
         }
     }
 
