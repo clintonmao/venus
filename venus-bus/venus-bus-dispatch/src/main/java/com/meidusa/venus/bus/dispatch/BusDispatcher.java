@@ -12,12 +12,10 @@ import com.meidusa.venus.client.cluster.loadbalance.RoundLoadbalance;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.factory.xml.config.FactoryConfig;
 import com.meidusa.venus.client.factory.xml.config.PoolConfig;
-import com.meidusa.venus.client.invoker.venus.VenusReqRespWrapper;
 import com.meidusa.venus.client.router.Router;
 import com.meidusa.venus.client.router.condition.ConditionRuleRouter;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.io.network.VenusBackendConnectionFactory;
-import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.support.VenusConstants;
@@ -105,17 +103,26 @@ public class BusDispatcher implements Dispatcher {
     }
 
     @Override
-    public void dispatch(Invocation invocation, URL url) throws RpcException {
+    public void dispatch(Invocation invocation) throws RpcException {
         ServerInvocation serverInvocation = (ServerInvocation)invocation;
-        String servicePath = serverInvocation.getServicePath();
+        //解析请求服务url
+        String serviceUrl = parseServiceUrl(serverInvocation);
+
+        URL url = null;
+        if(!serviceUrl.contains("?")){
+            url = URL.parse(serviceUrl + "?");
+        }else{
+            url = URL.parse(serviceUrl);
+        }
+
         //若未订阅，则先订阅服务
-        if(serviceSubscribledMap.get(servicePath) == null){
+        if(serviceSubscribledMap.get(serviceUrl) == null){
             register.subscrible(url);
-            serviceSubscribledMap.put(servicePath,servicePath);
+            serviceSubscribledMap.put(serviceUrl,serviceUrl);
         }
 
         //注册中心寻址及版本校验
-        List<URL> urlList = lookupByRegister(serverInvocation);
+        List<URL> urlList = lookupByRegister(serverInvocation,url);
 
         //自定义路由过滤
         //urlList = router.filte(clientInvocation, urlList);
@@ -133,7 +140,7 @@ public class BusDispatcher implements Dispatcher {
         URL url = getLoadbanlance(null,invocation).select(urlList);
 
         //转发请求
-        sendRequest(invocation,null,url,null);
+        sendRequest(invocation, url);
     }
 
     /**
@@ -161,7 +168,7 @@ public class BusDispatcher implements Dispatcher {
      * @param invocation
      * @return
      */
-    URL parseRequestUrl(ServerInvocation invocation){
+    String parseServiceUrl(ServerInvocation invocation){
         String serviceInterfaceName = "null";
         if(invocation.getServiceInterfaceName() != null){
             serviceInterfaceName = invocation.getServiceInterfaceName();
@@ -174,10 +181,11 @@ public class BusDispatcher implements Dispatcher {
         StringBuilder buf = new StringBuilder();
         buf.append("/").append(serviceInterfaceName);
         buf.append("/").append(serviceName);
-        buf.append("?");
+        if(StringUtils.isNotEmpty(invocation.getVersion())){
+            buf.append("?version=").append(invocation.getVersion());
+        }
         String serviceUrl = buf.toString();
-        URL url = URL.parse(serviceUrl);
-        return url;
+        return serviceUrl;
     }
 
     /**
@@ -205,12 +213,11 @@ public class BusDispatcher implements Dispatcher {
     /**
      * 发送远程调用消息
      * @param invocation
-     * @param serviceRequestPacket
      * @param url 目标地址
      * @return
      * @throws Exception
      */
-    void sendRequest(ServerInvocation invocation, SerializeServiceRequestPacket serviceRequestPacket, URL url, VenusReqRespWrapper reqRespWrapper) throws RpcException{
+    void sendRequest(ServerInvocation invocation, URL url) throws RpcException{
         long start = TimeUtil.currentTimeMillis();
         long borrowed = start;
         BackendConnectionPool nioConnPool = null;
@@ -225,12 +232,9 @@ public class BusDispatcher implements Dispatcher {
                 throw new RpcException(RpcException.NETWORK_EXCEPTION,"connetion not active.");
             }
             borrowed = System.currentTimeMillis();
-            if(reqRespWrapper != null){
-                reqRespWrapper.setBackendConnection(conn);
-            }
 
             //发送请求消息，响应由handler类处理
-            ByteBuffer buffer = serviceRequestPacket.toByteBuffer();
+            ByteBuffer buffer = ByteBuffer.wrap(invocation.getMessage());
             VenusThreadContext.set(VenusThreadContext.CLIENT_OUTPUT_SIZE,Integer.valueOf(buffer.limit()));
 
             conn.write(buffer);
@@ -336,7 +340,7 @@ public class BusDispatcher implements Dispatcher {
         //nioFactory.setWriteQueueCapcity(16);
 
         //初始化连接池
-        int connectionCount = 8;
+        int connectionCount = 4;
         BackendConnectionPool nioPool = new PollingBackendConnectionPool("N-" + url.getHost(), nioFactory, connectionCount);
         PoolConfig poolConfig = remoteConfig.getPool();
         if (poolConfig != null) {
@@ -370,10 +374,10 @@ public class BusDispatcher implements Dispatcher {
      * @param invocation
      * @return
      */
-    List<URL> lookupByRegister(ServerInvocation invocation){
+    List<URL> lookupByRegister(ServerInvocation invocation,URL url){
         List<URL> urlList = new ArrayList<URL>();
         //解析请求Url
-        URL requestUrl = parseRequestUrl(invocation);
+        URL requestUrl = url;
 
         //查找服务定义
         List<VenusServiceDefinitionDO> srvDefList = getRegister().lookup(requestUrl);
@@ -388,14 +392,14 @@ public class BusDispatcher implements Dispatcher {
             if(isAllowVersion(srvDef,currentVersion)){
                 for(String addresss:srvDef.getIpAddress()){
                     String[] arr = addresss.split(":");
-                    URL url = new URL();
-                    url.setHost(arr[0]);
-                    url.setPort(Integer.parseInt(arr[1]));
-                    url.setServiceDefinition(srvDef);
+                    URL tmpUrl = new URL();
+                    tmpUrl.setHost(arr[0]);
+                    tmpUrl.setPort(Integer.parseInt(arr[1]));
+                    tmpUrl.setServiceDefinition(srvDef);
                     if(StringUtils.isNotEmpty(srvDef.getProvider())){
-                        url.setApplication(srvDef.getProvider());
+                        tmpUrl.setApplication(srvDef.getProvider());
                     }
-                    urlList.add(url);
+                    urlList.add(tmpUrl);
                 }
                 //若找到，则跳出
                 break;
@@ -410,11 +414,11 @@ public class BusDispatcher implements Dispatcher {
         if(logger.isDebugEnabled()){
             List<String> targets = new ArrayList<String>();
             if(CollectionUtils.isNotEmpty(urlList)){
-                for(URL url:urlList){
+                for(URL tmpUrl:urlList){
                     String target = new StringBuilder()
-                            .append(url.getHost())
+                            .append(tmpUrl.getHost())
                             .append(":")
-                            .append(url.getPort())
+                            .append(tmpUrl.getPort())
                             .toString();
                     targets.add(target);
                 }
@@ -430,6 +434,14 @@ public class BusDispatcher implements Dispatcher {
 
     public void setRegister(Register register) {
         this.register = register;
+    }
+
+    public BusDispatcherMessageHandler getMessageHandler() {
+        return messageHandler;
+    }
+
+    public void setMessageHandler(BusDispatcherMessageHandler messageHandler) {
+        this.messageHandler = messageHandler;
     }
 
 }

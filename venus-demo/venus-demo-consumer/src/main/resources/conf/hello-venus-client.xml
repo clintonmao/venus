@@ -16,7 +16,7 @@
 		<!--<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.17.238:16800"/>-->
 		<!--<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.17.135:16800" coreConnections="10" timeout="5000"/>-->
 		<!--<service type="com.chexiang.venus.demo.provider.HelloService" retries="3"/>-->
-		<service type="com.chexiang.venus.demo.provider.HelloService">
+		<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.16.7:6800">
 			<!--方法级配置，方法级若配置则会覆盖服务级配置-->
 			<method name="getHello" timeout="3000" retries="3"/>
 		</service>

@@ -5,47 +5,37 @@ import com.meidusa.toolkit.common.bean.util.Initialisable;
 import com.meidusa.toolkit.common.bean.util.InitialisationException;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.MessageHandler;
-import com.meidusa.toolkit.net.util.InetAddressUtil;
-import com.meidusa.toolkit.util.TimeUtil;
-import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.ServerInvocation;
-import com.meidusa.venus.backend.invoker.VenusServerInvocationListener;
 import com.meidusa.venus.backend.services.*;
-import com.meidusa.venus.backend.support.ServerRequestHandler;
 import com.meidusa.venus.backend.support.ServerResponseHandler;
 import com.meidusa.venus.backend.support.ServerResponseWrapper;
 import com.meidusa.venus.bus.dispatch.BusDispatcher;
-import com.meidusa.venus.exception.DefaultVenusException;
-import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.exception.VenusExceptionCodeConstant;
-import com.meidusa.venus.exception.XmlVenusExceptionFactory;
+import com.meidusa.venus.exception.*;
 import com.meidusa.venus.io.handler.VenusServerMessageHandler;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.*;
-import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
-import com.meidusa.venus.io.serializer.Serializer;
-import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.io.utils.RpcIdUtil;
-import com.meidusa.venus.notify.InvocationListener;
-import com.meidusa.venus.notify.ReferenceInvocationListener;
+import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.registry.VenusRegistryFactory;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.*;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 
-import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * bus消息接收处理
  * @author structchen
  */
-public class BusReceiveMessageHandler extends VenusServerMessageHandler implements MessageHandler<VenusFrontendConnection, Tuple<Long, byte[]>>, Initialisable {
+public class BusReceiveMessageHandler extends VenusServerMessageHandler implements MessageHandler<VenusFrontendConnection, Tuple<Long, byte[]>>, Initialisable,InitializingBean{
 
-    private static Logger logger = LoggerFactory.getLogger(BusReceiveMessageHandler.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
@@ -53,10 +43,28 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
 
     private static SerializerFeature[] JSON_FEATURE = new SerializerFeature[]{SerializerFeature.ShortString,SerializerFeature.IgnoreNonFieldGetter,SerializerFeature.SkipTransientField};
 
+    private VenusRegistryFactory venusRegistryFactory;
+
     //bus请求分发
     private BusDispatcher busDispatcher = new BusDispatcher();
 
+    private Map<String, VenusFrontendConnection> reqFrontConnMap = new ConcurrentHashMap<String, VenusFrontendConnection>();
+
     private ServerResponseHandler responseHandler = new ServerResponseHandler();
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        if(venusRegistryFactory == null){
+            throw new VenusConfigException("venusRegistryFactory not config.");
+        }
+        Register register = venusRegistryFactory.getRegister();
+        if(register == null){
+            throw new VenusConfigException("register init failed.");
+        }
+
+        busDispatcher.setRegister(register);
+        busDispatcher.getMessageHandler().setReqFrontConnMap(reqFrontConnMap);
+    }
 
     @Override
     public void init() throws InitialisationException {
@@ -108,11 +116,22 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
             invocation = parseInvocation(conn, data);
 
             rpcId = invocation.getRpcId();
+            if(StringUtils.isNotEmpty(rpcId) && conn != null){
+                reqFrontConnMap.put(rpcId,conn);
+            }
 
             //分发调用
-            busDispatcher.dispatch(invocation,null);
+            busDispatcher.dispatch(invocation);
+            logger.info("dispatch success,rpcId:{}.",rpcId);
         } catch (Throwable t) {
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("dispatch error,rpcId:" + rpcId,t);
+            }
             result = buildResult(t);
+            //若分发异常，则删除连接关系记录
+            if(reqFrontConnMap.containsKey(rpcId)){
+                reqFrontConnMap.remove(rpcId);
+            }
         }finally {
             try {
                 //输出tracer日志
@@ -249,9 +268,13 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
         ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
         apiPacket.init(packetBuffer);
         String apiName = apiPacket.apiName;
+        String[] arr = apiName.split("\\.");
+        invocation.setServiceName(arr[0]);
+        invocation.setMethodName(arr[1]);
         invocation.setRpcId(RpcIdUtil.getRpcId(apiPacket));
         return invocation;
     }
+
 
     /**
      * 将异常转化为result
@@ -297,5 +320,11 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
         }
     }
 
+    public VenusRegistryFactory getVenusRegistryFactory() {
+        return venusRegistryFactory;
+    }
 
+    public void setVenusRegistryFactory(VenusRegistryFactory venusRegistryFactory) {
+        this.venusRegistryFactory = venusRegistryFactory;
+    }
 }

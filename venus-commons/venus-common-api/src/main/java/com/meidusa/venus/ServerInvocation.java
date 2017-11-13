@@ -12,6 +12,7 @@ import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.support.EndpointWrapper;
 import com.meidusa.venus.support.ServiceWrapper;
+import com.meidusa.venus.support.VenusUtil;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -99,6 +100,16 @@ public class ServerInvocation implements Invocation {
     EndpointInvocation.ResultType resultType;
 
     RequestContext requestContext;
+
+    //-------------bus分发使用---------
+
+    String serviceInterfaceName;
+
+    String serviceName;
+
+    String methodName;
+
+    String version;
 
     public int getClientId() {
         return clientId;
@@ -359,18 +370,25 @@ public class ServerInvocation implements Invocation {
 
     @Override
     public String getServiceInterfaceName() {
-        com.meidusa.venus.backend.services.Service service = endpointDef.getService();
-        return service.getType().getName();
+        if(this.serviceInterfaceName != null){
+            return this.serviceInterfaceName;
+        }else if(endpointDef != null){
+            com.meidusa.venus.backend.services.Service service = endpointDef.getService();
+            return service.getType().getName();
+        }else{
+            return "null";
+        }
     }
 
     @Override
     public String getServiceName() {
-        return endpointDef.getService().getName();
-    }
-
-    @Override
-    public String getVersion() {
-        return "0.0.0";
+        if(this.serviceName != null){
+            return this.serviceName;
+        }else if(endpointDef != null){
+            return endpointDef.getService().getName();
+        }else{
+            return "null";
+        }
     }
 
     @Override
@@ -406,10 +424,6 @@ public class ServerInvocation implements Invocation {
         return "sync";
     }
 
-    public String getMethodPath(){
-        return "";
-    }
-
     public boolean isEnablePrintParam(){
         return true;
     }
@@ -419,6 +433,31 @@ public class ServerInvocation implements Invocation {
     }
 
     public String getServicePath(){
-        return null;
+        return VenusUtil.getServicePath(this);
+    }
+
+    public String getMethodPath(){
+        return VenusUtil.getMethodPath(this);
+    }
+
+    public void setServiceInterfaceName(String serviceInterfaceName) {
+        this.serviceInterfaceName = serviceInterfaceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public void setMethodName(String methodName) {
+        this.methodName = methodName;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    @Override
+    public String getVersion() {
+        return this.version;
     }
 }

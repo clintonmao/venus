@@ -28,6 +28,10 @@ public abstract class AbstractMonitorFilter {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
+
+    private static Logger statusLogger = VenusLoggerFactory.getStatusLogger();
+
     //明细队列
     private Queue<InvocationDetail> detailQueue = new LinkedBlockingQueue<InvocationDetail>();
 
@@ -92,7 +96,9 @@ public abstract class AbstractMonitorFilter {
             detailQueue.add(invocationDetail);
         } catch (Exception e) {
             //不处理异常，避免影响主流程
-            logger.error("add monitor queue error.",e);
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("add monitor queue error.",e);
+            }
         }
     }
 
@@ -175,7 +181,9 @@ public abstract class AbstractMonitorFilter {
                         }
                     }
                 } catch (Exception e) {
-                    logger.error("process invocation detail error.",e);
+                    if(exceptionLogger.isErrorEnabled()){
+                        exceptionLogger.error("process monitor detail error.",e);
+                    }
                 }
 
                 try {
@@ -199,8 +207,8 @@ public abstract class AbstractMonitorFilter {
                     VenusMonitorReporter monitorReporter = getMonitorReporter();
 
                     //1、明细上报
-                    if(logger.isInfoEnabled()){
-                        logger.info("current detail report queue size:{}.", reportDetailQueue.size());
+                    if(statusLogger.isInfoEnabled()){
+                        statusLogger.info("current detail report queue size:{}.", reportDetailQueue.size());
                     }
                     List<InvocationDetail> detailList = new ArrayList<InvocationDetail>();
                     int fetchNum = perDetailReportNum;
@@ -215,21 +223,25 @@ public abstract class AbstractMonitorFilter {
                         try {
                             monitorReporter.reportDetailList(toDetailDOList(detailList));
                         } catch (Exception e) {
-                            logger.error("report detail error.",e);
+                            if(exceptionLogger.isErrorEnabled()){
+                                exceptionLogger.error("report detail error.",e);
+                            }
                         }
                     }
 
                     //2、汇总上报
                     if(getRole() == ROLE_CONSUMER){//只consumer进行统计上报
-                        if(logger.isInfoEnabled()){
-                            logger.info("current statistic report queue size:{}.",statisticMap.size());
+                        if(statusLogger.isInfoEnabled()){
+                            statusLogger.info("current statistic report queue size:{}.",statisticMap.size());
                         }
                         Collection<InvocationStatistic> statisticCollection = statisticMap.values();
                         if(CollectionUtils.isNotEmpty(statisticCollection)){
                             try {
                                 monitorReporter.reportStatisticList(toStaticDOList(statisticCollection));
                             } catch (Exception e) {
-                                logger.error("report statistic error.",e);
+                                if(exceptionLogger.isErrorEnabled()){
+                                    exceptionLogger.error("report statistic error.",e);
+                                }
                             }
                         }
                         //重置统计信息
@@ -238,7 +250,9 @@ public abstract class AbstractMonitorFilter {
                         }
                     }
                 } catch (Exception e) {
-                    logger.error("report error.",e);
+                    if(exceptionLogger.isErrorEnabled()){
+                        exceptionLogger.error("report error.",e);
+                    }
                 }
 
                 try {
