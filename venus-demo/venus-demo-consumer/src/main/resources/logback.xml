@@ -31,6 +31,46 @@
         </layout>
     </appender>
     
+    <appender name="status" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_APP_HOME}/venus-status.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_APP_HOME}/venus-registry.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
+        </rollingPolicy>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%-20(%d{HH:mm:ss.SSS} [%thread]) %-5level %logger{80} - %msg%n</pattern>
+        </layout>
+    </appender>
+    
+    <appender name="default" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_APP_HOME}/venus-default.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_APP_HOME}/venus-registry.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
+        </rollingPolicy>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%-20(%d{HH:mm:ss.SSS} [%thread]) %-5level %logger{80} - %msg%n</pattern>
+        </layout>
+    </appender>
+    
+    <appender name="tracer" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_APP_HOME}/venus-tracer.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_APP_HOME}/venus-registry.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
+        </rollingPolicy>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%-20(%d{HH:mm:ss.SSS} [%thread]) %-5level %logger{80} - %msg%n</pattern>
+        </layout>
+    </appender>
+    
+    <appender name="exception" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_APP_HOME}/venus-exception.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_APP_HOME}/venus-registry.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
+        </rollingPolicy>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%-20(%d{HH:mm:ss.SSS} [%thread]) %-5level %logger{80} - %msg%n</pattern>
+        </layout>
+    </appender>
+    
     <appender name="APP" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_APP_HOME}/registry-project.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -45,31 +85,28 @@
         </encoder>
     </appender>
 
-    <root level="info">
-        <!--
-        <appender-ref ref="APP" />
-        -->
+    <root level="warn">
         <appender-ref ref="stdout" />
     </root>
 
     <logger name="venus.default" additivity="false">
-        <level value="info"/>
-        <appender-ref ref="stdout"/>
+        <level value="warn"/>
+        <appender-ref ref="default"/>
     </logger>
 
     <logger name="venus.tracer" additivity="false">
-        <level value="info"/>
-        <appender-ref ref="stdout"/>
+        <level value="warn"/>
+        <appender-ref ref="tracer"/>
     </logger>
 
     <logger name="venus.exception" additivity="false">
-        <level value="info"/>
-        <appender-ref ref="stdout"/>
+        <level value="warn"/>
+        <appender-ref ref="exception"/>
     </logger>
 
     <logger name="venus.status" additivity="false">
-        <level value="info"/>
-        <appender-ref ref="stdout"/>
+        <level value="warn"/>
+        <appender-ref ref="status"/>
     </logger>
 
 </configuration>
