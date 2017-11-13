@@ -1,4 +1,4 @@
-main is com.meidusa.venus.bus.ServiceBusApplication from venus
+main is com.meidusa.venus.bus.BusApplication from venus
 
 [venus]
 load ${project.home}/lib/*.jar
