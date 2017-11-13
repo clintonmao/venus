@@ -338,8 +338,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         String appName = application.getName();
         //String protocol = "venus";
         String serviceInterfaceName = serviceConfig.getInterfaceType().getName();
-        //服务名设置为"null"，v4以后采用interfaceName+version，之前采用serviceName+version标识唯一服务
-        String serviceName = "null";
+        String serviceName = service.getName();
         int version = VenusConstants.VERSION_DEFAULT;
         if(service.getVersion() != 0){
             version = service.getVersion();
