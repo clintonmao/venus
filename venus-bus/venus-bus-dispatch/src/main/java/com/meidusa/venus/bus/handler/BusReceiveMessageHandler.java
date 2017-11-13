@@ -18,6 +18,7 @@ import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.VenusRegistryFactory;
+import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.*;
 import org.apache.commons.lang.StringUtils;
@@ -114,6 +115,9 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
         try {
             //解析请求对象
             invocation = parseInvocation(conn, data);
+            if(tracerLogger.isInfoEnabled()){
+                tracerLogger.info("recv request,rpcId:{},message len:{}.",rpcId,data.right.length);
+            }
 
             rpcId = invocation.getRpcId();
             if(StringUtils.isNotEmpty(rpcId) && conn != null){
@@ -122,7 +126,6 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
 
             //分发调用
             busDispatcher.dispatch(invocation);
-            logger.info("dispatch success,rpcId:{}.",rpcId);
         } catch (Throwable t) {
             if(exceptionLogger.isErrorEnabled()){
                 exceptionLogger.error("dispatch error,rpcId:" + rpcId,t);
@@ -254,6 +257,7 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
         ServerInvocation invocation = new ServerInvocation();
         invocation.setConn(conn);
         invocation.setData(data);
+        invocation.setMessage(message);
         invocation.setClientId(conn.getClientId());
         invocation.setHost(conn.getHost());
         invocation.setLocalHost(conn.getLocalHost());
@@ -271,6 +275,12 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
         String[] arr = apiName.split("\\.");
         invocation.setServiceName(arr[0]);
         invocation.setMethodName(arr[1]);
+        int version = apiPacket.serviceVersion;
+        if(version != 0){
+            invocation.setVersion(String.valueOf(version));
+        }else{
+            invocation.setVersion(String.valueOf(VenusConstants.VERSION_DEFAULT));
+        }
         invocation.setRpcId(RpcIdUtil.getRpcId(apiPacket));
         return invocation;
     }

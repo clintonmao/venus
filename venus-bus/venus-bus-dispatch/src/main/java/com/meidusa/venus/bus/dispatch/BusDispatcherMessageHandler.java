@@ -32,6 +32,7 @@ import com.meidusa.venus.support.ErrorPacketConvert;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -103,11 +104,11 @@ public class BusDispatcherMessageHandler extends VenusClientMessageHandler imple
         errorPacket.init(message);
         String rpcId = RpcIdUtil.getRpcId(errorPacket);
         if(tracerLogger.isInfoEnabled()){
-            tracerLogger.info("recv error message,rpcId:{}.",rpcId);
+            tracerLogger.info("write error response,rpcId:{}.",rpcId);
         }
 
-        //TODO 判断空，finally释放资源
-        reqFrontConnMap.get(rpcId).write(message);
+        //输出消息
+        postMessage(rpcId,message);
     }
 
     /**
@@ -120,10 +121,11 @@ public class BusDispatcherMessageHandler extends VenusClientMessageHandler imple
         AbstractServicePacket packet = parseServicePacket(message);
         String rpcId = RpcIdUtil.getRpcId(packet);
         if(tracerLogger.isInfoEnabled()){
-            tracerLogger.info("recv reponse,rpcId:{}.",rpcId);
+            tracerLogger.info("write normal reponse,rpcId:{}.",rpcId);
         }
 
-        reqFrontConnMap.get(rpcId).write(message);
+        //输出消息
+        postMessage(rpcId,message);
     }
 
     /**
@@ -137,10 +139,11 @@ public class BusDispatcherMessageHandler extends VenusClientMessageHandler imple
         okPacket.init(message);
         String rpcId = RpcIdUtil.getRpcId(okPacket);
         if(tracerLogger.isInfoEnabled()){
-            tracerLogger.info("recv ok message,rpcId:{}.",rpcId);
+            tracerLogger.info("write ok response,rpcId:{}.",rpcId);
         }
 
-        reqFrontConnMap.get(rpcId).write(message);
+        //输出消息
+        postMessage(rpcId,message);
     }
 
     /**
@@ -152,10 +155,39 @@ public class BusDispatcherMessageHandler extends VenusClientMessageHandler imple
     void handleForPublish(VenusBackendConnection conn, byte[] message,Serializer serializer){
         String rpcId = RpcIdUtil.getRpcId(parseServicePacket(message));
         if(tracerLogger.isInfoEnabled()){
-            tracerLogger.info("recv notify message,rpcId:{}.",rpcId);
+            tracerLogger.info("write notify response,rpcId:{}.",rpcId);
         }
 
-        reqFrontConnMap.get(rpcId).write(message);
+        //输出消息
+        postMessage(rpcId,message);
+    }
+
+    /**
+     * 输出消息
+     * @param rpcId
+     * @param message
+     */
+    void postMessage(String rpcId,byte[] message){
+        try {
+            VenusFrontendConnection frontendConnection = reqFrontConnMap.get(rpcId);
+            if(frontendConnection != null){
+                if(!frontendConnection.isClosed()){
+                    frontendConnection.write(ByteBuffer.wrap(message));
+                }else{
+                    exceptionLogger.error("rpcId:{} rela conn is closed.",rpcId);
+                }
+            }else{
+                exceptionLogger.error("rpcId:{} rela conn is null.",rpcId);
+            }
+        } catch (Exception e) {
+            exceptionLogger.error("write message error.",e);
+        } finally {
+            if(reqFrontConnMap.containsKey(rpcId)){
+                logger.info("reqFrontConnMap size:{}.",reqFrontConnMap.size());
+                reqFrontConnMap.remove(rpcId);
+                logger.info("reqFrontConnMap size:{}.",reqFrontConnMap.size());
+            }
+        }
     }
 
     /**

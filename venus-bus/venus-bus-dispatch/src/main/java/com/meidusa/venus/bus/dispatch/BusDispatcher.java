@@ -206,7 +206,7 @@ public class BusDispatcher implements Dispatcher {
             }
             return roundLbMap.get(servicePath);
         }else{
-            throw new RpcException("unspport loadbanlance policy.");
+            return randomLoadbanlance;
         }
     }
 

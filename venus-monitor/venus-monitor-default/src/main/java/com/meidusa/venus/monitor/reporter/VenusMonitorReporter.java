@@ -4,9 +4,9 @@ import com.athena.domain.MethodCallDetailDO;
 import com.athena.domain.MethodStaticDO;
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.exception.VenusConfigException;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class VenusMonitorReporter {
 
-    private static Logger logger = LoggerFactory.getLogger(VenusMonitorReporter.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
     private AthenaDataService athenaDataService;
 

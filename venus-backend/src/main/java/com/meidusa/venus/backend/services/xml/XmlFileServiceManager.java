@@ -31,6 +31,7 @@ import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -354,7 +355,9 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         buf.append("&application=").append(appName);
         buf.append("&host=").append(host);
         buf.append("&port=").append(port);
-        buf.append("&methods=").append(methodsDef);
+        if(StringUtils.isNotEmpty(methodsDef)){
+            buf.append("&methods=").append(methodsDef);
+        }
         if(serviceConfig.getSupportVersionRange() != null){
             buf.append("&versionRange=").append(serviceConfig.getSupportVersionRange().toString());
         }
