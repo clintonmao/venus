@@ -23,7 +23,6 @@ import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.*;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.util.Date;
@@ -322,7 +321,7 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
             if(rex.getCause() != null){
                 return rex.getCause();
             }else{
-                DefaultVenusException dex = new DefaultVenusException(rex.getCode(),rex.getMessage());
+                DefaultVenusException dex = new DefaultVenusException(rex.getErrorCode(),rex.getMessage());
                 return dex;
             }
         }else{

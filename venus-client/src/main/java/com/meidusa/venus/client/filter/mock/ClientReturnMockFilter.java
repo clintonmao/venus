@@ -38,7 +38,6 @@ public class ClientReturnMockFilter implements Filter {
             }
             //获取mock返回值
             Object object = getMockReturn(clientInvocation, url);
-            //TODO 校验return
             return new Result(object);
         } catch (RpcException e) {
             throw e;

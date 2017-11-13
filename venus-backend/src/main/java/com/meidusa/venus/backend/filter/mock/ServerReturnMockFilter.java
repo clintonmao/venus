@@ -38,7 +38,6 @@ public class ServerReturnMockFilter extends ClientReturnMockFilter implements Fi
             }
             //获取mock返回值
             Object retru = getMockReturn(clientInvocation, url);
-            //TODO 校验return
             return new Result(retru);
         } catch (RpcException e) {
             throw e;

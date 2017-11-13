@@ -24,7 +24,7 @@ public class RpcException extends RuntimeException {
     //序列化异常
     public static final int SERIALIZATION_EXCEPTION = 500;
 
-    private int code;
+    private int errorCode;
 
     public RpcException() {
         super();
@@ -32,60 +32,60 @@ public class RpcException extends RuntimeException {
 
     public RpcException(String message, Throwable cause) {
         super(message, cause);
-        this.code = UNKNOWN_EXCEPTION;
+        this.errorCode = UNKNOWN_EXCEPTION;
     }
 
     public RpcException(String message) {
         super(message);
-        this.code = UNKNOWN_EXCEPTION;
+        this.errorCode = UNKNOWN_EXCEPTION;
     }
 
     public RpcException(Throwable cause) {
         super(cause);
-        this.code = UNKNOWN_EXCEPTION;
+        this.errorCode = UNKNOWN_EXCEPTION;
     }
 
     public RpcException(int code) {
         super();
-        this.code = code;
+        this.errorCode = code;
     }
 
     public RpcException(int code, String message, Throwable cause) {
         super(message, cause);
-        this.code = code;
+        this.errorCode = code;
     }
 
     public RpcException(int code, String message) {
         super(message);
-        this.code = code;
+        this.errorCode = code;
     }
 
     public RpcException(int code, Throwable cause) {
         super(cause);
-        this.code = code;
+        this.errorCode = code;
     }
 
-    public void setCode(int code) {
-        this.code = code;
+    public void setErrorCode(int errorCode) {
+        this.errorCode = errorCode;
     }
 
-    public int getCode() {
-        return code;
+    public int getErrorCode() {
+        return errorCode;
     }
 
     public boolean isBiz() {
-        return code == BIZ_EXCEPTION;
+        return errorCode == BIZ_EXCEPTION;
     }
 
     public boolean isTimeout() {
-        return code == TIMEOUT_EXCEPTION;
+        return errorCode == TIMEOUT_EXCEPTION;
     }
 
     public boolean isNetwork() {
-        return code == NETWORK_EXCEPTION;
+        return errorCode == NETWORK_EXCEPTION;
     }
 
     public boolean isSerialization() {
-        return code == SERIALIZATION_EXCEPTION;
+        return errorCode == SERIALIZATION_EXCEPTION;
     }
 }
