@@ -49,6 +49,12 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         try {
             ServerInvocation serverInvocation = (ServerInvocation)invocation;
+
+            //若不需要上报，则跳过
+            if(!isNeedReport(serverInvocation)){
+                return null;
+            }
+
             Result result = (Result) VenusThreadContext.get(VenusThreadContext.RESPONSE_RESULT);
             Throwable e = (Throwable)VenusThreadContext.get(VenusThreadContext.RESPONSE_EXCEPTION);
 
@@ -70,6 +76,21 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
             }
             return null;
         }
+    }
+
+    /**
+     * 判断是否需要监控上报
+     * @param invocation
+     * @return
+     */
+    boolean isNeedReport(ServerInvocation invocation){
+        //走注册中心才上报
+        /*
+        if(clientInvocation.getLookupType() == 0){
+            return false;
+        }
+        */
+        return !isAthenaInterface(invocation);
     }
 
     /**
@@ -134,11 +155,8 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
             detailDO.setMethodName(serverInvocation.getMethod().getName());
         }
         if(serverInvocation.getArgs() != null){
-            //Athena上报接口不记输入、输出信息，存在递归拼接问题
-            if(!isAthenaInterface(serverInvocation)){
-                String requestJson = serialize(serverInvocation.getArgs());
-                detailDO.setRequestJson(requestJson);
-            }
+            String requestJson = serialize(serverInvocation.getArgs());
+            detailDO.setRequestJson(requestJson);
         }
         detailDO.setRequestTime(serverInvocation.getRequestTime());
         detailDO.setProviderDomain(serverInvocation.getProviderApp());
@@ -147,30 +165,20 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
         detailDO.setConsumerIp(serverInvocation.getConsumerIp());
         //响应信息
         detailDO.setResponseTime(detail.getResponseTime());
-        //响应结果
-        if(result != null){
+
+        if(result != null){//响应结果
             if(result.getErrorCode() == 0){
-                //Athena上报接口不记输入、输出信息，存在递归拼接问题
-                if(!isAthenaInterface(serverInvocation)){
-                    String responseJson = serialize(result.getResult());
-                    detailDO.setReponseJson(responseJson);
-                }
+                String responseJson = serialize(result.getResult());
+                detailDO.setReponseJson(responseJson);
                 detailDO.setStatus(1);
             }else{
-                //Athena上报接口不记输入、输出信息，存在递归拼接问题
-                if(!isAthenaInterface(serverInvocation)){
-                    String responseJson = serialize(result.getErrorCode());
-                    detailDO.setReponseJson(responseJson);
-                }
-                detailDO.setStatus(1);
+                String responseJson = String.format("%s-%s",result.getErrorCode(),result.getErrorMessage());
+                detailDO.setReponseJson(responseJson);
+                detailDO.setStatus(0);
             }
-        } else{
-            //响应异常
-            //Athena上报接口不记输入、输出信息，存在递归拼接问题
-            if(!isAthenaInterface(serverInvocation)){
-                String responseJsonForException = serialize(exception);
-                detailDO.setErrorInfo(responseJsonForException);
-            }
+        } else if(exception != null){//响应异常
+            String responseJsonForException = serialize(exception);
+            detailDO.setErrorInfo(responseJsonForException);
             detailDO.setStatus(0);
         }
         //耗时
