@@ -120,7 +120,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
             //不要打印bytes信息流，会导致后续无法获取
             rpcId = invocation.getRpcId();
             if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("recv request,rpcId:{},message size:{}.", rpcId,data.getRight().length);
+                tracerLogger.info("recv request,rpcId:{},sourceIp:{},message size:{}.", rpcId,conn.getHost(),data.getRight().length);
             }
 
             //通过代理调用服务
@@ -207,7 +207,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
         }
 
         //打印结果
-        String tpl = "{} handle,rpcId:{},methodPath:{},status:{},used time:{}ms,param:{},result:{}.";
+        String tpl = "{} handle,rpcId:{},method:{},status:{},used time:{}ms,param:{},result:{}.";
         Object[] arguments = new Object[]{
                 invokeModel,
                 rpcId,

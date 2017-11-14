@@ -152,7 +152,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
         }
 
         //打印结果
-        String tpl = "{} invoke,rpcId:{},methodPath:{},status:{},used time:{}ms,param:{},result:{}.";
+        String tpl = "{} invoke,rpcId:{},method:{},status:{},used time:{}ms,param:{},result:{}.";
         Object[] arguments = new Object[]{
                 invokeModel,
                 rpcId,

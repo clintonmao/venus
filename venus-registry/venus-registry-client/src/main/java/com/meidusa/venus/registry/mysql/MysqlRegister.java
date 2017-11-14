@@ -15,6 +15,7 @@ import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.registry.service.RegisterService;
 import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.registry.VenusRegisteException;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -31,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class MysqlRegister implements Register {
 
-	private static Logger logger = LoggerFactory.getLogger(MysqlRegister.class);
+	private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
 	/** 已注册成功的URL */
 	private Set<URL> registeUrls = new HashSet<URL>();

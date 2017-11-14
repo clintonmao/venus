@@ -334,24 +334,23 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             long connTime = borrowed - start;
             long totalTime = System.currentTimeMillis() - start;
             if(exception != null){
-                String tpl = "send request failed,rpcId:{},methodPath:{},target:{},used time:{},exception:{}.";
-                Object[] arguments = new Object[]{
-                        rpcId,
-                        invocation.getMethodPath(),
-                        url.getHost(),
-                        "[" + totalTime + "," + connTime + "]",
-                        exception
-                };
                 //输出异常日志
-                if(exceptionLogger.isErrorEnabled()){
-                    exceptionLogger.error(tpl,arguments);
-                }
                 if (tracerLogger.isErrorEnabled()) {
+                    String tpl = "send request failed,rpcId:{},method:{},targetIp:{},used time:{},exception:{}.";
+                    Object[] arguments = new Object[]{
+                            rpcId,
+                            invocation.getMethodPath(),
+                            url.getHost(),
+                            "[" + totalTime + "," + connTime + "]",
+                            exception
+                    };
+                    //错误日志
+                    exceptionLogger.error(tpl,arguments);
                     tracerLogger.error(tpl,arguments);
                 }
             }else{
                 if(tracerLogger.isInfoEnabled()){
-                    String tpl = "send request,rpcId:{},methodPath:{},target:{},used time:{}ms.";
+                    String tpl = "send request,rpcId:{},method:{},targetIp:{},used time:{}ms.";
                     Object[] arguments = new Object[]{
                             rpcId,
                             invocation.getMethodPath(),

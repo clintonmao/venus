@@ -112,7 +112,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             errorPacket.init(message);
             String rpcId = RpcIdUtil.getRpcId(errorPacket);
             if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("recv error message,rpcId:{}.",rpcId);
+                tracerLogger.info("recv error response,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
             }
 
             reqRespWrapper = serviceReqRespMap.get(rpcId);
@@ -147,7 +147,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             AbstractServicePacket packet = parseServicePacket(message);
             String rpcId = RpcIdUtil.getRpcId(packet);
             if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("recv reponse message,rpcId:{}.",rpcId);
+                tracerLogger.info("recv normal reponse,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
             }
 
             //获取clientId/clientRequestId，用于获取invocation请求信息
@@ -189,7 +189,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             okPacket.init(message);
             String rpcId = RpcIdUtil.getRpcId(okPacket);
             if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("recv ok message,rpcId:{}.",rpcId);
+                tracerLogger.info("recv ok response,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
             }
 
             reqRespWrapper = serviceReqRespMap.get(rpcId);
@@ -223,7 +223,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         try {
             rpcId = RpcIdUtil.getRpcId(parseServicePacket(message));
             if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("recv notify message,rpcId:{}.",rpcId);
+                tracerLogger.info("recv notify response,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
             }
 
             asyncInvocation = serviceReqCallbackMap.get(rpcId);
