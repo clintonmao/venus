@@ -30,12 +30,12 @@ public class VenusMonitorReporter {
         }
 
         if(CollectionUtils.isNotEmpty(detailDOList)){
-            if(logger.isInfoEnabled()){
-                logger.info("report detail size:{}.",detailDOList.size());
+            if(logger.isDebugEnabled()){
+                logger.debug("report detail size:{}.",detailDOList.size());
             }
         }else{
-            if(logger.isInfoEnabled()){
-                logger.info("report detail size:{}.",0);
+            if(logger.isDebugEnabled()){
+                logger.debug("report detail size:{}.",0);
             }
         }
 
@@ -54,12 +54,12 @@ public class VenusMonitorReporter {
         }
 
         if(CollectionUtils.isNotEmpty(staticDOList)){
-            if(logger.isInfoEnabled()){
-                logger.info("report static size:{}.",staticDOList.size());
+            if(logger.isDebugEnabled()){
+                logger.debug("report static size:{}.",staticDOList.size());
             }
         }else{
-            if(logger.isInfoEnabled()){
-                logger.info("report static size:{}.",0);
+            if(logger.isDebugEnabled()){
+                logger.debug("report static size:{}.",0);
             }
         }
 

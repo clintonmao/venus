@@ -57,8 +57,8 @@ public class MysqlRegister implements Register {
 
 	private String fileCachePath ;
 
-	//是否开启本地文件缓存
-	private static boolean isEnableFileCache = true;
+	//是否开启本地文件缓存，暂时关闭文件查找
+	private static boolean isEnableFileCache = false;
 
 	public MysqlRegister(RegisterService registerService) {
 		this.registerService = registerService;
