@@ -58,7 +58,7 @@
         </encoder>
     </appender>
 
-    <appender name="status" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="venus.status" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_SYS_HOME}/venus-status.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_APP_HOME}/venus-status.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
@@ -68,7 +68,7 @@
         </layout>
     </appender>
 
-    <appender name="default" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="venus.default" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_SYS_HOME}/venus-default.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_APP_HOME}/venus-default.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
@@ -78,7 +78,7 @@
         </layout>
     </appender>
 
-    <appender name="tracer" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="venus.tracer" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_SYS_HOME}/venus-tracer.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_APP_HOME}/venus-tracer.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
@@ -88,7 +88,7 @@
         </layout>
     </appender>
 
-    <appender name="exception" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="venus.exception" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_SYS_HOME}/venus-exception.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_APP_HOME}/venus-exception.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
@@ -104,25 +104,25 @@
 
     <logger name="venus.default" additivity="false">
         <level value="info"/>
-        <appender-ref ref="default"/>
+        <appender-ref ref="venus.default"/>
         <appender-ref ref="stdout"/>
     </logger>
 
     <logger name="venus.tracer" additivity="false">
         <level value="info"/>
-        <appender-ref ref="tracer"/>
+        <appender-ref ref="venus.tracer"/>
         <appender-ref ref="stdout"/>
     </logger>
 
     <logger name="venus.exception" additivity="false">
         <level value="info"/>
-        <appender-ref ref="exception"/>
+        <appender-ref ref="venus.exception"/>
         <appender-ref ref="stdout"/>
     </logger>
 
     <logger name="venus.status" additivity="false">
         <level value="info"/>
-        <appender-ref ref="status"/>
+        <appender-ref ref="venus.status"/>
         <appender-ref ref="stdout"/>
     </logger>
 

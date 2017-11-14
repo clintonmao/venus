@@ -13,6 +13,7 @@ import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.support.EndpointWrapper;
 import com.meidusa.venus.support.ServiceWrapper;
 import com.meidusa.venus.support.VenusUtil;
+import org.apache.commons.lang.StringUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -464,6 +465,12 @@ public class ServerInvocation implements Invocation {
 
     @Override
     public String getVersion() {
-        return this.version;
+        if(StringUtils.isNotEmpty(version)){
+            return this.version;
+        }else if(this.endpointDef != null && this.endpointDef.getService() != null){
+            return String.valueOf(this.endpointDef.getService().getVersion());
+        }else{
+            return null;
+        }
     }
 }
