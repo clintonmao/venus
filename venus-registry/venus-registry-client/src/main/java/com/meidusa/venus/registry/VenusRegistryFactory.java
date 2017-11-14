@@ -1,11 +1,9 @@
 package com.meidusa.venus.registry;
 
 import com.caucho.hessian.client.HessianProxyFactory;
-import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
 import com.meidusa.venus.registry.service.RegisterService;
-import com.meidusa.venus.registry.service.impl.MysqlRegisterService;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +48,8 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean {
      * 校验有效性
      */
     void valid(){
-        if(StringUtils.isEmpty(address) && StringUtils.isEmpty(connectUrl)){
-            throw new VenusConfigException("address or connectUrl property not config.");
+        if(StringUtils.isEmpty(address)){
+            throw new VenusConfigException("address property not config.");
         }
     }
 
@@ -60,7 +58,10 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean {
      */
     void initRegister(){
         //实例registerService
-        RegisterService registerService = newRegisterService();
+        RegisterService registerService = newHessianRegisterService(address);
+        if(registerService == null){
+            throw new VenusRegisteException("init register service failed.");
+        }
 
         //实例化register
         Register register = new MysqlRegister(registerService);
@@ -68,41 +69,6 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean {
             throw new VenusRegisteException("init register failed.");
         }
         this.register = register;
-    }
-
-    /**
-     * 实例化register service
-     * @return
-     */
-    RegisterService newRegisterService(){
-        RegisterService registerService = null;
-        //根据配置创建registerService实例，本地依赖或venus远程依赖
-        if(StringUtils.isNotEmpty(address)){
-            registerService = newHessianRegisterService(address);
-        }else{
-            registerService = newLocalRegisterService(connectUrl);
-        }
-        if(registerService == null){
-            throw new RpcException("init register service failed.");
-        }
-        return registerService;
-    }
-
-    /**
-     * 创建本地依赖实例，jvm本地依赖
-     * @param connectUrl
-     * @return
-     */
-    RegisterService newLocalRegisterService(String connectUrl){
-        try {
-            if(StringUtils.isEmpty(connectUrl)){
-                throw new VenusConfigException("connectUrl not config with injvm.");
-            }
-            RegisterService registerService = new MysqlRegisterService(connectUrl);
-            return registerService;
-        } catch (Exception e) {
-            throw new RpcException(e);
-        }
     }
 
     /**
