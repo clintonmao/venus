@@ -46,34 +46,38 @@ public class OLdServiceMappingService {
 
 	public void init() {
 		if (StringUtils.isBlank(this.getOldConnectUrl())) {
-			this.setOldConnectUrl("mysql://10.32.173.250:3306/registry?username=registry&password=registry");
-		}
-		String url = this.getOldConnectUrl();
-		if (!url.startsWith("mysql://")) {
-			logger.error("URL 参数异常,非jdbc mysql协议,url=>{}", url);
-			throw new IllegalArgumentException("URL 参数异常,非jdbc mysql协议,url=>" + url);
-		}
-		if (!url.contains("username=")) {
-			logger.error("URL 参数异常,未包含用户名,url=>{}", url);
-			throw new IllegalArgumentException("URL 参数异常,未包含用户名,url=>" + url);
-		}
-		if (!url.contains("password=")) {
-			logger.error("URL 参数异常,未包含密码,url=>{}", url);
-			throw new IllegalArgumentException("URL 参数异常,未包含密码,url=>" + url);
-		}
-		BasicDataSource dataSource = DataSourceUtil.getBasicDataSource(url);
-		if (oldJdbcTemplate == null) {
-			synchronized (OLdServiceMappingService.class) {
-				if (oldJdbcTemplate == null) {
-					oldJdbcTemplate = new JdbcTemplate(dataSource);
-				}
-				this.setOldServiceMappingDAO(new OldServiceMappingDaoImpl(oldJdbcTemplate));
+			logger.info("moveData Thread initialize is not run");
+			return;
+			// this.setOldConnectUrl("mysql://10.32.173.250:3306/registry?username=registry&password=registry");
+		} else {
+			logger.info("moveData Thread initialize is run");
+			String url = this.getOldConnectUrl();
+			if (!url.startsWith("mysql://")) {
+				logger.error("URL 参数异常,非jdbc mysql协议,url=>{}", url);
+				throw new IllegalArgumentException("URL 参数异常,非jdbc mysql协议,url=>" + url);
 			}
-		}
+			if (!url.contains("username=")) {
+				logger.error("URL 参数异常,未包含用户名,url=>{}", url);
+				throw new IllegalArgumentException("URL 参数异常,未包含用户名,url=>" + url);
+			}
+			if (!url.contains("password=")) {
+				logger.error("URL 参数异常,未包含密码,url=>{}", url);
+				throw new IllegalArgumentException("URL 参数异常,未包含密码,url=>" + url);
+			}
+			BasicDataSource dataSource = DataSourceUtil.getBasicDataSource(url);
+			if (oldJdbcTemplate == null) {
+				synchronized (OLdServiceMappingService.class) {
+					if (oldJdbcTemplate == null) {
+						oldJdbcTemplate = new JdbcTemplate(dataSource);
+					}
+					this.setOldServiceMappingDAO(new OldServiceMappingDaoImpl(oldJdbcTemplate));
+				}
+			}
 
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveServerRunnable(), 1, 5, TimeUnit.MINUTES);
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveServiceRunnable(), 1, 5, TimeUnit.MINUTES);
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveServiceMappingRunnable(), 1, 5, TimeUnit.MINUTES);
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveServerRunnable(), 1, 5, TimeUnit.MINUTES);
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveServiceRunnable(), 1, 5, TimeUnit.MINUTES);
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveServiceMappingRunnable(), 1, 5, TimeUnit.MINUTES);
+		}
 	}
 
 	public void moveServiceMappings() {
@@ -121,8 +125,7 @@ public class OLdServiceMappingService {
 			}
 		}
 	}
-	
-	
+
 	public void moveServers() {
 		Integer totalCount = oldServiceMappingDAO.getOldServerCount();
 		if (null != totalCount && totalCount > 0) {
@@ -215,16 +218,16 @@ public class OLdServiceMappingService {
 
 	}
 
-/*	public static void main(String args[]) {
-		MysqlRegisterService newDs = new MysqlRegisterService();
-		newDs.setConnectUrl("mysql://localhost:3306/registry_venus?username=root&password=123456");
-		newDs.init();
-
-		OLdServiceMappingService oldDs = new OLdServiceMappingService();
-		oldDs.setRegisterService(newDs);
-		oldDs.setOldConnectUrl("mysql://10.32.173.250:3306/registry?username=registry&password=registry");
-		oldDs.init();
-		oldDs.moveServers();
-	}*/
+	/*
+	 * public static void main(String args[]) { MysqlRegisterService newDs = new
+	 * MysqlRegisterService(); newDs.setConnectUrl(
+	 * "mysql://localhost:3306/registry_venus?username=root&password=123456");
+	 * newDs.init();
+	 * 
+	 * OLdServiceMappingService oldDs = new OLdServiceMappingService();
+	 * oldDs.setRegisterService(newDs); oldDs.setOldConnectUrl(
+	 * "mysql://10.32.173.250:3306/registry?username=registry&password=registry"
+	 * ); oldDs.init(); oldDs.moveServers(); }
+	 */
 
 }

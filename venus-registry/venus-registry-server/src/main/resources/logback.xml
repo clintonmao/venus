@@ -45,28 +45,9 @@
         </encoder>
     </appender>
 
-    <root level="error">
+    <root level="info">
         <appender-ref ref="stdout" />
         <appender-ref ref="APP" />
     </root>
 
-    <logger name="venus.default" additivity="false">
-        <level value="info"/>
-        <appender-ref ref="stdout"/>
-    </logger>
-
-    <logger name="venus.tracer" additivity="false">
-        <level value="info"/>
-        <appender-ref ref="stdout"/>
-    </logger>
-
-    <logger name="venus.exception" additivity="false">
-        <level value="info"/>
-        <appender-ref ref="stdout"/>
-    </logger>
-
-    <logger name="venus.status" additivity="false">
-        <level value="info"/>
-        <appender-ref ref="stdout"/>
-    </logger>
 </configuration>
