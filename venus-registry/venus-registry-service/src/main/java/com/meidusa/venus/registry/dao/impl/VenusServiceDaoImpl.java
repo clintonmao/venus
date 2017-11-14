@@ -444,4 +444,12 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		return update > 0;
 	}
 
+	public JdbcTemplate getJdbcTemplate() {
+		return jdbcTemplate;
+	}
+
+	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+		this.jdbcTemplate = jdbcTemplate;
+	}
+
 }

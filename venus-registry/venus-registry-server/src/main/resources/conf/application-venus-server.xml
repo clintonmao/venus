@@ -34,13 +34,35 @@
 		<property name="testWhileIdle" value="true" />
 		<property name="testOnBorrow" value="true" />
 		<property name="validationQuery" value="select 1 " />
-
 	</bean>  
+	
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate" >  
+	    <property name="dataSource" ref="dataSource"></property>  
+	</bean> 
+	
+	<bean id="venusApplicationDAO" class="com.meidusa.venus.registry.dao.impl.VenusApplicationDaoImpl" >  
+	    <property name="jdbcTemplate" ref="jdbcTemplate"></property>  
+	</bean> 
+	<bean id="venusServerDAO" class="com.meidusa.venus.registry.dao.impl.VenusServerDaoImpl" >  
+	    <property name="jdbcTemplate" ref="jdbcTemplate"></property>  
+	</bean> 
+	<bean id="venusServiceDAO" class="com.meidusa.venus.registry.dao.impl.VenusServiceDaoImpl" >  
+	    <property name="jdbcTemplate" ref="jdbcTemplate"></property>  
+	</bean> 
+	<bean id="venusServiceConfigDAO" class="com.meidusa.venus.registry.dao.impl.VenusServiceConfigDaoImpl" >  
+	    <property name="jdbcTemplate" ref="jdbcTemplate"></property>  
+	</bean> 
+	<bean id="venusServiceMappingDAO" class="com.meidusa.venus.registry.dao.impl.VenusServiceMappingDaoImpl" >  
+	    <property name="jdbcTemplate" ref="jdbcTemplate"></property>  
+	</bean> 
 
 	<!--注册服务-->
 	<bean id="mysqlRegisterService" class="com.meidusa.venus.registry.service.impl.MysqlRegisterService" init-method="init">
-		<!-- <property name="connectUrl" value="${register.connectUrl}"></property> -->
-		<property name="dataSource" ref="dataSource"></property>
+		<property name="venusApplicationDAO" ref="venusApplicationDAO"></property>
+		<property name="venusServerDAO" ref="venusServerDAO"></property>
+		<property name="venusServiceDAO" ref="venusServiceDAO"></property>
+		<property name="venusServiceConfigDAO" ref="venusServiceConfigDAO"></property>
+		<property name="venusServiceMappingDAO" ref="venusServiceMappingDAO"></property>
 	</bean>
 
 	<!--清理服务-->

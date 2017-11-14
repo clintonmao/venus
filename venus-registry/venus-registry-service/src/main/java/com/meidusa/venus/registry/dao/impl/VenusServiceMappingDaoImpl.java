@@ -371,6 +371,14 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 			throw new DAOException("根据serverId＝>" + serverId + ",获取服务映射关系个数异常", e);
 		}
 	}
+
+	public JdbcTemplate getJdbcTemplate() {
+		return jdbcTemplate;
+	}
+
+	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+		this.jdbcTemplate = jdbcTemplate;
+	}
 	
 	
 	

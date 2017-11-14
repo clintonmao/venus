@@ -2,24 +2,15 @@ package com.meidusa.venus.registry.service.impl;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import com.meidusa.venus.registry.domain.*;
-import com.meidusa.venus.registry.service.RegisterService;
-import com.meidusa.venus.support.VenusConstants;
-
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
-import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.meidusa.fastjson.JSON;
 import com.meidusa.venus.URL;
@@ -29,16 +20,16 @@ import com.meidusa.venus.registry.dao.VenusServerDAO;
 import com.meidusa.venus.registry.dao.VenusServiceConfigDAO;
 import com.meidusa.venus.registry.dao.VenusServiceDAO;
 import com.meidusa.venus.registry.dao.VenusServiceMappingDAO;
-import com.meidusa.venus.registry.dao.impl.DataSourceUtil;
 import com.meidusa.venus.registry.dao.impl.ResultUtils;
-import com.meidusa.venus.registry.dao.impl.VenusApplicationDaoImpl;
-import com.meidusa.venus.registry.dao.impl.VenusServerDaoImpl;
-import com.meidusa.venus.registry.dao.impl.VenusServiceConfigDaoImpl;
-import com.meidusa.venus.registry.dao.impl.VenusServiceDaoImpl;
-import com.meidusa.venus.registry.dao.impl.VenusServiceMappingDaoImpl;
-import com.meidusa.venus.registry.data.move.OldServiceDO;
-import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
-import org.springframework.stereotype.Component;
+import com.meidusa.venus.registry.domain.RegisteConstant;
+import com.meidusa.venus.registry.domain.VenusApplicationDO;
+import com.meidusa.venus.registry.domain.VenusServerDO;
+import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
+import com.meidusa.venus.registry.domain.VenusServiceDO;
+import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
+import com.meidusa.venus.registry.domain.VenusServiceMappingDO;
+import com.meidusa.venus.registry.service.RegisterService;
+import com.meidusa.venus.support.VenusConstants;
 
 /**
  * Created by Zhangzhihua on 2017/8/16.
@@ -56,10 +47,6 @@ public class MysqlRegisterService implements RegisterService {
 	private VenusServerDAO venusServerDAO;
 
 	private VenusServiceMappingDAO venusServiceMappingDAO;
-
-	private BasicDataSource dataSource;
-
-	private JdbcTemplate jdbcTemplate;
 
 	/** 新注册中心数据库地址 */
 	private String connectUrl;
@@ -94,28 +81,28 @@ public class MysqlRegisterService implements RegisterService {
 //			throw new IllegalArgumentException("URL 参数异常,未包含密码,url=>" + url);
 //		}
 		//dataSource = DataSourceUtil.getBasicDataSource(url);
-		if (dataSource != null) {
-			synchronized (MysqlRegisterService.class) {
-				if (jdbcTemplate == null) {
-					jdbcTemplate = new JdbcTemplate(dataSource);
-				}
-				if (null == this.getVenusApplicationDAO()) {
-					this.setVenusApplicationDAO(new VenusApplicationDaoImpl(jdbcTemplate));
-				}
-				if (null == this.getVenusServerDAO()) {
-					this.setVenusServerDAO(new VenusServerDaoImpl(jdbcTemplate));
-				}
-				if (null == this.getVenusServiceConfigDAO()) {
-					this.setVenusServiceConfigDAO(new VenusServiceConfigDaoImpl(jdbcTemplate));
-				}
-				if (null == this.getVenusServiceDAO()) {
-					this.setVenusServiceDAO(new VenusServiceDaoImpl(jdbcTemplate));
-				}
-				if (null == this.getVenusServiceMappingDAO()) {
-					this.setVenusServiceMappingDAO(new VenusServiceMappingDaoImpl(jdbcTemplate));
-				}
-			}
-		}
+//		if (dataSource != null) {
+//			synchronized (MysqlRegisterService.class) {
+//				if (jdbcTemplate == null) {
+//					jdbcTemplate = new JdbcTemplate(dataSource);
+//				}
+//				if (null == this.getVenusApplicationDAO()) {
+//					this.setVenusApplicationDAO(new VenusApplicationDaoImpl(jdbcTemplate));
+//				}
+//				if (null == this.getVenusServerDAO()) {
+//					this.setVenusServerDAO(new VenusServerDaoImpl(jdbcTemplate));
+//				}
+//				if (null == this.getVenusServiceConfigDAO()) {
+//					this.setVenusServiceConfigDAO(new VenusServiceConfigDaoImpl(jdbcTemplate));
+//				}
+//				if (null == this.getVenusServiceDAO()) {
+//					this.setVenusServiceDAO(new VenusServiceDaoImpl(jdbcTemplate));
+//				}
+//				if (null == this.getVenusServiceMappingDAO()) {
+//					this.setVenusServiceMappingDAO(new VenusServiceMappingDaoImpl(jdbcTemplate));
+//				}
+//			}
+//		}
 		//updateServiceAppIds();
 	}
 
@@ -693,22 +680,5 @@ public class MysqlRegisterService implements RegisterService {
 		}
 		return name;
 	}
-
-	public BasicDataSource getDataSource() {
-		return dataSource;
-	}
-
-	public void setDataSource(BasicDataSource dataSource) {
-		this.dataSource = dataSource;
-	}
-
-	public JdbcTemplate getJdbcTemplate() {
-		return jdbcTemplate;
-	}
-
-	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
-		this.jdbcTemplate = jdbcTemplate;
-	}
-	
 	
 }
