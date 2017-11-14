@@ -124,4 +124,4 @@ CREATE TABLE `t_venus_service_mapping` (
 -- ----------------------------
 -- Records 
 -- ----------------------------
-INSERT INTO `t_admin` VALUES ('32', 'tangmin', 'Tang Min 唐敏', '1', '2017-09-01 16:17:51', '2017-11-10 14:54:16');
+INSERT INTO `t_admin` VALUES ('32', 'admin', 'admin', '1', '2017-09-01 16:17:51', '2017-11-10 14:54:16');
