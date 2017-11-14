@@ -432,5 +432,16 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 			throw new DAOException("根据sql=>" + sql + ";获取服务列表异常", e);
 		}
 	}
+	
+	public boolean updateServiceVersion(int id, String versionRange) throws DAOException {
+		String sql = "update t_venus_service set version_range=?,update_time=now() where id=?";
+		int update = 0;
+		try {
+			update = this.jdbcTemplate.update(sql, versionRange, id);
+		} catch (Exception e) {
+			throw new DAOException("更新venusService versionRange异常", e);
+		}
+		return update > 0;
+	}
 
 }

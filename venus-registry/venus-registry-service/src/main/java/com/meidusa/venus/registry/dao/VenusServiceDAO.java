@@ -41,5 +41,7 @@ public interface VenusServiceDAO {
 	Integer getServiceCount() throws DAOException;
 	
 	List<VenusServiceDO> queryServices(Integer pageSize, Integer id) throws DAOException;
+	
+	boolean updateServiceVersion(int id, String versionRange) throws DAOException;
 
 }

@@ -429,6 +429,8 @@ public class MysqlRegisterService implements RegisterService {
 					venusServiceMappingDO.setVersion(version);
 					venusServiceMappingDO.setIsDelete(false);
 					venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
+					String versionRange=version;
+					venusServiceDAO.updateServiceVersion(service.getId(), versionRange);
 				}
 			}
 		}
