@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.meidusa.venus</groupId>
     <artifactId>venus-http</artifactId>
-    <version>4.0.1-SNAPSHOT</version>
+    <version>4.0.1</version>
   </parent>
   <artifactId>venus-http-filter</artifactId>
   <name>${project.artifactId}</name>

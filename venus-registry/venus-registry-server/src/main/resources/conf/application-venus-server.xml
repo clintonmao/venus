@@ -19,17 +19,23 @@
 		</property>
 	</bean>
 
+	<!--注册服务-->
 	<bean id="mysqlRegisterService" class="com.meidusa.venus.registry.service.impl.MysqlRegisterService" init-method="init">
 		<property name="connectUrl" value="${register.connectUrl}"></property>
 	</bean>
 
+	<!--清理服务-->
 	<bean id="clearInvalidService" class="com.meidusa.venus.registry.service.impl.ClearInvalidService" init-method="init">
 		<property name="registerService" ref="mysqlRegisterService" ></property>
 	</bean>
 
+	<!--旧注册中心-》新注册中心同步服务-->
 	<bean id="oLdServiceMappingService" class="com.meidusa.venus.registry.service.impl.OLdServiceMappingService" init-method="init">
 		<property name="registerService" ref="mysqlRegisterService" ></property>
+		<!--旧注册中心地址配置，若不配置则不进行同步操作-->
+		<!--
 		<property name="oldConnectUrl" value="${register.oldConnectUrl}" ></property>
+		-->
 	</bean>
 
 </beans>
