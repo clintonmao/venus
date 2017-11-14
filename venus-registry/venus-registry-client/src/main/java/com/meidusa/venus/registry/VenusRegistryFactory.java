@@ -26,11 +26,6 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean {
     private String address;
 
     /**
-     * 注册中心连接Url
-     */
-    private String connectUrl;
-
-    /**
      * 注册服务
      */
     private Register register;
@@ -118,14 +113,6 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean {
 
     public void setRegister(Register register) {
         this.register = register;
-    }
-
-    public String getConnectUrl() {
-        return connectUrl;
-    }
-
-    public void setConnectUrl(String connectUrl) {
-        this.connectUrl = connectUrl;
     }
 
 }
