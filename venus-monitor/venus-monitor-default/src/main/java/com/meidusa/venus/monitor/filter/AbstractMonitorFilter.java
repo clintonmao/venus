@@ -207,8 +207,8 @@ public abstract class AbstractMonitorFilter {
                     VenusMonitorReporter monitorReporter = getMonitorReporter();
 
                     //1、明细上报
-                    if(statusLogger.isInfoEnabled()){
-                        statusLogger.info("current detail report queue size:{}.", reportDetailQueue.size());
+                    if(statusLogger.isDebugEnabled()){
+                        statusLogger.debug("current detail report queue size:{}.", reportDetailQueue.size());
                     }
                     List<InvocationDetail> detailList = new ArrayList<InvocationDetail>();
                     int fetchNum = perDetailReportNum;
@@ -231,8 +231,8 @@ public abstract class AbstractMonitorFilter {
 
                     //2、汇总上报
                     if(getRole() == ROLE_CONSUMER){//只consumer进行统计上报
-                        if(statusLogger.isInfoEnabled()){
-                            statusLogger.info("current statistic report queue size:{}.",statisticMap.size());
+                        if(statusLogger.isDebugEnabled()){
+                            statusLogger.debug("current statistic report queue size:{}.",statisticMap.size());
                         }
                         Collection<InvocationStatistic> statisticCollection = statisticMap.values();
                         if(CollectionUtils.isNotEmpty(statisticCollection)){
@@ -276,8 +276,8 @@ public abstract class AbstractMonitorFilter {
         for(InvocationDetail detail:detailList){
             MethodCallDetailDO detailDO = convertDetail(detail);
             detailDOList.add(detailDO);
-            if(logger.isInfoEnabled()){
-                logger.info("report detailDO:{}.",JSONUtil.toJSONString(detailDO));
+            if(logger.isDebugEnabled()){
+                logger.debug("report detailDO:{}.",JSONUtil.toJSONString(detailDO));
             }
         }
         return detailDOList;
@@ -302,8 +302,8 @@ public abstract class AbstractMonitorFilter {
                 continue;
             }
             MethodStaticDO staticDO = convertStatistic(statistic);
-            if(logger.isInfoEnabled()){
-                logger.info("report staticDO:{}.",JSONUtil.toJSONString(staticDO));
+            if(logger.isDebugEnabled()){
+                logger.debug("report staticDO:{}.",JSONUtil.toJSONString(staticDO));
             }
             staticDOList.add(staticDO);
         }
