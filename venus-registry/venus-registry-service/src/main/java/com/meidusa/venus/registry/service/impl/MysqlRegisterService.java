@@ -80,21 +80,21 @@ public class MysqlRegisterService implements RegisterService {
 	}
 
 	public void init() {
-		String url = this.getConnectUrl();
-		if (!url.startsWith("mysql://")) {
-			logger.error("URL 参数异常,非jdbc mysql协议,url=>{}", url);
-			throw new IllegalArgumentException("URL 参数异常,非jdbc mysql协议,url=>" + url);
-		}
-		if (!url.contains("username=")) {
-			logger.error("URL 参数异常,未包含用户名,url=>{}", url);
-			throw new IllegalArgumentException("URL 参数异常,未包含用户名,url=>" + url);
-		}
-		if (!url.contains("password=")) {
-			logger.error("URL 参数异常,未包含密码,url=>{}", url);
-			throw new IllegalArgumentException("URL 参数异常,未包含密码,url=>" + url);
-		}
-		dataSource = DataSourceUtil.getBasicDataSource(url);
-		if (jdbcTemplate == null) {
+//		String url = this.getConnectUrl();
+//		if (!url.startsWith("mysql://")) {
+//			logger.error("URL 参数异常,非jdbc mysql协议,url=>{}", url);
+//			throw new IllegalArgumentException("URL 参数异常,非jdbc mysql协议,url=>" + url);
+//		}
+//		if (!url.contains("username=")) {
+//			logger.error("URL 参数异常,未包含用户名,url=>{}", url);
+//			throw new IllegalArgumentException("URL 参数异常,未包含用户名,url=>" + url);
+//		}
+//		if (!url.contains("password=")) {
+//			logger.error("URL 参数异常,未包含密码,url=>{}", url);
+//			throw new IllegalArgumentException("URL 参数异常,未包含密码,url=>" + url);
+//		}
+		//dataSource = DataSourceUtil.getBasicDataSource(url);
+		if (dataSource != null) {
 			synchronized (MysqlRegisterService.class) {
 				if (jdbcTemplate == null) {
 					jdbcTemplate = new JdbcTemplate(dataSource);
@@ -693,4 +693,22 @@ public class MysqlRegisterService implements RegisterService {
 		}
 		return name;
 	}
+
+	public BasicDataSource getDataSource() {
+		return dataSource;
+	}
+
+	public void setDataSource(BasicDataSource dataSource) {
+		this.dataSource = dataSource;
+	}
+
+	public JdbcTemplate getJdbcTemplate() {
+		return jdbcTemplate;
+	}
+
+	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+		this.jdbcTemplate = jdbcTemplate;
+	}
+	
+	
 }

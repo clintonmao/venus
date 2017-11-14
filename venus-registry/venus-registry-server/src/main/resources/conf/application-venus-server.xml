@@ -19,9 +19,28 @@
 		</property>
 	</bean>
 
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="${db.driverClassName}" />
+		<property name="url" value="${db.url}" />
+		<property name="username" value="${db.username}" />
+		<property name="password" value="${db.password}" />
+		<property name="maxActive" value="${db.maxActive}" />
+		<property name="minIdle" value="${db.minIdle}" />
+		<property name="maxIdle" value="${db.maxIdle}" />
+		<property name="initialSize" value="${db.initialSize}" />
+		<property name="maxWait" value="${db.maxWait}" />
+		<property name="testOnReturn" value="true" />
+		<property name="testWhileIdle" value="true" />
+		<property name="testOnBorrow" value="true" />
+		<property name="validationQuery" value="select 1 " />
+
+	</bean>  
+
 	<!--注册服务-->
 	<bean id="mysqlRegisterService" class="com.meidusa.venus.registry.service.impl.MysqlRegisterService" init-method="init">
-		<property name="connectUrl" value="${register.connectUrl}"></property>
+		<!-- <property name="connectUrl" value="${register.connectUrl}"></property> -->
+		<property name="dataSource" ref="dataSource"></property>
 	</bean>
 
 	<!--清理服务-->
