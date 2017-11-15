@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.hibernate5.HibernateExceptionTranslator;
 
 /**
- * Created by songcl on 2017/4/29.
+ * Created by zhangzhihua on 2017/4/29.
  */
 @Configuration
 public class TomcatCustomerConfig {

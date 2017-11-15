@@ -8,6 +8,7 @@
         <version>4.0.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
+    <packaging>war</packaging>
 
     <artifactId>venus-registry-server</artifactId>
 	<properties>
@@ -106,11 +107,18 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
             <version>${spring.boot.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <version>${spring.boot.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus</groupId>

@@ -14,8 +14,8 @@ import org.springframework.context.annotation.Configuration;
 
 import java.nio.charset.Charset;
 
-@Configuration
-public class TomcatInitializer extends SpringBootServletInitializer {
+//@Configuration
+public class TomcatInitializer{
 
     @Autowired
     private TomcatConfig tomcatConfig;
