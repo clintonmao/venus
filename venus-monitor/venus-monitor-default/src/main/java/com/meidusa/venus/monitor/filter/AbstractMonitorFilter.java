@@ -62,7 +62,7 @@ public abstract class AbstractMonitorFilter {
     //一次上报记录条数
     private static int perDetailReportNum = 100;
     //慢操作耗时
-    private static int SLOW_COST_TIME = 5;
+    private static int SLOW_COST_TIME = 200;
     //支持最大队列长度
     private static int QUEU_MAX_SIZE = 50000;
     //Athena接口名称定义

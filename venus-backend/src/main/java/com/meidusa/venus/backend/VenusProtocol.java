@@ -2,10 +2,12 @@ package com.meidusa.venus.backend;
 
 import com.meidusa.toolkit.common.bean.util.InitialisationException;
 import com.meidusa.toolkit.net.ConnectionAcceptor;
+import com.meidusa.toolkit.net.ConnectionManager;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.authenticate.server.AuthenticateProvider;
 import com.meidusa.toolkit.net.factory.FrontendConnectionFactory;
 import com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider;
+import com.meidusa.venus.backend.handler.VenusServerConnectionObserver;
 import com.meidusa.venus.backend.handler.VenusServerReceiveMessageHandler;
 import com.meidusa.venus.backend.services.ServiceManager;
 import com.meidusa.venus.exception.VenusConfigException;
@@ -15,6 +17,8 @@ import com.meidusa.venus.support.VenusContext;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+
+import java.io.IOException;
 
 /**
  * venus协议，启动/销毁remoting、设置message handler相关操作
@@ -75,7 +79,7 @@ public class VenusProtocol implements InitializingBean,DisposableBean {
      * @return
      */
     ConnectionAcceptor createConnectionAcceptor() throws InitialisationException {
-        ConnectionAcceptor connectionAcceptor = new ConnectionAcceptor();
+        VenusConnectionAcceptor connectionAcceptor = new VenusConnectionAcceptor();
         connectionAcceptor.setName("venus Acceptor-0");
         connectionAcceptor.setPort(Integer.parseInt(port));
         //计算每IO线程组业务平均线程池数
@@ -87,6 +91,23 @@ public class VenusProtocol implements InitializingBean,DisposableBean {
         connectionAcceptor.setExecutorSize(perGroupCoreThread);
         connectionAcceptor.setConnectionFactory(createConnectionFactory());
         return connectionAcceptor;
+    }
+
+    /**
+     * 扩展添加连接监听observer
+     */
+    class VenusConnectionAcceptor extends ConnectionAcceptor{
+        @Override
+        public void initProcessors() throws IOException {
+            if(processors == null){
+                processors = new ConnectionManager[Runtime.getRuntime().availableProcessors()];
+                for(int i=0;i<processors.length;i++){
+                    processors[i] = new ConnectionManager(this.getName()+"-Manager-"+i,getExecutorSize());
+                    processors[i].addConnectionObserver(new VenusServerConnectionObserver());
+                    processors[i].start();
+                }
+            }
+        }
     }
 
     /**

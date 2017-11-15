@@ -1,6 +1,5 @@
 package com.meidusa.venus.client.invoker.venus;
 
-import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.toolkit.net.*;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.ClientInvocation;
@@ -28,7 +27,6 @@ import com.meidusa.venus.support.VenusThreadContext;
 import com.meidusa.venus.support.VenusUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -40,8 +38,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -63,9 +59,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      */
     private ClientRemoteConfig remoteConfig;
 
-    //nio连接映射表
-    private Map<String, BackendConnectionPool> nioPoolMap = new ConcurrentHashMap<String, BackendConnectionPool>();
-
     //rpcId-请求&响应映射表
     private Map<String, VenusReqRespWrapper> serviceReqRespMap = new ConcurrentHashMap<String, VenusReqRespWrapper>();
 
@@ -75,7 +68,10 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     //NIO消息响应处理
     private VenusClientInvokerMessageHandler messageHandler = new VenusClientInvokerMessageHandler();
 
-    //添加连接事件监听
+    //nio连接映射表
+    private Map<String, BackendConnectionPool> connectionPoolMap = new ConcurrentHashMap<String, BackendConnectionPool>();
+
+    //连接事件监听
     private VenusClientConnectionObserver connectionObserver = new VenusClientConnectionObserver();
 
     private static ConnectionConnector connector;
@@ -301,12 +297,10 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         Throwable exception = null;
         try {
             //获取连接
-            //TODO 失败重连确认
-            //TODO 地址变化对连接的影响
             nioConnPool = getNioConnPool(url,invocation,null);
             conn = nioConnPool.borrowObject();
             if(!conn.isActive()){
-                throw new RpcException(RpcException.NETWORK_EXCEPTION,"connetion not active.");
+                throw new RpcException(RpcException.NETWORK_EXCEPTION,"get connetion failed.");
             }
             borrowed = System.currentTimeMillis();
             if(reqRespWrapper != null){
@@ -378,17 +372,17 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                 .append(url.getPort())
                 .toString();
         //若存在，则直接使用连接池
-        if(nioPoolMap.get(address) != null){
-            return nioPoolMap.get(address);
+        if(connectionPoolMap.get(address) != null){
+            return connectionPoolMap.get(address);
         }else{
             //若不存在，则创建连接池
             synchronized (this){
                 BackendConnectionPool backendConnectionPool = null;
-                if(nioPoolMap.get(address) != null){
-                    backendConnectionPool = nioPoolMap.get(address);
+                if(connectionPoolMap.get(address) != null){
+                    backendConnectionPool = connectionPoolMap.get(address);
                 }else{
                     backendConnectionPool = createNioPool(url,invocation,new ClientRemoteConfig());
-                    nioPoolMap.put(address,backendConnectionPool);
+                    connectionPoolMap.put(address,backendConnectionPool);
                 }
                 return backendConnectionPool;
             }
@@ -448,7 +442,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                     }
                 }
             }
-            throw new RpcException(RpcException.NETWORK_EXCEPTION,"init connection pool failed.");
+            throw new RpcException(RpcException.NETWORK_EXCEPTION,"create connection pool failed.");
         }
         return nioPool;
     }
