@@ -393,50 +393,6 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         return clientConfig;
     }
 
-    /**
-     * 解析客户端配置信息
-     * @return
-     */
-    /*
-    VenusClientConfig parseClientConfig(){
-        VenusClientConfig clientConfig = new VenusClientConfig();
-        for (Resource configFile : configFiles) {
-            URL url = this.getClass().getResource("venusClientRule.xml");
-            if (url == null) {
-                throw new VenusConfigException("venusClientRule.xml not found!,pls rebuild venus!");
-            }
-            RuleSet ruleSet = new FromXmlRuleSet(url, new DigesterRuleParser());
-            Digester digester = new Digester();
-            digester.setValidating(false);
-            digester.addRuleSet(ruleSet);
-
-            try {
-                //resourceLoader.getResource(configFile.trim())
-                InputStream is = configFile.getInputStream();
-                try{
-                    VenusClientConfig venus = (VenusClientConfig) digester.parse(is);
-                    for (ReferenceService config : venus.getReferenceServices()) {
-                        if (config.getType() == null) {
-                            logger.error("Service type can not be null:" + configFile);
-                            throw new ConfigurationException("Service type can not be null:" + configFile);
-                        }
-                    }
-                    clientConfig.getRemoteConfigMap().putAll(venus.getRemoteConfigMap());
-                    clientConfig.getReferenceServices().addAll(venus.getReferenceServices());
-                }finally{
-                    if(is != null){
-                        is.close();
-                    }
-                }
-            } catch (Exception e) {
-                throw new ConfigurationException("can not parser xml:" + configFile, e);
-            }
-        }
-        return clientConfig;
-    }
-    */
-
-
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		// register to resolvable dependency container
 		//BeanFactory beanFactory = applicationContext.getAutowireCapableBeanFactory();
