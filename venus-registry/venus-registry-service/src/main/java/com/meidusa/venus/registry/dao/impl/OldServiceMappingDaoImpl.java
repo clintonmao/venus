@@ -152,4 +152,12 @@ public class OldServiceMappingDaoImpl implements OldServiceMappingDAO {
 		}
 	}
 
+	public JdbcTemplate getJdbcTemplate() {
+		return jdbcTemplate;
+	}
+
+	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+		this.jdbcTemplate = jdbcTemplate;
+	}
+
 }

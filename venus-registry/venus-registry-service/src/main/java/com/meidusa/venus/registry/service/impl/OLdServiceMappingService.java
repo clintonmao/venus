@@ -4,16 +4,11 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.registry.dao.OldServiceMappingDAO;
-import com.meidusa.venus.registry.dao.impl.DataSourceUtil;
-import com.meidusa.venus.registry.dao.impl.OldServiceMappingDaoImpl;
 import com.meidusa.venus.registry.data.move.OldServerDO;
 import com.meidusa.venus.registry.data.move.OldServiceDO;
 import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
@@ -28,55 +23,24 @@ public class OLdServiceMappingService {
 
 	private OldServiceMappingDAO oldServiceMappingDAO;
 
-	private JdbcTemplate oldJdbcTemplate;
-
-	/** 原注册中心mysql连接地址 */
-	private String oldConnectUrl;
-
 	private RegisterService registerService;
+	
+	private boolean needDataSync = false;
 
 	public OLdServiceMappingService() {
 
 	}
 
-	public OLdServiceMappingService(String oldConnectUrl) {
-		this.setOldConnectUrl(oldConnectUrl);
-		init();
-	}
-
 	public void init() {
-		if (StringUtils.isBlank(this.getOldConnectUrl())) {
-			logger.info("moveData Thread initialize is not run");
-			return;
+		if (this.isNeedDataSync()) {
+			logger.info("Sync Data Thread initialize is need");
 			// this.setOldConnectUrl("mysql://10.32.173.250:3306/registry?username=registry&password=registry");
-		} else {
-			logger.info("moveData Thread initialize is run");
-			String url = this.getOldConnectUrl();
-			if (!url.startsWith("mysql://")) {
-				logger.error("URL 参数异常,非jdbc mysql协议,url=>{}", url);
-				throw new IllegalArgumentException("URL 参数异常,非jdbc mysql协议,url=>" + url);
-			}
-			if (!url.contains("username=")) {
-				logger.error("URL 参数异常,未包含用户名,url=>{}", url);
-				throw new IllegalArgumentException("URL 参数异常,未包含用户名,url=>" + url);
-			}
-			if (!url.contains("password=")) {
-				logger.error("URL 参数异常,未包含密码,url=>{}", url);
-				throw new IllegalArgumentException("URL 参数异常,未包含密码,url=>" + url);
-			}
-			BasicDataSource dataSource = DataSourceUtil.getBasicDataSource(url);
-			if (oldJdbcTemplate == null) {
-				synchronized (OLdServiceMappingService.class) {
-					if (oldJdbcTemplate == null) {
-						oldJdbcTemplate = new JdbcTemplate(dataSource);
-					}
-					this.setOldServiceMappingDAO(new OldServiceMappingDaoImpl(oldJdbcTemplate));
-				}
-			}
 
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveServerRunnable(), 1, 5, TimeUnit.MINUTES);
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveServiceRunnable(), 1, 5, TimeUnit.MINUTES);
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveServiceMappingRunnable(), 1, 5, TimeUnit.MINUTES);
+		} else {
+			logger.info("Sync Data Thread initialize is not need");
 		}
 	}
 
@@ -147,22 +111,6 @@ public class OLdServiceMappingService {
 		}
 	}
 
-	public JdbcTemplate getOldJdbcTemplate() {
-		return oldJdbcTemplate;
-	}
-
-	public void setOldJdbcTemplate(JdbcTemplate oldJdbcTemplate) {
-		this.oldJdbcTemplate = oldJdbcTemplate;
-	}
-
-	public String getOldConnectUrl() {
-		return oldConnectUrl;
-	}
-
-	public void setOldConnectUrl(String oldConnectUrl) {
-		this.oldConnectUrl = oldConnectUrl;
-	}
-
 	public OldServiceMappingDAO getOldServiceMappingDAO() {
 		return oldServiceMappingDAO;
 	}
@@ -178,6 +126,15 @@ public class OLdServiceMappingService {
 	public void setRegisterService(RegisterService registerService) {
 		this.registerService = registerService;
 	}
+
+	public boolean isNeedDataSync() {
+		return needDataSync;
+	}
+
+	public void setNeedDataSync(boolean needDataSync) {
+		this.needDataSync = needDataSync;
+	}
+
 
 	private class MoveServerRunnable implements Runnable {
 
