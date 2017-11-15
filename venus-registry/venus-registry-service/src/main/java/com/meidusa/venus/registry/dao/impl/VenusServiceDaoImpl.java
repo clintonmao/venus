@@ -433,7 +433,7 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		}
 	}
 	
-	public boolean updateServiceVersion(int id, String versionRange) throws DAOException {
+	public boolean updateServiceVersionRange(int id, String versionRange) throws DAOException {
 		String sql = "update t_venus_service set version_range=?,update_time=now() where id=?";
 		int update = 0;
 		try {
