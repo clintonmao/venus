@@ -13,15 +13,10 @@ import org.springframework.context.annotation.ImportResource;
 /**
  * Created by Zhangzhihua on 2017/9/21.
  */
-//@EnableAutoConfiguration
-@Configuration
-//@SpringBootApplication
 @SpringBootApplication(exclude= {
                 DataSourceAutoConfiguration.class,
                 HibernateJpaAutoConfiguration.class
         })
-//@EnableAspectJAutoProxy(proxyTargetClass = true)
-//@ComponentScan(basePackages = "com.chexiang")
 @ImportResource("classpath:conf/applicationContext-consumer.xml")
 public class DemoConsumerApplication {
 
