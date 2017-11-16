@@ -1,6 +1,8 @@
 package com.meidusa.venus.registry.service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.meidusa.venus.URL;
 import com.meidusa.venus.annotations.Endpoint;
@@ -64,13 +66,21 @@ public interface RegisterService {
 	@PerformanceLevel(printParams=false,printResult = false)
 	List<VenusServiceDefinitionDO> findServiceDefinitions(@Param(name = "url")URL url);
     
+	/**
+	 * 根据URL更新注册接口的心跳时间
+	 * @param url
+	 */
+	@Endpoint(name = "heartbeatRegister")
+	@PerformanceLevel(printParams=false,printResult = false)
+	void heartbeatRegister(@Param(name = "url")URL url);
+	
     /**
      * 根据URL更新注册接口的心跳时间
      * @param url
      */
-	@Endpoint(name = "heartbeatRegister")
+	@Endpoint(name = "heartbeat")
 	@PerformanceLevel(printParams=false,printResult = false)
-    void heartbeatRegister(@Param(name = "url")URL url);
+    void heartbeat(@Param(name = "maps")Map<String,Set<URL>> maps);
     
     /**
      * 根据URL更新订阅接口的心跳时间

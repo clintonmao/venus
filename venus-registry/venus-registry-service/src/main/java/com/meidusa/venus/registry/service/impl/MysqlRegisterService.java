@@ -2,12 +2,15 @@ package com.meidusa.venus.registry.service.impl;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -532,6 +535,44 @@ public class MysqlRegisterService implements RegisterService {
 			logger.error("服务{}registe更新heartBeatTime异常 ,异常原因：{}", name, e);
 			throw new VenusRegisteException("registe更新heartBeatTime异常,服务名：" + name, e);
 		}
+		
+	}
+
+	public void heartbeatRegister(Set<URL> urls, String role) {
+		if (CollectionUtils.isEmpty(urls)) {
+			return;
+		}
+		Map<Integer, List<Integer>> maps = new HashMap<Integer, List<Integer>>();
+		try {
+			for (URL url : urls) {
+				String host = url.getHost();
+				int port = url.getPort();
+				VenusServerDO server = venusServerDAO.getServer(host, port);
+				List<VenusServiceDO> services = venusServiceDAO.queryServices(url.getInterfaceName(),
+						url.getServiceName(), url.getVersion());
+				if (CollectionUtils.isNotEmpty(services)) {
+					for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
+						VenusServiceDO venusServiceDO = iterator.next();
+						List<Integer> list = maps.get(server.getId());
+						if (list != null) {
+							list.add(venusServiceDO.getId());
+						} else {
+							list = new ArrayList<>();
+							list.add(venusServiceDO.getId());
+							maps.put(server.getId(), list);
+						}
+					}
+				}
+			}
+			if (MapUtils.isNotEmpty(maps)) {
+				for (Map.Entry<Integer, List<Integer>> ent : maps.entrySet()) {
+					venusServiceMappingDAO.updateHeartBeatTime(ent.getKey(), ent.getValue(), role);
+				}
+			}
+		} catch (Exception e) {
+			logger.error("服务{}heartBeatTime更新异常 ,异常原因：{}", JSON.toJSONString(urls, true), e);
+			throw new VenusRegisteException("更新heartBeatTime异常,服务名", e);
+		}
 
 	}
 
@@ -689,6 +730,13 @@ public class MysqlRegisterService implements RegisterService {
 			name = url.getInterfaceName();
 		}
 		return name;
+	}
+
+	@Override
+	public void heartbeat(Map<String, Set<URL>> maps) {
+		for (Map.Entry<String, Set<URL>> ent : maps.entrySet()) {
+			heartbeatRegister(ent.getValue(),ent.getKey());
+		}
 	}
 	
 }

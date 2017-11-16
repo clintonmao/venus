@@ -379,6 +379,27 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
 	}
+
+	@Override
+	public boolean updateHeartBeatTime(int serverId, List<Integer> serviceIds, String role) throws DAOException {
+		if (serviceIds.isEmpty()) {
+			return false;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (Integer id : serviceIds) {
+			sb.append(id);
+			sb.append(",");
+		}
+		String str = sb.substring(0, sb.length() - 1);
+		String sql = "update t_venus_service_mapping set is_delete=0,heartbeat_time = now() where server_id = ? and role=? and service_id in(" + str + ")";
+		int update = 0;
+		try {
+			update = this.jdbcTemplate.update(sql, true);
+		} catch (Exception e) {
+			throw new DAOException("更新映射关系心跳时间异常", e);
+		}
+		return update > 0;
+	}
 	
 	
 	
