@@ -16,8 +16,9 @@ import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.io.network.VenusBackendFrontendConnectionFactory;
 import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.support.VenusContext;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.DisposableBean;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.io.IOException;
@@ -27,6 +28,10 @@ import java.io.IOException;
  * Created by Zhangzhihua on 2017/9/28.
  */
 public class VenusProtocol implements Protocol,InitializingBean{
+
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
+
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
     private static boolean isRunning = false;
 
@@ -146,6 +151,9 @@ public class VenusProtocol implements Protocol,InitializingBean{
 
     @Override
     public void destroy() throws Exception {
+        if(logger.isInfoEnabled()){
+            logger.info("detroy protocol:{}.",this);
+        }
         //释放连接
         if(connectionAcceptor != null){
             connectionAcceptor.shutdown();

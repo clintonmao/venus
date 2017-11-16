@@ -42,17 +42,18 @@ public class Application implements InitializingBean,DisposableBean {
     private static boolean isDestroyed = false;
 
     //---------------以下为要管理的资源列表 -----------------------
-    //invoker列表
-    private static List<Invoker> invokerList = new ArrayList<Invoker>();
 
-    //服务工厂列表
+    //服务工厂列表[client]
     private static List<ServiceFactory> serviceFactoryList = new ArrayList<ServiceFactory>();
 
-    //服务管理列表
-    private static List<ServiceManager> serviceManagerList = new ArrayList<ServiceManager>();
+    //invoker列表[client]
+    private static List<Invoker> invokerList = new ArrayList<Invoker>();
 
-    //协议列表
+    //协议列表[backend]
     private static List<Protocol> protocolList = new ArrayList<Protocol>();
+
+    //服务管理列表[backend]
+    private static List<ServiceManager> serviceManagerList = new ArrayList<ServiceManager>();
 
     private Application(){
         application = this;
@@ -105,6 +106,9 @@ public class Application implements InitializingBean,DisposableBean {
         synchronized (Application.class){
             if(!isDestroyed){
                 doDestroy();
+                isDestroyed = true;
+            }else{
+                logger.info("spring container already released.");
             }
         }
     }
@@ -122,6 +126,9 @@ public class Application implements InitializingBean,DisposableBean {
             synchronized (Application.class){
                 if(!isDestroyed){
                     doDestroy();
+                    isDestroyed = true;
+                }else{
+                    logger.info("application already released.");
                 }
             }
         }

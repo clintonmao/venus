@@ -97,25 +97,12 @@ public class BusProtocol implements InitializingBean,DisposableBean {
         return connectionFactory;
     }
 
-    /**
-     * 创建messageHandler
-     * @return
-     */
-    /*
-    MessageHandler createMessageHandler() throws InitialisationException {
-        BusReceiveMessageHandler messageHandler = new BusReceiveMessageHandler();
-        return messageHandler;
-    }
-    */
-
     @Override
     public void destroy() throws Exception {
         //释放连接
         if(connectionAcceptor != null){
             connectionAcceptor.shutdown();
         }
-
-        //TODO 反订阅
     }
 
     public String getPort() {

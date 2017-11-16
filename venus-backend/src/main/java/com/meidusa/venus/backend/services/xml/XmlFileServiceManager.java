@@ -377,12 +377,9 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         if(venusRegistryFactory != null && venusRegistryFactory.getRegister() != null){
             Register register = venusRegistryFactory.getRegister();
             Set<URL> registeUrls = register.getRegisteUrls();
-            if(CollectionUtils.isNotEmpty(registeUrls)){
+            if(register != null && CollectionUtils.isNotEmpty(registeUrls)){
                 for(URL url:registeUrls){
                     try {
-                        if(logger.isInfoEnabled()){
-                            logger.info("unregiste url:{}.",url);
-                        }
                         register.unregiste(url);
                     } catch (VenusRegisteException e) {
                         if(exceptionLogger.isErrorEnabled()){

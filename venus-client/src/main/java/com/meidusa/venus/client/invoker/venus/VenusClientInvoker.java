@@ -492,6 +492,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     @Override
     public void destroy() throws RpcException{
+        if(logger.isInfoEnabled()){
+            logger.info("detroy invoker:{}.",this);
+        }
         //释放连接
         if (connector != null) {
             if (connector.isAlive()) {

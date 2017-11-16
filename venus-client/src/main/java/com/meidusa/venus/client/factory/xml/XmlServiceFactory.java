@@ -73,7 +73,7 @@ import java.util.Set;
 /**
  * 基于xml配置服务工厂
  */
-public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware, InitializingBean, DisposableBean,BeanFactoryPostProcessor {
+public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFactoryPostProcessor,ApplicationContextAware {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -448,16 +448,13 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
         if(venusRegistryFactory != null && venusRegistryFactory.getRegister() != null){
             Register register = venusRegistryFactory.getRegister();
             Set<URL> subscribleUrls = register.getSubscribleUrls();
-            if(CollectionUtils.isNotEmpty(subscribleUrls)){
+            if(register != null && CollectionUtils.isNotEmpty(subscribleUrls)){
                 for(URL url:subscribleUrls){
                     try {
-                        if(logger.isInfoEnabled()){
-                            logger.info("subscrible url:{}.",url);
-                        }
                         register.unsubscrible(url);
                     } catch (VenusRegisteException e) {
                         if(exceptionLogger.isErrorEnabled()){
-                            String errorMsg = String.format("subscrible url:%s failed.",url);
+                            String errorMsg = String.format("unsubscrible url:%s failed.",url);
                             exceptionLogger.error(errorMsg,e);
                         }
                     }
