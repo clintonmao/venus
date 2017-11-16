@@ -15,6 +15,10 @@ public class VenusUtil {
 
     private static Logger logger = LoggerFactory.getLogger(VenusUtil.class);
 
+    //Athena接口名称定义
+    private static final String ATHENA_INTERFACE_SIMPLE_NAME = "AthenaDataService";
+    private static final String ATHENA_INTERFACE_FULL_NAME = "com.athena.service.api.AthenaDataService";
+
     /**
      * 获取服务路径
      * @param invocation
@@ -89,6 +93,16 @@ public class VenusUtil {
         }
 
         return serviceName + "." + methodName;
+    }
+
+    /**
+     * 判断是否athena接口
+     * @param invocation
+     * @return
+     */
+    public static boolean isAthenaInterface(Invocation invocation){
+        String serviceInterfaceName = invocation.getServiceInterfaceName();
+        return ATHENA_INTERFACE_SIMPLE_NAME.equalsIgnoreCase(serviceInterfaceName) || ATHENA_INTERFACE_FULL_NAME.equalsIgnoreCase(serviceInterfaceName);
     }
 
 }

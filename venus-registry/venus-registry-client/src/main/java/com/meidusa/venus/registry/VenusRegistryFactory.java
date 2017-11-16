@@ -4,21 +4,25 @@ import com.caucho.hessian.client.HessianProxyFactory;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
 import com.meidusa.venus.registry.service.RegisterService;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-
-import java.net.MalformedURLException;
 
 /**
  * Venus注册中心工厂类，负责初始化注册中心
  * Created by Zhangzhihua on 2017/9/15.
  */
-public class VenusRegistryFactory implements InitializingBean, DisposableBean {
+public class VenusRegistryFactory implements InitializingBean {
 
-    private static Logger logger = LoggerFactory.getLogger(VenusRegistryFactory.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
+
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
+
+    //注册中心读写超时时间,ms
+    private static final int readTimeout = 3000;
+    //注册中心连接超时时间,ms
+    private static final int connectTimeout = 3000;
 
     /**
      * 注册中心地址，url地址
@@ -73,29 +77,19 @@ public class VenusRegistryFactory implements InitializingBean, DisposableBean {
      */
     RegisterService newHessianRegisterService(String registerUrl){
         //连接、读写默认3000ms
-        int readTimeout = 3000;
-        int connectTimeout = 3000;
         HessianProxyFactory proxyFactory = new HessianProxyFactory();
         proxyFactory.setReadTimeout(readTimeout);
         proxyFactory.setConnectTimeout(connectTimeout);
         try {
             RegisterService registerService = (RegisterService) proxyFactory.create(RegisterService.class, registerUrl);
             return registerService;
-        } catch (MalformedURLException e) {
-            logger.error("newHessianRegisterService error.",e);
+        } catch (Exception e) {
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("newHessianRegisterService error.",e);
+            }
             return null;
         }
 
-
-    }
-
-
-    @Override
-    public void destroy() throws Exception {
-        //释放注册服务资源
-        if(register != null){
-            register.destroy();
-        }
 
     }
 

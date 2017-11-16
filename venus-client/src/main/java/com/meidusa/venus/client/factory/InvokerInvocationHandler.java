@@ -20,6 +20,7 @@ import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.support.EndpointWrapper;
 import com.meidusa.venus.support.ServiceWrapper;
 import com.meidusa.venus.support.VenusContext;
+import com.meidusa.venus.support.VenusUtil;
 import com.meidusa.venus.util.JSONUtil;
 import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
@@ -126,11 +127,13 @@ public class InvokerInvocationHandler implements InvocationHandler {
         String rpcId = invocation.getRpcId();
         String methodPath = invocation.getMethodPath();
         String param = "";
-        if(invocation.isEnablePrintParam() && invocation.getArgs() != null){
-            param = JSONUtil.toJSONString(invocation.getArgs());
+        if(invocation.isEnablePrintParam() && !VenusUtil.isAthenaInterface(invocation)){
+            if(invocation.getArgs() != null){
+                param = JSONUtil.toJSONString(invocation.getArgs());
+            }
         }
         Object output = "";
-        if(invocation.isEnablePrintResult()){
+        if(invocation.isEnablePrintResult() && !VenusUtil.isAthenaInterface(invocation)){
             if(object != null){
                 output = JSONUtil.toJSONString(object);
             }else if(exception != null){

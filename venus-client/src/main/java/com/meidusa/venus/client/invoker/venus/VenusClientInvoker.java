@@ -393,7 +393,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      */
     private BackendConnectionPool createNioPool(URL url,ClientInvocation invocation,ClientRemoteConfig remoteConfig){
         if(logger.isInfoEnabled()){
-            logger.info("#########create nio pool#############:{}.",url);
+            logger.info("#########create nio pool:[{}]#############",url.getHost() + ":" + url.getPort());
         }
         //初始化连接工厂
         VenusBackendConnectionFactory nioFactory = new VenusBackendConnectionFactory();

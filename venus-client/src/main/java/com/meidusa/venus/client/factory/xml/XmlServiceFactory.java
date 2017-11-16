@@ -17,7 +17,9 @@ package com.meidusa.venus.client.factory.xml;
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
-import com.meidusa.venus.*;
+import com.meidusa.venus.Application;
+import com.meidusa.venus.ServiceFactory;
+import com.meidusa.venus.ServiceFactoryBean;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.factory.InvokerInvocationHandler;
@@ -27,27 +29,21 @@ import com.meidusa.venus.client.factory.xml.config.VenusClientConfig;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanContext;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanUtilsBean;
 import com.meidusa.venus.client.factory.xml.support.ServiceDefinedBean;
-import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.VenusRegistryFactory;
 import com.meidusa.venus.support.VenusContext;
-import com.meidusa.venus.util.FileWatchdog;
 import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import com.thoughtworks.xstream.XStream;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -62,13 +58,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 
-import java.io.File;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * 基于xml配置服务工厂
@@ -239,6 +232,9 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
      */
     void initServiceProxy(ReferenceService referenceService, VenusClientConfig venusClientConfig) {
         //创建服务代理invocation
+        if(logger.isInfoEnabled()){
+            logger.info("init service proxy:{}.",referenceService.getClzType().getName());
+        }
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
         invocationHandler.setServiceInterface(referenceService.getClzType());
         //若配置静态地址，以静态为先
@@ -247,7 +243,7 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
             invocationHandler.setRemoteConfig(remoteConfig);
         }else{
             if(venusRegistryFactory == null || venusRegistryFactory.getRegister() == null){
-                throw new VenusConfigException("venus register not config.");
+                throw new VenusConfigException("venusRegistryFactory not config.");
             }
             invocationHandler.setRegister(venusRegistryFactory.getRegister());
         }
@@ -314,16 +310,6 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
         buf.append("?application=").append(appName);
         buf.append("&host=").append(consumerHost);
         String subscribleUrl = buf.toString();
-        /*
-        String subscribleUrl = String.format(
-                "subscrible://%s/%s?version=%s&application=%s&host=%s",
-                serviceInterfaceName,
-                serivceName,
-                versionx,
-                appName,
-                consumerHost
-                );
-        */
         com.meidusa.venus.URL url = com.meidusa.venus.URL.parse(subscribleUrl);
         venusRegistryFactory.getRegister().subscrible(url);
     }
@@ -447,18 +433,8 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
         //反订阅
         if(venusRegistryFactory != null && venusRegistryFactory.getRegister() != null){
             Register register = venusRegistryFactory.getRegister();
-            Set<URL> subscribleUrls = register.getSubscribleUrls();
-            if(register != null && CollectionUtils.isNotEmpty(subscribleUrls)){
-                for(URL url:subscribleUrls){
-                    try {
-                        register.unsubscrible(url);
-                    } catch (VenusRegisteException e) {
-                        if(exceptionLogger.isErrorEnabled()){
-                            String errorMsg = String.format("unsubscrible service:%s failed.",url);
-                            exceptionLogger.error(errorMsg,e);
-                        }
-                    }
-                }
+            if(register != null){
+                register.destroy();
             }
         }
 

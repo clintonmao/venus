@@ -100,8 +100,11 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * 校验
      */
     void valid(){
+        if(venusRegistryFactory == null || venusRegistryFactory.getRegister() == null){
+            throw new VenusConfigException("venusRegistryFactory not config.");
+        }
         if(venusProtocol == null){
-            throw new VenusConfigException("venus protocol not config.");
+            throw new VenusConfigException("venusProtocol not config.");
         }
     }
 
@@ -265,9 +268,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         Service service = initServiceStub(serviceConfig, interceptors, interceptorStatcks);
 
         //若开启注册中心，则注册服务
-        if(venusRegistryFactory != null && venusRegistryFactory.getRegister() != null){
-            registeService(serviceConfig, service,venusRegistryFactory.getRegister());
-        }
+        registeService(serviceConfig, service,venusRegistryFactory.getRegister());
 
     }
 
@@ -279,6 +280,9 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @return
      */
     protected Service initServiceStub(ExportService serviceConfig, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks) {
+        if(logger.isInfoEnabled()){
+            logger.info("init service stub:{}.",serviceConfig.getInterfaceType().getName());
+        }
         //初始化service
         SingletonService service = new SingletonService();
         service.setType(serviceConfig.getInterfaceType());
@@ -376,18 +380,8 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         //反注册
         if(venusRegistryFactory != null && venusRegistryFactory.getRegister() != null){
             Register register = venusRegistryFactory.getRegister();
-            Set<URL> registeUrls = register.getRegisteUrls();
-            if(register != null && CollectionUtils.isNotEmpty(registeUrls)){
-                for(URL url:registeUrls){
-                    try {
-                        register.unregiste(url);
-                    } catch (VenusRegisteException e) {
-                        if(exceptionLogger.isErrorEnabled()){
-                            String errorMsg = String.format("unregiste url:%s failed.",url);
-                            exceptionLogger.error(errorMsg,e);
-                        }
-                    }
-                }
+            if(register != null){
+                register.destroy();
             }
         }
     }

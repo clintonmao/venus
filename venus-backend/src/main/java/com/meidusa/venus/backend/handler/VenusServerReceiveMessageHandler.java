@@ -26,6 +26,7 @@ import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.support.VenusContext;
+import com.meidusa.venus.support.VenusUtil;
 import com.meidusa.venus.util.*;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
@@ -78,9 +79,6 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
         byte[] message = data.right;
         int type = AbstractServicePacket.getType(message);
         if (PacketConstant.PACKET_TYPE_ROUTER == type) {
-            if(logger.isInfoEnabled()){
-                logger.info("recv router packet type...");
-            }
             VenusRouterPacket routerPacket = new VenusRouterPacket();
             routerPacket.original = message;
             routerPacket.init(message);
@@ -182,11 +180,13 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
         String rpcId = invocation.getRpcId();
         String methodPath = invocation.getMethodPath();
         String param = "";
-        if(invocation.isEnablePrintParam() && invocation.getArgs() != null){
-            param = JSONUtil.toJSONString(invocation.getArgs());
+        if(invocation.isEnablePrintParam() && !VenusUtil.isAthenaInterface(invocation)){
+            if(invocation.getArgs() != null){
+                param = JSONUtil.toJSONString(invocation.getArgs());
+            }
         }
         Object output = "";
-        if(invocation.isEnablePrintResult()){
+        if(invocation.isEnablePrintResult() && !VenusUtil.isAthenaInterface(invocation)){
             if(result.getErrorCode() == 0 && result.getException() == null){
                 output = JSONUtil.toJSONString(result.getResult());
             }else if(result.getException() != null){

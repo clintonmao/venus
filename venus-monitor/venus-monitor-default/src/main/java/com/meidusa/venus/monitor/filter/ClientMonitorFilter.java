@@ -8,6 +8,7 @@ import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.support.VenusThreadContext;
+import com.meidusa.venus.support.VenusUtil;
 import com.meidusa.venus.util.UUIDUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
@@ -96,7 +97,7 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
         if(clientInvocation.getLookupType() == 0){
             return false;
         }
-        return !isAthenaInterface(clientInvocation);
+        return !VenusUtil.isAthenaInterface(clientInvocation);
     }
 
     /**
