@@ -499,6 +499,7 @@ public class MysqlRegisterService implements RegisterService {
 //		return serviceDefinitions;
 //	}
 
+	@Deprecated
 	public void heartbeatSubcribe(URL url) {
 		try {
 			String host = url.getHost();
@@ -518,6 +519,7 @@ public class MysqlRegisterService implements RegisterService {
 
 	}
 
+	@Deprecated
 	public void heartbeatRegister(URL url) {
 		try {
 			String host = url.getHost();
