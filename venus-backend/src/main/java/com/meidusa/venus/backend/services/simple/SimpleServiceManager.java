@@ -132,4 +132,8 @@ public class SimpleServiceManager extends AbstractServiceManager implements Init
 
         return service;
     }
+
+    @Override
+    public void destroy() throws Exception {
+    }
 }

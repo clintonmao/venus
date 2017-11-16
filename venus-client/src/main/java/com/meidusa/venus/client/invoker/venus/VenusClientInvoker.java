@@ -2,10 +2,7 @@ package com.meidusa.venus.client.invoker.venus;
 
 import com.meidusa.toolkit.net.*;
 import com.meidusa.toolkit.util.TimeUtil;
-import com.meidusa.venus.ClientInvocation;
-import com.meidusa.venus.Invoker;
-import com.meidusa.venus.Result;
-import com.meidusa.venus.URL;
+import com.meidusa.venus.*;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.factory.xml.config.FactoryConfig;
 import com.meidusa.venus.client.factory.xml.config.PoolConfig;
@@ -78,13 +75,13 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     private static ConnectionManager[] connectionManagers;
 
-    //invoker列表
-    private static List<Invoker> invokerList = new ArrayList<Invoker>();
-
     private boolean isInit = false;
 
     public VenusClientInvoker(){
         synchronized (this){
+            //添加invoker资源
+            Application.addInvoker(this);
+
             //构造连接
             if(connector == null && connectionManagers == null){
                 try {
@@ -109,8 +106,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                 }
             }
 
-            //添加到invoker列表，用于释放资源
-            getInvokerList().add(this);
         }
     }
 
@@ -417,7 +412,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         //nioFactory.setReceiveBufferSize(4);
         //nioFactory.setWriteQueueCapcity(16);
 
-        //初始化连接池 TODO 连接数双倍问题
+        //初始化连接池
         int connectionCount = invocation.getCoreConnections();
         BackendConnectionPool nioPool = new PollingBackendConnectionPool("N-" + url.getHost(), nioFactory, connectionCount);
         PoolConfig poolConfig = remoteConfig.getPool();
@@ -515,15 +510,5 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         }
     }
 
-
-    public static List<Invoker> getInvokerList() {
-        return invokerList;
-    }
-
-    void addInvoker(Invoker invoker){
-        if(invoker != null){
-            getInvokerList().add(invoker);
-        }
-    }
 
 }

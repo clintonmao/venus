@@ -57,7 +57,7 @@ public class DefaultHelloService implements HelloService {
     @Override
     public Hello getHello(String name) {
         logger.info("invoke getHello,param:" + name);
-        RandomBuildUtil.randomSleepOrThrow();
+        RandomBuildUtil.randomSleepOrThrow(true);
         return new Hello(name,name);
     }
 

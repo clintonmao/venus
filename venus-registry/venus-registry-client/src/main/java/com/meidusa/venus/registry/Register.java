@@ -1,6 +1,7 @@
 package com.meidusa.venus.registry;
 
 import java.util.List;
+import java.util.Set;
 
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
@@ -68,6 +69,18 @@ public interface Register {
      * @throws VenusRegisteException
      */
     List<VenusServiceDefinitionDO> lookup(URL url,boolean isQueryFromRegister) throws VenusRegisteException;
+
+    /**
+     * 获取注册Url列表
+     * @return
+     */
+    Set<URL> getRegisteUrls();
+
+    /**
+     * 获取订阅url列表
+     * @return
+     */
+    Set<URL> getSubscribleUrls();
 
     /**
      * 销毁，清理、释放相关资源
