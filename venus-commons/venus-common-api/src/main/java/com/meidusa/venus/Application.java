@@ -5,6 +5,7 @@ import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.exception.XmlVenusExceptionFactory;
 import com.meidusa.venus.io.serializer.SerializerFactory;
+import com.meidusa.venus.support.MonitorResource;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
@@ -92,6 +93,8 @@ public class Application implements InitializingBean,DisposableBean {
 
         //初始化异常配置
         XmlVenusExceptionFactory.getInstance().init();
+
+        initResource();
     }
 
     @Override
@@ -273,5 +276,22 @@ public class Application implements InitializingBean,DisposableBean {
 
     public static void addProtocol(Protocol protocol){
         protocolList.add(protocol);
+    }
+
+    /**
+     * 初始化加载resource
+     */
+    void initResource(){
+        try {
+            Class clz = Class.forName("com.meidusa.venus.manager.service.AllResourceService");
+            Object obj  = clz.newInstance();
+            if(obj != null){
+                MonitorResource monitorResource = (MonitorResource)obj;
+                monitorResource.init();
+            }
+            logger.info("load resource obj:{}.",obj);
+        } catch (Exception e) {
+            logger.error("load resource failed.",e);
+        }
     }
 }

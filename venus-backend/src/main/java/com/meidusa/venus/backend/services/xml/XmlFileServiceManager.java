@@ -567,4 +567,5 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     public void setApplication(Application application) {
         this.application = application;
     }
+
 }
