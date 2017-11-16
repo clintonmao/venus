@@ -78,6 +78,9 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
         byte[] message = data.right;
         int type = AbstractServicePacket.getType(message);
         if (PacketConstant.PACKET_TYPE_ROUTER == type) {
+            if(logger.isInfoEnabled()){
+                logger.info("recv router packet type...");
+            }
             VenusRouterPacket routerPacket = new VenusRouterPacket();
             routerPacket.original = message;
             routerPacket.init(message);

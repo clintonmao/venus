@@ -2,20 +2,16 @@ package com.meidusa.venus;
 
 import com.meidusa.venus.backend.services.ServiceManager;
 import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.exception.XmlVenusExceptionFactory;
-import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.exception.VenusConfigException;
+import com.meidusa.venus.exception.XmlVenusExceptionFactory;
 import com.meidusa.venus.io.serializer.SerializerFactory;
+import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 
 import java.util.ArrayList;
 import java.util.List;

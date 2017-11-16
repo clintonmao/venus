@@ -56,10 +56,10 @@ public class VenusServerMessageHandler implements MessageHandler<VenusFrontendCo
                 ping.init(message);
                 PongPacket pong = new PongPacket();
                 AbstractServicePacket.copyHead(ping, pong);
-                postMessageBack(conn, null, ping, pong);
-                if (logger.isDebugEnabled()) {
-                    logger.debug("receive ping packet from " + conn.getHost() + ":" + conn.getPort());
+                if (logger.isInfoEnabled()) {
+                    logger.info("receive ping packet from " + conn.getHost() + ":" + conn.getPort());
                 }
+                postMessageBack(conn, null, ping, pong);
                 break;
 
             // ignore this packet
