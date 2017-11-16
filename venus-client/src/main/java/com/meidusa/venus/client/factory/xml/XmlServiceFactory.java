@@ -454,7 +454,7 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
                         register.unsubscrible(url);
                     } catch (VenusRegisteException e) {
                         if(exceptionLogger.isErrorEnabled()){
-                            String errorMsg = String.format("unsubscrible url:%s failed.",url);
+                            String errorMsg = String.format("unsubscrible service:%s failed.",url);
                             exceptionLogger.error(errorMsg,e);
                         }
                     }
