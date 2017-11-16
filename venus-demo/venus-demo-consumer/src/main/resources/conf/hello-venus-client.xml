@@ -7,11 +7,8 @@
 		<!--
 		属性说明:
 		ipAddressList:地址列表，若不配则走注册中心，多个以;间隔，示例如ipAddressList="10.47.16.9:16800;10.47.16.10:16800"
-		coreConnections:服务连接数，默认8，示例如，coreConnections="10"
 		timeout:超时时间，单位ms,默认3000ms，示例如,timeout="5000"
-		retries:重试次数，若配置则自动使用failover容错策略，示例如，retries="3"
-		cluster:集群容错策略，支持failover/fastfail，默认fastfail即正常模式
-		loadbalance:负载均衡策略，支持random/round，默认random,,loadbalance="random"
+		retries:重试次数，默认不重试，若配置则自动使用failover容错策略，示例如，retries="3"
 		-->
 		<!--<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.17.238:16800"/>-->
 		<!--<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.17.135:16800" coreConnections="10" timeout="5000"/>-->
