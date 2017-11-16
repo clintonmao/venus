@@ -1,31 +1,37 @@
 package com.meidusa.venus.registry.mysql;
 
-import com.caucho.hessian.HessianException;
-import com.caucho.hessian.client.HessianRuntimeException;
-import com.caucho.hessian.io.HessianProtocolException;
-import com.caucho.hessian.io.HessianServiceException;
-import com.meidusa.fastjson.JSON;
-import com.meidusa.toolkit.common.runtime.GlobalScheduler;
-import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.URL;
-import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.domain.RouterRule;
-import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
-import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
-import com.meidusa.venus.registry.service.RegisterService;
-import com.meidusa.venus.support.VenusConstants;
-import com.meidusa.venus.registry.VenusRegisteException;
-import com.meidusa.venus.util.VenusLoggerFactory;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+
+import com.meidusa.fastjson.JSON;
+import com.meidusa.toolkit.common.runtime.GlobalScheduler;
+import com.meidusa.venus.URL;
+import com.meidusa.venus.exception.RpcException;
+import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.registry.VenusRegisteException;
+import com.meidusa.venus.registry.domain.RegisteConstant;
+import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
+import com.meidusa.venus.registry.service.RegisterService;
+import com.meidusa.venus.support.VenusConstants;
+import com.meidusa.venus.util.VenusLoggerFactory;
 
 /**
  * mysql服务注册中心类 Created by Zhangzhihua on 2017/7/27.
@@ -233,7 +239,7 @@ public class MysqlRegister implements Register {
 			boolean hasException=false;
 			for (URL url : subscribleUrls) {
 				try {
-					List<VenusServiceDefinitionDO> serviceDefinitions = registerService.findServiceDefinitions(url);
+					List<VenusServiceDefinitionDO> serviceDefinitions = registerService.findServiceDefinitions(url);//查询成功写本地文件
 					String key = getKeyFromUrl(url);
 					if (CollectionUtils.isNotEmpty(serviceDefinitions)) {
 						subscribleServiceDefinitionMap.put(key, serviceDefinitions);
@@ -242,15 +248,18 @@ public class MysqlRegister implements Register {
 						subscribleServiceDefinitionMap.remove(key);
 					}
 				} catch (Exception e) {
-					if (e instanceof HessianRuntimeException || e instanceof HessianException
-							|| e instanceof HessianProtocolException || e instanceof HessianServiceException) {
-						hasException = true;
-					}
-					logger.error("服务{}ServiceDefLoaderRunnable 运行异常 ,异常原因：{}", log_service_name(url), e);
+//					if (e instanceof HessianRuntimeException || e instanceof HessianException
+//							|| e instanceof HessianProtocolException || e instanceof HessianServiceException) {
+//					}
+					hasException = true;
+					logger.error("服务{}load 运行异常 ,异常原因：{}", log_service_name(url), e);
 				}
 			}
 
-			if(hasException){//查询接口有异常 不写本地缓存
+			if (hasException) {// 查询接口有异常 不写本地缓存
+				return;
+			}
+			if (CollectionUtils.isEmpty(jsons)) {// 查询数据为空，不写本地缓存
 				return;
 			}
 			//若开启本地文件缓存，则写文件
@@ -325,34 +334,10 @@ public class MysqlRegister implements Register {
 	private class HeartBeatRunnable implements Runnable {
 		@Override
 		public void run() {
-			if (CollectionUtils.isNotEmpty(registeUrls)) {
-				for (Iterator<URL> iterator = registeUrls.iterator(); iterator.hasNext();) {
-					URL url = iterator.next();
-					try {
-						if(logger.isDebugEnabled()){
-							logger.debug("report register heatbeat:{}.",url);
-						}
-						registerService.heartbeatRegister(url);
-					} catch (Exception e) {
-						logger.error("服务{}registe更新heartBeatTime异常 ,异常原因：{}", log_service_name(url), e);
-					}
-					break;
-				}
-			}
-			if (CollectionUtils.isNotEmpty(subscribleUrls)) {
-				for (Iterator<URL> iterator = subscribleUrls.iterator(); iterator.hasNext();) {
-					URL url = iterator.next();
-					try {
-						if(logger.isDebugEnabled()){
-							logger.debug("report subscrible heatbeat:{}.",url);
-						}
-						registerService.heartbeatSubcribe(url);
-					} catch (Exception e) {
-						logger.error("服务{}subscrible更新heartBeatTime异常 ,异常原因：{}",log_service_name(url), e);
-					}
-					break;
-				}
-			}
+			Map<String, Set<URL>> maps = new HashMap<String, Set<URL>>();
+			maps.put(RegisteConstant.PROVIDER, registeUrls);
+			maps.put(RegisteConstant.CONSUMER, subscribleUrls);
+			registerService.heartbeat(maps);
 		}
 	}
 

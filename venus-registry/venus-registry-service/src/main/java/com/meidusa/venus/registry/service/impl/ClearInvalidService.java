@@ -25,7 +25,7 @@ public class ClearInvalidService {
 
 	public void init() throws Exception {
 		logger.info("ClearInvalidService init ");
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 1, 5, TimeUnit.SECONDS);
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 2, 5, TimeUnit.SECONDS);
 	}
 
 	/**

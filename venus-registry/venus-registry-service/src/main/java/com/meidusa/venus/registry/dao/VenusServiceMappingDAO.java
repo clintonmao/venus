@@ -58,5 +58,7 @@ public interface VenusServiceMappingDAO {
 	 * @throws DAOException
 	 */
 	int getMappingCountByServerId(int serverId) throws DAOException;
+	
+	boolean updateHeartBeatTime(int serverId, List<Integer>serviceIds,String role) throws DAOException;
 
 }
