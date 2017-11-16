@@ -347,7 +347,12 @@ public class MysqlRegister implements Register {
 			Map<String, Set<URL>> maps = new HashMap<String, Set<URL>>();
 			maps.put(RegisteConstant.PROVIDER, registeUrls);
 			maps.put(RegisteConstant.CONSUMER, subscribleUrls);
-			registerService.heartbeat(maps);
+			try {
+				registerService.heartbeat(maps);
+			} catch (Exception e) {
+				logger.error("{},heartbeat异常 ,异常原因：{}",JSON.toJSONString(maps, true),e);
+			}
+			
 		}
 	}
 
