@@ -28,13 +28,11 @@
 	</bean>
 
 	<!--注册配置-->
-	<!--可选，若不配置则服务引用不走注册中心-->
 	<bean id="venusRegistryFactory" class="com.meidusa.venus.registry.VenusRegistryFactory">
 		<property name="address" value="${venus.register.address}"/>
 	</bean>
 
 	<!--监控配置-->
-	<!--可选，若不配置则监控不上报-->
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
 		<property name="address" value="${venus.monitor.address}"/>
 	</bean>

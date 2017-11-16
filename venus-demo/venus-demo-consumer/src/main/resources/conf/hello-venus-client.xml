@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<venus-client xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:noNamespaceSchemaLocation="venus-client.xsd">
+<venus-client>
 	<!-- 服务接口列表 -->
 	<services>
 		<!-- 定义服务以及指定该服务提供方的远程相关配置 -->
