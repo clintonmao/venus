@@ -24,4 +24,9 @@ public interface ServiceManager extends EndpointLocator {
     Service getService(String serviceName) throws ServiceNotFoundException;
 
     Collection<Service> getServices();
+
+    /**
+     * 资源释放
+     */
+    void destroy() throws Exception;
 }

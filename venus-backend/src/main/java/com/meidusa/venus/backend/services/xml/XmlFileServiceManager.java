@@ -20,6 +20,7 @@ import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.VenusRegistryFactory;
 import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.support.VenusContext;
@@ -80,6 +81,10 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
     public void setConfigFiles(Resource... configFiles) {
         this.configFiles = configFiles;
+    }
+
+    public XmlFileServiceManager(){
+        Application.addServiceManager(this);
     }
 
     @Override
@@ -362,21 +367,32 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
             buf.append("&versionRange=").append(serviceConfig.getSupportVersionRange().toString());
         }
         String registerUrl = buf.toString();
-        /*
-        String registerUrl = String.format(
-                "/%s/%s?version=%s&application=%s&host=%s&port=%s&methods=%s",
-                protocol,
-                serviceInterfaceName,
-                serviceName,
-                String.valueOf(version),
-                appName,
-                host,
-                port,
-                methodsDef
-        );
-        */
         URL url = URL.parse(registerUrl);
         return url;
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        //反注册
+        if(venusRegistryFactory != null && venusRegistryFactory.getRegister() != null){
+            Register register = venusRegistryFactory.getRegister();
+            Set<URL> registeUrls = register.getRegisteUrls();
+            if(CollectionUtils.isNotEmpty(registeUrls)){
+                for(URL url:registeUrls){
+                    try {
+                        if(logger.isInfoEnabled()){
+                            logger.info("unregiste url:{}.",url);
+                        }
+                        register.unregiste(url);
+                    } catch (VenusRegisteException e) {
+                        if(exceptionLogger.isErrorEnabled()){
+                            String errorMsg = String.format("unregiste url:%s failed.",url);
+                            exceptionLogger.error(errorMsg,e);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**

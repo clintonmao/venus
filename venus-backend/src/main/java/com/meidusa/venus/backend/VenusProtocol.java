@@ -6,6 +6,8 @@ import com.meidusa.toolkit.net.ConnectionManager;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.authenticate.server.AuthenticateProvider;
 import com.meidusa.toolkit.net.factory.FrontendConnectionFactory;
+import com.meidusa.venus.Application;
+import com.meidusa.venus.Protocol;
 import com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider;
 import com.meidusa.venus.backend.handler.VenusServerConnectionObserver;
 import com.meidusa.venus.backend.handler.VenusServerReceiveMessageHandler;
@@ -24,7 +26,7 @@ import java.io.IOException;
  * venus协议，启动/销毁remoting、设置message handler相关操作
  * Created by Zhangzhihua on 2017/9/28.
  */
-public class VenusProtocol implements InitializingBean,DisposableBean {
+public class VenusProtocol implements Protocol,InitializingBean{
 
     private static boolean isRunning = false;
 
@@ -45,6 +47,10 @@ public class VenusProtocol implements InitializingBean,DisposableBean {
     //venus协议默认线程数
     private int coreThreads = VenusConstants.VENUS_PROTOCOL_DEFAULT_CORE_THREADS;
 
+    public VenusProtocol(){
+        Application.addProtocol(this);
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
         valid();
@@ -62,14 +68,17 @@ public class VenusProtocol implements InitializingBean,DisposableBean {
     /**
      * 初始化venus协议，启动venus服务监听
      */
-    public synchronized void init() throws Exception{
-        if(!isRunning){
-            VenusContext.getInstance().setPort(port);
-            if(connectionAcceptor == null){
-                connectionAcceptor = createConnectionAcceptor();
-                connectionAcceptor.start();
+    @Override
+    public void init() throws Exception{
+        synchronized (VenusProtocol.class){
+            if(!isRunning){
+                VenusContext.getInstance().setPort(port);
+                if(connectionAcceptor == null){
+                    connectionAcceptor = createConnectionAcceptor();
+                    connectionAcceptor.start();
+                }
+                isRunning = true;
             }
-            isRunning = true;
         }
 
     }
@@ -141,8 +150,6 @@ public class VenusProtocol implements InitializingBean,DisposableBean {
         if(connectionAcceptor != null){
             connectionAcceptor.shutdown();
         }
-
-        //TODO 反注册
     }
 
     public String getPort() {

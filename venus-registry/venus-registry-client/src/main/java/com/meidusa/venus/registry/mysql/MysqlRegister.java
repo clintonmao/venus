@@ -9,8 +9,6 @@ import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.domain.RouterRule;
-import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.registry.service.RegisterService;
 import com.meidusa.venus.support.VenusConstants;
@@ -19,7 +17,6 @@ import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
@@ -35,10 +32,10 @@ public class MysqlRegister implements Register {
 	private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
 	/** 已注册成功的URL */
-	private Set<URL> registeUrls = new HashSet<URL>();
+	protected Set<URL> registeUrls = new HashSet<URL>();
 
 	/** 已订阅成功的URL */
-	private Set<URL> subscribleUrls = new HashSet<URL>();
+	protected Set<URL> subscribleUrls = new HashSet<URL>();
 
 	/** 注册失败的URLS */
 	private Set<URL> registeFailUrls = new HashSet<URL>();// 失败的继续跑启线程定时运行
@@ -107,7 +104,7 @@ public class MysqlRegister implements Register {
 			heartbeat();
 		} catch (Exception e) {
 			registeFailUrls.add(url);
-			throw new VenusRegisteException("服务注册异常" + log_service_name(url), e);
+			throw new VenusRegisteException("服务注册异常" + getServiceName(url), e);
 		}
 		registeUrls.add(url);
 
@@ -119,7 +116,7 @@ public class MysqlRegister implements Register {
 			logger.info("unregiste service:{}.",url);
 		}
 		if (StringUtils.isBlank(url.getVersion())) {
-			throw new VenusRegisteException("取消注册异常" + log_service_name(url) + ",version为空");
+			throw new VenusRegisteException("取消注册异常" + getServiceName(url) + ",version为空");
 		}
 		try {
 			boolean unregiste = registerService.unregiste(url);
@@ -127,7 +124,7 @@ public class MysqlRegister implements Register {
 				registeUrls.remove(url);
 			}
 		} catch (Exception e) {
-			throw new VenusRegisteException("取消注册异常" + log_service_name(url), e);
+			throw new VenusRegisteException("取消注册异常" + getServiceName(url), e);
 		}
 	}
 
@@ -142,7 +139,7 @@ public class MysqlRegister implements Register {
 			heartbeat();
 		} catch (Exception e) {
 			subscribleFailUrls.add(url);
-			logger.error("服务{}订阅异常 ,异常原因：{}", log_service_name(url), e);
+			logger.error("服务{}订阅异常 ,异常原因：{}", getServiceName(url), e);
 			success = false;
 		}
 		subscribleUrls.add(url);
@@ -156,7 +153,7 @@ public class MysqlRegister implements Register {
 			logger.info("unsubscrible service:{}.",url);
 		}
 		if (StringUtils.isBlank(url.getVersion())) {
-			throw new VenusRegisteException("取消订阅异常" + log_service_name(url) + ",version为空");
+			throw new VenusRegisteException("取消订阅异常" + getServiceName(url) + ",version为空");
 		}
 		try {
 			boolean unsubscrible = registerService.unsubscrible(url);
@@ -164,7 +161,7 @@ public class MysqlRegister implements Register {
 				subscribleUrls.remove(url);
 			}
 		} catch (Exception e) {
-			throw new VenusRegisteException("取消订阅异常" + log_service_name(url), e);
+			throw new VenusRegisteException("取消订阅异常" + getServiceName(url), e);
 		}
 		load();
 	}
@@ -246,7 +243,7 @@ public class MysqlRegister implements Register {
 							|| e instanceof HessianProtocolException || e instanceof HessianServiceException) {
 						hasException = true;
 					}
-					logger.error("服务{}ServiceDefLoaderRunnable 运行异常 ,异常原因：{}", log_service_name(url), e);
+					logger.error("服务{}ServiceDefLoaderRunnable 运行异常 ,异常原因：{}", getServiceName(url), e);
 				}
 			}
 
@@ -267,6 +264,15 @@ public class MysqlRegister implements Register {
 	 */
 	boolean isEnableFileCache(){
 		return isEnableFileCache;
+	}
+
+
+	public Set<URL> getRegisteUrls() {
+		return registeUrls;
+	}
+
+	public Set<URL> getSubscribleUrls() {
+		return subscribleUrls;
 	}
 
 	/**
@@ -334,7 +340,7 @@ public class MysqlRegister implements Register {
 						}
 						registerService.heartbeatRegister(url);
 					} catch (Exception e) {
-						logger.error("服务{}registe更新heartBeatTime异常 ,异常原因：{}", log_service_name(url), e);
+						logger.error("服务{}registe更新heartBeatTime异常 ,异常原因：{}", getServiceName(url), e);
 					}
 					break;
 				}
@@ -348,7 +354,7 @@ public class MysqlRegister implements Register {
 						}
 						registerService.heartbeatSubcribe(url);
 					} catch (Exception e) {
-						logger.error("服务{}subscrible更新heartBeatTime异常 ,异常原因：{}",log_service_name(url), e);
+						logger.error("服务{}subscrible更新heartBeatTime异常 ,异常原因：{}", getServiceName(url), e);
 					}
 					break;
 				}
@@ -366,7 +372,7 @@ public class MysqlRegister implements Register {
 						registe(url);
 						iterator.remove();
 					} catch (Exception e) {
-						String name = log_service_name(url);
+						String name = getServiceName(url);
 						String version = "";
 						if (StringUtils.isNotBlank(url.getVersion()) && !"null".equals(url.getVersion())) {
 							version = url.getVersion();
@@ -384,7 +390,7 @@ public class MysqlRegister implements Register {
 							iterator.remove();
 						}
 					} catch (Exception e) {
-						String name = log_service_name(url);
+						String name = getServiceName(url);
 						String version = "";
 						if (StringUtils.isNotBlank(url.getVersion()) && !"null".equals(url.getVersion())) {
 							version = url.getVersion();
@@ -399,7 +405,7 @@ public class MysqlRegister implements Register {
 
 	}
 	
-	private static String log_service_name(URL url) {
+	private static String getServiceName(URL url) {
 		String name = "";
 		if (StringUtils.isNotBlank(url.getServiceName()) && !"null".equals(url.getServiceName())) {
 			name = url.getServiceName();

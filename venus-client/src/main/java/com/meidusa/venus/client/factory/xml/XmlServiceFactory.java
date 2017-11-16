@@ -17,10 +17,7 @@ package com.meidusa.venus.client.factory.xml;
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
-import com.meidusa.venus.Application;
-import com.meidusa.venus.Invoker;
-import com.meidusa.venus.ServiceFactory;
-import com.meidusa.venus.ServiceFactoryBean;
+import com.meidusa.venus.*;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.factory.InvokerInvocationHandler;
@@ -34,6 +31,8 @@ import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.metainfo.AnnotationUtil;
+import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.VenusRegistryFactory;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.FileWatchdog;
@@ -69,6 +68,7 @@ import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 基于xml配置服务工厂
@@ -116,11 +116,9 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
      */
     private VenusRegistryFactory venusRegistryFactory;
 
-    //private boolean enableReload = false;
-    //private int asyncExecutorSize = 10;
-    //private boolean enableAsync = true;
-    //private ResourceLoader resourceLoader = new DefaultResourceLoader();
-    //private Timer reloadTimer = new Timer();
+    public XmlServiceFactory(){
+        Application.addServiceFactory(this);
+    }
 
     @SuppressWarnings("unchecked")
     public <T> T getService(Class<T> t) {
@@ -446,17 +444,27 @@ public class XmlServiceFactory implements ServiceFactory,ApplicationContextAware
             return;
         }
 
-        //释放资源
-        List<Invoker> invokerList = VenusClientInvoker.getInvokerList();
-        if(CollectionUtils.isNotEmpty(invokerList)){
-            for(Invoker invoker:invokerList){
-                if(invoker != null){
-                    invoker.destroy();
+        //反订阅
+        if(venusRegistryFactory != null && venusRegistryFactory.getRegister() != null){
+            Register register = venusRegistryFactory.getRegister();
+            Set<URL> subscribleUrls = register.getSubscribleUrls();
+            if(CollectionUtils.isNotEmpty(subscribleUrls)){
+                for(URL url:subscribleUrls){
+                    try {
+                        if(logger.isInfoEnabled()){
+                            logger.info("subscrible url:{}.",url);
+                        }
+                        register.unsubscrible(url);
+                    } catch (VenusRegisteException e) {
+                        if(exceptionLogger.isErrorEnabled()){
+                            String errorMsg = String.format("subscrible url:%s failed.",url);
+                            exceptionLogger.error(errorMsg,e);
+                        }
+                    }
                 }
             }
         }
 
-        //TODO 反订阅
         shutdown = true;
     }
 
