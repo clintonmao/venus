@@ -394,7 +394,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 		String sql = "update t_venus_service_mapping set is_delete=0,heartbeat_time = now() where server_id = ? and role=? and service_id in(" + str + ")";
 		int update = 0;
 		try {
-			update = this.jdbcTemplate.update(sql, true);
+			update = this.jdbcTemplate.update(sql,serverId, role);
 		} catch (Exception e) {
 			throw new DAOException("更新映射关系心跳时间异常", e);
 		}

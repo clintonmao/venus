@@ -347,9 +347,7 @@ public class MysqlRegister implements Register {
 			try {
 				registerService.heartbeat(maps);
 			} catch (Exception e) {
-				if(logger.isErrorEnabled()){
-					logger.error("heartbeat failed.",e);
-				}
+				logger.error("{},heartbeat异常 ,异常原因：{}", JSON.toJSONString(maps, true), e);
 			}
 		}
 	}
