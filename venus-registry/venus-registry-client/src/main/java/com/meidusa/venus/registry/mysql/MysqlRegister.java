@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -41,10 +42,10 @@ public class MysqlRegister implements Register {
 	private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
 	/** 已注册成功的URL */
-	protected Set<URL> registeUrls = new HashSet<URL>();
+	protected Set<URL> registeUrls = new CopyOnWriteArraySet<URL>();
 
 	/** 已订阅成功的URL */
-	protected Set<URL> subscribleUrls = new HashSet<URL>();
+	protected Set<URL> subscribleUrls = new CopyOnWriteArraySet<URL>();
 
 	/** 注册失败的URLS */
 	private Set<URL> registeFailUrls = new HashSet<URL>();// 失败的继续跑启线程定时运行
