@@ -162,9 +162,6 @@ public class MysqlRegister implements Register {
 		if(logger.isInfoEnabled()){
 			logger.info("unsubscrible service:{}.",url);
 		}
-		if (StringUtils.isBlank(url.getVersion())) {
-			throw new VenusRegisteException("取消订阅异常" + getServiceName(url) + ",version为空");
-		}
 		try {
 			boolean unsubscrible = registerService.unsubscrible(url);
 			if (unsubscrible) {

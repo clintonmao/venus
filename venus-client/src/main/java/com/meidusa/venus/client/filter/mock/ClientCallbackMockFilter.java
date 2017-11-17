@@ -39,6 +39,7 @@ public class ClientCallbackMockFilter implements Filter {
             if(!isEnableCallbackMock(clientInvocation, url)){
                 return null;
             }
+
             //获取mock callback TODO 注入instance及动态构造method并传参
             Method callbackMethod = null;
             Object instance = null;

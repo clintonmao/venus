@@ -10,6 +10,8 @@ import com.meidusa.venus.monitor.config.ClientConfigManagerRegister;
 import com.meidusa.venus.monitor.support.CustomScanAndRegisteUtil;
 import com.meidusa.venus.monitor.support.ApplicationContextHolder;
 import com.meidusa.venus.util.ReftorUtil;
+import com.meidusa.venus.util.VenusLoggerFactory;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +39,9 @@ import java.util.Set;
  */
 public class VenusMonitorFactory implements InitializingBean, ApplicationContextAware,BeanFactoryPostProcessor {
 
-    private static Logger logger = LoggerFactory.getLogger(VenusMonitorFactory.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
+
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
     /**
      * 注册中心地址，多个地址以;分隔
@@ -117,17 +121,20 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     }
 
     void init(){
-        //手动扫描athena以注解定义的包
-        scanAndRegisteAthenaPackage();
 
         try {
+            //手动扫描athena以注解定义的包
+            scanAndRegisteAthenaPackage();
+
             //初始化athenaConfigManager
             initAthenaConfigManager();
 
             //初始化athenaDataService
             initAthenaDataService(address);
-        } catch (Exception e) {
-            logger.error("init monitor factory failed.",e);
+        } catch (Throwable e) {
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("init monitor factory failed.",e);
+            }
             hasNeededDependences = false;
         }
     }
@@ -144,12 +151,16 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         String[] confPkgs = {"/com/saic/framework"};
         Class[] annotationTags = {Component.class,Service.class};
         Set<Class<?>> classSet = scanner.scan(confPkgs,annotationTags);
-        for(Class cls:classSet){
-            if(logger.isDebugEnabled()){
-                logger.debug("cls:{}.",cls);
+        if(CollectionUtils.isEmpty(classSet)){
+            throw new VenusConfigException("scan com.saic.framework package failed.");
+        }else{
+            for(Class cls:classSet){
+                if(logger.isDebugEnabled()){
+                    logger.debug("cls:{}.",cls);
+                }
             }
+            scanner.regist(classSet);
         }
-        scanner.regist(classSet);
     }
 
     /**
@@ -200,15 +211,19 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        try {
-            //注册configManager到spring上下文
-            registeClientConfigManager(beanFactory);
+        if(hasNeededDependences){
+            try {
+                //注册configManager到spring上下文
+                registeClientConfigManager(beanFactory);
 
-            //注册athenaDataService到spring上下文
-            registeAthenaDataService(beanFactory);
-        } catch (Exception e) {
-            logger.error("registe clientConfigManager and athenaDataService failed.",e);
-            hasNeededDependences = false;
+                //注册athenaDataService到spring上下文
+                registeAthenaDataService(beanFactory);
+            } catch (Exception e) {
+                if(exceptionLogger.isErrorEnabled()){
+                    exceptionLogger.error("registe clientConfigManager and athenaDataService failed.",e);
+                }
+                hasNeededDependences = false;
+            }
         }
     }
 

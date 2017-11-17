@@ -19,8 +19,8 @@ public class URL implements Serializable {
 	//com.chexiang.order.OrderService/orderService?version=1.0.0&host=192.168.1.1&port=9000&methods=getOrderById[java.lang.String],selectAllOrder[java.lang.String]
 	private static final long serialVersionUID = -4259657535674215341L;
 
-	/** 协议，如 venus || subscrible */
-	private String protocol;
+	//协议，默认venus
+	private String protocol = "venus";
 
 	/** 路径，如 com.chexiang.order.OrderService/orderService */
 	private String path;

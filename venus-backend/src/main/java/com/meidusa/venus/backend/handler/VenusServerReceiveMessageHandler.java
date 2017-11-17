@@ -26,6 +26,7 @@ import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.support.VenusContext;
+import com.meidusa.venus.support.VenusUtil;
 import com.meidusa.venus.util.*;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
@@ -78,9 +79,6 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
         byte[] message = data.right;
         int type = AbstractServicePacket.getType(message);
         if (PacketConstant.PACKET_TYPE_ROUTER == type) {
-            if(logger.isInfoEnabled()){
-                logger.info("recv router packet type...");
-            }
             VenusRouterPacket routerPacket = new VenusRouterPacket();
             routerPacket.original = message;
             routerPacket.init(message);
@@ -142,21 +140,12 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
             ServerResponseWrapper responseWrapper = ServerResponseWrapper.parse(invocation,result,false);
 
             if (invocation.getResultType() == EndpointInvocation.ResultType.RESPONSE) {
-                if(tracerLogger.isInfoEnabled()){
-                    tracerLogger.info("send normal response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
-                }
                 responseHandler.writeResponseForResponse(responseWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
-                if(tracerLogger.isInfoEnabled()){
-                    tracerLogger.info("send normal response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
-                }
                 responseHandler.writeResponseForOk(responseWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.NOTIFY) {
                 //callback回调异常情况
                 if(result.getErrorCode() != 0){
-                    if(tracerLogger.isInfoEnabled()){
-                        tracerLogger.info("send notify response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
-                    }
                     responseHandler.writeResponseForNotify(responseWrapper);
                 }
             }
@@ -181,60 +170,81 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
         String invokeModel = invocation.getInvokeModel();
         String rpcId = invocation.getRpcId();
         String methodPath = invocation.getMethodPath();
-        String param = "";
-        if(invocation.isEnablePrintParam() && invocation.getArgs() != null){
-            param = JSONUtil.toJSONString(invocation.getArgs());
+        //参数
+        String param = "{}";
+        if(invocation.isEnablePrintParam() && !VenusUtil.isAthenaInterface(invocation)){
+            if(invocation.getArgs() != null){
+                param = JSONUtil.toJSONString(invocation.getArgs());
+            }
         }
-        Object output = "";
-        if(invocation.isEnablePrintResult()){
-            if(result.getErrorCode() == 0 && result.getException() == null){
-                output = JSONUtil.toJSONString(result.getResult());
-            }else if(result.getException() != null){
+        //结果
+        Object ret = "{}";
+        if(invocation.isEnablePrintResult() && !VenusUtil.isAthenaInterface(invocation)){
+            if(result.getErrorCode() == 0 && result.getException() == null && result.getResult() != null){
+                ret = JSONUtil.toJSONString(result.getResult());
+            }
+        }
+        //异常
+        Object error = "{}";
+        if(invocation.isEnablePrintResult() && !VenusUtil.isAthenaInterface(invocation)){
+            if(result.getException() != null){
                 hasException = true;
-                output = result.getException();
+                error = result.getException();
             }else if(result.getErrorCode() != 0){
-                output = String.format("%s-%s",result.getErrorCode(),result.getErrorMessage());
+                hasException = true;
+                error = String.format("%s-%s",result.getErrorCode(),result.getErrorMessage());
             }
         }
         String status = "";
         if(hasException){
             status = "failed";
         }else if(usedTime > 1000){
-            status = "slow>1000ms";
+            status = ">1000ms";
         }else if(usedTime > 500){
-            status = "slow>500ms";
+            status = ">500ms";
         }else if(usedTime > 200){
-            status = "slow>200ms";
+            status = ">200ms";
         }else{
-            status = "success";
+            status = "<200ms";
         }
 
-        //打印结果
-        String tpl = "{} handle,rpcId:{},method:{},status:{},used time:{}ms,param:{},result:{}.";
-        Object[] arguments = new Object[]{
-                invokeModel,
-                rpcId,
-                methodPath,
-                status,
-                usedTime,
-                param,
-                output
-        };
+        //输出日志
         if(hasException){
-            //输出错误日志
-            if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error(tpl,arguments);
-            }
+            String tpl = "[{}],{} handle,rpcId:{},method:{},used time:{}ms,param:{},error:{}.";
+            Object[] arguments = new Object[]{
+                    status,
+                    invokeModel,
+                    rpcId,
+                    methodPath,
+                    usedTime,
+                    param,
+                    error
+            };
             if(tracerLogger.isErrorEnabled()){
                 tracerLogger.error(tpl,arguments);
             }
-        }else if(usedTime > 200){
-            if(tracerLogger.isWarnEnabled()){
-                tracerLogger.warn(tpl,arguments);
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error(tpl,arguments);
             }
         }else{
-            if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info(tpl,arguments);
+            String tpl = "[{}],{} handle,rpcId:{},method:{},used time:{}ms,param:{},result:{}.";
+            Object[] arguments = new Object[]{
+                    status,
+                    invokeModel,
+                    rpcId,
+                    methodPath,
+                    usedTime,
+                    param,
+                    ret
+            };
+            if(usedTime > 200){
+                if(tracerLogger.isWarnEnabled()){
+                    tracerLogger.warn(tpl,arguments);
+                }
+            }else{
+                if(tracerLogger.isInfoEnabled()){
+                    tracerLogger.info(tpl,arguments);
+                }
             }
         }
     }

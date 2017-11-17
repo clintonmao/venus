@@ -50,6 +50,12 @@
 			<artifactId>venus-monitor-athena</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.meidusa.venus</groupId>
+			<artifactId>venus-support-manager</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
     </dependencies>
 
 </project>

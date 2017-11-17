@@ -48,6 +48,7 @@ public class ClientActivesLimitFilter implements Filter {
             if(!isEnableActiveLimit(clientInvocation, url)){
                 return null;
             }
+
             //获取方法路径及当前并发数
             String methodPath = VenusUtil.getMethodPath(clientInvocation);
             AtomicInteger activeLimit = methodActivesMapping.get(methodPath);
@@ -87,6 +88,7 @@ public class ClientActivesLimitFilter implements Filter {
             if(!isEnableActiveLimit(clientInvocation, url)){
                 return null;
             }
+
             String methodPath = VenusUtil.getMethodPath(clientInvocation);
             AtomicInteger activeLimit = methodActivesMapping.get(methodPath);
             if(activeLimit != null){

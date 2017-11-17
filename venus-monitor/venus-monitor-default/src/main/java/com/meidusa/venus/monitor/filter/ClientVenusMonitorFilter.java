@@ -8,6 +8,7 @@ import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.support.VenusThreadContext;
+import com.meidusa.venus.support.VenusUtil;
 import com.meidusa.venus.util.UUIDUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
@@ -19,17 +20,17 @@ import java.util.Date;
  * client监控filter
  * Created by Zhangzhihua on 2017/8/28.
  */
-public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter {
+public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements Filter {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
 
-    public ClientMonitorFilter(){
+    public ClientVenusMonitorFilter(){
     }
 
-    public ClientMonitorFilter(AthenaDataService athenaDataService){
+    public ClientVenusMonitorFilter(AthenaDataService athenaDataService){
         this.setAthenaDataService(athenaDataService);
         startProcessAndReporterTread();
     }
@@ -75,12 +76,10 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
 
             putInvocationDetailQueue(invocationDetail);
             return null;
-        } catch (RpcException e) {
-            throw e;
         }catch(Throwable e){
             //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用
             if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error("ClientMonitorFilter.afterInvoke error.",e);
+                exceptionLogger.error("ClientVenusMonitorFilter.afterInvoke error.",e);
             }
             return null;
         }
@@ -96,7 +95,7 @@ public class ClientMonitorFilter extends AbstractMonitorFilter implements Filter
         if(clientInvocation.getLookupType() == 0){
             return false;
         }
-        return !isAthenaInterface(clientInvocation);
+        return !VenusUtil.isAthenaInterface(clientInvocation);
     }
 
     /**

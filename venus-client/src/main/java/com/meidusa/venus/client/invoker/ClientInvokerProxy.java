@@ -12,7 +12,7 @@ import com.meidusa.venus.client.invoker.injvm.InjvmClientInvoker;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.monitor.athena.filter.ClientAthenaMonitorFilter;
-import com.meidusa.venus.monitor.filter.ClientMonitorFilter;
+import com.meidusa.venus.monitor.filter.ClientVenusMonitorFilter;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.support.EndpointWrapper;
 import com.meidusa.venus.support.ServiceWrapper;
@@ -74,7 +74,7 @@ public class ClientInvokerProxy implements Invoker {
     //athena监控
     private ClientAthenaMonitorFilter clientAthenaMonitorFilter = new ClientAthenaMonitorFilter();
     //venus监控上报filter
-    private ClientMonitorFilter clientMonitorFilter = new ClientMonitorFilter();
+    private ClientVenusMonitorFilter clientVenusMonitorFilter = new ClientVenusMonitorFilter();
 
 
     public ClientInvokerProxy(){
@@ -221,7 +221,7 @@ public class ClientInvokerProxy implements Invoker {
                 filterList.add(clientAthenaMonitorFilter);
             }
             if(venusMonitorFactory.isEnableVenusReport()){
-                filterList.add(getClientMonitorFilter());
+                filterList.add(getClientVenusMonitorFilter());
             }
         }
     }
@@ -247,14 +247,14 @@ public class ClientInvokerProxy implements Invoker {
     }
 
 
-    public ClientMonitorFilter getClientMonitorFilter() {
-        synchronized (clientMonitorFilter){
-            if(!clientMonitorFilter.isRunning()){
-                clientMonitorFilter.setAthenaDataService(getVenusMonitorFactory().getAthenaDataService());
-                clientMonitorFilter.startProcessAndReporterTread();
+    public ClientVenusMonitorFilter getClientVenusMonitorFilter() {
+        synchronized (clientVenusMonitorFilter){
+            if(!clientVenusMonitorFilter.isRunning()){
+                clientVenusMonitorFilter.setAthenaDataService(getVenusMonitorFactory().getAthenaDataService());
+                clientVenusMonitorFilter.startProcessAndReporterTread();
             }
         }
-        return clientMonitorFilter;
+        return clientVenusMonitorFilter;
     }
 
     @Override

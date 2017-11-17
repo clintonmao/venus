@@ -8,6 +8,7 @@ import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.support.VenusThreadContext;
+import com.meidusa.venus.support.VenusUtil;
 import com.meidusa.venus.util.UUIDUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
@@ -19,15 +20,15 @@ import java.util.Date;
  * server监控filter
  * Created by Zhangzhihua on 2017/8/28.
  */
-public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter{
+public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements Filter{
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
-    public ServerMonitorFilter(){}
+    public ServerVenusMonitorFilter(){}
 
-    public ServerMonitorFilter(AthenaDataService athenaDataService){
+    public ServerVenusMonitorFilter(AthenaDataService athenaDataService){
         this.setAthenaDataService(athenaDataService);
     }
 
@@ -67,12 +68,10 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
 
             putInvocationDetailQueue(invocationDetail);
             return null;
-        } catch (RpcException e) {
-            throw e;
         }catch(Throwable e){
             //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用
             if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error("ServerMonitorFilter.afterInvoke error.",e);
+                exceptionLogger.error("ServerVenusMonitorFilter.afterInvoke error.",e);
             }
             return null;
         }
@@ -90,7 +89,7 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
             return false;
         }
         */
-        return !isAthenaInterface(invocation);
+        return !VenusUtil.isAthenaInterface(invocation);
     }
 
     /**

@@ -70,7 +70,6 @@ public class ConditionRuleRouter implements Router {
      */
     List<FullConditionRule> getRouteRules(URL url){
         List<FullConditionRule> rules = new ArrayList<FullConditionRule>();
-
         VenusServiceDefinitionDO srvDef = (VenusServiceDefinitionDO)url.getServiceDefinition();
         if(srvDef == null){
             return rules;
@@ -82,6 +81,9 @@ public class ConditionRuleRouter implements Router {
 
         for(VenusServiceConfigDO srvCfg:srvCfgList){
             RouterRule jsonRuleDef = srvCfg.getRouterRule();
+            if(jsonRuleDef == null){
+                continue;
+            }
             if(isValidRule(jsonRuleDef)){
                 //将字符串规则转化为领域模型
                 FullConditionRule conditionRule = ruleParser.parse(jsonRuleDef);

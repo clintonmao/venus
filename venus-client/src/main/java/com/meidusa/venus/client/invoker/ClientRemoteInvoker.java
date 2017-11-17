@@ -105,7 +105,7 @@ public class ClientRemoteInvoker implements Invoker{
         List<URL> urlList = lookupByRegister(clientInvocation);
 
         //自定义路由过滤
-        //urlList = router.filte(clientInvocation, urlList);
+        urlList = router.filte(clientInvocation, urlList);
 
         //集群容错调用
         Result result = getClusterInvoker(clientInvocation,url).invoke(invocation, urlList);

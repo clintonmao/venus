@@ -19,8 +19,8 @@ import com.meidusa.venus.backend.services.xml.support.BackendBeanUtilsBean;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.metainfo.AnnotationUtil;
+import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.VenusRegistryFactory;
 import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.support.VenusContext;
@@ -34,7 +34,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -63,6 +62,9 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
     private ApplicationContext applicationContext;
 
+    /**
+     * 应用配置
+     */
     private Application application;
 
     /**
@@ -74,6 +76,11 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * 注册中心工厂
      */
     private VenusRegistryFactory venusRegistryFactory;
+
+    /**
+     * 监听中心配置
+     */
+    private VenusMonitorFactory venusMonitorFactory;
 
     public Resource[] getConfigFiles() {
         return configFiles;
@@ -100,8 +107,21 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * 校验
      */
     void valid(){
+        if(application == null){
+            throw new VenusConfigException("application not config.");
+        }
         if(venusProtocol == null){
-            throw new VenusConfigException("venus protocol not config.");
+            throw new VenusConfigException("venusProtocol not config.");
+        }
+        if(venusRegistryFactory == null || venusRegistryFactory.getRegister() == null){
+            if(logger.isWarnEnabled()){
+                logger.warn("venusRegistryFactory not enabled,will skip service registe.");
+            }
+        }
+        if(venusMonitorFactory == null){
+            if(logger.isWarnEnabled()){
+                logger.warn("venusMonitorFactory not enabled,will disable monitor reporte.");
+            }
         }
     }
 
@@ -140,9 +160,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      */
     void initProtocol(){
         try {
-            if(venusProtocol == null){
-                throw new VenusConfigException("venus protocol not config.");
-            }
             venusProtocol.setSrvMgr(this);
             venusProtocol.init();
         } catch (Exception e) {
@@ -157,12 +174,16 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         //解析配置文件
         VenusServerConfig venusServerConfig = parseServerConfig();
         List<ExportService> serviceConfigList = venusServerConfig.getExportServices();
-        //addMonitorServiceConfig(serviceConfigList);
-        //addRegistryServiceConfig(serviceConfigList);
         Map<String, InterceptorMapping> interceptors = venusServerConfig.getInterceptors();
         Map<String, InterceptorStackConfig> interceptorStacks = venusServerConfig.getInterceptorStatcks();
 
         //初始化服务
+        if(CollectionUtils.isEmpty(serviceConfigList)){
+            if(logger.isWarnEnabled()){
+                logger.warn("not config export services.");
+            }
+            return;
+        }
         for (ExportService serviceConfig : serviceConfigList) {
             initSerivce(serviceConfig,interceptors,interceptorStacks);
         }
@@ -232,29 +253,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     }
 
     /**
-     * 注册到spring上下文
-     * @param beanFactory
-     * @param clz
-     * @param object
-     */
-    /*
-    void registeServiceBean(ConfigurableListableBeanFactory beanFactory,Class<?> clz,Object object){
-        String beanName = clz.getSimpleName();
-        BeanDefinitionRegistry reg = (BeanDefinitionRegistry) beanFactory;
-        GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
-        beanDefinition.setBeanClass(clz);
-        beanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, beanName));
-        beanDefinition.setScope(BeanDefinition.SCOPE_SINGLETON);
-        ConstructorArgumentValues args = new ConstructorArgumentValues();
-        args.addIndexedArgumentValue(0, object);
-        args.addIndexedArgumentValue(1, clz);
-        beanDefinition.setConstructorArgumentValues(args);
-        beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
-        reg.registerBeanDefinition(beanName, beanDefinition);
-    }
-    */
-
-    /**
      * 初始化服务
      * @param serviceConfig
      * @param interceptors
@@ -268,7 +266,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         if(venusRegistryFactory != null && venusRegistryFactory.getRegister() != null){
             registeService(serviceConfig, service,venusRegistryFactory.getRegister());
         }
-
     }
 
     /**
@@ -279,6 +276,9 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @return
      */
     protected Service initServiceStub(ExportService serviceConfig, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks) {
+        if(logger.isInfoEnabled()){
+            logger.info("init service stub:{}.",serviceConfig.getInterfaceType().getName());
+        }
         //初始化service
         SingletonService service = new SingletonService();
         service.setType(serviceConfig.getInterfaceType());
@@ -376,18 +376,8 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         //反注册
         if(venusRegistryFactory != null && venusRegistryFactory.getRegister() != null){
             Register register = venusRegistryFactory.getRegister();
-            Set<URL> registeUrls = register.getRegisteUrls();
-            if(register != null && CollectionUtils.isNotEmpty(registeUrls)){
-                for(URL url:registeUrls){
-                    try {
-                        register.unregiste(url);
-                    } catch (VenusRegisteException e) {
-                        if(exceptionLogger.isErrorEnabled()){
-                            String errorMsg = String.format("unregiste url:%s failed.",url);
-                            exceptionLogger.error(errorMsg,e);
-                        }
-                    }
-                }
+            if(register != null){
+                register.destroy();
             }
         }
     }
@@ -572,5 +562,13 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
     public void setApplication(Application application) {
         this.application = application;
+    }
+
+    public VenusMonitorFactory getVenusMonitorFactory() {
+        return venusMonitorFactory;
+    }
+
+    public void setVenusMonitorFactory(VenusMonitorFactory venusMonitorFactory) {
+        this.venusMonitorFactory = venusMonitorFactory;
     }
 }

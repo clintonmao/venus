@@ -63,6 +63,7 @@ public class ClientTpsLimitFilter implements Filter {
             if(!isEnableTpsLimit(clientInvocation, url)){
                 return null;
             }
+
             //获取方法路径及当前并发数
             String methodPath = VenusUtil.getMethodPath(clientInvocation);
             AtomicInteger activeLimit = methodTpsMapping.get(methodPath);

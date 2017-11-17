@@ -13,7 +13,7 @@ public class DefaultProblemReporter implements AthenaProblemReporter {
 
     public void problem(String message, Throwable cause) {
         try{
-            System.out.println("upload problem instance:" + this);
+            logger.info("upload problem instance:{}",this);
             AthenaUtils.getInstance().logError(message, cause);
         }catch (Exception e) {
             logger.error("report problem error", e);

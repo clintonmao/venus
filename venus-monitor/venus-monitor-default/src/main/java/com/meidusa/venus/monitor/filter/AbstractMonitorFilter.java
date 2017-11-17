@@ -65,9 +65,6 @@ public abstract class AbstractMonitorFilter {
     private static int SLOW_COST_TIME = 200;
     //支持最大队列长度
     private static int QUEU_MAX_SIZE = 50000;
-    //Athena接口名称定义
-    private static final String ATHENA_INTERFACE_SIMPLE_NAME = "AthenaDataService";
-    private static final String ATHENA_INTERFACE_FULL_NAME = "com.athena.service.api.AthenaDataService";
 
 
     public AbstractMonitorFilter(){
@@ -337,16 +334,6 @@ public abstract class AbstractMonitorFilter {
 
     public void setAthenaDataService(AthenaDataService athenaDataService) {
         this.athenaDataService = athenaDataService;
-    }
-
-    /**
-     * 判断是否athena接口
-     * @param invocation
-     * @return
-     */
-    boolean isAthenaInterface(Invocation invocation){
-        String serviceInterfaceName = invocation.getServiceInterfaceName();
-        return ATHENA_INTERFACE_SIMPLE_NAME.equalsIgnoreCase(serviceInterfaceName) || ATHENA_INTERFACE_FULL_NAME.equalsIgnoreCase(serviceInterfaceName);
     }
 
     public boolean isRunning() {

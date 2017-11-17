@@ -29,30 +29,22 @@
 
 	<!--应用配置-->
 	<bean id="application" class="com.meidusa.venus.Application">
-		<property name="name" value="${application.name}"/>
+		<property name="name" value="${venus.application.name}"/>
 	</bean>
 
 	<!--注册配置-->
-	<!--可选，若不配置则服务发布不注册-->
 	<bean id="venusRegistryFactory" class="com.meidusa.venus.registry.VenusRegistryFactory">
-		<property name="address" value="${register.address}"/>
+		<property name="address" value="${venus.register.address}"/>
 	</bean>
 
 	<!--监控配置-->
-	<!--可选，若不配置则监控不上报-->
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
-		<property name="address" value="${monitor.address}"/>
+		<property name="address" value="${venus.monitor.address}"/>
 	</bean>
 
 	<!--venus协议配置-->
 	<bean id="venusProtocol" class="com.meidusa.venus.backend.VenusProtocol">
 		<property name="port" value="${venus.protocol.port}"/>
-		<!--
-		coreThreads:业务线程数，默认100
-		-->
-		<!--
-		<property name="coreThreads" value="${venus.protocol.coreThreads}"/>
-		-->
 	</bean>
 
 	<!--服务发布配置-->

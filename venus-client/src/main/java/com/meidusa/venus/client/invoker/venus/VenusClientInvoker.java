@@ -188,7 +188,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
         //处理响应
         result = fetchResponse(rpcId);
-
         if(result == null){
             throw new RpcException(RpcException.TIMEOUT_EXCEPTION,String.format("invoke service:%s,timeout:%dms",url.getPath(),timeout));
         }
@@ -393,7 +392,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      */
     private BackendConnectionPool createNioPool(URL url,ClientInvocation invocation,ClientRemoteConfig remoteConfig){
         if(logger.isInfoEnabled()){
-            logger.info("#########create nio pool#############:{}.",url);
+            logger.info("#########create nio pool:[{}]#############",url.getHost() + ":" + url.getPort());
         }
         //初始化连接工厂
         VenusBackendConnectionFactory nioFactory = new VenusBackendConnectionFactory();
@@ -493,7 +492,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     @Override
     public void destroy() throws RpcException{
         if(logger.isInfoEnabled()){
-            logger.info("detroy invoker:{}.",this);
+            logger.info("destroy invoker:{}.",this);
         }
         //释放连接
         if (connector != null) {
