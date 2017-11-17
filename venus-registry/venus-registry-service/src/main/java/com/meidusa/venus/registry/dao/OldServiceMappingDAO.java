@@ -6,6 +6,7 @@ import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.data.move.OldServerDO;
 import com.meidusa.venus.registry.data.move.OldServiceDO;
 import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
+import com.meidusa.venus.registry.data.move.ServiceMappingDTO;
 
 public interface OldServiceMappingDAO {
 
@@ -22,5 +23,7 @@ public interface OldServiceMappingDAO {
 	Integer getOldServerCount() throws DAOException;
 	
 	List<String> queryOldServiceVersions(String serviceName) throws DAOException;
+	
+	List<ServiceMappingDTO> queryOldServiceMappings(String serviceName) throws DAOException;
 
 }

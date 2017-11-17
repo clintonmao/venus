@@ -102,6 +102,7 @@
 	<bean id="oLdServiceMappingService" class="com.meidusa.venus.registry.service.impl.OLdServiceMappingService" init-method="init">
 		<property name="oldServiceMappingDAO" ref="oldServiceMappingDAO" ></property>
 		<property name="registerService" ref="mysqlRegisterService" ></property>
+		<property name="venusServiceMappingDAO" ref="venusServiceMappingDAO" ></property>
 		<!--是否需要将旧注册中心的数据同步到新的注册中心，true为需要-->
 		<property name="needDataSync" value="${needDataSync}" ></property>
 	</bean>

@@ -12,9 +12,12 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 
 import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.dao.VenusServiceMappingDAO;
+import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
+import com.meidusa.venus.registry.data.move.ServiceMappingDTO;
 import com.meidusa.venus.registry.domain.RegisteConstant;
 import com.meidusa.venus.registry.domain.VenusServiceDO;
 import com.meidusa.venus.registry.domain.VenusServiceMappingDO;
+import com.meidusa.venus.support.VenusConstants;
 
 public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 
@@ -399,6 +402,25 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 			throw new DAOException("更新映射关系心跳时间异常", e);
 		}
 		return update > 0;
+	}
+	
+	public List<ServiceMappingDTO> queryServiceMappings(String serviceName) throws DAOException {
+		String sql = "SELECT map.id as map_id,map.server_id,s.hostname as host_name,s.port,v.name as service_name,map.service_id FROM t_venus_service_mapping as map left join t_venus_server as s on map.server_id=s.id left join t_venus_service as v on v.id=map.service_id where v.name=? "
+				+ "and role=? and v.registe_type=? ";
+		try {
+			return this.jdbcTemplate.query(sql, new Object[] {serviceName,RegisteConstant.PROVIDER,RegisteConstant.OPERATOR_REGISTE}, new ResultSetExtractor<List<ServiceMappingDTO>>() {
+				@Override
+				public List<ServiceMappingDTO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<ServiceMappingDTO> returnList = new ArrayList<ServiceMappingDTO>();
+					while (rs.next()) {
+						returnList.add(ResultUtils.rsTransOldServiceMappingDO(rs));
+					}
+					return returnList;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据sql=>" + sql + ",serviceName=>"+serviceName+";获取服务映射关系异常", e);
+		}
 	}
 	
 	

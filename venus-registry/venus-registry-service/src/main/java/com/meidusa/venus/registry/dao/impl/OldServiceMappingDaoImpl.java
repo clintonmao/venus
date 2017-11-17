@@ -14,6 +14,7 @@ import com.meidusa.venus.registry.dao.OldServiceMappingDAO;
 import com.meidusa.venus.registry.data.move.OldServerDO;
 import com.meidusa.venus.registry.data.move.OldServiceDO;
 import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
+import com.meidusa.venus.registry.data.move.ServiceMappingDTO;
 
 public class OldServiceMappingDaoImpl implements OldServiceMappingDAO {
 
@@ -27,12 +28,12 @@ public class OldServiceMappingDaoImpl implements OldServiceMappingDAO {
 	@Override
 	public List<OldServiceMappingDO> queryOldServiceMappings(Integer pageSize, Integer mappId) throws DAOException {
 		String sql = "SELECT map.id as map_id,map.server_id,s.hostname as host_name,s.port,map.service_id,v.name as service_name,v.description,map.version,map.active,map.sync,map.create_time,map.update_time FROM t_venus_service_mapping as map left join t_venus_server as s on map.server_id=s.id left join t_venus_service as v on v.id=map.service_id ";
-
+		
 		if (null != mappId) {
 			sql = sql + " where map.id>" + mappId;
 		}
 		sql = sql + " order by map.id asc limit " + pageSize;
-
+		
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] {}, new ResultSetExtractor<List<OldServiceMappingDO>>() {
 				@Override
@@ -48,6 +49,28 @@ public class OldServiceMappingDaoImpl implements OldServiceMappingDAO {
 			throw new DAOException("根据sql=>" + sql + ";获取服务映射关系异常", e);
 		}
 	}
+	
+	@Override
+	public List<ServiceMappingDTO> queryOldServiceMappings(String serviceName) throws DAOException {
+		String sql = "SELECT map.id as map_id,map.server_id,s.hostname as host_name,s.port,v.name as service_name,map.service_id FROM t_venus_service_mapping as map left join t_venus_server as s on map.server_id=s.id left join t_venus_service as v on v.id=map.service_id where v.name=?";
+		try {
+			return this.jdbcTemplate.query(sql, new Object[] {serviceName}, new ResultSetExtractor<List<ServiceMappingDTO>>() {
+				@Override
+				public List<ServiceMappingDTO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<ServiceMappingDTO> returnList = new ArrayList<ServiceMappingDTO>();
+					while (rs.next()) {
+						returnList.add(ResultUtils.rsTransOldServiceMappingDO(rs));
+					}
+					return returnList;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据sql=>" + sql + ",serviceName=>"+serviceName+";获取服务映射关系异常", e);
+		}
+	}
+	
+	
+	
 
 	@Override
 	public Integer getOldServiceMappingCount() throws DAOException {

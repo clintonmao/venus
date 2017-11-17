@@ -3,6 +3,8 @@ package com.meidusa.venus.registry.dao;
 import java.util.List;
 
 import com.meidusa.venus.registry.DAOException;
+import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
+import com.meidusa.venus.registry.data.move.ServiceMappingDTO;
 import com.meidusa.venus.registry.domain.VenusServiceMappingDO;
 
 public interface VenusServiceMappingDAO {
@@ -60,5 +62,7 @@ public interface VenusServiceMappingDAO {
 	int getMappingCountByServerId(int serverId) throws DAOException;
 	
 	boolean updateHeartBeatTime(int serverId, List<Integer>serviceIds,String role) throws DAOException;
+	
+	List<ServiceMappingDTO> queryServiceMappings(String serviceName) throws DAOException ;
 
 }

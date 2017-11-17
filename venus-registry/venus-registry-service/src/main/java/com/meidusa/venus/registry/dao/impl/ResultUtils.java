@@ -11,6 +11,7 @@ import org.apache.commons.collections.CollectionUtils;
 import com.meidusa.venus.registry.data.move.OldServerDO;
 import com.meidusa.venus.registry.data.move.OldServiceDO;
 import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
+import com.meidusa.venus.registry.data.move.ServiceMappingDTO;
 import com.meidusa.venus.registry.domain.FlowControl;
 import com.meidusa.venus.registry.domain.MockConfig;
 import com.meidusa.venus.registry.domain.RouterRule;
@@ -131,19 +132,33 @@ public class ResultUtils {
 		oldServiceMapping.setActive(rs.getBoolean("active"));
 		oldServiceMapping.setCreateTime(rs.getTimestamp("create_time"));
 		oldServiceMapping.setDescription(rs.getString("description"));
-
+		
 		oldServiceMapping.setHostName(rs.getString("host_name"));
 		oldServiceMapping.setMapId(rs.getInt("map_id"));
 		oldServiceMapping.setPort(rs.getInt("port"));
-
+		
 		oldServiceMapping.setServerId(rs.getInt("server_id"));
 		oldServiceMapping.setServiceId(rs.getInt("service_id"));
 		oldServiceMapping.setServiceName(rs.getString("service_name"));
-
+		
 		oldServiceMapping.setSync(rs.getBoolean("sync"));
 		oldServiceMapping.setUpdateTime(rs.getTimestamp("update_time"));
 		oldServiceMapping.setVersion(rs.getString("version"));
+		
+		return oldServiceMapping;
+	}
+	
+	public final static ServiceMappingDTO rsTransOldServiceMappingDO(ResultSet rs) throws SQLException {
+		ServiceMappingDTO oldServiceMapping = new ServiceMappingDTO();
 
+		oldServiceMapping.setMapId(rs.getInt("map_id"));
+		
+		oldServiceMapping.setServerId(rs.getInt("server_id"));
+		oldServiceMapping.setHostName(rs.getString("host_name"));
+		oldServiceMapping.setPort(rs.getInt("port"));
+		
+		oldServiceMapping.setServiceId(rs.getInt("service_id"));
+		oldServiceMapping.setServiceName(rs.getString("service_name"));
 		return oldServiceMapping;
 	}
 

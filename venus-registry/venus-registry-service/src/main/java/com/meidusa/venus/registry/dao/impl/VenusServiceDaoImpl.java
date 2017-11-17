@@ -114,7 +114,7 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 
 	}
 
-	private static boolean isNotBlank(String param) {
+	public static boolean isNotBlank(String param) {
 		return StringUtils.isNotBlank(param) && !"null".equals(param);
 	}
 	
