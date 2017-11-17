@@ -147,7 +147,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             AbstractServicePacket packet = parseServicePacket(message);
             String rpcId = RpcIdUtil.getRpcId(packet);
             if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("recv normal reponse,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
+                tracerLogger.info("recv reponse,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
             }
 
             //获取clientId/clientRequestId，用于获取invocation请求信息

@@ -36,6 +36,7 @@ public class ClientReturnMockFilter implements Filter {
             if(!isEnableReturnMock(clientInvocation, url)){
                 return null;
             }
+
             //获取mock返回值
             Object object = getMockReturn(clientInvocation, url);
             return new Result(object);

@@ -36,6 +36,7 @@ public class ClientThrowMockFilter implements Filter {
             if(!isEnableThrowMock(clientInvocation, url)){
                 return null;
             }
+
             //获取mock exception
             Exception exception = getMockException(clientInvocation, url);
             Result result = new Result();

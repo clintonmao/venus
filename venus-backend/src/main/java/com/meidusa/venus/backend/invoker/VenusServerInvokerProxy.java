@@ -5,7 +5,7 @@ import com.meidusa.venus.backend.filter.valid.ServerValidFilter;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.monitor.athena.filter.ServerAthenaMonitorFilter;
-import com.meidusa.venus.monitor.filter.ServerMonitorFilter;
+import com.meidusa.venus.monitor.filter.ServerVenusMonitorFilter;
 import com.meidusa.venus.support.VenusThreadContext;
 
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ public class VenusServerInvokerProxy implements Invoker {
     //athena上报filter
     private ServerAthenaMonitorFilter serverAthenaMonitorFilter = new ServerAthenaMonitorFilter();
     //venus上报filter
-    private ServerMonitorFilter serverMonitorFilter = new ServerMonitorFilter();
+    private ServerVenusMonitorFilter serverVenusMonitorFilter = new ServerVenusMonitorFilter();
 
     public VenusServerInvokerProxy(){
         init();
@@ -129,19 +129,19 @@ public class VenusServerInvokerProxy implements Invoker {
                 filterList.add(serverAthenaMonitorFilter);
             }
             if(venusMonitorFactory.isEnableVenusReport()){
-                filterList.add(getServerMonitorFilter());
+                filterList.add(getServerVenusMonitorFilter());
             }
         }
     }
 
-    public ServerMonitorFilter getServerMonitorFilter() {
-        synchronized (serverMonitorFilter){
-            if(!serverMonitorFilter.isRunning()){
-                serverMonitorFilter.setAthenaDataService(getVenusMonitorFactory().getAthenaDataService());
-                serverMonitorFilter.startProcessAndReporterTread();
+    public ServerVenusMonitorFilter getServerVenusMonitorFilter() {
+        synchronized (serverVenusMonitorFilter){
+            if(!serverVenusMonitorFilter.isRunning()){
+                serverVenusMonitorFilter.setAthenaDataService(getVenusMonitorFactory().getAthenaDataService());
+                serverVenusMonitorFilter.startProcessAndReporterTread();
             }
         }
-        return serverMonitorFilter;
+        return serverVenusMonitorFilter;
     }
 
     /**

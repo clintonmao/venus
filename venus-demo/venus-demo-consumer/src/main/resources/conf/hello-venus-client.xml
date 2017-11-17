@@ -14,7 +14,7 @@
 		<!--<service type="com.chexiang.venus.demo.provider.HelloService" retries="3"/>-->
 		<service type="com.chexiang.venus.demo.provider.HelloService">
 			<!--方法级配置，方法级若配置则会覆盖服务级配置-->
-			<method name="getHello" timeout="3000" retries="3"/>
+			<method name="getHello" timeout="3000" retries="2"/>
 		</service>
 
 		<service type="com.chexiang.venus.demo.provider.EchoService"/>

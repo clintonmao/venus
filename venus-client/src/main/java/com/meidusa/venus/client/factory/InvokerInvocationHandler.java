@@ -126,60 +126,78 @@ public class InvokerInvocationHandler implements InvocationHandler {
         String invokeModel = invocation.getInvokeModel();
         String rpcId = invocation.getRpcId();
         String methodPath = invocation.getMethodPath();
-        String param = "";
+        //参数
+        String param = "{}";
         if(invocation.isEnablePrintParam() && !VenusUtil.isAthenaInterface(invocation)){
             if(invocation.getArgs() != null){
                 param = JSONUtil.toJSONString(invocation.getArgs());
             }
         }
-        Object output = "";
+        //结果
+        Object ret = "{}";
         if(invocation.isEnablePrintResult() && !VenusUtil.isAthenaInterface(invocation)){
             if(object != null){
-                output = JSONUtil.toJSONString(object);
-            }else if(exception != null){
+                ret = JSONUtil.toJSONString(object);
+            }
+        }
+        //异常
+        Object error = "{}";
+        if(invocation.isEnablePrintResult() && !VenusUtil.isAthenaInterface(invocation)){
+            if(exception != null){
                 hasException = true;
-                output = exception;
+                error = exception;
             }
         }
         String status = "";
         if(hasException){
             status = "failed";
         }else if(usedTime > 1000){
-            status = "slow>1000ms";
+            status = ">1000ms";
         }else if(usedTime > 500){
-            status = "slow>500ms";
+            status = ">500ms";
         }else if(usedTime > 200){
-            status = "slow>200ms";
+            status = ">200ms";
         }else{
-            status = "success";
+            status = "<200ms";
         }
 
-        //打印结果
-        String tpl = "{} invoke,rpcId:{},method:{},status:{},used time:{}ms,param:{},result:{}.";
-        Object[] arguments = new Object[]{
-                invokeModel,
-                rpcId,
-                methodPath,
-                status,
-                usedTime,
-                param,
-                output
-        };
+        //输出日志
         if(hasException){
-            //输出错误日志
-            if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error(tpl,arguments);
-            }
+            String tpl = "[{}],{} invoke,rpcId:{},method:{},used time:{}ms,param:{},error:{}.";
+            Object[] arguments = new Object[]{
+                    status,
+                    invokeModel,
+                    rpcId,
+                    methodPath,
+                    usedTime,
+                    param,
+                    error
+            };
             if(tracerLogger.isErrorEnabled()){
                 tracerLogger.error(tpl,arguments);
             }
-        }else if(usedTime > 200){
-            if(tracerLogger.isWarnEnabled()){
-                tracerLogger.warn(tpl,arguments);
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error(tpl,arguments);
             }
         }else{
-            if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info(tpl,arguments);
+            String tpl = "[{}],{} invoke,rpcId:{},method:{},used time:{}ms,param:{},result:{}.";
+            Object[] arguments = new Object[]{
+                    status,
+                    invokeModel,
+                    rpcId,
+                    methodPath,
+                    usedTime,
+                    param,
+                    ret
+            };
+            if(usedTime > 200){
+                if(tracerLogger.isWarnEnabled()){
+                    tracerLogger.warn(tpl,arguments);
+                }
+            }else{
+                if(tracerLogger.isInfoEnabled()){
+                    tracerLogger.info(tpl,arguments);
+                }
             }
         }
 

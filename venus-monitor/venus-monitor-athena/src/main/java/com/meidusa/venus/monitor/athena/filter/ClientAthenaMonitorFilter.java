@@ -24,7 +24,7 @@ public class ClientAthenaMonitorFilter implements Filter {
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
-    static boolean isInited;
+    static boolean isInited = false;
 
     public ClientAthenaMonitorFilter(){
         synchronized (this){
@@ -46,33 +46,32 @@ public class ClientAthenaMonitorFilter implements Filter {
         try {
             ClientInvocation clientInvocation = (ClientInvocation)invocation;
             ServiceWrapper service = clientInvocation.getService();
+            if (service == null || !service.isAthenaFlag()) {
+                return null;
+            }
+
             EndpointWrapper endpoint = clientInvocation.getEndpoint();
             Method method = clientInvocation.getMethod();
             //athena相关
-            if(service != null && service.isAthenaFlag()){
-                //athenaId
-                String apiName = VenusUtil.getApiName(method,service,endpoint);//VenusAnnotationUtils.getApiname(method, service, endpoint);
-                AthenaTransactionId athenaTransactionId = AthenaTransactionDelegate.getDelegate().startClientTransaction(apiName);
-                VenusThreadContext.set(VenusThreadContext.ATHENA_TRANSACTION_ID,athenaTransactionId);
-                if (athenaTransactionId != null) {
-                    //保存athena信息到上下文
-                    if (athenaTransactionId.getRootId() != null) {
-                        byte[] athenaId = athenaTransactionId.getRootId().getBytes();
-                        clientInvocation.setAthenaId(athenaId);
-                    }
-                    if (athenaTransactionId.getParentId() != null) {
-                        byte[] parentId = athenaTransactionId.getParentId().getBytes();
-                        clientInvocation.setParentId(parentId);
-                    }
-                    if (athenaTransactionId.getMessageId() != null) {
-                        byte[] messageId = athenaTransactionId.getMessageId().getBytes();
-                        clientInvocation.setMessageId(messageId);
-                    }
+            String apiName = VenusUtil.getApiName(method,service,endpoint);//VenusAnnotationUtils.getApiname(method, service, endpoint);
+            AthenaTransactionId athenaTransactionId = AthenaTransactionDelegate.getDelegate().startClientTransaction(apiName);
+            VenusThreadContext.set(VenusThreadContext.ATHENA_TRANSACTION_ID,athenaTransactionId);
+            if (athenaTransactionId != null) {
+                //保存athena信息到上下文
+                if (athenaTransactionId.getRootId() != null) {
+                    byte[] athenaId = athenaTransactionId.getRootId().getBytes();
+                    clientInvocation.setAthenaId(athenaId);
+                }
+                if (athenaTransactionId.getParentId() != null) {
+                    byte[] parentId = athenaTransactionId.getParentId().getBytes();
+                    clientInvocation.setParentId(parentId);
+                }
+                if (athenaTransactionId.getMessageId() != null) {
+                    byte[] messageId = athenaTransactionId.getMessageId().getBytes();
+                    clientInvocation.setMessageId(messageId);
                 }
             }
             return null;
-        } catch (RpcException e) {
-            throw e;
         }catch(Throwable e){
             //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用
             if(exceptionLogger.isErrorEnabled()){
@@ -91,22 +90,23 @@ public class ClientAthenaMonitorFilter implements Filter {
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         try {
             ClientInvocation clientInvocation = (ClientInvocation)invocation;
-            if (clientInvocation.getService().isAthenaFlag()) {
-                //从上下文设置请求、接收报文长度
-                Integer clientOutputSize = (Integer) VenusThreadContext.get(VenusThreadContext.CLIENT_OUTPUT_SIZE);
-                if(clientOutputSize != null){
-                    AthenaTransactionDelegate.getDelegate().setClientOutputSize(clientOutputSize.intValue());
-                }
-                Integer clientInputSize = (Integer) VenusThreadContext.get(VenusThreadContext.CLIENT_INPUT_SIZE);
-                if(clientInputSize != null){
-                    AthenaTransactionDelegate.getDelegate().setClientInputSize(clientInputSize.intValue());
-                }
-                //提交事务
-                AthenaTransactionDelegate.getDelegate().completeClientTransaction();
+            ServiceWrapper service = clientInvocation.getService();
+            if (service == null || !service.isAthenaFlag()) {
+                return null;
             }
+
+            //从上下文设置请求、接收报文长度
+            Integer clientOutputSize = (Integer) VenusThreadContext.get(VenusThreadContext.CLIENT_OUTPUT_SIZE);
+            if(clientOutputSize != null){
+                AthenaTransactionDelegate.getDelegate().setClientOutputSize(clientOutputSize.intValue());
+            }
+            Integer clientInputSize = (Integer) VenusThreadContext.get(VenusThreadContext.CLIENT_INPUT_SIZE);
+            if(clientInputSize != null){
+                AthenaTransactionDelegate.getDelegate().setClientInputSize(clientInputSize.intValue());
+            }
+            //提交事务
+            AthenaTransactionDelegate.getDelegate().completeClientTransaction();
             return null;
-        } catch (RpcException e) {
-            throw e;
         }catch(Throwable e){
             //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用
             if(exceptionLogger.isErrorEnabled()){

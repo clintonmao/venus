@@ -17,19 +17,22 @@ import org.slf4j.LoggerFactory;
 import java.util.Date;
 
 /**
- * server监控filter
+ * client监控filter
  * Created by Zhangzhihua on 2017/8/28.
  */
-public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter{
+public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements Filter {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
-    public ServerMonitorFilter(){}
 
-    public ServerMonitorFilter(AthenaDataService athenaDataService){
+    public ClientVenusMonitorFilter(){
+    }
+
+    public ClientVenusMonitorFilter(AthenaDataService athenaDataService){
         this.setAthenaDataService(athenaDataService);
+        startProcessAndReporterTread();
     }
 
     @Override
@@ -49,31 +52,34 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         try {
-            ServerInvocation serverInvocation = (ServerInvocation)invocation;
-
-            //若不需要上报，则跳过
-            if(!isNeedReport(serverInvocation)){
+            ClientInvocation clientInvocation = (ClientInvocation)invocation;
+            //若不走注册中心，则跳过
+            if(!isNeedReport(clientInvocation)){
                 return null;
             }
 
+            //请求url
+            url = (URL) VenusThreadContext.get(VenusThreadContext.REQUEST_URL);
+            //响应结果
             Result result = (Result) VenusThreadContext.get(VenusThreadContext.RESPONSE_RESULT);
+            //响应异常
             Throwable e = (Throwable)VenusThreadContext.get(VenusThreadContext.RESPONSE_EXCEPTION);
 
+            //组装并添加到明细队列
             InvocationDetail invocationDetail = new InvocationDetail();
-            invocationDetail.setFrom(InvocationDetail.FROM_SERVER);
-            invocationDetail.setInvocation(serverInvocation);
+            invocationDetail.setFrom(InvocationDetail.FROM_CLIENT);
+            invocationDetail.setInvocation(clientInvocation);
+            invocationDetail.setUrl(url);
             invocationDetail.setResponseTime(new Date());
             invocationDetail.setResult(result);
             invocationDetail.setException(e);
 
             putInvocationDetailQueue(invocationDetail);
             return null;
-        } catch (RpcException e) {
-            throw e;
         }catch(Throwable e){
             //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用
             if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error("ServerMonitorFilter.afterInvoke error.",e);
+                exceptionLogger.error("ClientVenusMonitorFilter.afterInvoke error.",e);
             }
             return null;
         }
@@ -81,17 +87,15 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
 
     /**
      * 判断是否需要监控上报
-     * @param invocation
+     * @param clientInvocation
      * @return
      */
-    boolean isNeedReport(ServerInvocation invocation){
+    boolean isNeedReport(ClientInvocation clientInvocation){
         //走注册中心才上报
-        /*
         if(clientInvocation.getLookupType() == 0){
             return false;
         }
-        */
-        return !VenusUtil.isAthenaInterface(invocation);
+        return !VenusUtil.isAthenaInterface(clientInvocation);
     }
 
     /**
@@ -99,30 +103,27 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
      * @return
      */
     String getMethodAndEnvPath(InvocationDetail detail){
-        /*
         Invocation invocation = detail.getInvocation();
+        URL url = detail.getUrl();
         //请求时间，精确为分钟
-        ServerInvocation serverInvocation = (ServerInvocation)invocation;
-        String requestTimeOfMinutes = getTimeOfMinutes(serverInvocation.getRequestTime());
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
+        String requestTimeOfMinutes = getTimeOfMinutes(clientInvocation.getRequestTime());
 
         //方法路径信息
         String methodAndEnvPath = String.format(
-                "%s/%s?version=%s&method=%s&startTime=%s",
+                "%s/%s?version=%s&method=%s&target=%s&startTime=%s",
                 invocation.getServiceInterfaceName(),
                 invocation.getServiceName(),
                 invocation.getVersion(),
                 invocation.getMethodName(),
+                url.getHost(),
                 requestTimeOfMinutes
         );
         if(logger.isDebugEnabled()){
             logger.debug("methodAndEnvPath:{}.", methodAndEnvPath);
         }
         return methodAndEnvPath;
-        */
-        //服务端不做统计上报
-        return null;
     }
-
 
     /**
      * 转化为detailDo
@@ -130,49 +131,51 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
      * @return
      */
     MethodCallDetailDO convertDetail(InvocationDetail detail){
-        ServerInvocation serverInvocation = (ServerInvocation)detail.getInvocation();
+        ClientInvocation clientInvocation = (ClientInvocation)detail.getInvocation();
+        URL url = detail.getUrl();
         Result result = detail.getResult();
         Throwable exception = detail.getException();
 
         MethodCallDetailDO detailDO = new MethodCallDetailDO();
         //基本信息
         detailDO.setId(UUIDUtil.create().toString());
-        detailDO.setRpcId(serverInvocation.getRpcId());
-        if(serverInvocation.getAthenaId() != null){
-            detailDO.setTraceId(new String(serverInvocation.getAthenaId()));
+        detailDO.setRpcId(clientInvocation.getRpcId());
+        if(clientInvocation.getAthenaId() != null){
+            detailDO.setTraceId(new String(clientInvocation.getAthenaId()));
         }
-        if(serverInvocation.getMessageId() != null){
-            detailDO.setMessageId(new String(serverInvocation.getMessageId()));
+        if(clientInvocation.getMessageId() != null){
+            detailDO.setMessageId(new String(clientInvocation.getMessageId()));
         }
         detailDO.setSourceType(detail.getFrom());
+
         //请求信息
-        detailDO.setServiceName(serverInvocation.getServiceName());
-        if(serverInvocation.getServiceInterface() != null){
-            detailDO.setInterfaceName(serverInvocation.getServiceInterface().getName());
+        if(clientInvocation.getServiceInterface() != null){
+            detailDO.setInterfaceName(clientInvocation.getServiceInterface().getName());
         }
-        if(serverInvocation.getEndpoint() != null){
-            detailDO.setMethodName(serverInvocation.getEndpoint().getName());
-        }else if(serverInvocation.getMethod() != null){
-            detailDO.setMethodName(serverInvocation.getMethod().getName());
+        detailDO.setServiceName(clientInvocation.getServiceName());
+        if(clientInvocation.getEndpoint() != null){
+            detailDO.setMethodName(clientInvocation.getEndpoint().getName());
+        }else if(clientInvocation.getMethod() != null){
+            detailDO.setMethodName(clientInvocation.getMethod().getName());
         }
-        if(serverInvocation.getArgs() != null){
-            String requestJson = serialize(serverInvocation.getArgs());
+        if(clientInvocation.getArgs() != null){
+            String requestJson = serialize(clientInvocation.getArgs());
             detailDO.setRequestJson(requestJson);
         }
-        detailDO.setRequestTime(serverInvocation.getRequestTime());
-        detailDO.setProviderDomain(serverInvocation.getProviderApp());
-        detailDO.setProviderIp(serverInvocation.getProviderIp());
-        detailDO.setConsumerDomain(serverInvocation.getConsumerApp());
-        detailDO.setConsumerIp(serverInvocation.getConsumerIp());
+        detailDO.setRequestTime(clientInvocation.getRequestTime());
+        detailDO.setProviderDomain(url.getApplication());
+        detailDO.setProviderIp(url.getHost());
+        detailDO.setConsumerDomain(clientInvocation.getConsumerApp());
+        detailDO.setConsumerIp(clientInvocation.getConsumerIp());
+
         //响应信息
         detailDO.setResponseTime(detail.getResponseTime());
-
-        if(result != null){//响应结果
-            if(result.getErrorCode() == 0){
+        if(result != null){ //响应结果
+            if(result.getErrorCode() == 0){//成功
                 String responseJson = serialize(result.getResult());
                 detailDO.setReponseJson(responseJson);
                 detailDO.setStatus(1);
-            }else{
+            }else{//失败
                 String responseJson = String.format("%s-%s",result.getErrorCode(),result.getErrorMessage());
                 detailDO.setReponseJson(responseJson);
                 detailDO.setStatus(0);
@@ -183,21 +186,39 @@ public class ServerMonitorFilter extends AbstractMonitorFilter implements Filter
             detailDO.setStatus(0);
         }
         //耗时
-        long costTime = detail.getResponseTime().getTime()-serverInvocation.getRequestTime().getTime();
+        long costTime = detail.getResponseTime().getTime()-clientInvocation.getRequestTime().getTime();
         detailDO.setDurationMillisecond(Integer.parseInt(String.valueOf(costTime)));
         //状态相关
         return detailDO;
     }
 
-    @Override
-    MethodStaticDO convertStatistic(InvocationStatistic statistic) {
-        //统计上报不在server端上报
-        return null;
+    /**
+     * 转换为statisticDo
+     * @param statistic
+     * @return
+     */
+    MethodStaticDO convertStatistic(InvocationStatistic statistic){
+        MethodStaticDO staticDO = new MethodStaticDO();
+        staticDO.setInterfaceName(statistic.getServiceInterfaceName());
+        staticDO.setServiceName(statistic.getServiceName());
+        staticDO.setVersion(statistic.getVersion());
+        staticDO.setMethodName(statistic.getMethod());
+        staticDO.setTotalCount((statistic.getTotalNum().intValue()));
+        staticDO.setFailCount(statistic.getFailNum().intValue());
+        staticDO.setSlowCount(statistic.getSlowNum().intValue());
+        staticDO.setAvgDuration(statistic.getAvgCostTime().intValue());
+        staticDO.setMaxDuration(statistic.getMaxCostTime().intValue());
+
+        staticDO.setDomain(statistic.getProviderApp());
+        staticDO.setSourceIp(statistic.getProviderIp());
+        staticDO.setStartTime(statistic.getBeginTime());
+        staticDO.setEndTime(statistic.getEndTime());
+        return staticDO;
     }
 
     @Override
     int getRole() {
-        return ROLE_PROVIDER;
+        return ROLE_CONSUMER;
     }
 
     @Override
