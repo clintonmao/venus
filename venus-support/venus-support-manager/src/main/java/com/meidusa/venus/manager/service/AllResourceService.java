@@ -21,6 +21,7 @@ public class AllResourceService implements MonitorResource {
     private static Logger statusLogger = VenusLoggerFactory.getStatusLogger();
 
     private static boolean isRunning = false;
+
     public void init(){
         logger.info("start resource monitor.");
         readVersion();
@@ -34,7 +35,7 @@ public class AllResourceService implements MonitorResource {
                         schedualTask();
                     }
                 };
-                timer.schedule(timerTask,1000,1000*60);
+                timer.schedule(timerTask,1000,1000*60*60);
                 //5分钟任务
                 //...
                 isRunning = true;

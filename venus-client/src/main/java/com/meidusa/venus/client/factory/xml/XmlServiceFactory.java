@@ -32,6 +32,7 @@ import com.meidusa.venus.client.factory.xml.support.ServiceDefinedBean;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.metainfo.AnnotationUtil;
+import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.VenusRegistryFactory;
 import com.meidusa.venus.support.VenusContext;
@@ -41,6 +42,7 @@ import com.meidusa.venus.util.VenusLoggerFactory;
 import com.thoughtworks.xstream.XStream;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.BeansException;
@@ -102,12 +104,14 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
 
     private BeanContext beanContext;
 
+    //应用配置
     private Application application;
 
-    /**
-     * 注册中心工厂
-     */
+    //注册中心工厂
     private VenusRegistryFactory venusRegistryFactory;
+
+    //监听中心配置
+    private VenusMonitorFactory venusMonitorFactory;
 
     public XmlServiceFactory(){
         Application.addServiceFactory(this);
@@ -149,11 +153,32 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
     	}
     	inited = true;
 
+    	valid();
+
     	//初始化应用上下文
     	initContext();
 
         //初始化配置
         initConfiguration();
+    }
+
+    /**
+     * 校验
+     */
+    void valid(){
+        if(application == null){
+            throw new VenusConfigException("application not config.");
+        }
+        if(venusRegistryFactory == null || venusRegistryFactory.getRegister() == null){
+            if(logger.isWarnEnabled()){
+                logger.warn("venusRegistryFactory not enabled,will skip service subscrible.");
+            }
+        }
+        if(venusMonitorFactory == null){
+            if(logger.isWarnEnabled()){
+                logger.warn("venusMonitorFactory not enabled,will disable monitor reporte.");
+            }
+        }
     }
 
     /**
@@ -178,9 +203,16 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
      * 初始化配置
      * @throws Exception
      */
-    private synchronized void initConfiguration() throws Exception {
+    private void initConfiguration() throws Exception {
         //加载客户端配置信息
         VenusClientConfig venusClientConfig = parseClientConfig();
+
+        if(CollectionUtils.isEmpty(venusClientConfig.getReferenceServices())){
+            if(logger.isWarnEnabled()){
+                logger.warn("not config reference provider services.");
+            }
+            return;
+        }
 
         //初始化service实例
         for (ReferenceService serviceConfig : venusClientConfig.getReferenceServices()) {
@@ -219,11 +251,19 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
     boolean isNeedSubscrible(ReferenceService serviceConfig){
         //若直连，则不订阅
         if(StringUtils.isNotEmpty(serviceConfig.getRemote()) || StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
+            if(logger.isWarnEnabled()){
+                logger.warn("direct connect provider,will skip subscrible service.");
+            }
             return false;
         }
 
         //若注册中心未定义，则不订阅
-        return !(venusRegistryFactory == null || venusRegistryFactory.getRegister() == null);
+        if(venusRegistryFactory == null || venusRegistryFactory.getRegister() == null){
+            if(logger.isWarnEnabled()){
+                logger.warn("venusRegistryFactory not config,will skip subscrible service.");
+            }
+        }
+        return true;
     }
     /**
      * 初始化服务代理
@@ -235,6 +275,13 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
         if(logger.isInfoEnabled()){
             logger.info("init service proxy:{}.",referenceService.getClzType().getName());
         }
+        //若地址或注册中心都未配置，则抛异常
+        if(StringUtils.isEmpty(referenceService.getRemote()) && StringUtils.isEmpty(referenceService.getIpAddressList())){
+            if(venusRegistryFactory == null || venusRegistryFactory.getRegister() == null){
+                throw new VenusConfigException("init serivce proxy failed,ipAddressList and venusRegistryFactory not config.");
+            }
+        }
+
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
         invocationHandler.setServiceInterface(referenceService.getClzType());
         //若配置静态地址，以静态为先
@@ -242,9 +289,6 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
             ClientRemoteConfig remoteConfig = getRemoteConfig(referenceService,venusClientConfig);
             invocationHandler.setRemoteConfig(remoteConfig);
         }else{
-            if(venusRegistryFactory == null || venusRegistryFactory.getRegister() == null){
-                throw new VenusConfigException("venusRegistryFactory not config.");
-            }
             invocationHandler.setRegister(venusRegistryFactory.getRegister());
         }
         invocationHandler.setReferenceService(referenceService);
@@ -481,5 +525,13 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
 
     public void setApplication(Application application) {
         this.application = application;
+    }
+
+    public VenusMonitorFactory getVenusMonitorFactory() {
+        return venusMonitorFactory;
+    }
+
+    public void setVenusMonitorFactory(VenusMonitorFactory venusMonitorFactory) {
+        this.venusMonitorFactory = venusMonitorFactory;
     }
 }

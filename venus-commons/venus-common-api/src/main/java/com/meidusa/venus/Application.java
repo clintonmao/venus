@@ -94,7 +94,7 @@ public class Application implements InitializingBean,DisposableBean {
         //初始化异常配置
         XmlVenusExceptionFactory.getInstance().init();
 
-        initResource();
+        initMonitorResource();
     }
 
     @Override
@@ -279,9 +279,9 @@ public class Application implements InitializingBean,DisposableBean {
     }
 
     /**
-     * 初始化加载resource
+     * 初始化监控resource
      */
-    void initResource(){
+    void initMonitorResource(){
         try {
             Class clz = Class.forName("com.meidusa.venus.manager.service.AllResourceService");
             Object obj  = clz.newInstance();
@@ -289,9 +289,10 @@ public class Application implements InitializingBean,DisposableBean {
                 MonitorResource monitorResource = (MonitorResource)obj;
                 monitorResource.init();
             }
-            logger.info("load resource obj:{}.",obj);
         } catch (Exception e) {
-            logger.error("load resource failed.",e);
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("load resource failed.",e);
+            }
         }
     }
 }
