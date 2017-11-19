@@ -1,7 +1,9 @@
 package com.meidusa.venus.monitor.athena.reporter.impl;
 
-import com.meidusa.venus.monitor.athena.reporter.AthenaClientTransaction;
-import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionId;
+import com.meidusa.venus.monitor.athena.reporter.support.AthenaConstants;
+import com.meidusa.venus.monitor.athena.reporter.support.TransactionThreadLocal;
+import com.meidusa.venus.monitor.athena.reporter.ClientTransactionReporter;
+import com.meidusa.venus.monitor.athena.AthenaTransactionId;
 import com.saic.framework.athena.configuration.client.entity.RemoteContext;
 import com.saic.framework.athena.configuration.client.entity.impl.RemoteContextInstance;
 import com.saic.framework.athena.message.Transaction;
@@ -14,7 +16,7 @@ import java.util.Stack;
 /**
  * Created by GodzillaHua on 7/3/16.
  */
-public class DefaultClientTransactionReporter extends AbstractTransactionReporter implements AthenaClientTransaction {
+public class DefaultClientTransactionReporter extends AbstractTransactionReporter implements ClientTransactionReporter {
 
     private static Logger logger = LoggerFactory.getLogger(DefaultClientTransactionReporter.class);
 
@@ -23,38 +25,20 @@ public class DefaultClientTransactionReporter extends AbstractTransactionReporte
         AthenaTransactionId  transactionId = new AthenaTransactionId();
         try{
             RemoteContext context = new RemoteContextInstance();
+
             AthenaUtils.getInstance().logRemoteCallClient(context);
+
             transactionId.setRootId(context.getProperty(RemoteContext.ROOT));
             transactionId.setParentId(context.getProperty(RemoteContext.PARENT));
             transactionId.setMessageId(context.getProperty(RemoteContext.CHILD));
+
             Stack<Transaction> transactionStack = TransactionThreadLocal.getInstance().get();
-            transactionStack.add(AthenaUtils.getInstance().newTransaction(Constants.TRANSACTION_TYPE_RPC, itemName));
+            transactionStack.add(AthenaUtils.getInstance().newTransaction(AthenaConstants.TRANSACTION_TYPE_RPC, itemName));
         }catch (Exception e) {
             logger.error("client startTransaction error.",e);
             return null;
         }
         return transactionId;
     }
-
-    /**
-     * 初始化athena
-     */
-//    void initAthena(){
-//        ApplicationContext context = VenusContext.getInstance().getApplicationContext();
-//        if(context != null){
-//            //初始化AthenaUtils
-//            AthenaUtils athenaUtils = new AthenaUtils();
-//            athenaUtils.setApplicationContext(context);
-//            //初始化AthenaImpl
-//            try {
-//                if(context.getBean(Athena.class) == null){
-//                    VenusContext.getInstance().getBeanContext().createBean(com.saic.framework.athena.client.AthenaImpl.class);
-//                }
-//            } catch (Exception e) {
-//                logger.error("init AthenaClient failed on consumer.",e);
-//            }
-//        }
-//
-//    }
 
 }

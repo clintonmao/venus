@@ -45,9 +45,7 @@ public abstract class AbstractMonitorFilter {
 
     private boolean isRunning = false;
 
-    private VenusMonitorReporter monitorReporter = null;
-
-    private AthenaDataService athenaDataService = null;
+    private VenusMonitorReporter monitorReporter = new VenusMonitorReporter();
 
     //consumer
     protected static int ROLE_CONSUMER = 0;
@@ -197,8 +195,6 @@ public abstract class AbstractMonitorFilter {
         public void run() {
             while(true){
                 try {
-                    VenusMonitorReporter monitorReporter = getMonitorReporter();
-
                     //1、明细上报
                     if(logger.isDebugEnabled()){
                         logger.debug("current detail report queue size:{}.", reportDetailQueue.size());
@@ -315,22 +311,6 @@ public abstract class AbstractMonitorFilter {
      * @return
      */
     abstract int getRole();
-
-    VenusMonitorReporter getMonitorReporter(){
-        if(monitorReporter == null){
-            monitorReporter = new VenusMonitorReporter();
-            monitorReporter.setAthenaDataService(this.getAthenaDataService());
-        }
-        return monitorReporter;
-    }
-
-    public AthenaDataService getAthenaDataService() {
-        return athenaDataService;
-    }
-
-    public void setAthenaDataService(AthenaDataService athenaDataService) {
-        this.athenaDataService = athenaDataService;
-    }
 
     public boolean isRunning() {
         return isRunning;

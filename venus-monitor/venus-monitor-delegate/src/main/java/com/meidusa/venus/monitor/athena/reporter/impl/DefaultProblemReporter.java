@@ -1,6 +1,6 @@
 package com.meidusa.venus.monitor.athena.reporter.impl;
 
-import com.meidusa.venus.monitor.athena.reporter.AthenaProblemReporter;
+import com.meidusa.venus.monitor.athena.reporter.ProblemReporter;
 import com.saic.framework.athena.site.helper.AthenaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by GodzillaHua on 7/3/16.
  */
-public class DefaultProblemReporter implements AthenaProblemReporter {
+public class DefaultProblemReporter implements ProblemReporter {
     private static Logger logger = LoggerFactory.getLogger(DefaultProblemReporter.class);
 
     public void problem(String message, Throwable cause) {

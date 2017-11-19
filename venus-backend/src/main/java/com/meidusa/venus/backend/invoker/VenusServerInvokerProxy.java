@@ -129,20 +129,19 @@ public class VenusServerInvokerProxy implements Invoker {
                 filterList.add(serverAthenaMonitorFilter);
             }
             if(venusMonitorFactory.isEnableVenusReport()){
-                filterList.add(getServerVenusMonitorFilter());
+                filterList.add(serverVenusMonitorFilter);
             }
         }
     }
 
-    public ServerVenusMonitorFilter getServerVenusMonitorFilter() {
-        synchronized (serverVenusMonitorFilter){
-            if(!serverVenusMonitorFilter.isRunning()){
-                serverVenusMonitorFilter.setAthenaDataService(getVenusMonitorFactory().getAthenaDataService());
-                serverVenusMonitorFilter.startProcessAndReporterTread();
-            }
-        }
-        return serverVenusMonitorFilter;
-    }
+//    public ServerVenusMonitorFilter getServerVenusMonitorFilter() {
+//        synchronized (serverVenusMonitorFilter){
+//            if(!serverVenusMonitorFilter.isRunning()){
+//                serverVenusMonitorFilter.startProcessAndReporterTread();
+//            }
+//        }
+//        return serverVenusMonitorFilter;
+//    }
 
     /**
      * 获取VenusMonitorFactory

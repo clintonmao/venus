@@ -1,6 +1,6 @@
 package com.meidusa.venus.monitor.athena.reporter.impl;
 
-import com.meidusa.venus.monitor.athena.reporter.AthenaMetricReporter;
+import com.meidusa.venus.monitor.athena.reporter.MetricReporter;
 import com.saic.framework.athena.site.helper.AthenaUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Created by GodzillaHua on 7/3/16.
  */
-public class DefaultMetricReporter implements AthenaMetricReporter {
+public class DefaultMetricReporter implements MetricReporter {
 
     private static Logger logger = LoggerFactory.getLogger(DefaultMetricReporter.class);
 

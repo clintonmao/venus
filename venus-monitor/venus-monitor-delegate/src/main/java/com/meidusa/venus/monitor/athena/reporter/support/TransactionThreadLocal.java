@@ -1,4 +1,4 @@
-package com.meidusa.venus.monitor.athena.reporter.impl;
+package com.meidusa.venus.monitor.athena.reporter.support;
 
 import com.saic.framework.athena.message.Transaction;
 

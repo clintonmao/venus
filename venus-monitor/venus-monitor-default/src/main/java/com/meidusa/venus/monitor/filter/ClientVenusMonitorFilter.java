@@ -28,10 +28,6 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
 
 
     public ClientVenusMonitorFilter(){
-    }
-
-    public ClientVenusMonitorFilter(AthenaDataService athenaDataService){
-        this.setAthenaDataService(athenaDataService);
         startProcessAndReporterTread();
     }
 

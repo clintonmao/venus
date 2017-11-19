@@ -221,7 +221,7 @@ public class ClientInvokerProxy implements Invoker {
                 filterList.add(clientAthenaMonitorFilter);
             }
             if(venusMonitorFactory.isEnableVenusReport()){
-                filterList.add(getClientVenusMonitorFilter());
+                filterList.add(clientVenusMonitorFilter);
             }
         }
     }
@@ -247,15 +247,14 @@ public class ClientInvokerProxy implements Invoker {
     }
 
 
-    public ClientVenusMonitorFilter getClientVenusMonitorFilter() {
-        synchronized (clientVenusMonitorFilter){
-            if(!clientVenusMonitorFilter.isRunning()){
-                clientVenusMonitorFilter.setAthenaDataService(getVenusMonitorFactory().getAthenaDataService());
-                clientVenusMonitorFilter.startProcessAndReporterTread();
-            }
-        }
-        return clientVenusMonitorFilter;
-    }
+//    public ClientVenusMonitorFilter getClientVenusMonitorFilter() {
+//        synchronized (clientVenusMonitorFilter){
+//            if(!clientVenusMonitorFilter.isRunning()){
+//                clientVenusMonitorFilter.startProcessAndReporterTread();
+//            }
+//        }
+//        return clientVenusMonitorFilter;
+//    }
 
     @Override
     public void destroy() throws RpcException {

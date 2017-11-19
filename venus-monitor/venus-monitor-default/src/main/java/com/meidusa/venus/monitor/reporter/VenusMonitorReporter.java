@@ -4,6 +4,7 @@ import com.athena.domain.MethodCallDetailDO;
 import com.athena.domain.MethodStaticDO;
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.exception.VenusConfigException;
+import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -18,7 +19,7 @@ public class VenusMonitorReporter {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
-    private AthenaDataService athenaDataService;
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
     /**
      * 上报明细
@@ -28,19 +29,16 @@ public class VenusMonitorReporter {
         if(CollectionUtils.isEmpty(detailDOList)){
             return;
         }
-
-        if(CollectionUtils.isNotEmpty(detailDOList)){
-            if(logger.isDebugEnabled()){
-                logger.debug("report detail size:{}.",detailDOList.size());
-            }
-        }else{
-            if(logger.isDebugEnabled()){
-                logger.debug("report detail size:{}.",0);
-            }
+        if(logger.isInfoEnabled()){
+            logger.info("report detail size:{}.",detailDOList.size());
         }
 
-        if(CollectionUtils.isNotEmpty(detailDOList)){
-            getAthenaDataService().reportMethodCallDetail(detailDOList);
+        AthenaDataService athenaDataService = getAthenaDataService();
+        if(athenaDataService != null){
+            if(logger.isInfoEnabled()){
+                logger.info("do report detail size:{}.",detailDOList.size());
+            }
+            athenaDataService.reportMethodCallDetail(detailDOList);
         }
     }
 
@@ -52,30 +50,21 @@ public class VenusMonitorReporter {
         if(CollectionUtils.isEmpty(staticDOList)){
             return;
         }
-
-        if(CollectionUtils.isNotEmpty(staticDOList)){
-            if(logger.isDebugEnabled()){
-                logger.debug("report static size:{}.",staticDOList.size());
-            }
-        }else{
-            if(logger.isDebugEnabled()){
-                logger.debug("report static size:{}.",0);
-            }
+        if(logger.isInfoEnabled()){
+            logger.info("report static size:{}.",staticDOList.size());
         }
 
-        if(CollectionUtils.isNotEmpty(staticDOList)){
-            getAthenaDataService().reportMethodStatic(staticDOList);
+        AthenaDataService athenaDataService = getAthenaDataService();
+        if(athenaDataService != null){
+            if(logger.isInfoEnabled()){
+                logger.info("do report static size:{}.",staticDOList.size());
+            }
+            athenaDataService.reportMethodStatic(staticDOList);
         }
     }
 
     public AthenaDataService getAthenaDataService() {
-        if(athenaDataService == null){
-            throw new VenusConfigException("athenaDataService is not inited.");
-        }
-        return athenaDataService;
+        return VenusMonitorFactory.getInstance().getAthenaDataService();
     }
 
-    public void setAthenaDataService(AthenaDataService athenaDataService) {
-        this.athenaDataService = athenaDataService;
-    }
 }

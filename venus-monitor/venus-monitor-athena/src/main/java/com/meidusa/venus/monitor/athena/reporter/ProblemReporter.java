@@ -3,8 +3,8 @@ package com.meidusa.venus.monitor.athena.reporter;
 /**
  * Created by GodzillaHua on 7/3/16.
  */
-public interface AthenaMetricReporter {
+public interface ProblemReporter {
 
-    void metric(String key, int count);
+    void problem(String message, Throwable cause);
 
 }

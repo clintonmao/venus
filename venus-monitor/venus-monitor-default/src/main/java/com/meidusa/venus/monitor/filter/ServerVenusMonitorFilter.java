@@ -26,10 +26,8 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
-    public ServerVenusMonitorFilter(){}
-
-    public ServerVenusMonitorFilter(AthenaDataService athenaDataService){
-        this.setAthenaDataService(athenaDataService);
+    public ServerVenusMonitorFilter(){
+        startProcessAndReporterTread();
     }
 
     @Override

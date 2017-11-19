@@ -77,7 +77,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      */
     private boolean hasNeededDependences = true;
 
-    private static VenusMonitorFactory venusMonitorFactory;
+    private static VenusMonitorFactory venusMonitorFactory = new VenusMonitorFactory();
 
     /**
      * athena配置管理
@@ -98,10 +98,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      * @return
      */
     public static VenusMonitorFactory getInstance(){
-        if(venusMonitorFactory != null){
-            return venusMonitorFactory;
-        }
-        return null;
+        return venusMonitorFactory;
     }
 
     @Override

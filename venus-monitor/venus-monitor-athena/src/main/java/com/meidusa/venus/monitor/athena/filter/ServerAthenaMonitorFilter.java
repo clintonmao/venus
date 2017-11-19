@@ -6,10 +6,8 @@ import com.meidusa.venus.*;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
-import com.meidusa.venus.monitor.athena.reporter.AthenaExtensionResolver;
 import com.meidusa.venus.monitor.athena.reporter.AthenaReporterDelegate;
-import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionDelegate;
-import com.meidusa.venus.monitor.athena.reporter.AthenaTransactionId;
+import com.meidusa.venus.monitor.athena.AthenaTransactionId;
 import com.meidusa.venus.support.ServiceWrapper;
 import com.meidusa.venus.support.VenusThreadContext;
 import com.meidusa.venus.util.VenusLoggerFactory;
@@ -38,7 +36,7 @@ public class ServerAthenaMonitorFilter implements Filter {
 
     @Override
     public void init() throws RpcException {
-        AthenaExtensionResolver.getInstance().resolver();
+        AthenaReporterDelegate.getInstance().init();
     }
 
     @Override
@@ -57,13 +55,13 @@ public class ServerAthenaMonitorFilter implements Filter {
             String apiName = request.apiName;
             long startTime = TimeUtil.currentTimeMillis();
             VenusThreadContext.set(VenusThreadContext.SERVER_BEGIN_TIME,Long.valueOf(startTime));
-            AthenaReporterDelegate.getDelegate().metric(apiName + ".handleRequest");
+            AthenaReporterDelegate.getInstance().metric(apiName + ".handleRequest");
             AthenaTransactionId transactionId = new AthenaTransactionId();
             transactionId.setRootId(new String(serverInvocation.getAthenaId()));
             transactionId.setParentId(new String(serverInvocation.getParentId()));
             transactionId.setMessageId(new String(serverInvocation.getMessageId()));
-            AthenaTransactionDelegate.getDelegate().startServerTransaction(transactionId, apiName);
-            AthenaTransactionDelegate.getDelegate().setServerInputSize(data.right.length);
+            AthenaReporterDelegate.getInstance().startServerTransaction(transactionId, apiName);
+            AthenaReporterDelegate.getInstance().setServerInputSize(data.right.length);
             return null;
         }catch(Throwable e){
             //只记录异常，避免影响正常调用
@@ -87,8 +85,8 @@ public class ServerAthenaMonitorFilter implements Filter {
             Endpoint endpoint = serverInvocation.getEndpointDef();
             boolean athenaFlag = endpoint.getService().getAthenaFlag();
             if (athenaFlag) {
-                AthenaReporterDelegate.getDelegate().metric(apiName + ".error");
-                AthenaReporterDelegate.getDelegate().problem(e.getMessage(), e);
+                AthenaReporterDelegate.getInstance().metric(apiName + ".error");
+                AthenaReporterDelegate.getInstance().problem(e.getMessage(), e);
                 //VenusMonitorDelegate.getInstance().reportError(e.getMessage(), e);
             }
             return null;
@@ -115,13 +113,13 @@ public class ServerAthenaMonitorFilter implements Filter {
             SerializeServiceRequestPacket request = serverInvocation.getRequest();
             String apiName = request.apiName;
             boolean athenaFlag = endpoint.getService().getAthenaFlag();
-            AthenaReporterDelegate.getDelegate().metric(apiName + ".complete");
+            AthenaReporterDelegate.getInstance().metric(apiName + ".complete");
             Long startTime = (Long) VenusThreadContext.get(VenusThreadContext.SERVER_BEGIN_TIME);
             long endRunTime = TimeUtil.currentTimeMillis();
             long queuedTime = startTime.longValue() - data.left;
             long executeTime = endRunTime - startTime.longValue();
             if ((endpoint.getTimeWait() < (queuedTime + executeTime)) && athenaFlag) {
-                AthenaReporterDelegate.getDelegate().metric(apiName + ".timeout");
+                AthenaReporterDelegate.getInstance().metric(apiName + ".timeout");
             }
 
             //保存输出报文长度
@@ -129,10 +127,10 @@ public class ServerAthenaMonitorFilter implements Filter {
 
             Integer serverOutputSize = (Integer) VenusThreadContext.get(VenusThreadContext.SERVER_OUTPUT_SIZE);
             if(serverOutputSize != null){
-                AthenaTransactionDelegate.getDelegate().setServerOutputSize(serverOutputSize.intValue());
+                AthenaReporterDelegate.getInstance().setServerOutputSize(serverOutputSize.intValue());
             }
 
-            AthenaTransactionDelegate.getDelegate().completeServerTransaction();
+            AthenaReporterDelegate.getInstance().completeServerTransaction();
             return null;
         }catch (Throwable e){
             //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用

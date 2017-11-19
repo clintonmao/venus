@@ -21,6 +21,8 @@ public class DefaultMonitorResource implements MonitorResource {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
+
     private static boolean isRunning = false;
 
     //版本号
@@ -50,7 +52,7 @@ public class DefaultMonitorResource implements MonitorResource {
                         oneMinutesTask();
                     }
                 };
-                timer.schedule(timerTask,5000,1000*60*1);
+                timer.schedule(timerTask,5000,1000*60*5);
                 isRunning = true;
             }
         }
@@ -64,7 +66,7 @@ public class DefaultMonitorResource implements MonitorResource {
             //打印版本号
             readVersion();
         } catch (Exception e) {
-            logger.error("schedual task error.",e);
+            exceptionLogger.error("schedual task error.",e);
         }
     }
 
@@ -78,7 +80,7 @@ public class DefaultMonitorResource implements MonitorResource {
                 logger.info("properties:{}.", JSON.toJSONString(this.properties));
             }
         } catch (Exception e) {
-            logger.error("schedual task error.",e);
+            exceptionLogger.error("schedual task error.",e);
         }
     }
 
@@ -108,7 +110,7 @@ public class DefaultMonitorResource implements MonitorResource {
             }
             br.close();
         }catch(Exception e){
-            e.printStackTrace();
+            exceptionLogger.error("read file failed.",e);
         }
         return result.toString();
     }
