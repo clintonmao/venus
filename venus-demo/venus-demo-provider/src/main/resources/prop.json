@@ -1,0 +1,49 @@
+{
+  "registeUrls": [
+    {
+      "application": "demo-provider",
+      "consumerCheck": false,
+      "host": "10.47.58.49",
+      "interfaceName": "com.chexiang.venus.demo.provider.HelloService",
+      "methods": "sayHello[java.lang.String,com.meidusa.venus.notify.InvocationListener];getHelloForBench[java.lang.String,[B];sayHello[java.lang.String];getHello[java.lang.String]",
+      "path": "com.chexiang.venus.demo.provider.HelloService/helloService",
+      "port": 16800,
+      "properties": {
+        "versionRange": "{4, 5, 6}",
+        "application": "demo-provider",
+        "port": "16800",
+        "methods": "sayHello[java.lang.String,com.meidusa.venus.notify.InvocationListener];getHelloForBench[java.lang.String,[B];sayHello[java.lang.String];getHello[java.lang.String]",
+        "host": "10.47.58.49",
+        "version": "6"
+      },
+      "protocol": "venus",
+      "serviceName": "helloService",
+      "version": "6",
+      "versionRange": "{4, 5, 6}",
+      "weight": 1
+    },
+    {
+      "application": "demo-provider",
+      "consumerCheck": false,
+      "host": "10.47.58.49",
+      "interfaceName": "com.chexiang.venus.demo.provider.EchoService",
+      "methods": "getEcho[java.lang.String];echo[java.lang.String]",
+      "path": "com.chexiang.venus.demo.provider.EchoService/echoService",
+      "port": 16800,
+      "properties": {
+        "versionRange": "{1}",
+        "application": "demo-provider",
+        "port": "16800",
+        "methods": "getEcho[java.lang.String];echo[java.lang.String]",
+        "host": "10.47.58.49",
+        "version": "1"
+      },
+      "protocol": "venus",
+      "serviceName": "echoService",
+      "version": "1",
+      "versionRange": "{1}",
+      "weight": 1
+    }
+  ],
+  "subscribleUrls": []
+}

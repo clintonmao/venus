@@ -9,6 +9,7 @@ import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.domain.RegisteConstant;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.registry.service.RegisterService;
+import com.meidusa.venus.support.MonitorResourceFacade;
 import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
@@ -348,11 +349,17 @@ public class MysqlRegister implements Register {
 					logger.debug("hearbeat report:{}.",JSON.toJSONString(maps));
 				}
 				registerService.heartbeat(maps);
+
+				//添加到监控项中
+				MonitorResourceFacade.getInstance().addProperty("registeUrls",registeUrls);
+				MonitorResourceFacade.getInstance().addProperty("subscribleUrls",subscribleUrls);
 			} catch (Exception e) {
 				exceptionLogger.error("heartbeat report failed.", e);
 			}
 		}
 	}
+
+
 
 	/**
 	 * 注册订阅失败重试任务
