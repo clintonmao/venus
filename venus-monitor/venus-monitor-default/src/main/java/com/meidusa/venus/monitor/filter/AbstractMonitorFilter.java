@@ -3,15 +3,13 @@ package com.meidusa.venus.monitor.filter;
 import com.athena.domain.MethodCallDetailDO;
 import com.athena.domain.MethodStaticDO;
 import com.athena.service.api.AthenaDataService;
-import com.meidusa.venus.Invocation;
+import com.meidusa.venus.monitor.reporter.VenusMonitorReporter;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
-import com.meidusa.venus.monitor.reporter.VenusMonitorReporter;
 import com.meidusa.venus.util.JSONUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -29,8 +27,6 @@ public abstract class AbstractMonitorFilter {
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
-
-    private static Logger statusLogger = VenusLoggerFactory.getStatusLogger();
 
     //明细队列
     private Queue<InvocationDetail> detailQueue = new LinkedBlockingQueue<InvocationDetail>();
@@ -204,8 +200,8 @@ public abstract class AbstractMonitorFilter {
                     VenusMonitorReporter monitorReporter = getMonitorReporter();
 
                     //1、明细上报
-                    if(statusLogger.isDebugEnabled()){
-                        statusLogger.debug("current detail report queue size:{}.", reportDetailQueue.size());
+                    if(logger.isDebugEnabled()){
+                        logger.debug("current detail report queue size:{}.", reportDetailQueue.size());
                     }
                     List<InvocationDetail> detailList = new ArrayList<InvocationDetail>();
                     int fetchNum = perDetailReportNum;
@@ -228,8 +224,8 @@ public abstract class AbstractMonitorFilter {
 
                     //2、汇总上报
                     if(getRole() == ROLE_CONSUMER){//只consumer进行统计上报
-                        if(statusLogger.isDebugEnabled()){
-                            statusLogger.debug("current statistic report queue size:{}.",statisticMap.size());
+                        if(logger.isDebugEnabled()){
+                            logger.debug("current statistic report queue size:{}.",statisticMap.size());
                         }
                         Collection<InvocationStatistic> statisticCollection = statisticMap.values();
                         if(CollectionUtils.isNotEmpty(statisticCollection)){

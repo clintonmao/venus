@@ -16,9 +16,7 @@ import java.util.TimerTask;
  */
 public class AllResourceService implements MonitorResource {
 
-    private static Logger logger = VenusLoggerFactory.getStatusLogger();
-
-    private static Logger statusLogger = VenusLoggerFactory.getStatusLogger();
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
     private static boolean isRunning = false;
 
@@ -60,7 +58,9 @@ public class AllResourceService implements MonitorResource {
     static void readVersion(){
         String file =  AllResourceService.class.getResource("/version.txt").getFile();
         String version = readFile(new File(file));
-        statusLogger.info(version);
+        if(logger.isInfoEnabled()){
+            logger.info(version);
+        }
     }
 
     /**

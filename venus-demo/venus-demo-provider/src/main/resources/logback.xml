@@ -58,16 +58,6 @@
         </encoder>
     </appender>
 
-    <appender name="venus.status" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_SYS_HOME}/venus-status.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_APP_HOME}/venus-status.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
-        </rollingPolicy>
-        <layout class="ch.qos.logback.classic.PatternLayout">
-            <pattern>%-20(%d{HH:mm:ss.SSS} [%thread]) %-5level %logger{80} - %msg%n</pattern>
-        </layout>
-    </appender>
-
     <appender name="venus.default" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_SYS_HOME}/venus-default.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -117,12 +107,6 @@
     <logger name="venus.exception" additivity="false">
         <level value="info"/>
         <appender-ref ref="venus.exception"/>
-        <appender-ref ref="stdout"/>
-    </logger>
-
-    <logger name="venus.status" additivity="false">
-        <level value="info"/>
-        <appender-ref ref="venus.status"/>
         <appender-ref ref="stdout"/>
     </logger>
 

@@ -15,8 +15,6 @@ public class VenusLoggerFactory {
 
     private static Logger exceptionLogger = LoggerFactory.getLogger("venus.exception");
 
-    private static Logger statusLogger = LoggerFactory.getLogger("venus.status");
-
     public static Logger getDefaultLogger(){
         return defaultLogger;
     }
@@ -27,10 +25,6 @@ public class VenusLoggerFactory {
 
     public static Logger getTracerLogger() {
         return tracerLogger;
-    }
-
-    public static Logger getStatusLogger() {
-        return statusLogger;
     }
 
 }

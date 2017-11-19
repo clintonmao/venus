@@ -66,14 +66,6 @@ public interface RegisterService {
 	@PerformanceLevel(printParams=false,printResult = false)
 	List<VenusServiceDefinitionDO> findServiceDefinitions(@Param(name = "url")URL url);
     
-//	/**
-//	 * 根据URL更新注册接口的心跳时间
-//	 * @param url
-//	 */
-//	@Endpoint(name = "heartbeatRegister")
-//	@PerformanceLevel(printParams=false,printResult = false)
-//	void heartbeatRegister(@Param(name = "url")URL url);
-	
     /**
      * 根据URL更新注册接口的心跳时间
      * @param url
@@ -81,14 +73,6 @@ public interface RegisterService {
 	@Endpoint(name = "heartbeat")
 	@PerformanceLevel(printParams=false,printResult = false)
     void heartbeat(@Param(name = "maps")Map<String,Set<URL>> maps);
-    
-//    /**
-//     * 根据URL更新订阅接口的心跳时间
-//     * @param url
-//     */
-//	@Endpoint(name = "heartbeatSubcribe")
-//	@PerformanceLevel(printParams=false,printResult = false)
-//    void heartbeatSubcribe(@Param(name = "url")URL url);
     
     /**
      * 清理无效的服务映射关系

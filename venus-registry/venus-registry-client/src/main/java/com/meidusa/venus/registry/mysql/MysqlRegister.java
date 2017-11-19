@@ -1,27 +1,5 @@
 package com.meidusa.venus.registry.mysql;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-
 import com.meidusa.fastjson.JSON;
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.URL;
@@ -33,6 +11,16 @@ import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.registry.service.RegisterService;
 import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.util.VenusLoggerFactory;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.TimeUnit;
 
 /**
  * mysql服务注册中心类 Created by Zhangzhihua on 2017/7/27.
@@ -40,6 +28,8 @@ import com.meidusa.venus.util.VenusLoggerFactory;
 public class MysqlRegister implements Register {
 
 	private static Logger logger = VenusLoggerFactory.getDefaultLogger();
+
+	private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
 	/** 已注册成功的URL */
 	protected Set<URL> registeUrls = new CopyOnWriteArraySet<URL>();
@@ -95,7 +85,7 @@ public class MysqlRegister implements Register {
 			}
 		}
 		if(logger.isInfoEnabled()){
-			logger.info("fileCachePath=>{}",fileCachePath);
+			logger.info("venusCachePath:{}",fileCachePath);
 		}
 		if (!loadRunning) {
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 10, VenusConstants.FAIL_RETRY_INTERVAL, TimeUnit.SECONDS);
@@ -114,7 +104,7 @@ public class MysqlRegister implements Register {
 			heartbeat();
 		} catch (Exception e) {
 			registeFailUrls.add(url);
-			throw new VenusRegisteException("服务注册异常" + getServiceName(url), e);
+			throw new VenusRegisteException("registe service failed:" + getServiceName(url), e);
 		}
 		registeUrls.add(url);
 
@@ -125,16 +115,13 @@ public class MysqlRegister implements Register {
 		if(logger.isInfoEnabled()){
 			logger.info("unregiste service:{}.",url);
 		}
-		if (StringUtils.isBlank(url.getVersion())) {
-			throw new VenusRegisteException("取消注册异常" + getServiceName(url) + ",version为空");
-		}
 		try {
 			boolean unregiste = registerService.unregiste(url);
 			if (unregiste) {
 				registeUrls.remove(url);
 			}
 		} catch (Exception e) {
-			throw new VenusRegisteException("取消注册异常" + getServiceName(url), e);
+			throw new VenusRegisteException("unregiste service failed:" + getServiceName(url), e);
 		}
 	}
 
@@ -149,7 +136,7 @@ public class MysqlRegister implements Register {
 			heartbeat();
 		} catch (Exception e) {
 			subscribleFailUrls.add(url);
-			logger.error("服务{}订阅异常 ,异常原因：{}", getServiceName(url), e);
+			exceptionLogger.error("subscrible service failed:" + getServiceName(url), e);
 			success = false;
 		}
 		subscribleUrls.add(url);
@@ -168,7 +155,7 @@ public class MysqlRegister implements Register {
 				subscribleUrls.remove(url);
 			}
 		} catch (Exception e) {
-			throw new VenusRegisteException("取消订阅异常" + getServiceName(url), e);
+			throw new VenusRegisteException("unsubscrible service failed:" + getServiceName(url), e);
 		}
 		load();
 	}
@@ -246,11 +233,8 @@ public class MysqlRegister implements Register {
 						subscribleServiceDefinitionMap.remove(key);
 					}
 				} catch (Exception e) {
-//					if (e instanceof HessianRuntimeException || e instanceof HessianException
-//							|| e instanceof HessianProtocolException || e instanceof HessianServiceException) {
-//					}
 					hasException = true;
-					logger.error("服务{}load 运行异常 ,异常原因：{}", getServiceName(url), e);
+					exceptionLogger.error("load service failed:"+getServiceName(url), e);
 				}
 			}
 
@@ -332,12 +316,27 @@ public class MysqlRegister implements Register {
 		subscribleServiceDefinitionMap.clear();
 	}
 
+	/**
+	 * 服务定义加载任务
+	 */
 	private class ServiceDefLoaderRunnable implements Runnable {
 		public void run() {
-			load();
+			try {
+				if(logger.isDebugEnabled()){
+					logger.debug("load services def.");
+				}
+				load();
+			} catch (VenusRegisteException e) {
+				if(exceptionLogger.isErrorEnabled()){
+					exceptionLogger.error("load services def failed.", e);
+				}
+			}
 		}
 	}
 
+	/**
+	 * 心跳上报任务
+	 */
 	private class HeartBeatRunnable implements Runnable {
 		@Override
 		public void run() {
@@ -345,13 +344,19 @@ public class MysqlRegister implements Register {
 			maps.put(RegisteConstant.PROVIDER, registeUrls);
 			maps.put(RegisteConstant.CONSUMER, subscribleUrls);
 			try {
+				if(logger.isDebugEnabled()){
+					logger.debug("hearbeat report:{}.",JSON.toJSONString(maps));
+				}
 				registerService.heartbeat(maps);
 			} catch (Exception e) {
-				logger.error("{},heartbeat异常 ,异常原因：{}", JSON.toJSONString(maps, true), e);
+				exceptionLogger.error("heartbeat report failed.", e);
 			}
 		}
 	}
 
+	/**
+	 * 注册订阅失败重试任务
+	 */
 	private class UrlFailRunnable implements Runnable {
 		@Override
 		public void run() {
@@ -367,7 +372,7 @@ public class MysqlRegister implements Register {
 						if (StringUtils.isNotBlank(url.getVersion()) && !"null".equals(url.getVersion())) {
 							version = url.getVersion();
 						}
-						logger.error("Fail服务{}重新注册异常 ,version:{},异常原因：{}", name, version, e);
+						exceptionLogger.error("registe fail retry failed,service:{},version:{},exception:{}.", name, version, e);
 					}
 				}
 			}
@@ -385,7 +390,7 @@ public class MysqlRegister implements Register {
 						if (StringUtils.isNotBlank(url.getVersion()) && !"null".equals(url.getVersion())) {
 							version = url.getVersion();
 						}
-						logger.error("Fail服务{}重新订阅异常 ,version:{},异常原因：{}", name, version, e);
+						exceptionLogger.error("subscrible fail retry failed,service:{},version:{},exception:{}.", name, version, e);
 					}
 				}
 			}
@@ -416,7 +421,7 @@ public class MysqlRegister implements Register {
 			try {
 				randomAccessFile = new RandomAccessFile(file, "r");
 			} catch (FileNotFoundException e) {
-				logger.error("readFile filePath=>" + filePath + " is error", e);
+				exceptionLogger.error("readFile filePath=>" + filePath + " is error", e);
 			}
 			String str = null;
 			try {
@@ -424,7 +429,7 @@ public class MysqlRegister implements Register {
 					fileContents.add(new String(str.getBytes("ISO-8859-1"),"UTF-8"));
 				}
 			} catch (IOException e) {
-				logger.error("readFile filePath=>" + filePath + " is error", e);
+				exceptionLogger.error("readFile filePath=>" + filePath + " is error", e);
 			} finally {
 				if (null != randomAccessFile) {
 					try {
@@ -444,7 +449,7 @@ public class MysqlRegister implements Register {
 	 * @param filePath
 	 * @return
 	 */
-	public static List<String> readFile1(String filePath) {
+	public static List<String> readFileEx(String filePath) {
 		List<String> fileContents = new ArrayList<String>();
 		if (!filePath.endsWith(".txt")) {
 			return fileContents;
@@ -525,10 +530,8 @@ public class MysqlRegister implements Register {
 			}
 			return;
 		}
-		//List<String> readFiles = readFile(filePath);
-		//List<String> need_write_list = getWriteList(readFiles, jsons);
-		List<String> need_write_list = jsons;
-		if (CollectionUtils.isEmpty(need_write_list)) {
+		List<String> needWriteList = jsons;
+		if (CollectionUtils.isEmpty(needWriteList)) {
 			return;
 		}
 		RandomAccessFile randomAccessFile =null;
@@ -549,16 +552,16 @@ public class MysqlRegister implements Register {
 				}*/
 				
 				randomAccessFile = new RandomAccessFile(file, "rw");
-				for (String json : need_write_list) {
+				for (String json : needWriteList) {
 					randomAccessFile.write(json.getBytes("UTF-8"));
 					randomAccessFile.write("\n".getBytes("UTF-8"));
 				}
 				randomAccessFile.close();
 			}
 		} catch (IOException e) {
-			logger.error("writeFile filePath=>" + filePath + " is error", e);
+			exceptionLogger.error("writeFile filePath=>" + filePath + " is error", e);
 		} catch (NullPointerException e) {
-			logger.error("writeFile filePath=>" + filePath + " is error", e);
+			exceptionLogger.error("writeFile filePath=>" + filePath + " is error", e);
 		} finally {
 			if (null != randomAccessFile) {
 				try {
@@ -567,21 +570,6 @@ public class MysqlRegister implements Register {
 					// ingore
 				}
 			}
-			/*
-			if (null != bufferWriter) {
-				try {
-					bufferWriter.close();
-				} catch (IOException e) {
-					// ingore
-				}
-			}
-			if (null != fileWriter) {
-				try {
-					fileWriter.close();
-				} catch (IOException e) {
-					// ingore
-				}
-			}*/
 		}
 	}
 

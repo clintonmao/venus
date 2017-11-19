@@ -38,22 +38,22 @@ public class VenusConstants {
 
     //服务默认版本号
     public static final int VERSION_DEFAULT = 0;
-    
-    //注册中心-逻辑删除无效的注册订阅服务间隔时间 （秒）
-    public static final int LOGIC_DEL_INVALID_SERVICE_TIME = 30;
-    
-    //注册中心-逻辑删除无效的注册订阅服务间隔时间 （小时）
-    public static final int DELELE_INVALID_SERVICE_HOUR = 8;
-    
+
     //注册中心-心跳间隔时间 （秒）
-    public static final int HEARTBEAT_INTERVAL = 3;
-    
-    //注册中心-服务定义加载间隔时间 （秒）
-    public static final int SERVER_DEFINE_LOAD_INTERVAL = 10;
-    
+    public static final int HEARTBEAT_INTERVAL = 5;
+
+    //注册中心-服务加载间隔时间 （秒）
+    public static final int SERVER_DEFINE_LOAD_INTERVAL = 5;
+
     //注册中心-失败重试间隔时间 （秒）
     public static final int FAIL_RETRY_INTERVAL = 30;
-    
+
+    //注册中心-逻辑删除无效的注册订阅服务间隔时间 （秒）
+    public static final int LOGIC_DEL_INVALID_SERVICE_TIME = 30;
+
+    //注册中心-物理删除无效的注册订阅服务间隔时间 （小时）
+    public static final int DELELE_INVALID_SERVICE_HOUR = 8;
+
     
 
 
