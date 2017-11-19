@@ -25,8 +25,6 @@ public class DefaultHelloService implements HelloService {
     @Autowired
     EchoService echoService;
 
-
-
     @Override
     public void sayHello(String name, InvocationListener<Hello> invocationListener) {
         logger.info("invoke sayHello with listener:" + name);

@@ -31,7 +31,10 @@ public class DefaultServerTransactionReporter extends AbstractTransactionReporte
 
             Stack<Transaction> transactionStack = TransactionThreadLocal.getInstance().get();
 
-            transactionStack.add(AthenaUtils.getInstance().newTransaction(AthenaConstants.TRANSACTION_TYPE_LOCAL, itemName));
+            Transaction transaction = AthenaUtils.getInstance().newTransaction(AthenaConstants.TRANSACTION_TYPE_LOCAL, itemName);
+            if(transaction != null){
+                transactionStack.add(transaction);
+            }
         } catch (Exception e) {
             logger.error("server startTransaction error.",e);
         }

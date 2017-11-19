@@ -11,7 +11,7 @@ public class RandomBuildUtil {
     static Random random = new Random();
 
     public static void randomSleepOrThrow(boolean isBuildDataModel){
-        if(ThreadLocalRandom.current().nextInt(100) > 80){//构造异常操作
+        if(ThreadLocalRandom.current().nextInt(100) > 99){//构造异常操作
             if("A".equals("A")){
                 throw new IllegalArgumentException("param invalid.");
             }

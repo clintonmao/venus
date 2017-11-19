@@ -2,7 +2,7 @@ package com.meidusa.venus.monitor.athena.config.impl;
 
 import com.meidusa.venus.ServiceFactoryBean;
 import com.meidusa.venus.exception.VenusConfigException;
-import com.meidusa.venus.monitor.config.ClientConfigManagerRegister;
+import com.meidusa.venus.monitor.config.ClientConfigManagerIniter;
 import com.saic.framework.athena.configuration.ClientConfigManager;
 import com.saic.framework.athena.configuration.DefaultClientConfigManager;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,12 +18,12 @@ import org.springframework.beans.factory.support.GenericBeanDefinition;
  * athena配置信息管理代理，目的将athena-client依赖独立出来
  * Created by Zhangzhihua on 2017/10/9.
  */
-public class DefaultClientConfigManagerRegister implements ClientConfigManagerRegister {
+public class DefaultClientConfigManagerIniter implements ClientConfigManagerIniter {
 
     @Override
     public Object initConfigManager(String appName, boolean enabled) {
         //初始化实例
-        ClientConfigManager clientConfigManager = initAthenaConfigManager(appName, enabled);
+        ClientConfigManager clientConfigManager = initDefaultConfigManager(appName, enabled);
         if(clientConfigManager == null){
             throw new VenusConfigException("init clientConfigManager failed.");
         }
@@ -33,10 +33,11 @@ public class DefaultClientConfigManagerRegister implements ClientConfigManagerRe
     /**
      * 初始化athena配置信息
      */
-    ClientConfigManager initAthenaConfigManager(String appName,boolean enable){
+    ClientConfigManager initDefaultConfigManager(String appName, boolean enable){
         DefaultClientConfigManager clientConfigManager = new DefaultClientConfigManager();
         clientConfigManager.setAppName(appName);
         clientConfigManager.setMonitorEnabled(enable);
+        clientConfigManager.init();
         return clientConfigManager;
     }
 

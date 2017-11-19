@@ -52,7 +52,7 @@ public class DefaultMonitorResource implements MonitorResource {
                         oneMinutesTask();
                     }
                 };
-                timer.schedule(timerTask,5000,1000*60*5);
+                timer.schedule(timerTask,5000,1000*60*10);
                 isRunning = true;
             }
         }

@@ -33,7 +33,10 @@ public class DefaultClientTransactionReporter extends AbstractTransactionReporte
             transactionId.setMessageId(context.getProperty(RemoteContext.CHILD));
 
             Stack<Transaction> transactionStack = TransactionThreadLocal.getInstance().get();
-            transactionStack.add(AthenaUtils.getInstance().newTransaction(AthenaConstants.TRANSACTION_TYPE_RPC, itemName));
+            Transaction transaction = AthenaUtils.getInstance().newTransaction(AthenaConstants.TRANSACTION_TYPE_RPC, itemName);
+            if(transaction != null){
+                transactionStack.add(transaction);
+            }
         }catch (Exception e) {
             logger.error("client startTransaction error.",e);
             return null;

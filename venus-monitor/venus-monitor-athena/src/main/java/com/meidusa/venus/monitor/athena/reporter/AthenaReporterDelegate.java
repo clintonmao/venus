@@ -16,7 +16,7 @@ import java.io.InputStream;
  * athena上报代理
  * Created by GodzillaHua on 7/3/16.
  */
-public class AthenaReporterDelegate {
+public class AthenaReporterDelegate{
 
     private static Logger logger = LoggerFactory.getLogger(AthenaReporterDelegate.class);
 

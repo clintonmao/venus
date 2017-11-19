@@ -6,7 +6,7 @@ import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.ServiceFactoryBean;
 import com.meidusa.venus.ServiceFactoryExtra;
 import com.meidusa.venus.exception.VenusConfigException;
-import com.meidusa.venus.monitor.config.ClientConfigManagerRegister;
+import com.meidusa.venus.monitor.config.ClientConfigManagerIniter;
 import com.meidusa.venus.monitor.support.CustomScanAndRegisteUtil;
 import com.meidusa.venus.monitor.support.ApplicationContextHolder;
 import com.meidusa.venus.util.ReftorUtil;
@@ -14,7 +14,6 @@ import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -53,9 +52,9 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     private ApplicationContext applicationContext;
 
     /**
-     * athena配置信息注册实例
+     * athena配置信息初始化
      */
-    private ClientConfigManagerRegister clientConfigManagerRegister;
+    private ClientConfigManagerIniter clientConfigManagerIniter;
 
     /**
      * 直连服务实例化工厂
@@ -124,7 +123,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
             scanAndRegisteAthenaPackage();
 
             //初始化athenaConfigManager
-            initAthenaConfigManager();
+            initClientConfigManager();
 
             //初始化athenaDataService
             initAthenaDataService(address);
@@ -163,14 +162,14 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     /**
      * 初始化athena配置信息
      */
-    void initAthenaConfigManager(){
+    void initClientConfigManager(){
         //创建配置信息代理实例
-        String className = "com.meidusa.venus.monitor.athena.config.impl.DefaultClientConfigManagerRegister";
-        ClientConfigManagerRegister clientConfigManagerRegister = ReftorUtil.newInstance(className);
+        String className = "com.meidusa.venus.monitor.athena.config.impl.DefaultClientConfigManagerIniter";
+        ClientConfigManagerIniter clientConfigManagerRegister = ReftorUtil.newInstance(className);
         if(clientConfigManagerRegister == null){
-            throw new VenusConfigException("instance clientConfigManagerRegister failed.");
+            throw new VenusConfigException("instance clientConfigManagerIniter failed.");
         }
-        this.clientConfigManagerRegister = clientConfigManagerRegister;
+        this.clientConfigManagerIniter = clientConfigManagerRegister;
 
         //初始化配置信息实例
         String appName = application.getName();
@@ -229,8 +228,8 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      * @param beanFactory
      */
     void registeClientConfigManager(ConfigurableListableBeanFactory beanFactory){
-        if(clientConfigManagerRegister != null){
-            clientConfigManagerRegister.registeConfigManager(beanFactory,this.clientConfigManager);
+        if(clientConfigManagerIniter != null){
+            clientConfigManagerIniter.registeConfigManager(beanFactory,this.clientConfigManager);
         }
     }
 

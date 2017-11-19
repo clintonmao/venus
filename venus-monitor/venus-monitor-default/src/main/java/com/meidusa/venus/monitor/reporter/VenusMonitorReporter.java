@@ -29,15 +29,12 @@ public class VenusMonitorReporter {
         if(CollectionUtils.isEmpty(detailDOList)){
             return;
         }
-        if(logger.isInfoEnabled()){
-            logger.info("report detail size:{}.",detailDOList.size());
+        if(logger.isDebugEnabled()){
+            logger.debug("report detail size:{}.",detailDOList.size());
         }
 
         AthenaDataService athenaDataService = getAthenaDataService();
         if(athenaDataService != null){
-            if(logger.isInfoEnabled()){
-                logger.info("do report detail size:{}.",detailDOList.size());
-            }
             athenaDataService.reportMethodCallDetail(detailDOList);
         }
     }
@@ -50,15 +47,12 @@ public class VenusMonitorReporter {
         if(CollectionUtils.isEmpty(staticDOList)){
             return;
         }
-        if(logger.isInfoEnabled()){
-            logger.info("report static size:{}.",staticDOList.size());
+        if(logger.isDebugEnabled()){
+            logger.debug("report static size:{}.",staticDOList.size());
         }
 
         AthenaDataService athenaDataService = getAthenaDataService();
         if(athenaDataService != null){
-            if(logger.isInfoEnabled()){
-                logger.info("do report static size:{}.",staticDOList.size());
-            }
             athenaDataService.reportMethodStatic(staticDOList);
         }
     }

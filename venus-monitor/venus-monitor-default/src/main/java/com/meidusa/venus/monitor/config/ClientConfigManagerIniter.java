@@ -6,7 +6,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
  * ClientConfigManager初始化delegate
  * Created by Zhangzhihua on 2017/10/9.
  */
-public interface ClientConfigManagerRegister {
+public interface ClientConfigManagerIniter {
 
 
     /**
