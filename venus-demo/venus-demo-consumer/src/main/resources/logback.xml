@@ -48,7 +48,7 @@
     <appender name="venus.default" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_SYS_HOME}/venus-default.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_APP_HOME}/venus-default.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
+            <fileNamePattern>${LOG_SYS_HOME}/venus-default.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
         </rollingPolicy>
         <layout class="ch.qos.logback.classic.PatternLayout">
             <pattern>%-20(%d{HH:mm:ss.SSS} [%thread]) %-5level %logger{80} - %msg%n</pattern>
@@ -58,7 +58,7 @@
     <appender name="venus.tracer" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_SYS_HOME}/venus-tracer.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_APP_HOME}/venus-tracer.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
+            <fileNamePattern>${LOG_SYS_HOME}/venus-tracer.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
         </rollingPolicy>
         <layout class="ch.qos.logback.classic.PatternLayout">
             <pattern>%-20(%d{HH:mm:ss.SSS} [%thread]) %-5level %logger{80} - %msg%n</pattern>
@@ -68,7 +68,7 @@
     <appender name="venus.exception" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_SYS_HOME}/venus-exception.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_APP_HOME}/venus-exception.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
+            <fileNamePattern>${LOG_SYS_HOME}/venus-exception.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
         </rollingPolicy>
         <layout class="ch.qos.logback.classic.PatternLayout">
             <pattern>%-20(%d{HH:mm:ss.SSS} [%thread]) %-5level %logger{80} - %msg%n</pattern>

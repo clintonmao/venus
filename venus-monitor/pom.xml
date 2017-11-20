@@ -33,12 +33,10 @@
         <dependency>
             <groupId>com.meidusa.venus.commons</groupId>
             <artifactId>venus-common-exception</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus.commons</groupId>
             <artifactId>venus-common-annotation</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

@@ -62,22 +62,18 @@
 		<dependency>
 			<groupId>com.meidusa.venus.commons</groupId>
 			<artifactId>venus-common-base</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.meidusa.venus.commons</groupId>
 			<artifactId>venus-common-exception</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.meidusa.venus.commons</groupId>
 			<artifactId>venus-common-validator</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.meidusa.venus</groupId>
 			<artifactId>venus-client</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 </project>

@@ -53,11 +53,6 @@
 			<artifactId>reflections</artifactId>
 			<version>0.9.9-RC1</version>
 		</dependency>
-		<dependency>
-			<groupId>com.meidusa.venus.commons</groupId>
-			<artifactId>venus-common-annotation</artifactId>
-			<version>${project.version}</version>
-		</dependency>
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>
@@ -66,6 +61,10 @@
             <groupId>com.meidusa.toolkit</groupId>
             <artifactId>fastjson</artifactId>
         </dependency>
+		<dependency>
+			<groupId>com.meidusa.venus.commons</groupId>
+			<artifactId>venus-common-annotation</artifactId>
+		</dependency>
     </dependencies>
 
 	<build>

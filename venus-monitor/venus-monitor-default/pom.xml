@@ -19,17 +19,14 @@
         <dependency>
             <groupId>com.meidusa.venus.commons</groupId>
             <artifactId>venus-common-base</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus.commons</groupId>
             <artifactId>venus-common-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-remoting</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.saike.athena</groupId>

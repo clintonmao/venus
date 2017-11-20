@@ -104,7 +104,7 @@
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <version>${spring.boot.version}</version>
         </dependency>
-        <!--依赖api-->
+        <!--api依赖-->
         <dependency>
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-demo-api</artifactId>

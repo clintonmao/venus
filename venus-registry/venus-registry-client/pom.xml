@@ -25,22 +25,6 @@
             <artifactId>hessian</artifactId>
             <version>4.0.38</version>
         </dependency>
-        <!--spring-->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-tx</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-jdbc</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.meidusa.toolkit</groupId>
             <artifactId>fastjson</artifactId>
@@ -49,17 +33,14 @@
         <dependency>
             <groupId>com.meidusa.venus.commons</groupId>
             <artifactId>venus-common-base</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus.commons</groupId>
             <artifactId>venus-common-exception</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus.commons</groupId>
             <artifactId>venus-common-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus</groupId>
