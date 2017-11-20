@@ -4,6 +4,7 @@ import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.*;
 import com.meidusa.venus.backend.services.Endpoint;
+import com.meidusa.venus.backend.services.Service;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.monitor.athena.reporter.AthenaReporterDelegate;
@@ -43,9 +44,12 @@ public class ServerAthenaMonitorFilter implements Filter {
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
         try {
             ServerInvocation serverInvocation = (ServerInvocation)invocation;
-            //Endpoint endpoint = serverInvocation.getEndpointDef();
-            ServiceWrapper service = serverInvocation.getService();
-            if (service == null || !service.isAthenaFlag()) {
+            Endpoint endpoint = serverInvocation.getEndpointDef();
+            if(endpoint == null){
+                return null;
+            }
+            Service service = endpoint.getService();
+            if (service == null || !service.getAthenaFlag()) {
                 return null;
             }
 
@@ -76,19 +80,19 @@ public class ServerAthenaMonitorFilter implements Filter {
     public Result throwInvoke(Invocation invocation, URL url, Throwable e) throws RpcException {
         try {
             ServerInvocation serverInvocation = (ServerInvocation)invocation;
-            ServiceWrapper service = serverInvocation.getService();
-            if (service == null || !service.isAthenaFlag()) {
+            Endpoint endpoint = serverInvocation.getEndpointDef();
+            if(endpoint == null){
+                return null;
+            }
+            Service service = endpoint.getService();
+            if (service == null || !service.getAthenaFlag()) {
                 return null;
             }
             SerializeServiceRequestPacket request = serverInvocation.getRequest();
             String apiName = request.apiName;
-            Endpoint endpoint = serverInvocation.getEndpointDef();
-            boolean athenaFlag = endpoint.getService().getAthenaFlag();
-            if (athenaFlag) {
-                AthenaReporterDelegate.getInstance().metric(apiName + ".error");
-                AthenaReporterDelegate.getInstance().problem(e.getMessage(), e);
-                //VenusMonitorDelegate.getInstance().reportError(e.getMessage(), e);
-            }
+            AthenaReporterDelegate.getInstance().metric(apiName + ".error");
+            AthenaReporterDelegate.getInstance().problem(e.getMessage(), e);
+            //VenusMonitorDelegate.getInstance().reportError(e.getMessage(), e);
             return null;
         } catch (Throwable ex) {
             //只记录异常，避免影响正常调用
@@ -103,12 +107,15 @@ public class ServerAthenaMonitorFilter implements Filter {
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         try {
             ServerInvocation serverInvocation = (ServerInvocation)invocation;
-            ServiceWrapper service = serverInvocation.getService();
-            if (service == null || !service.isAthenaFlag()) {
+            Endpoint endpoint = serverInvocation.getEndpointDef();
+            if(endpoint == null){
+                return null;
+            }
+            Service service = endpoint.getService();
+            if (service == null || !service.getAthenaFlag()) {
                 return null;
             }
 
-            Endpoint endpoint = serverInvocation.getEndpointDef();
             Tuple<Long, byte[]> data = serverInvocation.getData();
             SerializeServiceRequestPacket request = serverInvocation.getRequest();
             String apiName = request.apiName;

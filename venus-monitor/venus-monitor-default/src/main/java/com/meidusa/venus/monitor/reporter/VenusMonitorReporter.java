@@ -29,8 +29,8 @@ public class VenusMonitorReporter {
         if(CollectionUtils.isEmpty(detailDOList)){
             return;
         }
-        if(logger.isDebugEnabled()){
-            logger.debug("report detail size:{}.",detailDOList.size());
+        if(logger.isInfoEnabled()){
+            logger.info("report detail size:{}.",detailDOList.size());
         }
 
         AthenaDataService athenaDataService = getAthenaDataService();
@@ -58,6 +58,9 @@ public class VenusMonitorReporter {
     }
 
     public AthenaDataService getAthenaDataService() {
+        if(VenusMonitorFactory.getInstance() == null){
+            return null;
+        }
         return VenusMonitorFactory.getInstance().getAthenaDataService();
     }
 
