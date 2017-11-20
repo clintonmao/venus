@@ -14,7 +14,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.meidusa.venus.commons</groupId>
+            <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-common-base</artifactId>
         </dependency>
         <dependency>

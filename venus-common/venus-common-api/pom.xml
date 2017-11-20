@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>venus-common</artifactId>
+        <groupId>com.meidusa.venus</groupId>
+        <version>4.0.3-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>venus-common-api</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.meidusa.venus</groupId>
+            <artifactId>venus-common-base</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.meidusa.venus</groupId>
+            <artifactId>venus-common-exception</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.meidusa.venus</groupId>
+            <artifactId>venus-common-annotation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.meidusa.venus</groupId>
+            <artifactId>venus-remoting</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>

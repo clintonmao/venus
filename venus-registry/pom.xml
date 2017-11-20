@@ -47,22 +47,22 @@
 			<artifactId>commons-logging</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.meidusa.venus.commons</groupId>
+			<groupId>com.meidusa.venus</groupId>
 			<artifactId>venus-common-base</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.meidusa.venus.commons</groupId>
+			<groupId>com.meidusa.venus</groupId>
 			<artifactId>venus-common-exception</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.meidusa.venus.commons</groupId>
+			<groupId>com.meidusa.venus</groupId>
 			<artifactId>venus-common-annotation</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.meidusa.venus.commons</groupId>
+			<groupId>com.meidusa.venus</groupId>
 			<artifactId>venus-common-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>

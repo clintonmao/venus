@@ -31,11 +31,11 @@
             <artifactId>toolkit-net-nio</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.meidusa.venus.commons</groupId>
+            <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-common-exception</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.meidusa.venus.commons</groupId>
+            <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-common-annotation</artifactId>
         </dependency>
     </dependencies>

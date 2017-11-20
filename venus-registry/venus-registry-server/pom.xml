@@ -144,6 +144,10 @@
 					<artifactId>spring-core</artifactId>
 					<groupId>org.springframework</groupId>
 				</exclusion>
+                <exclusion>
+                    <groupId>com.meidusa.venus.commons</groupId>
+                    <artifactId>venus-common-exception</artifactId>
+                </exclusion>
 			</exclusions>
 		</dependency>
     </dependencies>

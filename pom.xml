@@ -47,7 +47,7 @@
 	</properties>
 
 	<modules>
-		<module>venus-commons</module>
+		<module>venus-common</module>
 		<module>venus-backend</module>
 		<module>venus-client</module>
 		<module>venus-remoting</module>
@@ -234,27 +234,27 @@
 			</dependency>
 			<!-- venus -->
 			<dependency>
-				<groupId>com.meidusa.venus.commons</groupId>
+				<groupId>com.meidusa.venus</groupId>
 				<artifactId>venus-common-annotation</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.meidusa.venus.commons</groupId>
+				<groupId>com.meidusa.venus</groupId>
 				<artifactId>venus-common-base</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.meidusa.venus.commons</groupId>
+				<groupId>com.meidusa.venus</groupId>
 				<artifactId>venus-common-validator</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.meidusa.venus.commons</groupId>
+				<groupId>com.meidusa.venus</groupId>
 				<artifactId>venus-common-exception</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.meidusa.venus.commons</groupId>
+				<groupId>com.meidusa.venus</groupId>
 				<artifactId>venus-common-api</artifactId>
 				<version>${project.version}</version>
 			</dependency>
