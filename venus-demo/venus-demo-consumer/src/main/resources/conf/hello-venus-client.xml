@@ -10,8 +10,6 @@
 		retries:重试次数，默认不重试，若配置则自动使用failover容错策略，示例如，retries="3"
 		-->
 		<!--<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.17.238:16800"/>-->
-		<!--<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.17.135:16800" coreConnections="10" timeout="5000"/>-->
-		<!--<service type="com.chexiang.venus.demo.provider.HelloService" retries="3"/>-->
 		<service type="com.chexiang.venus.demo.provider.HelloService">
 			<!--方法级配置，方法级若配置则会覆盖服务级配置-->
 			<method name="getHello" timeout="3000" retries="2"/>

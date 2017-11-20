@@ -33,18 +33,18 @@ public abstract class AbstractMonitorFilter {
     private static Queue<InvocationDetail> detailQueue = new LinkedBlockingQueue<InvocationDetail>();
 
     //待上报明细队列
-    private static Queue<InvocationDetail> reportDetailQueue = new LinkedBlockingQueue<InvocationDetail>();
+    private Queue<InvocationDetail> reportDetailQueue = new LinkedBlockingQueue<InvocationDetail>();
 
     //方法调用汇总映射表
-    private static Map<String,InvocationStatistic> statisticMap = new ConcurrentHashMap<String,InvocationStatistic>();
+    private Map<String,InvocationStatistic> statisticMap = new ConcurrentHashMap<String,InvocationStatistic>();
 
     //计算线程
-    private static Executor processExecutor = Executors.newFixedThreadPool(1);
+    private Executor processExecutor = Executors.newFixedThreadPool(1);
 
     //上报线程
-    private static Executor reporterExecutor = Executors.newFixedThreadPool(1);
+    private Executor reporterExecutor = Executors.newFixedThreadPool(1);
 
-    private static boolean isRunning = false;
+    private boolean isRunning = false;
 
     private VenusMonitorReporter monitorReporter = new VenusMonitorReporter();
 
@@ -204,8 +204,8 @@ public abstract class AbstractMonitorFilter {
             while(true){
                 try {
                     //1、明细上报
-                    if(logger.isInfoEnabled()){
-                        logger.info("current detail report queue size:{}.", reportDetailQueue.size());
+                    if(logger.isDebugEnabled()){
+                        logger.debug("current detail report queue size:{}.", reportDetailQueue.size());
                     }
                     List<InvocationDetail> detailList = new ArrayList<InvocationDetail>();
                     int fetchNum = perDetailReportNum;

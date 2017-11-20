@@ -29,8 +29,8 @@ public class VenusMonitorReporter {
         if(CollectionUtils.isEmpty(detailDOList)){
             return;
         }
-        if(logger.isInfoEnabled()){
-            logger.info("report detail size:{}.",detailDOList.size());
+        if(logger.isDebugEnabled()){
+            logger.debug("report detail size:{}.",detailDOList.size());
         }
 
         AthenaDataService athenaDataService = getAthenaDataService();
