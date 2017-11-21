@@ -1,10 +1,12 @@
 /**
  * 
  */
-package com.meidusa.venus.backend.services;
+package com.meidusa.venus.backend.context;
 
 import java.util.Map;
 
+import com.meidusa.venus.backend.services.Endpoint;
+import com.meidusa.venus.backend.services.RequestInfo;
 import com.meidusa.venus.util.ThreadLocalConstant;
 import com.meidusa.venus.util.ThreadLocalMap;
 

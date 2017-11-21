@@ -1,6 +1,6 @@
 package com.meidusa.venus.backend.services;
 
-import com.meidusa.venus.backend.services.Endpoint;
+import com.meidusa.venus.backend.context.RequestContext;
 
 /**
  * 

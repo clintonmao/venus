@@ -17,10 +17,7 @@ import org.slf4j.Logger;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.config.ConstructorArgumentValues;
+import org.springframework.beans.factory.config.*;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.AutowireCandidateQualifier;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -36,7 +33,7 @@ import java.util.Set;
  * venus监控工厂类
  * Created by Zhangzhihua on 2017/9/11.
  */
-public class VenusMonitorFactory implements InitializingBean, ApplicationContextAware,BeanFactoryPostProcessor {
+public class VenusMonitorFactory implements InitializingBean, ApplicationContextAware {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -117,7 +114,6 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     }
 
     void init(){
-
         try {
             //手动扫描athena以注解定义的包
             scanAndRegisteAthenaPackage();
@@ -127,6 +123,16 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
 
             //初始化athenaDataService
             initAthenaDataService(address);
+
+            //注册spring beans
+            AutowireCapableBeanFactory beanFactory = this.applicationContext.getAutowireCapableBeanFactory();
+            if(beanFactory != null && beanFactory instanceof ConfigurableListableBeanFactory){
+                ConfigurableListableBeanFactory configurableListableBeanFactory = (ConfigurableListableBeanFactory)beanFactory;
+                registeBeans(configurableListableBeanFactory);
+            }else{
+                hasNeededDependences = false;
+                throw new VenusConfigException("get ConfigurableListableBeanFactory failed,cannot registe beans.");
+            }
         } catch (Throwable e) {
             if(exceptionLogger.isErrorEnabled()){
                 exceptionLogger.error("init monitor factory failed.",e);
@@ -205,8 +211,17 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         this.athenaDataService = athenaDataService;
     }
 
+    /*
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+    }
+    */
+
+    /**
+     * 注册spring beans
+     * @param beanFactory
+     */
+    void registeBeans(ConfigurableListableBeanFactory beanFactory){
         if(hasNeededDependences){
             try {
                 //注册configManager到spring上下文
