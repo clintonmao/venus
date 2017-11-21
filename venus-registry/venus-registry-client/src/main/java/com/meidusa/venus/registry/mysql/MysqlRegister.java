@@ -379,7 +379,8 @@ public class MysqlRegister implements Register {
 						if (StringUtils.isNotBlank(url.getVersion()) && !"null".equals(url.getVersion())) {
 							version = url.getVersion();
 						}
-						exceptionLogger.error("registe fail retry failed,service:{},version:{},exception:{}.", name, version, e);
+						String errorMsg = String.format("registe retry failed,service:%s,version:%s.",name,version);
+						exceptionLogger.error(errorMsg,e);
 					}
 				}
 			}
@@ -397,7 +398,8 @@ public class MysqlRegister implements Register {
 						if (StringUtils.isNotBlank(url.getVersion()) && !"null".equals(url.getVersion())) {
 							version = url.getVersion();
 						}
-						exceptionLogger.error("subscrible fail retry failed,service:{},version:{},exception:{}.", name, version, e);
+						String errorMsg = String.format("subscrible retry failed,service:%s,version:%s.",name,version);
+						exceptionLogger.error(errorMsg,e);
 					}
 				}
 			}
