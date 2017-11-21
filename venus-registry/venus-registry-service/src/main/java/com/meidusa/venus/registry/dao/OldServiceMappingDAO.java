@@ -24,6 +24,8 @@ public interface OldServiceMappingDAO {
 	
 	List<String> queryOldServiceVersions(String serviceName) throws DAOException;
 	
+	List<ServiceMappingDTO> queryOldServiceMappings(List<String> serviceNames) throws DAOException;
+	
 	List<ServiceMappingDTO> queryOldServiceMappings(String serviceName) throws DAOException;
 
 }

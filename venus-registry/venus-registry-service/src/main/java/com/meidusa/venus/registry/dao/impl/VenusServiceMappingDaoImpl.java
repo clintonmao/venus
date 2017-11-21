@@ -404,8 +404,35 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 		return update > 0;
 	}
 	
+	public List<ServiceMappingDTO> queryServiceMappings(List<String> serviceNames) throws DAOException {
+		StringBuilder sb = new StringBuilder();
+		for (String name : serviceNames) {
+			sb.append("'");
+			sb.append(name);
+			sb.append("'");
+			sb.append(",");
+		}
+		String nameStr = sb.substring(0, sb.length() - 1);
+		String sql = "SELECT map.id as map_id,map.server_id,s.hostname as host_name,s.port,v.name as service_name,map.service_id FROM t_venus_service_mapping as map left join t_venus_server as s on map.server_id=s.id left join t_venus_service as v on v.id=map.service_id where v.name in("+nameStr+") "
+				+ "and role=? and v.registe_type=? ";
+		try {
+			return this.jdbcTemplate.query(sql, new Object[] {RegisteConstant.PROVIDER,RegisteConstant.OPERATOR_REGISTE}, new ResultSetExtractor<List<ServiceMappingDTO>>() {
+				@Override
+				public List<ServiceMappingDTO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<ServiceMappingDTO> returnList = new ArrayList<ServiceMappingDTO>();
+					while (rs.next()) {
+						returnList.add(ResultUtils.rsTransOldServiceMappingDO(rs));
+					}
+					return returnList;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据sql=>" + sql + ",serviceName=>"+serviceNames+";获取服务映射关系异常", e);
+		}
+	}
+	
 	public List<ServiceMappingDTO> queryServiceMappings(String serviceName) throws DAOException {
-		String sql = "SELECT map.id as map_id,map.server_id,s.hostname as host_name,s.port,v.name as service_name,map.service_id FROM t_venus_service_mapping as map left join t_venus_server as s on map.server_id=s.id left join t_venus_service as v on v.id=map.service_id where v.name=? "
+		String sql = "SELECT map.id as map_id,map.server_id,s.hostname as host_name,s.port,v.name as service_name,map.service_id FROM t_venus_service_mapping as map left join t_venus_server as s on map.server_id=s.id left join t_venus_service as v on v.id=map.service_id where v.name =? "
 				+ "and role=? and v.registe_type=? ";
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] {serviceName,RegisteConstant.PROVIDER,RegisteConstant.OPERATOR_REGISTE}, new ResultSetExtractor<List<ServiceMappingDTO>>() {
