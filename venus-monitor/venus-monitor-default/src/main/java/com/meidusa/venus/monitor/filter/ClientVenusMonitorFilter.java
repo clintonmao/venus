@@ -28,11 +28,12 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
 
 
     public ClientVenusMonitorFilter(){
-        startProcessAndReporterTread();
+        init();
     }
 
     @Override
     public void init() throws RpcException {
+        startProcessAndReporterTread();
     }
 
     @Override
@@ -130,9 +131,6 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
      * @return
      */
     MethodCallDetailDO convertDetail(InvocationDetail detail){
-        if(!(detail.getInvocation() instanceof ClientInvocation)){
-            return null;
-        }
         ClientInvocation clientInvocation = (ClientInvocation)detail.getInvocation();
         URL url = detail.getUrl();
         Result result = detail.getResult();

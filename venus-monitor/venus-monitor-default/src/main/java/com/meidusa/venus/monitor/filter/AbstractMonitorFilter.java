@@ -30,7 +30,7 @@ public abstract class AbstractMonitorFilter {
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
     //明细队列
-    private static Queue<InvocationDetail> detailQueue = new LinkedBlockingQueue<InvocationDetail>();
+    private Queue<InvocationDetail> detailQueue = new LinkedBlockingQueue<InvocationDetail>();
 
     //待上报明细队列
     private Queue<InvocationDetail> reportDetailQueue = new LinkedBlockingQueue<InvocationDetail>();

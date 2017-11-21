@@ -68,12 +68,12 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     //nio连接映射表
     private Map<String, BackendConnectionPool> connectionPoolMap = new ConcurrentHashMap<String, BackendConnectionPool>();
 
-    //连接事件监听
-    private VenusClientConnectionObserver connectionObserver = new VenusClientConnectionObserver();
-
     private static ConnectionConnector connector;
 
     private static ConnectionManager[] connectionManagers;
+
+    //连接事件监听
+    private VenusClientConnectionObserver connectionObserver = new VenusClientConnectionObserver();
 
     private boolean isInit = false;
 

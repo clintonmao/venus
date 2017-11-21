@@ -74,7 +74,7 @@ public class ClientInvokerProxy implements Invoker {
     //athena监控
     private ClientAthenaMonitorFilter clientAthenaMonitorFilter = new ClientAthenaMonitorFilter();
     //venus监控上报filter
-    private ClientVenusMonitorFilter clientVenusMonitorFilter = new ClientVenusMonitorFilter();
+    private static ClientVenusMonitorFilter clientVenusMonitorFilter = new ClientVenusMonitorFilter();
 
 
     public ClientInvokerProxy(){
@@ -246,15 +246,6 @@ public class ClientInvokerProxy implements Invoker {
         return afterFilters;
     }
 
-
-//    public ClientVenusMonitorFilter getClientVenusMonitorFilter() {
-//        synchronized (clientVenusMonitorFilter){
-//            if(!clientVenusMonitorFilter.isRunning()){
-//                clientVenusMonitorFilter.startProcessAndReporterTread();
-//            }
-//        }
-//        return clientVenusMonitorFilter;
-//    }
 
     @Override
     public void destroy() throws RpcException {
