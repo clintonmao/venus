@@ -16,6 +16,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -78,8 +79,51 @@ public class Application implements InitializingBean,DisposableBean {
      * 验证名称有效性
      */
     void valid(){
+        //校验名称
         if(StringUtils.isEmpty(name)){
             throw new VenusConfigException("application name not allow empty.");
+        }
+
+        //验证jar包有效性
+        validJarPackages();
+    }
+
+    /**
+     * 验证venus jar包版本有效性
+     */
+    void validJarPackages(){
+        String[] packages = {
+                //common-base
+                "com.meidusa.venus.CommonBasePackageValid",
+                //common-exception
+                "com.meidusa.venus.exception.CommonExceptionPackageValid",
+                //remote
+                "com.meidusa.venus.RemotePackageValid",
+                //client
+                "com.meidusa.venus.client.ClientPackageValid"
+        };
+        List<String> packegeList = Arrays.asList(packages);
+        if(CollectionUtils.isEmpty(packegeList)){
+            return;
+        }
+        for(String pkgName:packegeList){
+            try {
+                Class<?> pkgClz = Class.forName(pkgName);
+                PackageValid packageValid = (PackageValid)pkgClz.newInstance();
+                packageValid.valid();
+            } catch (ClassNotFoundException e) {
+                String errorMsg = String.format("class %s not found,please check jar reference config.",pkgName);
+                throw new VenusConfigException(errorMsg);
+            }catch (InstantiationException e) {
+                String errorMsg = String.format("class %s instance failed,please check jar reference config.",pkgName);
+                throw new VenusConfigException(errorMsg);
+            } catch (IllegalAccessException e) {
+                String errorMsg = String.format("class %s access failed,please check jar reference config.",pkgName);
+                throw new VenusConfigException(errorMsg);
+            }catch (Exception e){
+                String errorMsg = String.format("class %s valid failed,please check jar reference config.",pkgName);
+                throw new VenusConfigException(errorMsg);
+            }
         }
     }
 
