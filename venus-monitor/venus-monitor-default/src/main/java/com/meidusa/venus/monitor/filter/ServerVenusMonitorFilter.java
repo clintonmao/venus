@@ -27,11 +27,12 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
     public ServerVenusMonitorFilter(){
-        startProcessAndReporterTread();
+        init();
     }
 
     @Override
     public void init() throws RpcException {
+        startProcessAndReporterTread();
     }
 
     @Override
@@ -126,9 +127,6 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
      * @return
      */
     MethodCallDetailDO convertDetail(InvocationDetail detail){
-        if(!(detail.getInvocation() instanceof ServerInvocation)){
-            return null;
-        }
         ServerInvocation serverInvocation = (ServerInvocation)detail.getInvocation();
         Result result = detail.getResult();
         Throwable exception = detail.getException();

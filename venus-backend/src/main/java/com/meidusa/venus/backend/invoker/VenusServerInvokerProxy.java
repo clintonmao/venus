@@ -31,7 +31,7 @@ public class VenusServerInvokerProxy implements Invoker {
     //athena上报filter
     private ServerAthenaMonitorFilter serverAthenaMonitorFilter = new ServerAthenaMonitorFilter();
     //venus上报filter
-    private ServerVenusMonitorFilter serverVenusMonitorFilter = new ServerVenusMonitorFilter();
+    private static ServerVenusMonitorFilter serverVenusMonitorFilter = new ServerVenusMonitorFilter();
 
     public VenusServerInvokerProxy(){
         init();
@@ -133,15 +133,6 @@ public class VenusServerInvokerProxy implements Invoker {
             }
         }
     }
-
-//    public ServerVenusMonitorFilter getServerVenusMonitorFilter() {
-//        synchronized (serverVenusMonitorFilter){
-//            if(!serverVenusMonitorFilter.isRunning()){
-//                serverVenusMonitorFilter.startProcessAndReporterTread();
-//            }
-//        }
-//        return serverVenusMonitorFilter;
-//    }
 
     /**
      * 获取VenusMonitorFactory

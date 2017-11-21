@@ -28,7 +28,7 @@ public class DefaultEchoService implements EchoService {
     @Override
     public Echo getEcho(String name) {
         logger.info("invoke getEcho,param:" + name);
-        RandomBuildUtil.randomSleepOrThrow(false);
+        RandomBuildUtil.randomSleepOrThrow(true);
         return new Echo("hi",name);
     }
 }
