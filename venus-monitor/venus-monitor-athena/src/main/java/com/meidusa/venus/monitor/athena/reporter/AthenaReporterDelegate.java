@@ -104,6 +104,13 @@ public class AthenaReporterDelegate{
         }
     }
 
+    public AthenaTransactionId newTransaction(){
+        if (clientTransactionReporter != null) {
+            return clientTransactionReporter.newTransaction();
+        }
+        return null;
+    }
+
     public void init(){
         Ini ini = new Ini();
         String athenaExtensionIniLocation = PathMatchingResourcePatternResolver.CLASSPATH_URL_PREFIX + "/META-INF/venus.extension.athena.ini";

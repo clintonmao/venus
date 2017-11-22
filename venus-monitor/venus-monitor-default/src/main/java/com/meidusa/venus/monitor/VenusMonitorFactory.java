@@ -33,7 +33,7 @@ import java.util.Set;
  * venus监控工厂类
  * Created by Zhangzhihua on 2017/9/11.
  */
-public class VenusMonitorFactory implements InitializingBean, ApplicationContextAware {
+public class VenusMonitorFactory implements InitializingBean, ApplicationContextAware,BeanFactoryPostProcessor{
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -73,7 +73,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      */
     private boolean hasNeededDependences = true;
 
-    private static VenusMonitorFactory venusMonitorFactory = new VenusMonitorFactory();
+    private static VenusMonitorFactory venusMonitorFactory = null;
 
     /**
      * athena配置管理
@@ -125,14 +125,15 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
             initAthenaDataService(address);
 
             //注册spring beans
+            /*
             AutowireCapableBeanFactory beanFactory = this.applicationContext.getAutowireCapableBeanFactory();
             if(beanFactory != null && beanFactory instanceof ConfigurableListableBeanFactory){
                 ConfigurableListableBeanFactory configurableListableBeanFactory = (ConfigurableListableBeanFactory)beanFactory;
-                registeBeans(configurableListableBeanFactory);
             }else{
                 hasNeededDependences = false;
                 throw new VenusConfigException("get ConfigurableListableBeanFactory failed,cannot registe beans.");
             }
+            */
         } catch (Throwable e) {
             if(exceptionLogger.isErrorEnabled()){
                 exceptionLogger.error("init monitor factory failed.",e);
@@ -211,11 +212,17 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         this.athenaDataService = athenaDataService;
     }
 
-    /*
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        try {
+            registeBeans(beanFactory);
+        } catch (Exception e) {
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("postProcessBeanFactory failed.",e);
+            }
+            hasNeededDependences = false;
+        }
     }
-    */
 
     /**
      * 注册spring beans
