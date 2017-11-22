@@ -44,4 +44,16 @@ public class DefaultClientTransactionReporter extends AbstractTransactionReporte
         return transactionId;
     }
 
+    public AthenaTransactionId newTransaction() {
+        AthenaTransactionId  transactionId = new AthenaTransactionId();
+        RemoteContext context = new RemoteContextInstance();
+
+        AthenaUtils.getInstance().logRemoteCallClient(context);
+
+        transactionId.setRootId(context.getProperty(RemoteContext.ROOT));
+        transactionId.setParentId(context.getProperty(RemoteContext.PARENT));
+        transactionId.setMessageId(context.getProperty(RemoteContext.CHILD));
+        return transactionId;
+    }
+
 }

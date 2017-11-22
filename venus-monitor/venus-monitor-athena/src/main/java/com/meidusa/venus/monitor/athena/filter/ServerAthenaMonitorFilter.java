@@ -14,6 +14,8 @@ import com.meidusa.venus.support.VenusThreadContext;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
 
+import java.util.Stack;
+
 /**
  * server athena监控filter
  * Created by Zhangzhihua on 2017/8/24.
@@ -53,6 +55,22 @@ public class ServerAthenaMonitorFilter implements Filter {
                 return null;
             }
 
+            if(serverInvocation.getAthenaId() == null){
+                AthenaTransactionId transactionId = AthenaReporterDelegate.getInstance().newTransaction();
+                if(transactionId != null && transactionId.getRootId() != null){
+                    serverInvocation.setAthenaId(transactionId.getRootId().getBytes());
+                    serverInvocation.setParentId(transactionId.getParentId().getBytes());
+                    serverInvocation.setMessageId(transactionId.getMessageId().getBytes());
+                }
+            }
+
+            if(serverInvocation.getAthenaId() == null){
+                if(logger.isWarnEnabled()){
+                    logger.warn("athena rootId/parnetId/messageId is null,skip report.");
+                    return null;
+                }
+            }
+
             //调用服务
             Tuple<Long, byte[]> data = serverInvocation.getData();
             SerializeServiceRequestPacket request = serverInvocation.getRequest();
@@ -88,6 +106,14 @@ public class ServerAthenaMonitorFilter implements Filter {
             if (service == null || !service.getAthenaFlag()) {
                 return null;
             }
+
+            if(serverInvocation.getAthenaId() == null){
+                if(logger.isWarnEnabled()){
+                    logger.warn("athena rootId/parnetId/messageId is null,skip report.");
+                    return null;
+                }
+            }
+
             SerializeServiceRequestPacket request = serverInvocation.getRequest();
             String apiName = request.apiName;
             AthenaReporterDelegate.getInstance().metric(apiName + ".error");
@@ -114,6 +140,13 @@ public class ServerAthenaMonitorFilter implements Filter {
             Service service = endpoint.getService();
             if (service == null || !service.getAthenaFlag()) {
                 return null;
+            }
+
+            if(serverInvocation.getAthenaId() == null){
+                if(logger.isWarnEnabled()){
+                    logger.warn("athena rootId/parnetId/messageId is null,skip report.");
+                    return null;
+                }
             }
 
             Tuple<Long, byte[]> data = serverInvocation.getData();

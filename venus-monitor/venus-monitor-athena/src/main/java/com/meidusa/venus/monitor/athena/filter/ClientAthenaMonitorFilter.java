@@ -52,7 +52,7 @@ public class ClientAthenaMonitorFilter implements Filter {
             EndpointWrapper endpoint = clientInvocation.getEndpoint();
             Method method = clientInvocation.getMethod();
             //athena相关
-            String apiName = VenusUtil.getApiName(method,service,endpoint);//VenusAnnotationUtils.getApiname(method, service, endpoint);
+            String apiName = VenusUtil.getApiName(method,service,endpoint);
             AthenaTransactionId athenaTransactionId = AthenaReporterDelegate.getInstance().startClientTransaction(apiName);
             VenusThreadContext.set(VenusThreadContext.ATHENA_TRANSACTION_ID,athenaTransactionId);
             if (athenaTransactionId != null) {

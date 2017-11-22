@@ -11,4 +11,10 @@ public interface ClientTransactionReporter extends TransactionStatistics, Transa
 
     AthenaTransactionId startTransaction(String itemName);
 
+    /**
+     * 生成athena相关ID
+     * @return
+     */
+    AthenaTransactionId newTransaction();
+
 }
