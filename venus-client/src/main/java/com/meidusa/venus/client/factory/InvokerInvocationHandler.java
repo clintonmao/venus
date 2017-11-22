@@ -163,7 +163,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
         //输出日志
         if(hasException){
-            String tpl = "[{}],{} invoke,rpcId:{},method:{},used time:{}ms,param:{},error:{}.";
+            String tpl = "[C] [{}],{} invoke,rpcId:{},method:{},used time:{}ms,param:{},error:{}.";
             Object[] arguments = new Object[]{
                     status,
                     invokeModel,
@@ -180,7 +180,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
                 exceptionLogger.error(tpl,arguments);
             }
         }else{
-            String tpl = "[{}],{} invoke,rpcId:{},method:{},used time:{}ms,param:{},result:{}.";
+            String tpl = "[C] [{}],{} invoke,rpcId:{},method:{},used time:{}ms,param:{},result:{}.";
             Object[] arguments = new Object[]{
                     status,
                     invokeModel,

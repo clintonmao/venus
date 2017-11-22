@@ -112,13 +112,13 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             errorPacket.init(message);
             String rpcId = RpcIdUtil.getRpcId(errorPacket);
             if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("recv error response,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
+                tracerLogger.info("[C] recv error response,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
             }
 
             reqRespWrapper = serviceReqRespMap.get(rpcId);
             if(reqRespWrapper == null){
                 if(exceptionLogger.isErrorEnabled()){
-                    exceptionLogger.error("handle error message failed,rpcId:{},reason:{}.",rpcId,"Already handled.");
+                    exceptionLogger.error("[C] handle error message failed,rpcId:{},reason:{}.",rpcId,"Already handled.");
                 }
                 return;
             }
@@ -147,14 +147,14 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             AbstractServicePacket packet = parseServicePacket(message);
             String rpcId = RpcIdUtil.getRpcId(packet);
             if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("recv reponse,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
+                tracerLogger.info("[C] recv reponse,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
             }
 
             //获取clientId/clientRequestId，用于获取invocation请求信息
             reqRespWrapper = serviceReqRespMap.get(rpcId);
             if(reqRespWrapper == null){
                 if(exceptionLogger.isErrorEnabled()){
-                    exceptionLogger.error("handle response message failed,rpcId:{},reason:{}.",rpcId,"Already handled.");
+                    exceptionLogger.error("[C] handle response message failed,rpcId:{},reason:{}.",rpcId,"Already handled.");
                 }
                 return;
             }
@@ -189,13 +189,13 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             okPacket.init(message);
             String rpcId = RpcIdUtil.getRpcId(okPacket);
             if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("recv ok response,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
+                tracerLogger.info("[C] recv ok response,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
             }
 
             reqRespWrapper = serviceReqRespMap.get(rpcId);
             if(reqRespWrapper == null){
                 if(exceptionLogger.isErrorEnabled()){
-                    exceptionLogger.error("handle error message failed,rpcId:{},reason:{}.",rpcId,"Already handled.");
+                    exceptionLogger.error("[C] handle error message failed,rpcId:{},reason:{}.",rpcId,"Already handled.");
                 }
                 return;
             }
@@ -223,7 +223,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         try {
             rpcId = RpcIdUtil.getRpcId(parseServicePacket(message));
             if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("recv notify response,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
+                tracerLogger.info("[C] recv notify response,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
             }
 
             asyncInvocation = serviceReqCallbackMap.get(rpcId);
