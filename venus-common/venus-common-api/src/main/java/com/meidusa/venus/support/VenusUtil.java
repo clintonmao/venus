@@ -101,8 +101,12 @@ public class VenusUtil {
      * @return
      */
     public static boolean isAthenaInterface(Invocation invocation){
-        String serviceInterfaceName = invocation.getServiceInterfaceName();
-        return ATHENA_INTERFACE_SIMPLE_NAME.equalsIgnoreCase(serviceInterfaceName) || ATHENA_INTERFACE_FULL_NAME.equalsIgnoreCase(serviceInterfaceName);
+        try {
+            String serviceInterfaceName = invocation.getServiceInterfaceName();
+            return ATHENA_INTERFACE_SIMPLE_NAME.equalsIgnoreCase(serviceInterfaceName) || ATHENA_INTERFACE_FULL_NAME.equalsIgnoreCase(serviceInterfaceName);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
 }

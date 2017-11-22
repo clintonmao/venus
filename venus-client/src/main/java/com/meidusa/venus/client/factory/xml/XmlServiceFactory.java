@@ -16,6 +16,7 @@ package com.meidusa.venus.client.factory.xml;
 
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
+import com.meidusa.toolkit.common.bean.config.ConfigUtil;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.venus.Application;
 import com.meidusa.venus.ServiceFactory;
@@ -287,6 +288,9 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
         //若配置静态地址，以静态为先
         if(StringUtils.isNotEmpty(referenceService.getRemote()) || StringUtils.isNotEmpty(referenceService.getIpAddressList())){
             ClientRemoteConfig remoteConfig = getRemoteConfig(referenceService,venusClientConfig);
+            String ipAddressList = remoteConfig.getFactory().getIpAddressList();
+            //校验地址有效性
+            validAddress(ipAddressList);
             invocationHandler.setRemoteConfig(remoteConfig);
         }else{
             invocationHandler.setRegister(venusRegistryFactory.getRegister());
@@ -397,6 +401,9 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
             for (Resource configFile : configFiles) {
                 VenusClientConfig venusClientConfig = (VenusClientConfig) xStream.fromXML(configFile.getURL());
                 for (ReferenceService referenceService : venusClientConfig.getReferenceServices()) {
+                    //转换及校验配置有效性
+                    processAndValidReferenceConfig(referenceService);
+
                     String interfaceType = referenceService.getType();
                     if (interfaceType == null) {
                         throw new VenusConfigException("Service type can not be null:" + configFile);
@@ -421,6 +428,47 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
         return clientConfig;
     }
 
+    /**
+     * 处理及校验引用配置信息
+     * @param referenceConfig
+     */
+    void processAndValidReferenceConfig(ReferenceService referenceConfig){
+        String address = referenceConfig.getIpAddressList();
+        if(StringUtils.isNotEmpty(address)){
+            if(address.startsWith("${") && address.endsWith("}")){
+                String realAddress = (String)ConfigUtil.filter(address);
+                if(StringUtils.isEmpty(realAddress)){
+                    throw new VenusConfigException("ucm parse empty,ipAddressList config invalid.");
+                }
+                if(logger.isInfoEnabled()){
+                    logger.info("##########realIpAddress:{}#############.",address);
+                }
+                validAddress(realAddress);
+
+                referenceConfig.setIpAddressList(realAddress);
+            }else{
+                validAddress(address);
+            }
+        }
+    }
+
+    /**
+     * 校验地址有效性
+     * @param ipAddressList
+     */
+    void validAddress(String ipAddressList){
+        String[] addressArr = ipAddressList.split(";");
+        if(addressArr == null || addressArr.length == 0){
+            throw new VenusConfigException("ipAddressList invalid:" + ipAddressList);
+        }
+        for(String address:addressArr){
+            String[] arr = address.split(":");
+            if(arr == null || arr.length != 2){
+                throw new VenusConfigException("ipAddressList invalid:" + ipAddressList);
+            }
+        }
+    }
+
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		// register to resolvable dependency container
 		//BeanFactory beanFactory = applicationContext.getAutowireCapableBeanFactory();
@@ -438,7 +486,7 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
                 	args.addIndexedArgumentValue(0,bean);
                 	args.addIndexedArgumentValue(1,entry.getValue().getClazz());
                 	beanDefinition.setConstructorArgumentValues(args);
-                	
+
                 	String beanName = entry.getValue().getClazz().getName()+"#0";
             		beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
             		reg.registerBeanDefinition(beanName, beanDefinition);
@@ -449,7 +497,7 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
 				final Object bean = entry.getValue().getService();
 				if (beanFactory instanceof BeanDefinitionRegistry) {
 					String beanName = entry.getValue().getBeanName();
-					
+
 					BeanDefinitionRegistry reg = (BeanDefinitionRegistry) beanFactory;
 					GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
 					beanDefinition.setBeanClass(ServiceFactoryBean.class);
@@ -459,7 +507,7 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
 					args.addIndexedArgumentValue(0, bean);
 					args.addIndexedArgumentValue(1, entry.getValue().getClazz());
 					beanDefinition.setConstructorArgumentValues(args);
-					
+
 					beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
 					reg.registerBeanDefinition(beanName, beanDefinition);
 

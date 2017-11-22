@@ -88,26 +88,24 @@
         </layout>
     </appender>
 
-    <root level="warn">
-        <appender-ref ref="stdout" />
-    </root>
-
-    <logger name="venus.default" additivity="false">
+    <logger name="venus.default" additivity="true">
         <level value="info"/>
         <appender-ref ref="venus.default"/>
-        <appender-ref ref="stdout"/>
     </logger>
 
-    <logger name="venus.tracer" additivity="false">
+    <logger name="venus.tracer" additivity="true">
         <level value="info"/>
         <appender-ref ref="venus.tracer"/>
-        <appender-ref ref="stdout"/>
     </logger>
 
-    <logger name="venus.exception" additivity="false">
+    <logger name="venus.exception" additivity="true">
         <level value="info"/>
         <appender-ref ref="venus.exception"/>
-        <appender-ref ref="stdout"/>
     </logger>
+
+    <!--root-->
+    <root level="info">
+        <appender-ref ref="stdout" />
+    </root>
 
 </configuration>

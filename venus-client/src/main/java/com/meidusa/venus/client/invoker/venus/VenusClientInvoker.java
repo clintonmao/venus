@@ -321,10 +321,18 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             //打印trace logger
             long connTime = borrowed - start;
             long totalTime = System.currentTimeMillis() - start;
+            //athena调用输出到default
+            /*
+            Logger tracerLoggerEx = tracerLogger;
+            if(VenusUtil.isAthenaInterface(invocation)){
+                tracerLoggerEx = logger;
+            }
+            */
+
             if(exception != null){
                 //输出异常日志
                 if (tracerLogger.isErrorEnabled()) {
-                    String tpl = "send request failed,rpcId:{},method:{},targetIp:{},used time:{},exception:{}.";
+                    String tpl = "[C] send request failed,rpcId:{},method:{},targetIp:{},used time:{},exception:{}.";
                     Object[] arguments = new Object[]{
                             rpcId,
                             invocation.getMethodPath(),
@@ -338,7 +346,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                 }
             }else{
                 if(tracerLogger.isInfoEnabled()){
-                    String tpl = "send request,rpcId:{},method:{},targetIp:{},used time:{}ms.";
+                    String tpl = "[C] send request,rpcId:{},method:{},targetIp:{},used time:{}ms.";
                     Object[] arguments = new Object[]{
                             rpcId,
                             invocation.getMethodPath(),
