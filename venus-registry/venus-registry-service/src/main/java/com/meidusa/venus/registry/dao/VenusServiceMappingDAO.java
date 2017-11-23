@@ -63,6 +63,8 @@ public interface VenusServiceMappingDAO {
 	
 	boolean updateHeartBeatTime(int serverId, List<Integer>serviceIds,String role) throws DAOException;
 	
+	List<ServiceMappingDTO> queryServiceMappings(List<String> serviceNames) throws DAOException ;
+	
 	List<ServiceMappingDTO> queryServiceMappings(String serviceName) throws DAOException ;
 
 }

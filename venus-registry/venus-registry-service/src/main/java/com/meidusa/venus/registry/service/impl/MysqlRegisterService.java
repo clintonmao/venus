@@ -24,6 +24,7 @@ import com.meidusa.venus.registry.dao.VenusServiceConfigDAO;
 import com.meidusa.venus.registry.dao.VenusServiceDAO;
 import com.meidusa.venus.registry.dao.VenusServiceMappingDAO;
 import com.meidusa.venus.registry.dao.impl.ResultUtils;
+import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
 import com.meidusa.venus.registry.domain.RegisteConstant;
 import com.meidusa.venus.registry.domain.VenusApplicationDO;
 import com.meidusa.venus.registry.domain.VenusServerDO;
@@ -190,42 +191,49 @@ public class MysqlRegisterService implements RegisterService {
 		return serverId;
 	}
 	
-	public int addService(String serviceName, String description, String version){
-		VenusServiceDO service = venusServiceDAO.getService(serviceName,version);
-		int serviceId = 0;
-		if (null == service) {
-			String oldAppCode=serviceName+"_app";
-			int appId = 0;
-			if (StringUtils.isNotBlank(oldAppCode)) {
-				VenusApplicationDO application = venusApplicationDAO.getApplication(oldAppCode);
-				if (null == application) {// 不存在添加
-					VenusApplicationDO venusApplicationDO = new VenusApplicationDO();
-					venusApplicationDO.setAppCode(oldAppCode);
-					venusApplicationDO.setCreateName(RegisteConstant.PROVIDER);
-					venusApplicationDO.setUpdateName(RegisteConstant.PROVIDER);
-					venusApplicationDO.setProvider(true);
-					venusApplicationDO.setConsumer(false);
-					appId = venusApplicationDAO.addApplication(venusApplicationDO);
-				} else {
-					appId = application.getId();
-					if (null == application.isProvider()
-							|| (null != application.isProvider() && !application.isProvider())) {// 非提供方，更新
-						application.setProvider(true);
-						venusApplicationDAO.updateApplication(application);
-					}
+	public int addService(String serviceName, String description, String versionRange){
+//		VenusServiceDO service = venusServiceDAO.getService(serviceName,RegisteConstant.OPERATOR_REGISTE,versionRange);
+//		int serviceId = 0;
+//		if (null == service) {
+//			int appId = saveApplication(serviceName);
+//			VenusServiceDO venusServiceDO = new VenusServiceDO();
+//			venusServiceDO.setName(serviceName);
+//			venusServiceDO.setAppId(appId);
+//			venusServiceDO.setVersion(String.valueOf(VenusConstants.VERSION_DEFAULT));//导入时version默认为0
+//			venusServiceDO.setVersionRange(versionRange);
+//			venusServiceDO.setRegisteType(RegisteConstant.OPERATOR_REGISTE);
+//			venusServiceDO.setMethods(null);
+//			venusServiceDO.setDescription(description);
+//			venusServiceDO.setDelete(false);
+//			serviceId = venusServiceDAO.addService(venusServiceDO);
+//		}
+//		return serviceId;
+		return 0;
+	}
+
+	private int saveApplication(String serviceName) {
+		String oldAppCode=serviceName+"_app";
+		int appId = 0;
+		if (StringUtils.isNotBlank(oldAppCode)) {
+			VenusApplicationDO application = venusApplicationDAO.getApplication(oldAppCode);
+			if (null == application) {// 不存在添加
+				VenusApplicationDO venusApplicationDO = new VenusApplicationDO();
+				venusApplicationDO.setAppCode(oldAppCode);
+				venusApplicationDO.setCreateName(RegisteConstant.PROVIDER);
+				venusApplicationDO.setUpdateName(RegisteConstant.PROVIDER);
+				venusApplicationDO.setProvider(true);
+				venusApplicationDO.setConsumer(false);
+				appId = venusApplicationDAO.addApplication(venusApplicationDO);
+			} else {
+				appId = application.getId();
+				if (null == application.isProvider()
+						|| (null != application.isProvider() && !application.isProvider())) {// 非提供方，更新
+					application.setProvider(true);
+					venusApplicationDAO.updateApplication(application);
 				}
 			}
-			VenusServiceDO venusServiceDO = new VenusServiceDO();
-			venusServiceDO.setName(serviceName);
-			venusServiceDO.setAppId(appId);
-			venusServiceDO.setVersion(version);
-			venusServiceDO.setRegisteType(RegisteConstant.OPERATOR_REGISTE);
-			venusServiceDO.setMethods(null);
-			venusServiceDO.setDescription(description);
-			venusServiceDO.setDelete(false);
-			serviceId = venusServiceDAO.addService(venusServiceDO);
 		}
-		return serviceId;
+		return appId;
 	}
 
 	@Override
@@ -400,31 +408,62 @@ public class MysqlRegisterService implements RegisterService {
 		return returnList;
 	}
 	
-	public void addNewServiceMapping(String hostName,int port,String serviceName,String version) {
+	public void addNewServiceMapping(String hostName, int port, String serviceName, String version,String description) {
+		StringBuilder sb=new StringBuilder(); 
+		sb.append("hostName=>");
+		sb.append(hostName);
+		sb.append(",port=>");
+		sb.append(port);
+		sb.append(",serviceName=>");
+		sb.append(serviceName);
+		sb.append(",version=>");
+		sb.append(version);
+		
 		boolean exists = venusServiceMappingDAO.existServiceMapping(hostName, port,
 				serviceName, version);
+		String versionRange=version;
 		if (!exists) {// 不存在则添加
-			VenusServiceMappingDO venusServiceMappingDO = new VenusServiceMappingDO();
+			logger.error("not exits=>"+sb.toString());
 			VenusServerDO server = venusServerDAO.getServer(hostName, port);
 			if (null != server) {
-				VenusServiceDO service = venusServiceDAO.getService(serviceName,RegisteConstant.OPERATOR_REGISTE);
-				if (null != service) {
-					venusServiceMappingDO.setServerId(server.getId());
-					venusServiceMappingDO.setServiceId(service.getId());
-					venusServiceMappingDO.setProviderAppId(0);
-					venusServiceMappingDO.setConsumerAppId(0);
-					venusServiceMappingDO.setSync(true);
-					venusServiceMappingDO.setActive(true);
-					venusServiceMappingDO.setRole(RegisteConstant.PROVIDER);
-					venusServiceMappingDO.setVersion(version);
-					venusServiceMappingDO.setIsDelete(false);
-					venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
-					String versionRange=version;
-					venusServiceDAO.updateServiceVersionRange(service.getId(), versionRange);
+				int serviceId = 0;
+				VenusServiceDO service = venusServiceDAO.getService(serviceName,RegisteConstant.OPERATOR_REGISTE,versionRange);
+				if (null == service) {
+					int appId = saveApplication(serviceName);
+					VenusServiceDO venusServiceDO = new VenusServiceDO();
+					venusServiceDO.setName(serviceName);
+					venusServiceDO.setAppId(appId);
+					venusServiceDO.setVersion(String.valueOf(VenusConstants.VERSION_DEFAULT));//导入时version默认为0
+					venusServiceDO.setVersionRange(versionRange);
+					venusServiceDO.setRegisteType(RegisteConstant.OPERATOR_REGISTE);
+					venusServiceDO.setMethods(null);
+					venusServiceDO.setDescription(description);
+					venusServiceDO.setDelete(false);
+					serviceId = venusServiceDAO.addService(venusServiceDO);
+				}else{
+					serviceId=service.getId();
 				}
+				
+				VenusServiceMappingDO venusServiceMappingDO = new VenusServiceMappingDO();
+				venusServiceMappingDO.setServerId(server.getId());
+				venusServiceMappingDO.setServiceId(serviceId);
+				venusServiceMappingDO.setProviderAppId(0);
+				venusServiceMappingDO.setConsumerAppId(0);
+				venusServiceMappingDO.setSync(true);
+				venusServiceMappingDO.setActive(true);
+				venusServiceMappingDO.setRole(RegisteConstant.PROVIDER);
+				venusServiceMappingDO.setVersion(version);
+				venusServiceMappingDO.setIsDelete(false);
+				venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
+					//String versionRange=version;
+					//venusServiceDAO.updateServiceVersionRange(service.getId(), versionRange);
+				
 			}
-		} else {
-			VenusServiceDO service = venusServiceDAO.getService(serviceName, RegisteConstant.OPERATOR_REGISTE);
+		}else{
+			logger.error("exits=>"+sb.toString());
+		}
+	}/*else {
+			VenusServiceDO service = venusServiceDAO.getService(serviceName, RegisteConstant.OPERATOR_REGISTE,version);
 			if (null != service) {
 				if (StringUtils.isNotBlank(service.getVersionRange()) && StringUtils.isNotBlank(version)) {
 					if (!service.getVersionRange().equals(version)) {
@@ -433,8 +472,7 @@ public class MysqlRegisterService implements RegisterService {
 					}
 				}
 			}
-		}
-	}
+		}*/
 	
 //	public List<VenusServiceDefinitionDO> finderviceDefinitionList(String interfaceName, String serviceName)
 //			throws VenusRegisteException {
@@ -736,9 +774,12 @@ public class MysqlRegisterService implements RegisterService {
 
 	@Override
 	public void heartbeat(Map<String, Set<URL>> maps) {
+		long start = System.currentTimeMillis();
+		logger.info("heartbeat start =>" + start + "," + JSON.toJSON(maps));
 		for (Map.Entry<String, Set<URL>> ent : maps.entrySet()) {
-			heartbeatRegister(ent.getValue(),ent.getKey());
+			heartbeatRegister(ent.getValue(), ent.getKey());
 		}
+		logger.info("heartbeat end =>" + (System.currentTimeMillis() - start));
 	}
 	
 }

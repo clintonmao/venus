@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -17,6 +19,7 @@ import com.meidusa.venus.registry.data.move.ServiceMappingDTO;
 import com.meidusa.venus.registry.domain.RegisteConstant;
 import com.meidusa.venus.registry.domain.VenusServiceDO;
 import com.meidusa.venus.registry.domain.VenusServiceMappingDO;
+import com.meidusa.venus.registry.service.impl.OLdServiceMappingService;
 import com.meidusa.venus.support.VenusConstants;
 
 public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
@@ -24,6 +27,9 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	private static final String SELECT_FIELDS_TABLE = "select id, server_id, service_id, version, active, sync,role,provider_app_id,consumer_app_id,is_delete,create_time, update_time,registe_time,heartbeat_time from t_venus_service_mapping ";
 
 	private JdbcTemplate jdbcTemplate;
+	
+	private static Logger logger = LoggerFactory.getLogger(VenusServiceMappingDaoImpl.class);
+
 
 	public VenusServiceMappingDaoImpl(JdbcTemplate jdbcTemplate) {
 		super();
@@ -322,7 +328,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 		try {
 			update = this.jdbcTemplate.update(sql);
 		} catch (Exception e) {
-			throw new DAOException("逻辑删除更新映射关系异常", e);
+			throw new DAOException("逻辑删除更新映射关系异常,sql=>"+sql, e);
 		}
 		return update > 0;
 	}
@@ -352,9 +358,11 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 		String sql = "SELECT count(map.id) as records FROM t_venus_service_mapping as map "
 				+ "left join t_venus_server as s "
 				+ "on map.server_id=s.id left join t_venus_service as v on v.id=map.service_id " + " where s.hostname='"
-				+ hostName + "' and s.port=" + port + " and v.name='" + serviceName + "' ";
-		if (StringUtils.isBlank(version) || "null".equals(version)) {
+				+ hostName + "' and s.port=" + port + " and v.name='" + serviceName + "' and map.role='provider'";
+		if (StringUtils.isBlank(version) || "null".equalsIgnoreCase(version)) {
 			sql = sql + " and map.version is null ";
+		}else{
+			sql = sql + " and map.version='" + version + "' ";
 		}
 		try {
 			return this.jdbcTemplate.queryForObject(sql, Integer.class) > 0;
@@ -404,8 +412,35 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 		return update > 0;
 	}
 	
+	public List<ServiceMappingDTO> queryServiceMappings(List<String> serviceNames) throws DAOException {
+		StringBuilder sb = new StringBuilder();
+		for (String name : serviceNames) {
+			sb.append("'");
+			sb.append(name);
+			sb.append("'");
+			sb.append(",");
+		}
+		String nameStr = sb.substring(0, sb.length() - 1);
+		String sql = "SELECT map.id as map_id,map.server_id,map.version,s.hostname as host_name,s.port,v.name as service_name,map.service_id FROM t_venus_service_mapping as map left join t_venus_server as s on map.server_id=s.id left join t_venus_service as v on v.id=map.service_id where v.name in("+nameStr+") "
+				+ "and map.role=? and v.registe_type=? ";
+		try {
+			return this.jdbcTemplate.query(sql, new Object[] {RegisteConstant.PROVIDER,RegisteConstant.OPERATOR_REGISTE}, new ResultSetExtractor<List<ServiceMappingDTO>>() {
+				@Override
+				public List<ServiceMappingDTO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<ServiceMappingDTO> returnList = new ArrayList<ServiceMappingDTO>();
+					while (rs.next()) {
+						returnList.add(ResultUtils.rsTransServiceMappingDTO(rs));
+					}
+					return returnList;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据sql=>" + sql + ",serviceName=>"+serviceNames+";获取服务映射关系异常", e);
+		}
+	}
+	
 	public List<ServiceMappingDTO> queryServiceMappings(String serviceName) throws DAOException {
-		String sql = "SELECT map.id as map_id,map.server_id,s.hostname as host_name,s.port,v.name as service_name,map.service_id FROM t_venus_service_mapping as map left join t_venus_server as s on map.server_id=s.id left join t_venus_service as v on v.id=map.service_id where v.name=? "
+		String sql = "SELECT map.id as map_id,map.server_id,map.version,s.hostname as host_name,s.port,v.name as service_name,map.service_id FROM t_venus_service_mapping as map left join t_venus_server as s on map.server_id=s.id left join t_venus_service as v on v.id=map.service_id where v.name =? "
 				+ "and role=? and v.registe_type=? ";
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] {serviceName,RegisteConstant.PROVIDER,RegisteConstant.OPERATOR_REGISTE}, new ResultSetExtractor<List<ServiceMappingDTO>>() {
@@ -413,7 +448,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 				public List<ServiceMappingDTO> extractData(ResultSet rs) throws SQLException, DataAccessException {
 					List<ServiceMappingDTO> returnList = new ArrayList<ServiceMappingDTO>();
 					while (rs.next()) {
-						returnList.add(ResultUtils.rsTransOldServiceMappingDO(rs));
+						returnList.add(ResultUtils.rsTransServiceMappingDTO(rs));
 					}
 					return returnList;
 				}

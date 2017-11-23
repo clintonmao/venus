@@ -26,6 +26,8 @@ public class ServiceMappingDTO implements Serializable {
 	/** 服务名称 */
 	private String serviceName;
 
+	private String versionRange;
+
 	public String getHostName() {
 		return hostName;
 	}
@@ -72,6 +74,14 @@ public class ServiceMappingDTO implements Serializable {
 
 	public void setServiceName(String serviceName) {
 		this.serviceName = serviceName;
+	}
+
+	public String getVersionRange() {
+		return versionRange;
+	}
+
+	public void setVersionRange(String versionRange) {
+		this.versionRange = versionRange;
 	}
 
 	@Override
