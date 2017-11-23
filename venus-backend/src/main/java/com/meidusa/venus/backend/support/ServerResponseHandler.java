@@ -34,11 +34,11 @@ public class ServerResponseHandler {
      * @param wrapper
      * @throws Exception
      */
-    public void writeResponseForResponse(ServerResponseWrapper wrapper) throws Exception{
+    public void writeResponseForResponse(ServerResponseWrapper wrapper,int sourcePacketType) throws Exception{
         VenusFrontendConnection conn = wrapper.getConn();
         VenusRouterPacket routerPacket = wrapper.getRouterPacket();
-        Endpoint endpoint = wrapper.getEndpoint();
         SerializeServiceRequestPacket request = wrapper.getRequest();
+        Endpoint endpoint = wrapper.getEndpoint();
         Result result = wrapper.getResult();
         short serializeType = wrapper.getSerializeType();
         Serializer serializer = SerializerFactory.getSerializer(serializeType);
@@ -51,10 +51,10 @@ public class ServerResponseHandler {
             response.result = result.getResult();
             AbstractServicePacket resultPacket = response;
 
-            postMessageBack(conn, routerPacket, request, response, athenaFlag);
+            postMessageBack(conn, routerPacket, request, response, sourcePacketType);
         }else{
             ErrorPacket error = ErrorPacketConvert.toErrorPacket(result,request,serializer);
-            postMessageBack(conn, routerPacket, request, error, athenaFlag);
+            postMessageBack(conn, routerPacket, request, error, sourcePacketType);
         }
     }
 
@@ -63,7 +63,7 @@ public class ServerResponseHandler {
      * @param wrapper
      * @throws Exception
      */
-    public void writeResponseForOk(ServerResponseWrapper wrapper) throws Exception{
+    public void writeResponseForOk(ServerResponseWrapper wrapper,int sourcePacketType) throws Exception{
         VenusFrontendConnection conn = wrapper.getConn();
         VenusRouterPacket routerPacket = wrapper.getRouterPacket();
         Endpoint endpoint = wrapper.getEndpoint();
@@ -77,10 +77,10 @@ public class ServerResponseHandler {
             OKPacket ok = new OKPacket();
             AbstractServicePacket.copyHead(request, ok);
             AbstractServicePacket resultPacket = ok;
-            postMessageBack(conn, routerPacket, request, ok, athenaFlag);
+            postMessageBack(conn, routerPacket, request, ok, sourcePacketType);
         }else{
             ErrorPacket error = ErrorPacketConvert.toErrorPacket(result,request,serializer);
-            postMessageBack(conn, routerPacket, request, error, athenaFlag);
+            postMessageBack(conn, routerPacket, request, error, sourcePacketType);
         }
     }
 
@@ -89,7 +89,7 @@ public class ServerResponseHandler {
      * @param wrapper
      * @throws Exception
      */
-    public void writeResponseForNotify(ServerResponseWrapper wrapper) throws Exception{
+    public void writeResponseForNotify(ServerResponseWrapper wrapper,int sourcePacketType) throws Exception{
         VenusFrontendConnection conn = wrapper.getConn();
         VenusRouterPacket routerPacket = wrapper.getRouterPacket();
         Endpoint endpoint = wrapper.getEndpoint();
@@ -113,10 +113,10 @@ public class ServerResponseHandler {
                 ThreadLocalMap.put(VenusTracerUtil.REQUEST_TRACE_ID, traceID);
             }
             response.traceId = traceID;
-            postMessageBack(conn, routerPacket, request, response, athenaFlag);
+            postMessageBack(conn, routerPacket, request, response, sourcePacketType);
         }else{
             ServiceNofityPacket response = ErrorPacketConvert.toNotifyPacket(result,request,referenceInvocationListener,serializer);
-            postMessageBack(conn, routerPacket, request, response, athenaFlag);
+            postMessageBack(conn, routerPacket, request, response, sourcePacketType);
         }
     }
 
@@ -126,9 +126,8 @@ public class ServerResponseHandler {
      * @param routerPacket
      * @param source
      * @param response
-     * @param athenaFlag
      */
-    void postMessageBack(Connection conn, VenusRouterPacket routerPacket, AbstractServicePacket source, AbstractServicePacket response, boolean athenaFlag) {
+    void postMessageBack(Connection conn, VenusRouterPacket routerPacket, AbstractServicePacket source, AbstractServicePacket response, int sourcePackeType) {
         ByteBuffer byteBuffer;
         if (routerPacket == null) {
             byteBuffer = response.toByteBuffer();

@@ -56,9 +56,6 @@ public class VenusServerMessageHandler implements MessageHandler<VenusFrontendCo
                 ping.init(message);
                 PongPacket pong = new PongPacket();
                 AbstractServicePacket.copyHead(ping, pong);
-                if (logger.isInfoEnabled()) {
-                    logger.info("receive ping packet from " + conn.getHost() + ":" + conn.getPort());
-                }
                 postMessageBack(conn, null, ping, pong);
                 break;
 

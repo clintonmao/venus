@@ -78,15 +78,18 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
 
    public void handle(VenusFrontendConnection conn, Tuple<Long, byte[]> data) {
         byte[] message = data.right;
-        int type = AbstractServicePacket.getType(message);
-        if (PacketConstant.PACKET_TYPE_ROUTER == type) {
+        int packetType = -1;
+        int sourcePacketType = AbstractServicePacket.getType(message);
+        if (PacketConstant.PACKET_TYPE_ROUTER == sourcePacketType) {
             VenusRouterPacket routerPacket = new VenusRouterPacket();
             routerPacket.original = message;
             routerPacket.init(message);
-            type = AbstractServicePacket.getType(routerPacket.data);
+            packetType = AbstractServicePacket.getType(routerPacket.data);
+        }else{
+            packetType = sourcePacketType;
         }
 
-        switch (type) {
+        switch (packetType) {
             case PacketConstant.PACKET_TYPE_PING:
                 super.handle(conn, data);
                 break;
@@ -98,7 +101,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:
                 //处理服务调用消息
-                doHandle(conn, data);
+                doHandle(conn, data,sourcePacketType);
                 break;
             default:
                 super.handle(conn, data);
@@ -111,7 +114,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
      * @param conn
      * @param data
      */
-    void doHandle(VenusFrontendConnection conn, Tuple<Long, byte[]> data) {
+    void doHandle(VenusFrontendConnection conn, Tuple<Long, byte[]> data,int sourcePackageType) {
         long bTime = System.currentTimeMillis();
         ServerInvocation invocation = null;
         Result result = null;
@@ -138,16 +141,19 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
 
         // 输出响应，将exception转化为errorPacket方式输出
         try {
+            if(invocation == null){
+                exceptionLogger.error("invocation:{},result:{}.",JSONUtil.toJSONString(invocation),JSONUtil.toJSONString(result));
+            }
             ServerResponseWrapper responseWrapper = ServerResponseWrapper.parse(invocation,result,false);
 
             if (invocation.getResultType() == EndpointInvocation.ResultType.RESPONSE) {
-                responseHandler.writeResponseForResponse(responseWrapper);
+                responseHandler.writeResponseForResponse(responseWrapper,sourcePackageType);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
-                responseHandler.writeResponseForOk(responseWrapper);
+                responseHandler.writeResponseForOk(responseWrapper,sourcePackageType);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.NOTIFY) {
                 //callback回调异常情况
                 if(result.getErrorCode() != 0){
-                    responseHandler.writeResponseForNotify(responseWrapper);
+                    responseHandler.writeResponseForNotify(responseWrapper,sourcePackageType);
                 }
             }
         } catch (Throwable t) {
@@ -268,7 +274,10 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
         invocation.setProviderApp(providerApp);
         invocation.setProviderIp(providerIp);
         invocation.setConsumerIp(consumerIp);
+
         //设置请求报文
+        VenusRouterPacket routerPacket = parseRouterPacket(conn, data);
+        invocation.setRouterPacket(routerPacket);
         SerializeServiceRequestPacket request = parseRequest(conn, data);
         invocation.setRequest(request);
         if(MapUtils.isNotEmpty(request.parameterMap)){
@@ -319,6 +328,24 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
     }
 
 
+    /**
+     * 解析router packet TODO 合并优化
+     * @param conn
+     * @param data
+     * @return
+     */
+    VenusRouterPacket parseRouterPacket(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
+        byte[] message = data.right;
+        int type = AbstractServicePacket.getType(message);
+        VenusRouterPacket routerPacket = null;
+        if (PacketConstant.PACKET_TYPE_ROUTER == type) {
+            routerPacket = new VenusRouterPacket();
+            routerPacket.original = message;
+            routerPacket.init(message);
+            return  routerPacket;
+        }
+        return null;
+    }
 
     /**
      * 解析请求消息

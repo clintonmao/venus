@@ -111,6 +111,7 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
         ServerInvocation invocation = null;
         Result result = null;
         String rpcId = null;
+        int sourcePacketType = -1;
         try {
             //解析请求对象
             invocation = parseInvocation(conn, data);
@@ -153,19 +154,19 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
                 if(tracerLogger.isInfoEnabled()){
                     tracerLogger.info("write normal response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
                 }
-                responseHandler.writeResponseForResponse(responseEntityWrapper);
+                responseHandler.writeResponseForResponse(responseEntityWrapper,sourcePacketType);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
                 if(tracerLogger.isInfoEnabled()){
                     tracerLogger.info("write normal response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
                 }
-                responseHandler.writeResponseForOk(responseEntityWrapper);
+                responseHandler.writeResponseForOk(responseEntityWrapper,sourcePacketType);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.NOTIFY) {
                 //callback回调异常情况
                 if(result.getErrorCode() != 0){
                     if(tracerLogger.isInfoEnabled()){
                         tracerLogger.info("write notify response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
                     }
-                    responseHandler.writeResponseForNotify(responseEntityWrapper);
+                    responseHandler.writeResponseForNotify(responseEntityWrapper,sourcePacketType);
                 }
             }
         } catch (Throwable t) {

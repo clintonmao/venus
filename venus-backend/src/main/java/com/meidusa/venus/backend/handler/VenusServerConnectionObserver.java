@@ -18,7 +18,7 @@ public class VenusServerConnectionObserver implements ConnectionObserver {
 
     @Override
     public void connectionEstablished(Connection conn) {
-        if(logger.isInfoEnabled()){
+        if(logger.isDebugEnabled()){
             if(conn != null && conn instanceof FrontendConnection){
                 logger.info("connection established,target:[{}].",getTargetAddress((FrontendConnection)conn));
             }else{
@@ -40,7 +40,7 @@ public class VenusServerConnectionObserver implements ConnectionObserver {
 
     @Override
     public void connectionClosed(Connection conn) {
-        if(logger.isWarnEnabled()){
+        if(logger.isDebugEnabled()){
             if(conn != null && conn instanceof FrontendConnection){
                 logger.warn("connection closed,target:[{}].",getTargetAddress((FrontendConnection)conn));
             }else{
