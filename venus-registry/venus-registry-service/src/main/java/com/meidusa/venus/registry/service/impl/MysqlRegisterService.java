@@ -409,20 +409,19 @@ public class MysqlRegisterService implements RegisterService {
 	}
 	
 	public void addNewServiceMapping(String hostName, int port, String serviceName, String version,String description) {
-		StringBuilder sb=new StringBuilder(); 
-		sb.append("hostName=>");
-		sb.append(hostName);
-		sb.append(",port=>");
-		sb.append(port);
-		sb.append(",serviceName=>");
-		sb.append(serviceName);
-		sb.append(",version=>");
-		sb.append(version);
-		
 		boolean exists = venusServiceMappingDAO.existServiceMapping(hostName, port,
 				serviceName, version);
 		String versionRange=version;
 		if (!exists) {// 不存在则添加
+			StringBuilder sb=new StringBuilder(); 
+			sb.append("hostName=>");
+			sb.append(hostName);
+			sb.append(",port=>");
+			sb.append(port);
+			sb.append(",serviceName=>");
+			sb.append(serviceName);
+			sb.append(",version=>");
+			sb.append(version);
 			logger.error("not exits=>"+sb.toString());
 			VenusServerDO server = venusServerDAO.getServer(hostName, port);
 			if (null != server) {
@@ -460,7 +459,7 @@ public class MysqlRegisterService implements RegisterService {
 				
 			}
 		}else{
-			logger.error("exits=>"+sb.toString());
+			//logger.error("exits=>"+sb.toString());
 		}
 	}/*else {
 			VenusServiceDO service = venusServiceDAO.getService(serviceName, RegisteConstant.OPERATOR_REGISTE,version);
