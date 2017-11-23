@@ -235,7 +235,7 @@ public class MysqlRegister implements Register {
 					}
 				} catch (Exception e) {
 					hasException = true;
-					exceptionLogger.error("load service failed:"+getServiceName(url), e);
+					exceptionLogger.error("load service Definition failed:"+getServiceName(url), e);
 				}
 			}
 

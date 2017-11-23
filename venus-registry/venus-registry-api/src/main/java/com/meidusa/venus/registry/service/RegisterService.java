@@ -128,6 +128,6 @@ public interface RegisterService {
 	 */
 	@Endpoint(name = "addNewServiceMapping")
 	@PerformanceLevel(printParams=false,printResult = false)
-	void addNewServiceMapping(@Param(name = "hostName")String hostName,@Param(name = "port")int port,@Param(name = "serviceName")String serviceName,@Param(name = "version")String version) ;
+	void addNewServiceMapping(@Param(name = "hostName")String hostName,@Param(name = "port")int port,@Param(name = "serviceName")String serviceName,@Param(name = "version")String version,@Param(name = "description")String description) ;
 	
 }

@@ -48,7 +48,7 @@ public class OLdServiceMappingService {
 		if (this.isNeedDataSync()) {
 			logger.info("Sync Data Thread initialize is need");
 			// this.setOldConnectUrl("mysql://10.32.173.250:3306/registry?username=registry&password=registry");
-			GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveDataRunnable(), 10, 50000, TimeUnit.SECONDS);
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveDataRunnable(), 1, 5, TimeUnit.MINUTES);
 		} else {
 			logger.info("Sync Data Thread initialize is not need");
 		}
@@ -71,9 +71,15 @@ public class OLdServiceMappingService {
 					for (OldServiceMappingDO oldServiceMappingDO : oldServiceMappings) {
 						registerService.addNewServiceMapping(oldServiceMappingDO.getHostName(),
 								oldServiceMappingDO.getPort(), oldServiceMappingDO.getServiceName(),
-								oldServiceMappingDO.getVersion());
+								oldServiceMappingDO.getVersion(),oldServiceMappingDO.getDescription());
 					}
 				}
+				try {
+					Thread.sleep(200);
+				} catch (InterruptedException e) {
+					
+				}
+
 			}
 		}
 	}
@@ -92,38 +98,11 @@ public class OLdServiceMappingService {
 				List<OldServiceDO> services = oldServiceMappingDAO.queryOldServices(PAGE_SIZE_30, mapId);
 				if (CollectionUtils.isNotEmpty(services)) {
 					mapId = services.get(services.size() - 1).getId();
-					for (OldServiceDO oldServiceDO : services) {
-						registerService.addService(oldServiceDO.getServiceName(), oldServiceDO.getDescription(),
-								String.valueOf(VenusConstants.VERSION_DEFAULT));
-					}
-					
 					delOldMappingIds(services);
-					
-//					List<Integer> deleteMapIds=new ArrayList<Integer>();
-//					for (OldServiceDO oldServiceDO : services) {
-//						String serviceName = oldServiceDO.getServiceName();
-//						List<ServiceMappingDTO> oldServiceMappings = oldServiceMappingDAO.queryOldServiceMappings(serviceName);
-//						List<ServiceMappingDTO> serviceMappings = venusServiceMappingDAO.queryServiceMappings(serviceName);
-//						for (ServiceMappingDTO map : serviceMappings) {
-//							boolean needDel=true;
-//							for (ServiceMappingDTO old : oldServiceMappings) {
-//								if (isNotBlank(map.getHostName()) && isNotBlank(old.getHostName())) {
-//									if (map.getHostName().equals(old.getHostName())) {
-//										if (map.getPort() == old.getPort()) {
-//											needDel = false;
-//											break;
-//										}
-//									}
-//								}
-//							}
-//							
-//							if(needDel){
-//								logger.error("mapId=>{},hostName=>{},serviceId=>{},serverId=>{},serverName=>{}",map.getMapId(),map.getHostName(),map.getServiceId(),map.getServerId(),map.getServiceName());
-//								deleteMapIds.add(map.getMapId());
-//							}
-//							
-//						}
-//					}
+				}
+				try {
+					Thread.sleep(200);
+				} catch (InterruptedException e) {
 					
 				}
 			}
@@ -139,8 +118,8 @@ public class OLdServiceMappingService {
 		
 		List<Integer> allDelMapIds=new ArrayList<Integer>();
 		for (Map.Entry<String, List<ServiceMappingDTO>> ent : maps.entrySet()) {
-			String serviceName = ent.getKey();
-			List<Integer> deleteMapIds = getDeleteIds(oldMaps.get(serviceName),ent.getValue());
+			String key = ent.getKey();
+			List<Integer> deleteMapIds = getDeleteIds(oldMaps.get(key),ent.getValue());
 			allDelMapIds.addAll(deleteMapIds);
 		}
 		
@@ -164,7 +143,7 @@ public class OLdServiceMappingService {
 			}
 			int start = i * PAGE_SIZE_50;
 			List<Integer> subList = allDelMapIds.subList(start, end);
-			//venusServiceMappingDAO.deleteServiceMappings(subList);
+			venusServiceMappingDAO.deleteServiceMappings(subList);
 		}
 	}
 
@@ -237,11 +216,16 @@ public class OLdServiceMappingService {
 		Map<String, List<ServiceMappingDTO>> maps = new HashMap<String, List<ServiceMappingDTO>>();
 		for (ServiceMappingDTO s : services) {
 			String serviceName = s.getServiceName();
-			List<ServiceMappingDTO> list = maps.get(serviceName);
+			String versionRange = s.getVersionRange();
+			String key = serviceName;
+			if (StringUtils.isNotBlank(versionRange) && !"null".equalsIgnoreCase(versionRange)) {
+				key = serviceName + ":" + versionRange;
+			}
+			List<ServiceMappingDTO> list = maps.get(key);
 			if (list == null) {
 				list = new ArrayList<ServiceMappingDTO>();
 				list.add(s);
-				maps.put(serviceName, list);
+				maps.put(key, list);
 			} else {
 				list.add(s);
 			}
@@ -265,6 +249,11 @@ public class OLdServiceMappingService {
 					for (OldServerDO oldServerDO : servers) {
 						registerService.addServer(oldServerDO.getHostName(), oldServerDO.getPort());
 					}
+				}
+				try {
+					Thread.sleep(200);
+				} catch (InterruptedException e) {
+					
 				}
 			}
 		}
@@ -311,50 +300,15 @@ public class OLdServiceMappingService {
 		@Override
 		public void run() {
 			try {
+				logger.error("MoveDataRunnable start at:"+System.currentTimeMillis());
 				moveServers();
-				moveServices();
+				logger.error("***************start***************");
 				moveServiceMappings();
+				logger.error("***************end***************");
+				moveServices();
+				logger.error("MoveDataRunnable end at:"+System.currentTimeMillis());
 			} catch (Exception e) {
 				logger.error("moveServers method is error", e);
-			}
-		}
-
-	}
-
-	private class MoveServerRunnable implements Runnable {
-
-		@Override
-		public void run() {
-			try {
-				moveServers();
-			} catch (Exception e) {
-				logger.error("moveServers method is error", e);
-			}
-		}
-
-	}
-
-	private class MoveServiceRunnable implements Runnable {
-
-		@Override
-		public void run() {
-			try {
-				moveServices();
-			} catch (Exception e) {
-				logger.error("moveServices method is error", e);
-			}
-		}
-
-	}
-
-	private class MoveServiceMappingRunnable implements Runnable {
-
-		@Override
-		public void run() {
-			try {
-				moveServiceMappings();
-			} catch (Exception e) {
-				logger.error("moveServiceMappings method is error", e);
 			}
 		}
 
@@ -371,4 +325,5 @@ public class OLdServiceMappingService {
 	 * "mysql://10.32.173.250:3306/registry?username=registry&password=registry"
 	 * ); oldDs.init(); oldDs.moveServers(); }
 	 */
+	
 }

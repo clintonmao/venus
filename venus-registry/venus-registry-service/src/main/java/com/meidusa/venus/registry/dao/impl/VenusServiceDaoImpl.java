@@ -256,10 +256,16 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 	}
 	
 	@Override
-	public VenusServiceDO getService(String serviceName,int registeType) throws DAOException {
+	public VenusServiceDO getService(String serviceName,int registeType,String versionRange) throws DAOException {
 		String sql = SELECT_FIELDS + " from t_venus_service where name=? and registe_type=?";
-		
 		Object[] params = new Object[] {serviceName,registeType};
+		if (StringUtils.isNotBlank(versionRange)) {
+			sql = sql + " and version_range=?";
+			params = new Object[] { serviceName, registeType, versionRange };
+		} else {
+			sql = sql + " and version_range is null";
+		}
+		
 		try {
 			return this.jdbcTemplate.query(sql, params, new ResultSetExtractor<VenusServiceDO>() {
 				@Override
@@ -433,6 +439,7 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		}
 	}
 	
+	@Deprecated
 	public boolean updateServiceVersionRange(int id, String versionRange) throws DAOException {
 		String sql = "update t_venus_service set version_range=?,update_time=now() where id=?";
 		int update = 0;

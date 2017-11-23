@@ -60,7 +60,7 @@ public class OldServiceMappingDaoImpl implements OldServiceMappingDAO {
 			sb.append(",");
 		}
 		String nameStr = sb.substring(0, sb.length() - 1);
-		String sql = "SELECT map.id as map_id,map.server_id,s.hostname as host_name,s.port,v.name as service_name,map.service_id FROM t_venus_service_mapping as map left join t_venus_server as s on map.server_id=s.id left join t_venus_service as v on v.id=map.service_id where v.name in("+nameStr+")";
+		String sql = "SELECT map.id as map_id,map.server_id,map.version,s.hostname as host_name,s.port,v.name as service_name,map.service_id FROM t_venus_service_mapping as map left join t_venus_server as s on map.server_id=s.id left join t_venus_service as v on v.id=map.service_id where v.name in("+nameStr+")";
 		
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] {}, new ResultSetExtractor<List<ServiceMappingDTO>>() {
@@ -68,7 +68,7 @@ public class OldServiceMappingDaoImpl implements OldServiceMappingDAO {
 				public List<ServiceMappingDTO> extractData(ResultSet rs) throws SQLException, DataAccessException {
 					List<ServiceMappingDTO> returnList = new ArrayList<ServiceMappingDTO>();
 					while (rs.next()) {
-						returnList.add(ResultUtils.rsTransOldServiceMappingDO(rs));
+						returnList.add(ResultUtils.rsTransServiceMappingDTO(rs));
 					}
 					return returnList;
 				}
@@ -81,7 +81,7 @@ public class OldServiceMappingDaoImpl implements OldServiceMappingDAO {
 	@Override
 	public List<ServiceMappingDTO> queryOldServiceMappings(String serviceName) throws DAOException {
 		StringBuilder sb = new StringBuilder();
-		String sql = "SELECT map.id as map_id,map.server_id,s.hostname as host_name,s.port,v.name as service_name,map.service_id FROM t_venus_service_mapping as map left join t_venus_server as s on map.server_id=s.id left join t_venus_service as v on v.id=map.service_id where v.name =?";
+		String sql = "SELECT map.id as map_id,map.server_id,map.version,s.hostname as host_name,s.port,v.name as service_name,map.service_id FROM t_venus_service_mapping as map left join t_venus_server as s on map.server_id=s.id left join t_venus_service as v on v.id=map.service_id where v.name =?";
 		
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] {serviceName}, new ResultSetExtractor<List<ServiceMappingDTO>>() {
@@ -89,7 +89,7 @@ public class OldServiceMappingDaoImpl implements OldServiceMappingDAO {
 				public List<ServiceMappingDTO> extractData(ResultSet rs) throws SQLException, DataAccessException {
 					List<ServiceMappingDTO> returnList = new ArrayList<ServiceMappingDTO>();
 					while (rs.next()) {
-						returnList.add(ResultUtils.rsTransOldServiceMappingDO(rs));
+						returnList.add(ResultUtils.rsTransServiceMappingDTO(rs));
 					}
 					return returnList;
 				}

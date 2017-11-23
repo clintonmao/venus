@@ -148,11 +148,12 @@ public class ResultUtils {
 		return oldServiceMapping;
 	}
 	
-	public final static ServiceMappingDTO rsTransOldServiceMappingDO(ResultSet rs) throws SQLException {
+	public final static ServiceMappingDTO rsTransServiceMappingDTO(ResultSet rs) throws SQLException {
 		ServiceMappingDTO oldServiceMapping = new ServiceMappingDTO();
 
 		oldServiceMapping.setMapId(rs.getInt("map_id"));
 		
+		oldServiceMapping.setVersionRange(rs.getString("version"));
 		oldServiceMapping.setServerId(rs.getInt("server_id"));
 		oldServiceMapping.setHostName(rs.getString("host_name"));
 		oldServiceMapping.setPort(rs.getInt("port"));
