@@ -774,9 +774,12 @@ public class MysqlRegisterService implements RegisterService {
 
 	@Override
 	public void heartbeat(Map<String, Set<URL>> maps) {
+		long start = System.currentTimeMillis();
+		logger.info("heartbeat start =>" + start + "," + JSON.toJSON(maps));
 		for (Map.Entry<String, Set<URL>> ent : maps.entrySet()) {
-			heartbeatRegister(ent.getValue(),ent.getKey());
+			heartbeatRegister(ent.getValue(), ent.getKey());
 		}
+		logger.info("heartbeat end =>" + (System.currentTimeMillis() - start));
 	}
 	
 }
