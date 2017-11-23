@@ -300,13 +300,28 @@ public class OLdServiceMappingService {
 		@Override
 		public void run() {
 			try {
-				logger.error("MoveDataRunnable start at:"+System.currentTimeMillis());
+				long start = System.currentTimeMillis();
+				logger.error("*********MoveDataRunnable start*************"+start);
+				logger.error("moveServers start at=>{}", start);
 				moveServers();
-				logger.error("***************start***************");
+				long end = System.currentTimeMillis();
+				long consumerTime = end - start;
+				logger.error("moveServers end at=>{},consumerTime=>{}", end, consumerTime);
+				
+				start = System.currentTimeMillis();
+				logger.error("moveServiceMappings start=>{}", end);
 				moveServiceMappings();
-				logger.error("***************end***************");
+				end = System.currentTimeMillis();
+				consumerTime = end - start;
+				logger.error("moveServiceMappings end at=>{},consumerTime=>{}", end, consumerTime);
+				
+				start = System.currentTimeMillis();
+				logger.error("moveServices start=>{}", end);
 				moveServices();
-				logger.error("MoveDataRunnable end at:"+System.currentTimeMillis());
+				end = System.currentTimeMillis();
+				consumerTime = end - start;
+				logger.error("moveServices end at=>{},consumerTime=>{}", end, consumerTime);
+				logger.error("*********MoveDataRunnable end*************"+System.currentTimeMillis());
 			} catch (Exception e) {
 				logger.error("moveServers method is error", e);
 			}
