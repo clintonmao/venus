@@ -47,7 +47,6 @@ public class OLdServiceMappingService {
 	public void init() {
 		if (this.isNeedDataSync()) {
 			logger.info("Sync Data Thread initialize is need");
-			// this.setOldConnectUrl("mysql://10.32.173.250:3306/registry?username=registry&password=registry");
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveDataRunnable(), 1, 5, TimeUnit.MINUTES);
 		} else {
 			logger.info("Sync Data Thread initialize is not need");
@@ -74,11 +73,11 @@ public class OLdServiceMappingService {
 								oldServiceMappingDO.getVersion(),oldServiceMappingDO.getDescription());
 					}
 				}
-				try {
-					Thread.sleep(200);
-				} catch (InterruptedException e) {
-					
-				}
+//				try {
+//					Thread.sleep(200);
+//				} catch (InterruptedException e) {
+//					
+//				}
 
 			}
 		}
@@ -100,11 +99,11 @@ public class OLdServiceMappingService {
 					mapId = services.get(services.size() - 1).getId();
 					delOldMappingIds(services);
 				}
-				try {
-					Thread.sleep(200);
-				} catch (InterruptedException e) {
-					
-				}
+//				try {
+//					Thread.sleep(200);
+//				} catch (InterruptedException e) {
+//					
+//				}
 			}
 		}
 		logger.error("--------end----------");
@@ -250,11 +249,11 @@ public class OLdServiceMappingService {
 						registerService.addServer(oldServerDO.getHostName(), oldServerDO.getPort());
 					}
 				}
-				try {
+				/*try {
 					Thread.sleep(200);
 				} catch (InterruptedException e) {
 					
-				}
+				}*/
 			}
 		}
 	}
