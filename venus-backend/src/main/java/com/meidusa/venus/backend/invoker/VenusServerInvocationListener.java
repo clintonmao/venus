@@ -39,8 +39,6 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
 
     private ServerResponseHandler responseHandler;
 
-    private int sourcePacketType;
-
     public boolean isResponsed() {
         return isResponsed;
     }
@@ -62,7 +60,7 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
             if(tracerLogger.isInfoEnabled()){
                 tracerLogger.info("send notify response,rpcId:{}.",invocation.getRpcId());
             }
-            responseHandler.writeResponseForNotify(responseEntityWrapper,sourcePacketType);
+            responseHandler.writeResponseForNotify(responseEntityWrapper);
         } catch (Exception e) {
             if(exceptionLogger.isErrorEnabled()){
                 exceptionLogger.error("send notify response error.",e);
@@ -79,7 +77,7 @@ public class VenusServerInvocationListener<T> implements InvocationListener<T> {
             if(tracerLogger.isInfoEnabled()){
                 tracerLogger.info("send notify response,rpcId:{}.",invocation.getRpcId());
             }
-            responseHandler.writeResponseForNotify(responseEntityWrapper,sourcePacketType);
+            responseHandler.writeResponseForNotify(responseEntityWrapper);
         } catch (Exception ex) {
             if(exceptionLogger.isErrorEnabled()){
                 exceptionLogger.error("send notify response error.",ex);

@@ -63,39 +63,13 @@ public class ServerValidFilter implements Filter {
         String finalSourceIp = invocation.getFinalSourceIp();
         VenusRouterPacket routerPacket = invocation.getRouterPacket();
         byte serializeType = invocation.getSerializeType();
-        SerializeServiceRequestPacket request = invocation.getRequest();
+        SerializeServiceRequestPacket request = invocation.getServiceRequestPacket();
         final String apiName = request.apiName;
         final Endpoint endpoint = invocation.getEndpointDef();
 
         checkVersion(endpoint, request);
         checkActive(endpoint, request);
         checkTimeout(endpoint, request, waitTime,invocation);
-        /*
-        __TIMEOUT:{
-            if (errorPacket != null) {
-                if (resultType == EndpointInvocation.ResultType.NOTIFY) {
-                    if(isTimeout){
-                        break __TIMEOUT;
-                    }
-                    if (invocationListener != null) {
-                        invocationListener.onException(new ServiceVersionNotAllowException(errorPacket.message));
-                    } else {
-                        postMessageBack(conn, routerPacket, request, errorPacket);
-                    }
-                } else {
-                    postMessageBack(conn, routerPacket, request, errorPacket);
-                }
-                if(filte != null){
-                    filte.before(request);
-                }
-                logPerformance(endpoint,UUID.toString(request.traceId),apiName,waitTime,0,conn.getHost(),finalSourceIp,request.clientId,request.clientRequestId,request.parameterMap, errorPacket);
-                if(filte != null){
-                    filte.after(errorPacket);
-                }
-            }
-        }
-        */
-
     }
 
     /**

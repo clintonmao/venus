@@ -73,7 +73,7 @@ public class ServerAthenaMonitorFilter implements Filter {
 
             //调用服务
             Tuple<Long, byte[]> data = serverInvocation.getData();
-            SerializeServiceRequestPacket request = serverInvocation.getRequest();
+            SerializeServiceRequestPacket request = serverInvocation.getServiceRequestPacket();
             String apiName = request.apiName;
             long startTime = TimeUtil.currentTimeMillis();
             VenusThreadContext.set(VenusThreadContext.SERVER_BEGIN_TIME,Long.valueOf(startTime));
@@ -114,7 +114,7 @@ public class ServerAthenaMonitorFilter implements Filter {
                 }
             }
 
-            SerializeServiceRequestPacket request = serverInvocation.getRequest();
+            SerializeServiceRequestPacket request = serverInvocation.getServiceRequestPacket();
             String apiName = request.apiName;
             AthenaReporterDelegate.getInstance().metric(apiName + ".error");
             AthenaReporterDelegate.getInstance().problem(e.getMessage(), e);
@@ -150,7 +150,7 @@ public class ServerAthenaMonitorFilter implements Filter {
             }
 
             Tuple<Long, byte[]> data = serverInvocation.getData();
-            SerializeServiceRequestPacket request = serverInvocation.getRequest();
+            SerializeServiceRequestPacket request = serverInvocation.getServiceRequestPacket();
             String apiName = request.apiName;
             boolean athenaFlag = endpoint.getService().getAthenaFlag();
             AthenaReporterDelegate.getInstance().metric(apiName + ".complete");

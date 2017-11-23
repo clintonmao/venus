@@ -47,7 +47,7 @@ public class VenusServerInvoker implements Invoker {
         byte serializeType = serverInvocation.getSerializeType();
         byte packetSerializeType = serverInvocation.getPacketSerializeType();
         VenusRouterPacket routerPacket = serverInvocation.getRouterPacket();
-        SerializeServiceRequestPacket request = serverInvocation.getRequest();
+        SerializeServiceRequestPacket request = serverInvocation.getServiceRequestPacket();
         String apiName = request.apiName;
         String finalSourceIp = serverInvocation.getFinalSourceIp();
         long waitTime = serverInvocation.getWaitTime();

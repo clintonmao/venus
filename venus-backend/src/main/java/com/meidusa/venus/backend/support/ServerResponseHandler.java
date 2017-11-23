@@ -34,7 +34,7 @@ public class ServerResponseHandler {
      * @param wrapper
      * @throws Exception
      */
-    public void writeResponseForResponse(ServerResponseWrapper wrapper,int sourcePacketType) throws Exception{
+    public void writeResponseForResponse(ServerResponseWrapper wrapper) throws Exception{
         VenusFrontendConnection conn = wrapper.getConn();
         VenusRouterPacket routerPacket = wrapper.getRouterPacket();
         SerializeServiceRequestPacket request = wrapper.getRequest();
@@ -51,10 +51,10 @@ public class ServerResponseHandler {
             response.result = result.getResult();
             AbstractServicePacket resultPacket = response;
 
-            postMessageBack(conn, routerPacket, request, response, sourcePacketType);
+            postMessageBack(conn, routerPacket, request, response);
         }else{
             ErrorPacket error = ErrorPacketConvert.toErrorPacket(result,request,serializer);
-            postMessageBack(conn, routerPacket, request, error, sourcePacketType);
+            postMessageBack(conn, routerPacket, request, error);
         }
     }
 
@@ -63,7 +63,7 @@ public class ServerResponseHandler {
      * @param wrapper
      * @throws Exception
      */
-    public void writeResponseForOk(ServerResponseWrapper wrapper,int sourcePacketType) throws Exception{
+    public void writeResponseForOk(ServerResponseWrapper wrapper) throws Exception{
         VenusFrontendConnection conn = wrapper.getConn();
         VenusRouterPacket routerPacket = wrapper.getRouterPacket();
         Endpoint endpoint = wrapper.getEndpoint();
@@ -77,10 +77,10 @@ public class ServerResponseHandler {
             OKPacket ok = new OKPacket();
             AbstractServicePacket.copyHead(request, ok);
             AbstractServicePacket resultPacket = ok;
-            postMessageBack(conn, routerPacket, request, ok, sourcePacketType);
+            postMessageBack(conn, routerPacket, request, ok);
         }else{
             ErrorPacket error = ErrorPacketConvert.toErrorPacket(result,request,serializer);
-            postMessageBack(conn, routerPacket, request, error, sourcePacketType);
+            postMessageBack(conn, routerPacket, request, error);
         }
     }
 
@@ -89,7 +89,7 @@ public class ServerResponseHandler {
      * @param wrapper
      * @throws Exception
      */
-    public void writeResponseForNotify(ServerResponseWrapper wrapper,int sourcePacketType) throws Exception{
+    public void writeResponseForNotify(ServerResponseWrapper wrapper) throws Exception{
         VenusFrontendConnection conn = wrapper.getConn();
         VenusRouterPacket routerPacket = wrapper.getRouterPacket();
         Endpoint endpoint = wrapper.getEndpoint();
@@ -113,10 +113,10 @@ public class ServerResponseHandler {
                 ThreadLocalMap.put(VenusTracerUtil.REQUEST_TRACE_ID, traceID);
             }
             response.traceId = traceID;
-            postMessageBack(conn, routerPacket, request, response, sourcePacketType);
+            postMessageBack(conn, routerPacket, request, response);
         }else{
             ServiceNofityPacket response = ErrorPacketConvert.toNotifyPacket(result,request,referenceInvocationListener,serializer);
-            postMessageBack(conn, routerPacket, request, response, sourcePacketType);
+            postMessageBack(conn, routerPacket, request, response);
         }
     }
 
@@ -127,15 +127,12 @@ public class ServerResponseHandler {
      * @param source
      * @param response
      */
-    void postMessageBack(Connection conn, VenusRouterPacket routerPacket, AbstractServicePacket source, AbstractServicePacket response, int sourcePackeType) {
-        ByteBuffer byteBuffer;
+    void postMessageBack(Connection conn, VenusRouterPacket routerPacket, AbstractServicePacket source, AbstractServicePacket response) {
         if (routerPacket == null) {
-            byteBuffer = response.toByteBuffer();
-            conn.write(byteBuffer);
+            conn.write(response.toByteBuffer());
         } else {
             routerPacket.data = response.toByteArray();
-            byteBuffer = routerPacket.toByteBuffer();
-            conn.write(byteBuffer);
+            conn.write(routerPacket.toByteBuffer());
         }
     }
 

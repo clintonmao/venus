@@ -5,6 +5,8 @@ import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.services.EndpointInvocation;
 import com.meidusa.venus.backend.context.RequestContext;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
+import com.meidusa.venus.io.packet.ServiceAPIPacket;
+import com.meidusa.venus.io.packet.ServicePacketBuffer;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.metainfo.EndpointParameter;
@@ -72,26 +74,34 @@ public class ServerInvocation implements Invocation {
 
     VenusFrontendConnection conn;
 
-    SerializeServiceRequestPacket request;
+    /**
+     * 服务端端点配置，非注释配置
+     */
+    Endpoint endpointDef;
+
+    SerializeServiceRequestPacket serviceRequestPacket;
 
     VenusRouterPacket routerPacket;
+
+    ServiceAPIPacket apiPacket;
+
+    ServicePacketBuffer packetBuffer;
 
     Tuple<Long, byte[]> data;
 
     byte[] message;
 
+    int messageType;
+
     byte serializeType;
 
     byte packetSerializeType;
 
+    String sourceIp;
+
     String finalSourceIp;
 
     long waitTime;
-
-    /**
-     * 服务端端点配置，非注释配置
-     */
-    Endpoint endpointDef;
 
     String localHost;
 
@@ -110,6 +120,8 @@ public class ServerInvocation implements Invocation {
     String methodName;
 
     String version;
+
+    String apiName;
 
     public int getClientId() {
         return clientId;
@@ -352,14 +364,6 @@ public class ServerInvocation implements Invocation {
         this.conn = conn;
     }
 
-    public SerializeServiceRequestPacket getRequest() {
-        return request;
-    }
-
-    public void setRequest(SerializeServiceRequestPacket request) {
-        this.request = request;
-    }
-
     public VenusRouterPacket getRouterPacket() {
         return routerPacket;
     }
@@ -460,6 +464,54 @@ public class ServerInvocation implements Invocation {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public int getMessageType() {
+        return messageType;
+    }
+
+    public void setMessageType(int messageType) {
+        this.messageType = messageType;
+    }
+
+    public String getSourceIp() {
+        return sourceIp;
+    }
+
+    public void setSourceIp(String sourceIp) {
+        this.sourceIp = sourceIp;
+    }
+
+    public SerializeServiceRequestPacket getServiceRequestPacket() {
+        return serviceRequestPacket;
+    }
+
+    public void setServiceRequestPacket(SerializeServiceRequestPacket serviceRequestPacket) {
+        this.serviceRequestPacket = serviceRequestPacket;
+    }
+
+    public String getApiName() {
+        return apiName;
+    }
+
+    public void setApiName(String apiName) {
+        this.apiName = apiName;
+    }
+
+    public ServiceAPIPacket getApiPacket() {
+        return apiPacket;
+    }
+
+    public void setApiPacket(ServiceAPIPacket apiPacket) {
+        this.apiPacket = apiPacket;
+    }
+
+    public ServicePacketBuffer getPacketBuffer() {
+        return packetBuffer;
+    }
+
+    public void setPacketBuffer(ServicePacketBuffer packetBuffer) {
+        this.packetBuffer = packetBuffer;
     }
 
     @Override

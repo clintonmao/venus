@@ -29,7 +29,7 @@ public class ServerResponseWrapper {
         ServerResponseWrapper wrapper = new ServerResponseWrapper();
         wrapper.setConn(invocation.getConn());
         wrapper.setRouterPacket(invocation.getRouterPacket());
-        wrapper.setRequest(invocation.getRequest());
+        wrapper.setRequest(invocation.getServiceRequestPacket());
         wrapper.setEndpoint(invocation.getEndpointDef());
         wrapper.setInvocationListener(invocation.getInvocationListener());
         wrapper.setSerializeType(invocation.getSerializeType());

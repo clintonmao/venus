@@ -154,19 +154,19 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
                 if(tracerLogger.isInfoEnabled()){
                     tracerLogger.info("write normal response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
                 }
-                responseHandler.writeResponseForResponse(responseEntityWrapper,sourcePacketType);
+                responseHandler.writeResponseForResponse(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.OK) {
                 if(tracerLogger.isInfoEnabled()){
                     tracerLogger.info("write normal response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
                 }
-                responseHandler.writeResponseForOk(responseEntityWrapper,sourcePacketType);
+                responseHandler.writeResponseForOk(responseEntityWrapper);
             } else if (invocation.getResultType() == EndpointInvocation.ResultType.NOTIFY) {
                 //callback回调异常情况
                 if(result.getErrorCode() != 0){
                     if(tracerLogger.isInfoEnabled()){
                         tracerLogger.info("write notify response,rpcId:{},used time:{}ms.",rpcId,System.currentTimeMillis()-bTime);
                     }
-                    responseHandler.writeResponseForNotify(responseEntityWrapper,sourcePacketType);
+                    responseHandler.writeResponseForNotify(responseEntityWrapper);
                 }
             }
         } catch (Throwable t) {
