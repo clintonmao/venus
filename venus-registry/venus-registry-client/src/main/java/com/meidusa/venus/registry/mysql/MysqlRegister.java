@@ -9,6 +9,7 @@ import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.domain.RegisteConstant;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.registry.service.RegisterService;
+import com.meidusa.venus.registry.util.RegistryUtil;
 import com.meidusa.venus.support.MonitorResourceFacade;
 import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.util.VenusLoggerFactory;
@@ -174,7 +175,7 @@ public class MysqlRegister implements Register {
 	public List<VenusServiceDefinitionDO> lookup(URL url) throws VenusRegisteException {
 		// 接口名 服务名 版本号 加载服务的server信息及serviceConfig信息
 		// 根据本地 VenusServiceDefinitionDO 列表去查找
-		String key = getKeyFromUrl(url);
+		String key = RegistryUtil.getKeyFromUrl(url);
 		List<VenusServiceDefinitionDO> serviceDefinitions = subscribleServiceDefinitionMap.get(key);
 		if (CollectionUtils.isEmpty(serviceDefinitions)) {
 			if(isEnableFileCache()){
@@ -194,29 +195,6 @@ public class MysqlRegister implements Register {
 		}
 	}
 
-	private static String getKeyFromUrl(URL url) {
-		StringBuilder buf = new StringBuilder();
-		buf.append("/");
-		buf.append(url.getInterfaceName());
-		buf.append("/");
-		buf.append(url.getServiceName());
-		if(StringUtils.isNotEmpty(url.getVersion())){
-			buf.append("?version=").append(url.getVersion());
-		}
-		return buf.toString();
-	}
-
-	private static String getKey(VenusServiceDefinitionDO url) {
-		StringBuilder buf = new StringBuilder();
-		buf.append("/");
-		buf.append(url.getInterfaceName());
-		buf.append("/");
-		buf.append(url.getName());
-		if(StringUtils.isNotEmpty(url.getVersion())){
-			buf.append("?version=").append(url.getVersion());
-		}
-		return buf.toString();
-	}
 
 	@Override
 	public void load() throws VenusRegisteException {
@@ -226,7 +204,7 @@ public class MysqlRegister implements Register {
 			for (URL url : subscribleUrls) {
 				try {
 					List<VenusServiceDefinitionDO> serviceDefinitions = registerService.findServiceDefinitions(url);//查询成功写本地文件
-					String key = getKeyFromUrl(url);
+					String key = RegistryUtil.getKeyFromUrl(url);
 					if (CollectionUtils.isNotEmpty(serviceDefinitions)) {
 						subscribleServiceDefinitionMap.put(key, serviceDefinitions);
 						jsons.add(JSON.toJSONString(serviceDefinitions));
@@ -290,7 +268,7 @@ public class MysqlRegister implements Register {
 			for (String str : readFileJsons) {
 				List<VenusServiceDefinitionDO> parseObject = JSON.parseArray(str, VenusServiceDefinitionDO.class);
 				if (CollectionUtils.isNotEmpty(parseObject)) {
-					map.put(getKey(parseObject.get(0)), parseObject);
+					map.put(RegistryUtil.getKey(parseObject.get(0)), parseObject);
 				}
 			}
 		}
@@ -593,7 +571,7 @@ public class MysqlRegister implements Register {
 			if (CollectionUtils.isNotEmpty(newList)) {
 				for (String str : newList) {
 					List<VenusServiceDefinitionDO> newObject = JSON.parseArray(str, VenusServiceDefinitionDO.class);
-					if (getKey(oldObject.get(0)).equals(getKey(newObject.get(0)))) {
+					if (RegistryUtil.getKey(oldObject.get(0)).equals(RegistryUtil.getKey(newObject.get(0)))) {
 						iterator.remove();
 					}
 				}

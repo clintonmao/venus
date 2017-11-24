@@ -83,6 +83,12 @@
 	<bean id="oldServiceMappingDAO" class="com.meidusa.venus.registry.dao.impl.OldServiceMappingDaoImpl" >  
 	    <property name="jdbcTemplate" ref="oldJdbcTemplate"></property>  
 	</bean> 
+	<bean id="cacheVenusServerDAO" class="com.meidusa.venus.registry.dao.impl.CacheVenusServerDaoImpl" init-method="init">  
+	    <property name="venusServerDAO" ref="venusServerDAO"></property>  
+	</bean> 
+	<bean id="cacheVenusServiceDAO" class="com.meidusa.venus.registry.dao.impl.CacheVenusServiceDaoImpl" init-method="init">  
+	    <property name="venusServiceDAO" ref="venusServiceDAO"></property>  
+	</bean> 
 
 	<!--注册服务-->
 	<bean id="mysqlRegisterService" class="com.meidusa.venus.registry.service.impl.MysqlRegisterService" init-method="init">
@@ -91,6 +97,8 @@
 		<property name="venusServiceDAO" ref="venusServiceDAO"></property>
 		<property name="venusServiceConfigDAO" ref="venusServiceConfigDAO"></property>
 		<property name="venusServiceMappingDAO" ref="venusServiceMappingDAO"></property>
+		<property name="cacheVenusServerDAO" ref="cacheVenusServerDAO"></property>
+		<property name="cacheVenusServiceDAO" ref="cacheVenusServiceDAO"></property>
 	</bean>
 
 	<!--清理服务-->

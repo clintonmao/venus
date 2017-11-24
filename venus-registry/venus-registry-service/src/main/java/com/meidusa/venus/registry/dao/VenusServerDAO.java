@@ -3,6 +3,7 @@ package com.meidusa.venus.registry.dao;
 import java.util.List;
 
 import com.meidusa.venus.registry.DAOException;
+import com.meidusa.venus.registry.data.move.OldServerDO;
 import com.meidusa.venus.registry.domain.VenusServerDO;
 
 public interface VenusServerDAO {
@@ -20,5 +21,9 @@ public interface VenusServerDAO {
 	List<VenusServerDO> getServers(List<Integer> ids) throws DAOException;
 	
 	boolean deleteServer(int id) throws DAOException;
+	
+	Integer getServerCount() throws DAOException;
+	
+	List<VenusServerDO> queryServers(Integer pageSize, Integer id) throws DAOException;
 
 }
