@@ -9,6 +9,12 @@ import java.util.Date;
 public interface Invocation {
 
     /**
+     * 获取api名称
+     * @return
+     */
+    String getApiName();
+
+    /**
      * 获取服务接口名称
      * @return
      */

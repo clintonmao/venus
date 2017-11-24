@@ -322,38 +322,38 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             long connTime = borrowed - start;
             long totalTime = System.currentTimeMillis() - start;
             //athena调用输出到default
-            /*
-            Logger tracerLoggerEx = tracerLogger;
+            Logger trLogger = tracerLogger;
             if(VenusUtil.isAthenaInterface(invocation)){
-                tracerLoggerEx = logger;
+                trLogger = logger;
             }
-            */
 
             if(exception != null){
                 //输出异常日志
-                if (tracerLogger.isErrorEnabled()) {
-                    String tpl = "[C] send request failed,rpcId:{},method:{},targetIp:{},used time:{},exception:{}.";
+                if (trLogger.isErrorEnabled()) {
+                    String tpl = "[C] [failed,{}] send request failed,rpcId:{},api:{},method:{},targetIp:{},exception:{}.";
                     Object[] arguments = new Object[]{
+                            totalTime + "ms," + connTime+"ms",
                             rpcId,
+                            invocation.getApiName(),
                             invocation.getMethodPath(),
                             url.getHost(),
-                            "[" + totalTime + "," + connTime + "]",
                             exception
                     };
+                    trLogger.error(tpl,arguments);
                     //错误日志
                     exceptionLogger.error(tpl,arguments);
-                    tracerLogger.error(tpl,arguments);
                 }
             }else{
-                if(tracerLogger.isInfoEnabled()){
-                    String tpl = "[C] send request,rpcId:{},method:{},targetIp:{},used time:{}ms.";
+                if(trLogger.isInfoEnabled()){
+                    String tpl = "[C] [{}] send request,rpcId:{},api:{},method:{},targetIp:{}.";
                     Object[] arguments = new Object[]{
+                            totalTime + "ms," + connTime+"ms",
                             rpcId,
+                            invocation.getApiName(),
                             invocation.getMethodPath(),
                             url.getHost(),
-                            "[" + totalTime + "," + connTime + "]"
                     };
-                    tracerLogger.info(tpl,arguments);
+                    trLogger.info(tpl,arguments);
                 }
             }
         }

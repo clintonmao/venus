@@ -92,8 +92,6 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
      */
     void doHandle(ServerInvocation invocation) {
         long bTime = System.currentTimeMillis();
-        VenusFrontendConnection conn = invocation.getConn();
-        Tuple<Long, byte[]> data = invocation.getData();
 
         Result result = null;
         try {
@@ -101,7 +99,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
             parseApiRequest(invocation);
 
             if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("[P] recv request,rpcId:{},api:{},sourceIp:{},message size:{}.", invocation.getRpcId(),invocation.getApiName(),conn.getHost(),data.getRight().length);
+                tracerLogger.info("[P] recv request,rpcId:{},api:{},sourceIp:{},routeIp:{},message size:{}.", invocation.getRpcId(),invocation.getApiName(),invocation.getSourceIp(),invocation.getRouteIp(),invocation.getData().getRight().length);
             }
 
             //解析端点定义及服务报文
@@ -153,6 +151,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
         int type = AbstractServicePacket.getType(message);
         byte serializeType = conn.getSerializeType();
         String sourceIp = conn.getHost();
+        String routeIp = "";
         VenusRouterPacket routerPacket = null;
         if (PacketConstant.PACKET_TYPE_ROUTER == type) {
             routerPacket = new VenusRouterPacket();
@@ -161,6 +160,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
             message = routerPacket.data;
             type = AbstractServicePacket.getType(routerPacket.data);
             serializeType = routerPacket.serializeType;
+            routeIp = sourceIp;
             sourceIp = InetAddressUtil.intToAddress(routerPacket.srcIP);
         }
 
@@ -171,6 +171,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
         invocation.setRouterPacket(routerPacket);
         invocation.setSerializeType(serializeType);
         invocation.setSourceIp(sourceIp);
+        invocation.setRouteIp(routeIp);
         //其它信息
         invocation.setConn(conn);
         invocation.setData(data);
@@ -383,7 +384,6 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
         //构造参数
         boolean hasException = false;
         long usedTime = System.currentTimeMillis() - bTime;
-        String invokeModel = invocation.getInvokeModel();
         String rpcId = invocation.getRpcId();
         String apiName = invocation.getApiName();
         String methodPath = invocation.getMethodPath();

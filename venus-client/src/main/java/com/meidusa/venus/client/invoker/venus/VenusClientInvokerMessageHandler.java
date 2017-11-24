@@ -27,6 +27,7 @@ import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.support.ErrorPacketConvert;
+import com.meidusa.venus.support.VenusUtil;
 import com.meidusa.venus.util.JSONUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import com.meidusa.venus.util.VenusTracerUtil;
@@ -111,14 +112,20 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             ErrorPacket errorPacket = new ErrorPacket();
             errorPacket.init(message);
             String rpcId = RpcIdUtil.getRpcId(errorPacket);
-            if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("[C] recv error response,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
-            }
 
             reqRespWrapper = serviceReqRespMap.get(rpcId);
+            if(reqRespWrapper != null){
+                Logger trLogger = tracerLogger;
+                if(VenusUtil.isAthenaInterface(reqRespWrapper.getInvocation())){
+                    trLogger = logger;
+                }
+                if(trLogger.isInfoEnabled()){
+                    trLogger.info("[C] recv error response,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
+                }
+            }
             if(reqRespWrapper == null){
                 if(exceptionLogger.isErrorEnabled()){
-                    exceptionLogger.error("[C] handle error message failed,rpcId:{},reason:{}.",rpcId,"Already handled.");
+                    exceptionLogger.error("[C] handle error message failed,rpcId:{},sourceIp:{},reason:{}.",rpcId,conn.getHost(),"Already handled.");
                 }
                 return;
             }
@@ -146,15 +153,21 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         try {
             AbstractServicePacket packet = parseServicePacket(message);
             String rpcId = RpcIdUtil.getRpcId(packet);
-            if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("[C] recv reponse,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
-            }
-
             //获取clientId/clientRequestId，用于获取invocation请求信息
             reqRespWrapper = serviceReqRespMap.get(rpcId);
+
+            if(reqRespWrapper != null){
+                Logger trLogger = tracerLogger;
+                if(VenusUtil.isAthenaInterface(reqRespWrapper.getInvocation())){
+                    trLogger = logger;
+                }
+                if(trLogger.isInfoEnabled()){
+                    trLogger.info("[C] recv reponse,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
+                }
+            }
             if(reqRespWrapper == null){
                 if(exceptionLogger.isErrorEnabled()){
-                    exceptionLogger.error("[C] handle response message failed,rpcId:{},reason:{}.",rpcId,"Already handled.");
+                    exceptionLogger.error("[C] handle response message failed,rpcId:{},sourceIp:{},reason:{}.",rpcId,conn.getHost(),"Already handled.");
                 }
                 return;
             }
@@ -188,14 +201,21 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             OKPacket okPacket = new OKPacket();
             okPacket.init(message);
             String rpcId = RpcIdUtil.getRpcId(okPacket);
-            if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("[C] recv ok response,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
-            }
 
             reqRespWrapper = serviceReqRespMap.get(rpcId);
+
+            if(reqRespWrapper != null){
+                Logger trLogger = tracerLogger;
+                if(VenusUtil.isAthenaInterface(reqRespWrapper.getInvocation())){
+                    trLogger = logger;
+                }
+                if(trLogger.isInfoEnabled()){
+                    trLogger.info("[C] recv ok response,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
+                }
+            }
             if(reqRespWrapper == null){
                 if(exceptionLogger.isErrorEnabled()){
-                    exceptionLogger.error("[C] handle error message failed,rpcId:{},reason:{}.",rpcId,"Already handled.");
+                    exceptionLogger.error("[C] handle error message failed,rpcId:{},sourceIp:{},reason:{}.",rpcId,conn.getHost(),"Already handled.");
                 }
                 return;
             }
@@ -222,11 +242,23 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
 
         try {
             rpcId = RpcIdUtil.getRpcId(parseServicePacket(message));
-            if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("[C] recv notify response,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
-            }
 
             asyncInvocation = serviceReqCallbackMap.get(rpcId);
+            if(asyncInvocation != null){
+                Logger trLogger = tracerLogger;
+                if(VenusUtil.isAthenaInterface(asyncInvocation)){
+                    trLogger = logger;
+                }
+                if(trLogger.isInfoEnabled()){
+                    trLogger.info("[C] recv notify response,rpcId:{},sourceIp:{}.",rpcId,conn.getHost());
+                }
+            }
+            if(asyncInvocation == null){
+                if(exceptionLogger.isErrorEnabled()){
+                    exceptionLogger.error("[C] handle notify message failed,rpcId:{},sourceIp:{},reason:{}.",rpcId,conn.getHost(),"Already handled.");
+                }
+                return;
+            }
 
             ServicePacketBuffer buffer = new ServicePacketBuffer(message);
             buffer.setPosition(PacketConstant.SERVICE_HEADER_SIZE + 4);

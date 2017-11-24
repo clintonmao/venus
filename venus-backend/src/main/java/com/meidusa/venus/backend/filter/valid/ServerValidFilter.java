@@ -60,7 +60,6 @@ public class ServerValidFilter implements Filter {
         byte[] message = invocation.getMessage();
         byte packetSerializeType = invocation.getPacketSerializeType();
         long waitTime = invocation.getWaitTime();
-        String finalSourceIp = invocation.getFinalSourceIp();
         VenusRouterPacket routerPacket = invocation.getRouterPacket();
         byte serializeType = invocation.getSerializeType();
         SerializeServiceRequestPacket request = invocation.getServiceRequestPacket();

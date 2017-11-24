@@ -39,6 +39,8 @@ public class ClientInvocation implements Invocation {
 
     private EndpointWrapper endpoint;
 
+    private String apiName;
+
     private Method method;
 
     private EndpointParameter[] params;
@@ -80,6 +82,8 @@ public class ClientInvocation implements Invocation {
 
     //版本号
     private String version;
+
+    private boolean isAthenaInvoker = false;
 
     public int getClientId() {
         return clientId;
@@ -331,5 +335,17 @@ public class ClientInvocation implements Invocation {
 
     public String getInvokeModel(){
         return "sync";
+    }
+
+    public String getApiName() {
+        return apiName;
+    }
+
+    public void setApiName(String apiName) {
+        this.apiName = apiName;
+    }
+
+    public boolean isAthenaInvoker() {
+        return isAthenaInvoker;
     }
 }

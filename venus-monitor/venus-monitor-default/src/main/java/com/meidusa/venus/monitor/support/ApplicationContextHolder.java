@@ -1,5 +1,7 @@
 package com.meidusa.venus.monitor.support;
 
+import com.meidusa.venus.exception.VenusConfigException;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -59,11 +61,15 @@ public class ApplicationContextHolder implements ApplicationContextAware {
      * @param beanDefinition
      */
     public static void registerBean(BeanDefinition beanDefinition){
-        String simpleNameString=beanDefinition.getBeanClassName();
-        if(simpleNameString.contains(".")){
-            simpleNameString=simpleNameString.substring(simpleNameString.lastIndexOf(".")+1);
+        String simpleClassName=beanDefinition.getBeanClassName();
+        if(StringUtils.isEmpty(simpleClassName) || simpleClassName.length() < 2){
+            throw new VenusConfigException("className:" + simpleClassName + " invalid.");
         }
-        registerBean(simpleNameString,beanDefinition);
+        if(simpleClassName.contains(".")){
+            simpleClassName=simpleClassName.substring(simpleClassName.lastIndexOf(".")+1);
+        }
+        simpleClassName = simpleClassName.substring(0, 1).toLowerCase().concat(simpleClassName.substring(1));
+        registerBean(simpleClassName,beanDefinition);
     }
 
     public static BeanDefinitionBuilder getBeanDefinitionBuilder(Class clazz){

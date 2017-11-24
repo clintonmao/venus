@@ -113,95 +113,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
     }
 
     /**
-     * 输出tracer日志
-     * @param invocation
-     * @param object
-     * @param exception
-     * @param bTime
-     */
-    void printTracerLogger(ClientInvocation invocation,Object object,Throwable exception,long bTime){
-        //构造参数
-        boolean hasException = false;
-        long usedTime = System.currentTimeMillis() - bTime;
-        String invokeModel = invocation.getInvokeModel();
-        String rpcId = invocation.getRpcId();
-        String methodPath = invocation.getMethodPath();
-        //参数
-        String param = "{}";
-        if(invocation.isEnablePrintParam() && !VenusUtil.isAthenaInterface(invocation)){
-            if(invocation.getArgs() != null){
-                param = JSONUtil.toJSONString(invocation.getArgs());
-            }
-        }
-        //结果
-        Object ret = "{}";
-        if(invocation.isEnablePrintResult() && !VenusUtil.isAthenaInterface(invocation)){
-            if(object != null){
-                ret = JSONUtil.toJSONString(object);
-            }
-        }
-        //异常
-        Object error = "{}";
-        if(invocation.isEnablePrintResult() && !VenusUtil.isAthenaInterface(invocation)){
-            if(exception != null){
-                hasException = true;
-                error = exception;
-            }
-        }
-        String status = "";
-        if(hasException){
-            status = "failed";
-        }else if(usedTime > 1000){
-            status = ">1000ms";
-        }else if(usedTime > 500){
-            status = ">500ms";
-        }else if(usedTime > 200){
-            status = ">200ms";
-        }else{
-            status = "<200ms";
-        }
-
-        //输出日志
-        if(hasException){
-            String tpl = "[C] [{},{}],consumer invoke,rpcId:{},method:{},param:{},error:{}.";
-            Object[] arguments = new Object[]{
-                    status,
-                    usedTime + "ms",
-                    rpcId,
-                    methodPath,
-                    param,
-                    error
-            };
-            if(tracerLogger.isErrorEnabled()){
-                tracerLogger.error(tpl,arguments);
-            }
-            if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error(tpl,arguments);
-            }
-        }else{
-            String tpl = "[C] [{},{}],consumer invoke,rpcId:{},method:{},param:{},result:{}.";
-            Object[] arguments = new Object[]{
-                    status,
-                    usedTime + "ms",
-                    rpcId,
-                    methodPath,
-                    param,
-                    ret
-            };
-            if(usedTime > 200){
-                if(tracerLogger.isWarnEnabled()){
-                    tracerLogger.warn(tpl,arguments);
-                }
-            }else{
-                if(tracerLogger.isInfoEnabled()){
-                    tracerLogger.info(tpl,arguments);
-                }
-            }
-        }
-
-    }
-
-    /**
      * 获取client调用代理
      * @return
      */
@@ -227,6 +138,8 @@ public class InvokerInvocationHandler implements InvocationHandler {
         Service service = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
         ServiceWrapper serviceWrapper = ServiceWrapper.wrapper(service);
         invocation.setService(serviceWrapper);
+        String apiName = VenusUtil.getApiName(method,serviceWrapper,endpointWrapper);
+        invocation.setApiName(apiName);
         invocation.setVersion(String.valueOf(service.version()));
         EndpointParameter[] params = EndpointParameterUtil.getPrameters(method);
         invocation.setParams(params);
@@ -319,6 +232,99 @@ public class InvokerInvocationHandler implements InvocationHandler {
             rex = exception;
         }
         return rex;
+    }
+
+    /**
+     * 输出tracer日志
+     * @param invocation
+     * @param object
+     * @param exception
+     * @param bTime
+     */
+    void printTracerLogger(ClientInvocation invocation,Object object,Throwable exception,long bTime){
+        //构造参数
+        boolean hasException = false;
+        long usedTime = System.currentTimeMillis() - bTime;
+        String rpcId = invocation.getRpcId();
+        String methodPath = invocation.getMethodPath();
+        //参数
+        String param = "{}";
+        if(invocation.isEnablePrintParam() && !VenusUtil.isAthenaInterface(invocation)){
+            if(invocation.getArgs() != null){
+                param = JSONUtil.toJSONString(invocation.getArgs());
+            }
+        }
+        //结果
+        Object ret = "{}";
+        if(invocation.isEnablePrintResult() && !VenusUtil.isAthenaInterface(invocation)){
+            if(object != null){
+                ret = JSONUtil.toJSONString(object);
+            }
+        }
+        //异常
+        Object error = "{}";
+        if(invocation.isEnablePrintResult() && !VenusUtil.isAthenaInterface(invocation)){
+            if(exception != null){
+                hasException = true;
+                error = exception;
+            }
+        }
+        String status = "";
+        if(hasException){
+            status = "failed";
+        }else if(usedTime > 1000){
+            status = ">1000ms";
+        }else if(usedTime > 500){
+            status = ">500ms";
+        }else if(usedTime > 200){
+            status = ">200ms";
+        }else{
+            status = "<200ms";
+        }
+
+        //输出日志
+        Logger trLogger = tracerLogger;
+        if(VenusUtil.isAthenaInterface(invocation)){
+            trLogger = logger;
+        }
+        if(hasException){
+            String tpl = "[C] [{},{}],consumer invoke,rpcId:{},method:{},param:{},error:{}.";
+            Object[] arguments = new Object[]{
+                    status,
+                    usedTime + "ms",
+                    rpcId,
+                    methodPath,
+                    param,
+                    error
+            };
+            if(trLogger.isErrorEnabled()){
+                trLogger.error(tpl,arguments);
+            }
+            //错误日志
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error(tpl,arguments);
+            }
+        }else{
+            String tpl = "[C] [{},{}],consumer invoke,rpcId:{},method:{},param:{},result:{}.";
+            Object[] arguments = new Object[]{
+                    status,
+                    usedTime + "ms",
+                    rpcId,
+                    methodPath,
+                    param,
+                    ret
+            };
+            if(usedTime > 200){
+                if(trLogger.isWarnEnabled()){
+                    trLogger.warn(tpl,arguments);
+                }
+            }else{
+                if(trLogger.isInfoEnabled()){
+                    trLogger.info(tpl,arguments);
+                }
+            }
+        }
+
     }
 
     public Class<?> getServiceInterface() {

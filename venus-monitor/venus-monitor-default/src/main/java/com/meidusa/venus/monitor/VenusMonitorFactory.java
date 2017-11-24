@@ -151,7 +151,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         contextHolder.setApplicationContext(applicationContext);
 
         CustomScanAndRegisteUtil scanner = new CustomScanAndRegisteUtil();
-        String[] confPkgs = {"/com/saic/framework"};
+        String[] confPkgs = {"/com/saic/framework/athena"};
         Class[] annotationTags = {Component.class,Service.class};
         Set<Class<?>> classSet = scanner.scan(confPkgs,annotationTags);
         if(CollectionUtils.isEmpty(classSet)){

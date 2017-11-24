@@ -42,19 +42,9 @@ public class VenusServerInvoker implements Invoker {
     public Result invoke(Invocation invocation, URL url) throws RpcException {
         ServerInvocation serverInvocation = (ServerInvocation)invocation;
         //获取调用信息
-        Tuple<Long, byte[]> data = serverInvocation.getData();
-        byte[] message = serverInvocation.getMessage();
-        byte serializeType = serverInvocation.getSerializeType();
-        byte packetSerializeType = serverInvocation.getPacketSerializeType();
-        VenusRouterPacket routerPacket = serverInvocation.getRouterPacket();
-        SerializeServiceRequestPacket request = serverInvocation.getServiceRequestPacket();
-        String apiName = request.apiName;
-        String finalSourceIp = serverInvocation.getFinalSourceIp();
-        long waitTime = serverInvocation.getWaitTime();
         Endpoint endpointDef = serverInvocation.getEndpointDef();
         //构造请求上下文信息
         RequestContext requestContext = serverInvocation.getRequestContext();
-        long startTime = TimeUtil.currentTimeMillis();
 
         try {
             //调用服务实例

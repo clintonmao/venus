@@ -25,14 +25,6 @@ public class VenusUtil {
      * @return
      */
     public static String getServicePath(Invocation invocation){
-        /*
-        String servicePath = String.format(
-                "%s/%s?version=%s",
-                invocation.getServiceInterfaceName(),
-                invocation.getServiceName(),
-                invocation.getVersion()
-        );
-        */
         String servicePath = new StringBuilder()
                 .append(invocation.getServiceInterfaceName())
                 .append("/")
@@ -49,15 +41,6 @@ public class VenusUtil {
      * @return
      */
     public static String getMethodPath(Invocation invocation){
-        /*
-        String methodPath = String.format(
-                "%s/%s?version=%s&method=%s",
-                invocation.getServiceInterfaceName(),
-                invocation.getServiceName(),
-                invocation.getVersion(),
-                invocation.getMethodName()
-        );
-        */
         String methodPath = new StringBuilder()
                 .append(invocation.getServiceInterfaceName())
                 .append("/")
@@ -103,10 +86,15 @@ public class VenusUtil {
     public static boolean isAthenaInterface(Invocation invocation){
         try {
             String serviceInterfaceName = invocation.getServiceInterfaceName();
-            return ATHENA_INTERFACE_SIMPLE_NAME.equalsIgnoreCase(serviceInterfaceName) || ATHENA_INTERFACE_FULL_NAME.equalsIgnoreCase(serviceInterfaceName);
-        } catch (Exception e) {
-            return false;
-        }
+            if(ATHENA_INTERFACE_SIMPLE_NAME.equalsIgnoreCase(serviceInterfaceName) || ATHENA_INTERFACE_FULL_NAME.equalsIgnoreCase(serviceInterfaceName)){
+                return true;
+            }
+            String apiName = invocation.getApiName();
+            if(apiName.contains(ATHENA_INTERFACE_SIMPLE_NAME)){
+                return true;
+            }
+        } catch (Exception e) {}
+        return false;
     }
 
 }

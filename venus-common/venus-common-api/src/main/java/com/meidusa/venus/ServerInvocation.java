@@ -99,7 +99,7 @@ public class ServerInvocation implements Invocation {
 
     String sourceIp;
 
-    String finalSourceIp;
+    String routeIp;
 
     long waitTime;
 
@@ -300,12 +300,12 @@ public class ServerInvocation implements Invocation {
         this.packetSerializeType = packetSerializeType;
     }
 
-    public String getFinalSourceIp() {
-        return finalSourceIp;
+    public String getRouteIp() {
+        return routeIp;
     }
 
-    public void setFinalSourceIp(String finalSourceIp) {
-        this.finalSourceIp = finalSourceIp;
+    public void setRouteIp(String routeIp) {
+        this.routeIp = routeIp;
     }
 
     public byte getSerializeType() {
