@@ -189,7 +189,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         //处理响应
         result = fetchResponse(rpcId);
         if(result == null){
-            throw new RpcException(RpcException.TIMEOUT_EXCEPTION,String.format("invoke service:%s,timeout:%dms",url.getPath(),timeout));
+            throw new RpcException(RpcException.TIMEOUT_EXCEPTION,String.format("invoke api:%s,service:%s timeout,timeout:%dms",invocation.getApiName(),url.getPath(),timeout));
         }
         return result;
     }
