@@ -404,6 +404,18 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
                     //转换及校验配置有效性
                     processAndValidReferenceConfig(referenceService);
 
+                    //转换地址
+                    if(StringUtils.isNotEmpty(referenceService.getIpAddressList())){
+                        String ipAddress = referenceService.getIpAddressList().trim();
+                        if(ipAddress.contains(",")){
+                            ipAddress = ipAddress.replace(",",";");
+                            referenceService.setIpAddressList(ipAddress);
+                        }
+
+                        //校验地址
+                        validAddress(referenceService.getIpAddressList());
+                    }
+
                     String interfaceType = referenceService.getType();
                     if (interfaceType == null) {
                         throw new VenusConfigException("Service type can not be null:" + configFile);
@@ -443,11 +455,7 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
                 if(logger.isInfoEnabled()){
                     logger.info("##########realIpAddress:{}#############.",address);
                 }
-                validAddress(realAddress);
-
                 referenceConfig.setIpAddressList(realAddress);
-            }else{
-                validAddress(address);
             }
         }
     }
