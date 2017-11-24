@@ -166,6 +166,7 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 	}
 	
 	@Override
+	@Deprecated
 	public boolean updateService(int id, boolean isDelete) throws DAOException {
 		String sql = "update t_venus_service set is_delete=?,update_time=now() where id=?";
 		int update = 0;

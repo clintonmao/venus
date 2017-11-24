@@ -16,6 +16,7 @@ import org.springframework.jdbc.support.KeyHolder;
 
 import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.dao.VenusServerDAO;
+import com.meidusa.venus.registry.data.move.OldServerDO;
 import com.meidusa.venus.registry.domain.VenusServerDO;
 
 public class VenusServerDaoImpl implements VenusServerDAO {
@@ -148,6 +149,39 @@ public class VenusServerDaoImpl implements VenusServerDAO {
 			throw new DAOException("逻辑删除更新映射关系异常", e);
 		}
 		return update > 0;
+	}
+	
+	public Integer getServerCount() throws DAOException {
+		String sql = "SELECT count(id) as records FROM t_venus_server ";
+		try {
+			return this.jdbcTemplate.queryForObject(sql, Integer.class);
+		} catch (Exception e) {
+			throw new DAOException("根据sql=>" + sql + ";获取主机记录数异常", e);
+		}
+	}
+	
+	public List<VenusServerDO> queryServers(Integer pageSize, Integer id) throws DAOException {
+		String sql = "SELECT id,hostname,port,create_time, update_time FROM t_venus_server ";
+
+		if (null != id) {
+			sql = sql + " where id>" + id;
+		}
+		sql = sql + " order by id asc limit " + pageSize;
+
+		try {
+			return this.jdbcTemplate.query(sql, new Object[] {}, new ResultSetExtractor<List<VenusServerDO>>() {
+				@Override
+				public List<VenusServerDO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<VenusServerDO> returnList = new ArrayList<VenusServerDO>();
+					while (rs.next()) {
+						returnList.add(ResultUtils.resultToVenusServerDO(rs));
+					}
+					return returnList;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据sql=>" + sql + ";获取主机列表异常", e);
+		}
 	}
 
 	public JdbcTemplate getJdbcTemplate() {

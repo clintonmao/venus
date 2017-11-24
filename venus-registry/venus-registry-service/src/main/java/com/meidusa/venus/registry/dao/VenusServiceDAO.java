@@ -3,6 +3,7 @@ package com.meidusa.venus.registry.dao;
 import java.util.Collection;
 import java.util.List;
 
+import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.domain.VenusServiceDO;
 
@@ -12,6 +13,7 @@ public interface VenusServiceDAO {
 
 	boolean updateService(String methods, boolean isDelete, int id, Integer appId) throws DAOException;
 	
+	@Deprecated
 	boolean updateService(int id, boolean isDelete) throws DAOException;
 	
 	boolean updateServiceAppId(int id, int appId) throws DAOException;
