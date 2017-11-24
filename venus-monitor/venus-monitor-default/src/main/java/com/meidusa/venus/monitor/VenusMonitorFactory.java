@@ -260,7 +260,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      * @param beanFactory
      */
     void registeAthenaDataService(ConfigurableListableBeanFactory beanFactory){
-        String beanName = athenaDataService.getClass().getSimpleName();
+        String beanName = getAthenaBeanId();
         BeanDefinitionRegistry reg = (BeanDefinitionRegistry) beanFactory;
         GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
         beanDefinition.setBeanClass(ServiceFactoryBean.class);
@@ -272,6 +272,19 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         beanDefinition.setConstructorArgumentValues(args);
         beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
         reg.registerBeanDefinition(beanName, beanDefinition);
+    }
+
+    /**
+     * 获取athena bean Id
+     * @return
+     */
+    String getAthenaBeanId(){
+        String simpleClassName = AthenaDataService.class.getSimpleName();
+        if(simpleClassName.contains(".")){
+            simpleClassName=simpleClassName.substring(simpleClassName.lastIndexOf(".")+1);
+        }
+        simpleClassName = simpleClassName.substring(0, 1).toLowerCase().concat(simpleClassName.substring(1));
+        return simpleClassName;
     }
 
     public String getAddress() {

@@ -1,5 +1,6 @@
 package com.meidusa.venus.monitor.athena.config.impl;
 
+import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.ServiceFactoryBean;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.monitor.config.ClientConfigManagerIniter;
@@ -52,17 +53,21 @@ public class DefaultClientConfigManagerIniter implements ClientConfigManagerInit
      * @param beanFactory
      */
     void registeAthenaConfigManager(ConfigurableListableBeanFactory beanFactory, ClientConfigManager clientConfigManager){
-        String beanName = clientConfigManager.getClass().getSimpleName();
+        String simpleClassName = clientConfigManager.getClass().getSimpleName();
+        if(simpleClassName.contains(".")){
+            simpleClassName=simpleClassName.substring(simpleClassName.lastIndexOf(".")+1);
+        }
+        simpleClassName = simpleClassName.substring(0, 1).toLowerCase().concat(simpleClassName.substring(1));
         BeanDefinitionRegistry reg = (BeanDefinitionRegistry) beanFactory;
         GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
         beanDefinition.setBeanClass(ServiceFactoryBean.class);
-        beanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, beanName));
+        beanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, simpleClassName));
         beanDefinition.setScope(BeanDefinition.SCOPE_SINGLETON);
         ConstructorArgumentValues args = new ConstructorArgumentValues();
         args.addIndexedArgumentValue(0, clientConfigManager);
         args.addIndexedArgumentValue(1, ClientConfigManager.class);
         beanDefinition.setConstructorArgumentValues(args);
         beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
-        reg.registerBeanDefinition(beanName, beanDefinition);
+        reg.registerBeanDefinition(simpleClassName, beanDefinition);
     }
 }
