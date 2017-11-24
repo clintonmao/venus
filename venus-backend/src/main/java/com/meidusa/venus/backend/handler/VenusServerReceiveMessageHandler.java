@@ -28,6 +28,7 @@ import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.support.VenusUtil;
 import com.meidusa.venus.util.*;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 
 import java.io.Serializable;
@@ -383,6 +384,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
     void printTracerLogger(ServerInvocation invocation,Result result,long bTime){
         //构造参数
         boolean hasException = false;
+        boolean isIgnoreException = false;
         long usedTime = System.currentTimeMillis() - bTime;
         String rpcId = invocation.getRpcId();
         String apiName = invocation.getApiName();
@@ -407,6 +409,17 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
             if(result.getException() != null){
                 hasException = true;
                 error = result.getException();
+                //过滤venus.ServiceRegistry服务不存在异常
+                if(error != null && error instanceof ServiceNotFoundException){
+                    ServiceNotFoundException serviceNotFoundException = (ServiceNotFoundException)error;
+                    String errorMsg = serviceNotFoundException.getMessage();
+                    if(StringUtils.isNotEmpty(errorMsg)){
+                        if(errorMsg.contains("ServiceRegistry")){
+                            isIgnoreException = true;
+                            error = "invalid request,venus not provide serviceRegistry serivce from V4.";
+                        }
+                    }
+                }
             }else if(result.getErrorCode() != 0){
                 hasException = true;
                 error = String.format("%s-%s",result.getErrorCode(),result.getErrorMessage());
@@ -437,11 +450,18 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
                     param,
                     error
             };
-            if(tracerLogger.isErrorEnabled()){
-                tracerLogger.error(tpl,arguments);
-            }
-            if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error(tpl,arguments);
+            if(!isIgnoreException){
+                if(tracerLogger.isErrorEnabled()){
+                    tracerLogger.error(tpl,arguments);
+                }
+                //异常日志
+                if(exceptionLogger.isErrorEnabled()){
+                    exceptionLogger.error(tpl,arguments);
+                }
+            }else{
+                if(logger.isWarnEnabled()){
+                    logger.warn(tpl,arguments);
+                }
             }
         }else{
             String tpl = "[P] [{},{}],provider handle,rpcId:{},api:{},method:{},param:{},result:{}.";

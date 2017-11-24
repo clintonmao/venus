@@ -42,7 +42,6 @@ public class ServerResponseHandler {
         Result result = wrapper.getResult();
         short serializeType = wrapper.getSerializeType();
         Serializer serializer = SerializerFactory.getSerializer(serializeType);
-        boolean athenaFlag = wrapper.isAthenaFlag();
 
         if (result.getErrorCode() == 0) {
             ServiceResponsePacket response = new SerializeServiceResponsePacket(serializer, endpoint.getMethod()
@@ -66,12 +65,10 @@ public class ServerResponseHandler {
     public void writeResponseForOk(ServerResponseWrapper wrapper) throws Exception{
         VenusFrontendConnection conn = wrapper.getConn();
         VenusRouterPacket routerPacket = wrapper.getRouterPacket();
-        Endpoint endpoint = wrapper.getEndpoint();
         SerializeServiceRequestPacket request = wrapper.getRequest();
         Result result = wrapper.getResult();
         short serializeType = wrapper.getSerializeType();
         Serializer serializer = SerializerFactory.getSerializer(serializeType);
-        boolean athenaFlag = wrapper.isAthenaFlag();
 
         if (result.getErrorCode() == 0) {
             OKPacket ok = new OKPacket();
@@ -92,12 +89,9 @@ public class ServerResponseHandler {
     public void writeResponseForNotify(ServerResponseWrapper wrapper) throws Exception{
         VenusFrontendConnection conn = wrapper.getConn();
         VenusRouterPacket routerPacket = wrapper.getRouterPacket();
-        Endpoint endpoint = wrapper.getEndpoint();
         SerializeServiceRequestPacket request = wrapper.getRequest();
         Result result = wrapper.getResult();
-        short serializeType = wrapper.getSerializeType();
         Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
-        boolean athenaFlag = wrapper.isAthenaFlag();
         ReferenceInvocationListener referenceInvocationListener = (ReferenceInvocationListener) wrapper.getInvocationListener();
 
         if (result.getErrorCode() == 0) {
