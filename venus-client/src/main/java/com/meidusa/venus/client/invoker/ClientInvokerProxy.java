@@ -71,7 +71,7 @@ public class ClientInvokerProxy implements Invoker {
     private ClientThrowMockFilter clientThrowMockFilter = new ClientThrowMockFilter();
     //mock降级
     private ClientCallbackMockFilter clientCallbackMockFilter = new ClientCallbackMockFilter();
-    //athena监控
+    //athena监控  TODO 无法找到提供者时报NPE
     private ClientAthenaMonitorFilter clientAthenaMonitorFilter = new ClientAthenaMonitorFilter();
     //venus监控上报filter
     private static ClientVenusMonitorFilter clientVenusMonitorFilter = new ClientVenusMonitorFilter();

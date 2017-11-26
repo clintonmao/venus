@@ -78,17 +78,12 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
     private Resource[] configFiles;
 
     /**
-     * 服务配置映射表
-     */
-    private Map<Class<?>, ReferenceService> serviceConfigMap = new HashMap<Class<?>, ReferenceService>();
-
-    /**
      * 服务实例映射表
      */
     private Map<Class<?>, ServiceDefinedBean> serviceMap = new HashMap<Class<?>, ServiceDefinedBean>();
 
     /**
-     * 服务实例映射表
+     * 服务实例映射表，建议不再使用此模式，统一走clz KEY模式，存在包不同但类名情况
      */
     private Map<String, ServiceDefinedBean> serviceNameMap = new HashMap<String, ServiceDefinedBean>();
 
@@ -283,9 +278,6 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
         //若配置静态地址，以静态为先
         if(StringUtils.isNotEmpty(referenceService.getRemote()) || StringUtils.isNotEmpty(referenceService.getIpAddressList())){
             ClientRemoteConfig remoteConfig = getRemoteConfig(referenceService,venusClientConfig);
-            String ipAddressList = remoteConfig.getFactory().getIpAddressList();
-            //校验地址有效性
-            validAddress(ipAddressList);
             invocationHandler.setRemoteConfig(remoteConfig);
         }else{
             invocationHandler.setRegister(venusRegistryFactory.getRegister());
@@ -320,13 +312,11 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
             }
         }
 
-        serviceConfigMap.put(referenceService.getClzType(), referenceService);
-        ServiceDefinedBean defined = new ServiceDefinedBean(referenceService.getBeanName(),referenceService.getClzType(),object, invocationHandler);
-        if (referenceService.getBeanName() != null) {
-            serviceNameMap.put(referenceService.getBeanName(), defined);
-        }else{
-            serviceMap.put(referenceService.getClzType(), defined);
-        }
+        //不设置beanName，统一以clzType为key，避免包不同但类名称相同情况下会少注册实例
+        //如c.x.m.AccountService、c.y.m.AccountService，此时AccountService相同但在执行post注册时
+        //当第二个bean注册时已经存在同ID的，导致第二个注册失败
+        ServiceDefinedBean serviceDefinedBean = new ServiceDefinedBean(referenceService.getBeanName(),referenceService.getClzType(),object, invocationHandler);
+        serviceMap.put(referenceService.getClzType(), serviceDefinedBean);
     }
 
 
@@ -398,7 +388,7 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
                 for (ReferenceService referenceService : venusClientConfig.getReferenceServices()) {
                     if(StringUtils.isNotEmpty(referenceService.getIpAddressList())){
                         //转换ucm属性地址
-                        processReferenceConfig(referenceService);
+                        processPropertyConfig(referenceService);
                         //转换','分隔地址
                         String ipAddress = referenceService.getIpAddressList().trim();
                         if(ipAddress.contains(",")){
@@ -434,10 +424,10 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
     }
 
     /**
-     * 处理及校验引用配置信息
+     * 解析spring或ucm属性配置，如${x.x.x}
      * @param referenceConfig
      */
-    void processReferenceConfig(ReferenceService referenceConfig){
+    void processPropertyConfig(ReferenceService referenceConfig){
         String address = referenceConfig.getIpAddressList();
         if(StringUtils.isNotEmpty(address)){
             if(address.startsWith("${") && address.endsWith("}")){
@@ -496,9 +486,9 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
         for (Map.Entry<String, ServiceDefinedBean> entry : serviceNameMap.entrySet()) {
             final Object bean = entry.getValue().getService();
             if (beanFactory instanceof BeanDefinitionRegistry) {
-                String beanName = entry.getValue().getBeanName();
-
                 BeanDefinitionRegistry reg = (BeanDefinitionRegistry) beanFactory;
+
+                String beanName = entry.getValue().getBeanName();
                 GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
                 beanDefinition.setBeanClass(ServiceFactoryBean.class);
                 beanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, beanName));
@@ -537,10 +527,6 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
 			throws BeansException {
 		this.applicationContext = applicationContext;
 	}
-
-    public ReferenceService getServiceConfig(Class<?> type) {
-        return serviceConfigMap.get(type);
-    }
 
     public Resource[] getConfigFiles() {
         return configFiles;

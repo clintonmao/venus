@@ -8,6 +8,7 @@ import com.meidusa.venus.client.factory.InvokerInvocationHandler;
  */
 public class ServiceDefinedBean {
 
+    //注意：尽量避免以beanNaem为进行spring注册，可能存在不同包但同名的情况，该情况下会导致少注册bean
     private String beanName;
 
     private Class<?> clazz;
