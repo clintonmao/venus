@@ -14,6 +14,7 @@
 
 package com.meidusa.venus.client.factory.xml;
 
+import com.meidusa.fastjson.JSON;
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigUtil;
@@ -85,7 +86,7 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
     /**
      * 服务实例映射表，建议不再使用此模式，统一走clz KEY模式，存在包不同但类名情况
      */
-    private Map<String, ServiceDefinedBean> serviceNameMap = new HashMap<String, ServiceDefinedBean>();
+    //private Map<String, ServiceDefinedBean> serviceNameMap = new HashMap<String, ServiceDefinedBean>();
 
     private boolean shutdown = false;
 
@@ -127,7 +128,7 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
         if (shutdown) {
             throw new IllegalStateException("service factory has been shutdown");
         }
-        ServiceDefinedBean object = serviceNameMap.get(name);
+        ServiceDefinedBean object = serviceMap.get(t);
         
         if(object == null){
         	throw new ServiceNotFoundException(t.getName() +" not defined");
@@ -388,7 +389,7 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
                 for (ReferenceService referenceService : venusClientConfig.getReferenceServices()) {
                     if(StringUtils.isNotEmpty(referenceService.getIpAddressList())){
                         //转换ucm属性地址
-                        processPropertyConfig(referenceService);
+                        parsePropertyConfig(referenceService);
                         //转换','分隔地址
                         String ipAddress = referenceService.getIpAddressList().trim();
                         if(ipAddress.contains(",")){
@@ -427,7 +428,7 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
      * 解析spring或ucm属性配置，如${x.x.x}
      * @param referenceConfig
      */
-    void processPropertyConfig(ReferenceService referenceConfig){
+    void parsePropertyConfig(ReferenceService referenceConfig){
         String address = referenceConfig.getIpAddressList();
         if(StringUtils.isNotEmpty(address)){
             if(address.startsWith("${") && address.endsWith("}")){
@@ -461,33 +462,18 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
     }
 
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        Map<String,ConstructorArgumentValues> refBeanMap = new HashMap<String, ConstructorArgumentValues>();
         // register to resolvable dependency container
-        //不带bean id服务引用列表，byType注入
         for (Map.Entry<Class<?>, ServiceDefinedBean> entry : serviceMap.entrySet()) {
-            final Object bean = entry.getValue().getService();
-            if(beanFactory instanceof BeanDefinitionRegistry){
-                BeanDefinitionRegistry reg = (BeanDefinitionRegistry)beanFactory;
-                GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
-                beanDefinition.setBeanClass(ServiceFactoryBean.class);
-                beanDefinition.setScope(BeanDefinition.SCOPE_SINGLETON);
-                ConstructorArgumentValues args = new ConstructorArgumentValues();
-                args.addIndexedArgumentValue(0,bean);
-                args.addIndexedArgumentValue(1,entry.getValue().getClazz());
-                beanDefinition.setConstructorArgumentValues(args);
-
-                String beanName = entry.getValue().getClazz().getName()+"#0";
-                beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
-                reg.registerBeanDefinition(beanName, beanDefinition);
-            }
-        }
-
-        //带bean id服务引用列表，byName注入
-        for (Map.Entry<String, ServiceDefinedBean> entry : serviceNameMap.entrySet()) {
             final Object bean = entry.getValue().getService();
             if (beanFactory instanceof BeanDefinitionRegistry) {
                 BeanDefinitionRegistry reg = (BeanDefinitionRegistry) beanFactory;
 
-                String beanName = entry.getValue().getBeanName();
+                String simpleClassName = entry.getValue().getClazz().getSimpleName();
+                String beanName = formatClassName(simpleClassName);
+                if(reg.containsBeanDefinition(beanName)){
+                    beanName = beanName.concat("#0");
+                }
                 GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
                 beanDefinition.setBeanClass(ServiceFactoryBean.class);
                 beanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, beanName));
@@ -500,8 +486,25 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
                 beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
                 reg.registerBeanDefinition(beanName, beanDefinition);
 
+                refBeanMap.put(beanName,beanDefinition.getConstructorArgumentValues());
             }
         }
+
+        if(logger.isInfoEnabled()){
+            logger.info("##########ref beans##############:\n{}.",JSON.toJSONString(refBeanMap,true));
+        }
+    }
+
+    /**
+     * 将simpleClassName转为首字母小写
+     * @return
+     */
+    String formatClassName(String simpleClassName){
+        if(simpleClassName.contains(".")){
+            simpleClassName=simpleClassName.substring(simpleClassName.lastIndexOf(".")+1);
+        }
+        simpleClassName = simpleClassName.substring(0, 1).toLowerCase().concat(simpleClassName.substring(1));
+        return simpleClassName;
     }
 
     @Override

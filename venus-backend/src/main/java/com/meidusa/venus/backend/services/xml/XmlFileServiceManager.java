@@ -2,6 +2,7 @@ package com.meidusa.venus.backend.services.xml;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.meidusa.fastjson.JSON;
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
@@ -32,6 +33,7 @@ import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.BeansException;
@@ -194,6 +196,9 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @return
      */
     private VenusServerConfig parseServerConfig() {
+        //所有导出的beans
+        Map<String,Object> exportBeanMap = new HashMap<String,Object>();
+
         VenusServerConfig allVenusServerConfig = new VenusServerConfig();
         List<ExportService> serviceConfigList = new ArrayList<ExportService>();
         Map<String, InterceptorMapping> interceptors = new HashMap<String, InterceptorMapping>();
@@ -228,6 +233,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                         }
                         exportService.setActive(true);
                         exportService.setInstance(refBean);
+                        exportBeanMap.put(interfaceType,refBean.getClass() + "@" + refBean.hashCode());
                     } catch (BeansException e) {
                         throw new VenusConfigException("ref bean not found:" + refBeanName);
                     }
@@ -247,6 +253,10 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         allVenusServerConfig.setExportServices(serviceConfigList);
         allVenusServerConfig.setInterceptors(interceptors);
         allVenusServerConfig.setInterceptorStatcks(interceptorStacks);
+
+        if(logger.isInfoEnabled()){
+            logger.info("##########export beans###########:\n{}.",JSON.toJSONString(exportBeanMap,true));
+        }
         return allVenusServerConfig;
     }
 

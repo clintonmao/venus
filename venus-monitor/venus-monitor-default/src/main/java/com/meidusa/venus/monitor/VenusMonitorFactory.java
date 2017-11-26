@@ -252,7 +252,8 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      * @param beanFactory
      */
     void registeAthenaDataService(ConfigurableListableBeanFactory beanFactory){
-        String beanName = getAthenaBeanId();
+        String simpleClassName = AthenaDataService.class.getSimpleName();
+        String beanName = formatClassName(simpleClassName);
         BeanDefinitionRegistry reg = (BeanDefinitionRegistry) beanFactory;
         GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
         beanDefinition.setBeanClass(ServiceFactoryBean.class);
@@ -267,11 +268,10 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     }
 
     /**
-     * 获取athena bean Id
+     * 将simpleClassName转为首字母小写
      * @return
      */
-    String getAthenaBeanId(){
-        String simpleClassName = AthenaDataService.class.getSimpleName();
+    String formatClassName(String simpleClassName){
         if(simpleClassName.contains(".")){
             simpleClassName=simpleClassName.substring(simpleClassName.lastIndexOf(".")+1);
         }
