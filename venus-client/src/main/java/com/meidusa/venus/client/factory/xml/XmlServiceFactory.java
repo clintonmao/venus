@@ -464,7 +464,6 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
         // register to resolvable dependency container
         //不带bean id服务引用列表，byType注入
         for (Map.Entry<Class<?>, ServiceDefinedBean> entry : serviceMap.entrySet()) {
-            //cbf.registerResolvableDependency(entry.getKey(), entry.getValue().left);
             final Object bean = entry.getValue().getService();
             if(beanFactory instanceof BeanDefinitionRegistry){
                 BeanDefinitionRegistry reg = (BeanDefinitionRegistry)beanFactory;
