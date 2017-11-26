@@ -39,15 +39,13 @@ public class VenusProtocol implements Protocol,InitializingBean{
 
     private MessageHandler messageHandler;
 
-    /**
-     * 不注入依赖，由srvMgr向venusProtocol设置
-     */
+    //不注入依赖，由srvMgr向venusProtocol设置
     private ServiceManager serviceManager;
 
     private AuthenticateProvider authenticateProvider;
 
-    //自定义属性设置
-    private String port;
+    //venus协议端口
+    private int port;
 
     //venus协议默认线程数
     private int coreThreads = VenusConstants.VENUS_PROTOCOL_DEFAULT_CORE_THREADS;
@@ -65,7 +63,7 @@ public class VenusProtocol implements Protocol,InitializingBean{
      * 有效性校验
      */
     void valid(){
-        if(StringUtils.isEmpty(port)){
+        if(port == 0){
             throw new VenusConfigException("port property not config.");
         }
     }
@@ -77,7 +75,6 @@ public class VenusProtocol implements Protocol,InitializingBean{
     public void init() throws Exception{
         synchronized (VenusProtocol.class){
             if(!isRunning){
-                VenusContext.getInstance().setPort(port);
                 if(connectionAcceptor == null){
                     connectionAcceptor = createConnectionAcceptor();
                     connectionAcceptor.start();
@@ -95,7 +92,7 @@ public class VenusProtocol implements Protocol,InitializingBean{
     ConnectionAcceptor createConnectionAcceptor() throws InitialisationException {
         VenusConnectionAcceptor connectionAcceptor = new VenusConnectionAcceptor();
         connectionAcceptor.setName("venus Acceptor-0");
-        connectionAcceptor.setPort(Integer.parseInt(port));
+        connectionAcceptor.setPort(port);
         //计算每IO线程组业务平均线程池数
         int cpuCores = Runtime.getRuntime().availableProcessors();
         int perGroupCoreThread = coreThreads/cpuCores;
@@ -160,11 +157,11 @@ public class VenusProtocol implements Protocol,InitializingBean{
         }
     }
 
-    public String getPort() {
+    public int getPort() {
         return port;
     }
 
-    public void setPort(String port) {
+    public void setPort(int port) {
         this.port = port;
     }
 

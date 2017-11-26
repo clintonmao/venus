@@ -39,12 +39,12 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
+    private Application application;
+
     /**
      * 注册中心地址，多个地址以;分隔
      */
     private String address;
-
-    private Application application;
 
     private ApplicationContext applicationContext;
 
@@ -108,6 +108,9 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      * 校验
      */
     void valid(){
+        if(application == null){
+            throw new VenusConfigException("application not config.");
+        }
         if(StringUtils.isEmpty(address)){
             throw new VenusConfigException("address not allow empty.");
         }
@@ -123,17 +126,6 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
 
             //初始化athenaDataService
             initAthenaDataService(address);
-
-            //注册spring beans
-            /*
-            AutowireCapableBeanFactory beanFactory = this.applicationContext.getAutowireCapableBeanFactory();
-            if(beanFactory != null && beanFactory instanceof ConfigurableListableBeanFactory){
-                ConfigurableListableBeanFactory configurableListableBeanFactory = (ConfigurableListableBeanFactory)beanFactory;
-            }else{
-                hasNeededDependences = false;
-                throw new VenusConfigException("get ConfigurableListableBeanFactory failed,cannot registe beans.");
-            }
-            */
         } catch (Throwable e) {
             if(exceptionLogger.isErrorEnabled()){
                 exceptionLogger.error("init monitor factory failed.",e);

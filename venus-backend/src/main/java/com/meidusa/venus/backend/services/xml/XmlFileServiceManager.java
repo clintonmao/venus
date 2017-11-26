@@ -205,12 +205,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         xStream.processAnnotations(ExportService.class);
 
         for (Resource config : configFiles) {
-            /*
-            RuleSet ruleSet = new FromXmlRuleSet(this.getClass().getResource("venusServerRule.xml"), new DigesterRuleParser());
-            Digester digester = new Digester();
-            digester.addRuleSet(ruleSet);
-             InputStream is = config.getInputStream();
-            */
             try {
                 VenusServerConfig venusServerConfig = (VenusServerConfig) xStream.fromXML(config.getURL());
                 if(CollectionUtils.isEmpty(venusServerConfig.getExportServices())){
@@ -242,7 +236,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                     interceptorStacks.putAll(venusServerConfig.getInterceptorStatcks());
                 }
             } catch (Exception e) {
-                throw new ConfigurationException("can not parser xml:" + config.getFilename(), e);
+                throw new ConfigurationException("parser venus server config failed:" + config.getFilename(), e);
             }
         }
 
@@ -308,13 +302,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         service.setEndpoints(endpoints);
 
         this.serviceMap.put(service.getName(), service);
-
-        Map<String, Collection<Endpoint>> ends = service.getEndpoints().asMap();
-        for (Map.Entry<String, Collection<Endpoint>> entry : ends.entrySet()) {
-            if (entry.getValue() != null && !entry.getValue().isEmpty()) {
-                //MonitorRuntime.getInstance().initEndPoint(service.getName(), entry.getValue().iterator().next().getName());
-            }
-        }
         return service;
     }
 

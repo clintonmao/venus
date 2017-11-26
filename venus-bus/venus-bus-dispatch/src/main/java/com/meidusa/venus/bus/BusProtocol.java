@@ -53,7 +53,6 @@ public class BusProtocol implements InitializingBean,DisposableBean {
      */
     public synchronized void init() throws Exception{
         if(!isRunning){
-            VenusContext.getInstance().setPort(port);
             if(connectionAcceptor == null){
                 connectionAcceptor = createConnectionAcceptor();
                 connectionAcceptor.start();

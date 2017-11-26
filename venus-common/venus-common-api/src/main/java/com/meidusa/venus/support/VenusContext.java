@@ -23,8 +23,6 @@ public class VenusContext {
      */
     private String application;
 
-    private String port;
-
     public static VenusContext getInstance(){
         if(venusContext == null){
             venusContext = new VenusContext();
@@ -56,11 +54,4 @@ public class VenusContext {
         this.application = application;
     }
 
-    public String getPort() {
-        return port;
-    }
-
-    public void setPort(String port) {
-        this.port = port;
-    }
 }

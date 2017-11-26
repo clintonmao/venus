@@ -2,6 +2,8 @@ package com.meidusa.venus.support;
 
 import com.meidusa.toolkit.common.util.StringUtil;
 import com.meidusa.venus.Invocation;
+import com.meidusa.venus.annotations.Endpoint;
+import com.meidusa.venus.annotations.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +53,24 @@ public class VenusUtil {
                 .append(invocation.getMethodName())
                 .toString();
         return methodPath;
+    }
+
+    public static String getApiName(Method method, Service service, Endpoint endpoint) {
+        String serviceName = null;
+        if (service == null || StringUtil.isEmpty(service.name())) {
+            serviceName = method.getDeclaringClass().getCanonicalName();
+        } else {
+            serviceName = service.name();
+        }
+
+        String methodName = method.getName();
+        if (endpoint == null || StringUtil.isEmpty(endpoint.name())) {
+            methodName = method.getName();
+        } else {
+            methodName = endpoint.name();
+        }
+
+        return serviceName + "." + methodName;
     }
 
     /**

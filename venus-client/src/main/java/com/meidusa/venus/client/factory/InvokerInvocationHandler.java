@@ -11,6 +11,7 @@ import com.meidusa.venus.client.factory.xml.config.ReferenceMethod;
 import com.meidusa.venus.client.factory.xml.config.ReferenceService;
 import com.meidusa.venus.client.invoker.ClientInvokerProxy;
 import com.meidusa.venus.exception.RpcException;
+import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.utils.RpcIdUtil;
 import com.meidusa.venus.metainfo.AnnotationUtil;
@@ -82,6 +83,11 @@ public class InvokerInvocationHandler implements InvocationHandler {
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        //忽略调用
+        if(isNeedIgnore(proxy, method)){
+            return ignoreInvoke(proxy, method, args);
+        }
+
         long bTime = System.currentTimeMillis();
         ClientInvocation invocation = null;
         Object object = null;
@@ -133,9 +139,15 @@ public class InvokerInvocationHandler implements InvocationHandler {
         ClientInvocation invocation = new ClientInvocation();
         invocation.setServiceInterface(serviceInterface);
         Endpoint endpoint =  AnnotationUtil.getAnnotation(method.getAnnotations(), Endpoint.class);
+        if(endpoint == null){
+            throw new VenusConfigException(String.format("method %s endpoint annotation not declare",method.getName()));
+        }
         EndpointWrapper endpointWrapper = EndpointWrapper.wrapper(endpoint);
         invocation.setEndpoint(endpointWrapper);
         Service service = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
+        if(service == null){
+            throw new VenusConfigException(String.format("service %s service annotation not declare",method.getDeclaringClass()));
+        }
         ServiceWrapper serviceWrapper = ServiceWrapper.wrapper(service);
         invocation.setService(serviceWrapper);
         String apiName = VenusUtil.getApiName(method,serviceWrapper,endpointWrapper);
@@ -325,6 +337,27 @@ public class InvokerInvocationHandler implements InvocationHandler {
             }
         }
 
+    }
+
+    /**
+     * 是否需要忽略调用
+     * @param proxy
+     * @param method
+     * @return
+     */
+    boolean isNeedIgnore(Object proxy, Method method){
+        //忽略toString
+        return method.getName().equals("toString");
+    }
+
+    /**
+     * 忽略调用处理
+     * @param proxy
+     * @param method
+     * @return
+     */
+    Object ignoreInvoke(Object proxy, Method method,Object[] args){
+        return this.getServiceInterface().getName() + "@VenusServiceProxy";
     }
 
     public Class<?> getServiceInterface() {
