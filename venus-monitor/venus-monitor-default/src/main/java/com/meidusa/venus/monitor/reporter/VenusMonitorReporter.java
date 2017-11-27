@@ -57,6 +57,33 @@ public class VenusMonitorReporter {
         }
     }
 
+    /**
+     * 上报明细及统计数据
+     * @param detailDOList
+     * @param staticDOList
+     */
+    public void reportDetailAndStatic(List<MethodCallDetailDO> detailDOList,List<MethodStaticDO> staticDOList){
+        if(CollectionUtils.isEmpty(detailDOList) && CollectionUtils.isEmpty(staticDOList)){
+            return;
+        }
+        if(CollectionUtils.isEmpty(detailDOList)){
+            if(logger.isDebugEnabled()){
+                logger.debug("report detail size:{}.",detailDOList.size());
+            }
+        }
+        if(CollectionUtils.isEmpty(staticDOList)){
+            if(logger.isDebugEnabled()){
+                logger.debug("report static size:{}.",staticDOList.size());
+            }
+        }
+
+        AthenaDataService athenaDataService = getAthenaDataService();
+        if(athenaDataService != null){
+            athenaDataService.reportDetailAndStatic(detailDOList,staticDOList);
+        }
+
+    }
+
     public AthenaDataService getAthenaDataService() {
         if(VenusMonitorFactory.getInstance() == null){
             return null;

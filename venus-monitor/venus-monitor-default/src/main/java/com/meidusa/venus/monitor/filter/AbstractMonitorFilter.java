@@ -203,7 +203,7 @@ public abstract class AbstractMonitorFilter {
         public void run() {
             while(true){
                 try {
-                    //1、明细上报
+                    //1、构造明细上报数据
                     if(logger.isDebugEnabled()){
                         logger.debug("current detail report queue size:{}.", reportDetailQueue.size());
                     }
@@ -216,36 +216,31 @@ public abstract class AbstractMonitorFilter {
                         InvocationDetail exceptionDetail = reportDetailQueue.poll();
                         detailList.add(exceptionDetail);
                     }
-                    if(CollectionUtils.isNotEmpty(detailList)){
+
+                    //2、构造汇总上报数据
+                    if(logger.isDebugEnabled()){
+                        logger.debug("current statistic report map size:{}.",statisticMap.size());
+                    }
+                    Collection<InvocationStatistic> statisticList = statisticMap.values();
+
+                    //3、上报统计及明细数据
+                    if(CollectionUtils.isNotEmpty(detailList) || CollectionUtils.isNotEmpty(statisticList)){
                         try {
-                            monitorReporter.reportDetailList(toDetailDOList(detailList));
+                            List<MethodCallDetailDO> detailDOList = toDetailDOList(detailList);
+                            List<MethodStaticDO> staticDOList = toStaticDOList(statisticList);
+                            monitorReporter.reportDetailAndStatic(detailDOList,staticDOList);
                         } catch (Exception e) {
                             if(exceptionLogger.isErrorEnabled()){
-                                exceptionLogger.error("report detail error.",e);
+                                exceptionLogger.error("report detail and static error.",e);
                             }
                         }
                     }
 
-                    //2、汇总上报
-                    if(getRole() == ROLE_CONSUMER){//只consumer进行统计上报
-                        if(logger.isDebugEnabled()){
-                            logger.debug("current statistic report queue size:{}.",statisticMap.size());
-                        }
-                        Collection<InvocationStatistic> statisticCollection = statisticMap.values();
-                        if(CollectionUtils.isNotEmpty(statisticCollection)){
-                            try {
-                                monitorReporter.reportStatisticList(toStaticDOList(statisticCollection));
-                            } catch (Exception e) {
-                                if(exceptionLogger.isErrorEnabled()){
-                                    exceptionLogger.error("report statistic error.",e);
-                                }
-                            }
-                        }
-                        //重置统计信息
-                        for(Map.Entry<String,InvocationStatistic> entry:statisticMap.entrySet()){
-                            entry.getValue().reset();
-                        }
+                    //4、重置统计信息
+                    for(Map.Entry<String,InvocationStatistic> entry:statisticMap.entrySet()){
+                        entry.getValue().reset();
                     }
+
                 } catch (Exception e) {
                     if(exceptionLogger.isErrorEnabled()){
                         exceptionLogger.error("report error.",e);
