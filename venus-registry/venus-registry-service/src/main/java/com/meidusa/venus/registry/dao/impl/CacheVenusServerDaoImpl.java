@@ -101,8 +101,8 @@ public class CacheVenusServerDaoImpl implements CacheVenusServerDAO {
 				load();
 				long end = System.currentTimeMillis();
 				long consumerTime = end - start;
-				logger.error("LoadCacheServersRunnable start=>{}, end=>{},consumerTime=>{},cacheServers size=>{}", start,
-						end, consumerTime, cacheServers.size());
+				logger.error("LoadCacheServersRunnable start=>{}, end=>{},consumerTime=>{},cacheServers size=>{}",
+						start, end, consumerTime, cacheServers.size());
 			} catch (Exception e) {
 				logger.error("load server cache data error", e);
 			}
