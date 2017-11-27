@@ -210,7 +210,7 @@ public class ClientRemoteInvoker implements Invoker{
         }
 
         if(CollectionUtils.isEmpty(urlList)){
-            throw new RpcException("with version valid,not found allowed service providers.");
+            throw new RpcException("with version filter,not found allowed service providers.");
         }
 
         //输出寻址结果信息
