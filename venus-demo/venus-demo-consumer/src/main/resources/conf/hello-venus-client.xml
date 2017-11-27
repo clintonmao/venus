@@ -10,10 +10,13 @@
 		retries:重试次数，服务级&方法级属性，默认不重试，若配置则自动使用failover容错策略，示例如，retries="3"
 		-->
 		<!--<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.17.238:16800"/>-->
+		<!--
+		SIT:10.32.172.25:16800;10.32.174.211:16800
+		-->
 		<service type="com.chexiang.venus.demo.provider.HelloService">
 			<!--方法级配置，方法级若配置则会覆盖服务级配置-->
 			<!--
-			<method name="getHello" timeout="3000" retries="2"/>
+			<method name="getHello" timeout="3000"/>
 			-->
 		</service>
 
