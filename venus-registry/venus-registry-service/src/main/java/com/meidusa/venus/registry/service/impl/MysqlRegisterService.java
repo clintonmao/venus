@@ -71,7 +71,7 @@ public class MysqlRegisterService implements RegisterService,DisposableBean {
 	
 	private static final int QUEUE_SIZE_2000 = 2000;
 	
-	private static final LinkedBlockingQueue<UpdateHeartBeatTimeDTO> HEARTBEAT_QUEUE  =new   LinkedBlockingQueue<UpdateHeartBeatTimeDTO>(QUEUE_SIZE_2000);
+	public static final LinkedBlockingQueue<UpdateHeartBeatTimeDTO> HEARTBEAT_QUEUE  =new   LinkedBlockingQueue<UpdateHeartBeatTimeDTO>(QUEUE_SIZE_2000);
 	
 	private static final Logger logger = LoggerFactory.getLogger(MysqlRegisterService.class);
 	
