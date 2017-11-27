@@ -128,7 +128,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
             initAthenaDataService(address);
         } catch (Throwable e) {
             if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error("init monitor factory failed.",e);
+                exceptionLogger.error("init monitor factory failed,will disable monitor report. fail reason:{}",e.getLocalizedMessage());
             }
             hasNeededDependences = false;
         }
@@ -147,7 +147,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         Class[] annotationTags = {Component.class,Service.class};
         Set<Class<?>> classSet = scanner.scan(confPkgs,annotationTags);
         if(CollectionUtils.isEmpty(classSet)){
-            throw new VenusConfigException("scan com.saic.framework package failed.");
+            throw new VenusConfigException("scan com.saic.framework.athena package empty.");
         }else{
             for(Class cls:classSet){
                 if(logger.isDebugEnabled()){
@@ -301,7 +301,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     }
 
     public boolean isEnableAthenaReport() {
-        return enableAthenaReport;
+        return enableAthenaReport && hasNeededDependences;
     }
 
     public void setEnableAthenaReport(boolean enableAthenaReport) {
@@ -309,7 +309,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     }
 
     public boolean isEnableVenusReport() {
-        return enableVenusReport;
+        return enableVenusReport && hasNeededDependences;
     }
 
     public void setEnableVenusReport(boolean enableVenusReport) {
@@ -324,11 +324,4 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         this.application = application;
     }
 
-    public boolean isHasNeededDependences() {
-        return hasNeededDependences;
-    }
-
-    public void setHasNeededDependences(boolean hasNeededDependences) {
-        this.hasNeededDependences = hasNeededDependences;
-    }
 }

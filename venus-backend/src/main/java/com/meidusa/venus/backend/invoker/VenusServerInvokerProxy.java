@@ -124,7 +124,7 @@ public class VenusServerInvokerProxy implements Invoker {
 
     void addMonitorFilters(List<Filter> filterList){
         VenusMonitorFactory venusMonitorFactory = getVenusMonitorFactory();
-        if(venusMonitorFactory != null && venusMonitorFactory.isHasNeededDependences()){
+        if(venusMonitorFactory != null){
             if(venusMonitorFactory.isEnableAthenaReport()){
                 filterList.add(serverAthenaMonitorFilter);
             }
