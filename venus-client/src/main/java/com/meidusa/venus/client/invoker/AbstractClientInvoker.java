@@ -25,6 +25,8 @@ public abstract class AbstractClientInvoker implements Invoker {
     public Result invoke(Invocation invocation, URL url) throws RpcException {
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
         VenusThreadContext.set(VenusThreadContext.REQUEST_URL,url);
+
+        //初始化
         init();
 
         //调用相应协议实现

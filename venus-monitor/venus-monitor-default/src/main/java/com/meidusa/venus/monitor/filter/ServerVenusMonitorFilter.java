@@ -49,7 +49,6 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         try {
             ServerInvocation serverInvocation = (ServerInvocation)invocation;
-
             //若不需要上报，则跳过
             if(!isNeedReport(serverInvocation)){
                 return null;
@@ -65,6 +64,7 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
             invocationDetail.setResult(result);
             invocationDetail.setException(e);
 
+            //添加到明细队列
             putInvocationDetailQueue(invocationDetail);
             return null;
         }catch(Throwable e){

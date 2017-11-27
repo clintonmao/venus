@@ -57,12 +57,15 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
 
             //请求url
             url = (URL) VenusThreadContext.get(VenusThreadContext.REQUEST_URL);
+            //若寻址失败，则不上报
+            if(url == null){
+                return null;
+            }
             //响应结果
             Result result = (Result) VenusThreadContext.get(VenusThreadContext.RESPONSE_RESULT);
             //响应异常
             Throwable e = (Throwable)VenusThreadContext.get(VenusThreadContext.RESPONSE_EXCEPTION);
 
-            //组装并添加到明细队列
             InvocationDetail invocationDetail = new InvocationDetail();
             invocationDetail.setFrom(InvocationDetail.FROM_CLIENT);
             invocationDetail.setInvocation(clientInvocation);
@@ -71,6 +74,7 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
             invocationDetail.setResult(result);
             invocationDetail.setException(e);
 
+            //添加到明细队列
             putInvocationDetailQueue(invocationDetail);
             return null;
         }catch(Throwable e){
