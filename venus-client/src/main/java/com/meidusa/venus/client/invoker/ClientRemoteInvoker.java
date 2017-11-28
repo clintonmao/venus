@@ -238,19 +238,13 @@ public class ClientRemoteInvoker implements Invoker{
      * @return
      */
     boolean isAllowVersion(VenusServiceDefinitionDO srvDef,int currentVersion){
-        //若版本号相同，则允许
-        /*
-        if(Integer.parseInt(srvDef.getVersion()) == currentVersion){
-            return true;
-        }
-        */
-        //若版本范围未定义，则默认允许都可访问
+        //若兼容版本范围未定义，则都可访问
         String versionRange = srvDef.getVersionRange();
         if(StringUtils.isEmpty(versionRange)){
             return true;
         }
 
-        //若版本范围不为空，则校验访问权限
+        //若兼容版本范围不为空，则校验访问权限
         Range supportVersioRange = RangeUtil.getVersionRange(versionRange);
         return supportVersioRange.contains(currentVersion);
     }
