@@ -99,8 +99,27 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
             //解析API请求信息
             parseApiRequest(invocation);
 
-            if(tracerLogger.isInfoEnabled()){
-                tracerLogger.info("[P] recv request,rpcId:{},api:{},sourceIp:{},routeIp:{},message size:{}.", invocation.getRpcId(),invocation.getApiName(),invocation.getSourceIp(),invocation.getRouteIp(),invocation.getData().getRight().length);
+            //打印接收日志，无效请求日志输出到default
+            boolean isIgnoreLog = false;
+            if(StringUtils.isNotEmpty(invocation.getApiName()) && invocation.getApiName().contains("ServiceRegistry")){
+                isIgnoreLog = true;
+            }
+            String tpl = "[P] recv request,rpcId:{},api:{},sourceIp:{},routeIp:{},message size:{}.";
+            Object[] arguments = new Object[]{
+                    invocation.getRpcId(),
+                    invocation.getApiName(),
+                    invocation.getSourceIp(),
+                    invocation.getRouteIp(),
+                    invocation.getData().getRight().length
+            };
+            if(!isIgnoreLog){
+                if(tracerLogger.isInfoEnabled()){
+                    tracerLogger.info(tpl,arguments);
+                }
+            }else{
+                if(logger.isInfoEnabled()){
+                    logger.info(tpl,arguments);
+                }
             }
 
             //解析端点定义及服务报文
