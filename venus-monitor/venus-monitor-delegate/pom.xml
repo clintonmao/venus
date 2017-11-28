@@ -37,6 +37,14 @@
                     <artifactId>venus-client</artifactId>
                 </exclusion>
                 <exclusion>
+                    <groupId>com.saike.athena</groupId>
+                    <artifactId>athena-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.saike.athena</groupId>
+                    <artifactId>athena-models-spring</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>com.meidusa.venus.commons</groupId>
                     <artifactId>venus-common-exception</artifactId>
                 </exclusion>

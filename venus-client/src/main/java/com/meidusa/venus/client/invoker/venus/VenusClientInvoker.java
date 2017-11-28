@@ -409,6 +409,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         if (remoteConfig.getAuthenticator() != null) {
             nioFactory.setAuthenticator(remoteConfig.getAuthenticator());
         }
+        //TODO 设置自定义conn读写超时时间
         FactoryConfig factoryConfig = remoteConfig.getFactory();
         if (factoryConfig != null) {
             //BeanUtils.copyProperties(nioFactory, factoryConfig);
