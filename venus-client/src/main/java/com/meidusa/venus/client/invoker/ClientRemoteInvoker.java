@@ -190,6 +190,7 @@ public class ClientRemoteInvoker implements Invoker{
 
         //当前接口定义版本号
         int currentVersion = Integer.parseInt(invocation.getVersion());
+
         //判断是否允许访问版本
         for(VenusServiceDefinitionDO srvDef:srvDefList){
             if(isAllowVersion(srvDef,currentVersion)){
@@ -238,15 +239,18 @@ public class ClientRemoteInvoker implements Invoker{
      */
     boolean isAllowVersion(VenusServiceDefinitionDO srvDef,int currentVersion){
         //若版本号相同，则允许
+        /*
         if(Integer.parseInt(srvDef.getVersion()) == currentVersion){
             return true;
         }
-
-        //否则，根据版本兼容定义判断是否许可
+        */
+        //若版本范围未定义，则默认允许都可访问
         String versionRange = srvDef.getVersionRange();
         if(StringUtils.isEmpty(versionRange)){
-            return false;
+            return true;
         }
+
+        //若版本范围不为空，则校验访问权限
         Range supportVersioRange = RangeUtil.getVersionRange(versionRange);
         return supportVersioRange.contains(currentVersion);
     }
