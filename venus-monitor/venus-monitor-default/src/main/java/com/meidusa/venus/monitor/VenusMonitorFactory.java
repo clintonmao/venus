@@ -69,9 +69,14 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     private boolean enableVenusReport = true;
 
     /**
-     * 判断是否有必须的依赖，如configManager、athena-client.jar、athenaDataService等
+     * 判断是否有athena上报必须的依赖，如athenaDataService、configManager、athena-client等
      */
-    private boolean hasNeededDependences = true;
+    private boolean hasAthenaReportDepen = true;
+
+    /**
+     * 判断是否有venus上报必须的依赖，如athenaDataService
+     */
+    private boolean hasVenusReportDepen = true;
 
     private static VenusMonitorFactory venusMonitorFactory = null;
 
@@ -116,24 +121,75 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         }
     }
 
+    /**
+     * 初始化
+     */
     void init(){
+        //初始化venus上报依赖
+        initVenusReportDepen();
+
+        //初始化athena上报依赖
+        initAthenaReportDepen();
+    }
+
+    /**
+     * 初始化venus上报依赖
+     */
+    void initVenusReportDepen(){
         try {
+            //初始化athenaDataService
+            initAthenaDataService(address);
+        } catch (Exception e) {
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("init athenaDataService failed,will disable venus report. fail reason:{}",e.getLocalizedMessage());
+            }
+            hasVenusReportDepen = false;
+        }
+    }
+
+    /**
+     * 初始化athena上报依赖
+     */
+    void initAthenaReportDepen(){
+        try {
+            if(this.athenaDataService == null){
+                throw new VenusConfigException("athenaDataService is null.");
+            }
+
             //手动扫描athena以注解定义的包
             scanAndRegisteAthenaPackage();
 
             //初始化athenaConfigManager
             initClientConfigManager();
-
-            //初始化athenaDataService
-            initAthenaDataService(address);
         } catch (Throwable e) {
             if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error("init monitor factory failed,will disable monitor report. fail reason:{}",e.getLocalizedMessage());
+                exceptionLogger.error("init athena report failed,will disable athena report. fail reason:{}",e.getLocalizedMessage());
             }
-            hasNeededDependences = false;
+            hasAthenaReportDepen = false;
         }
     }
 
+    /**
+     * 初始化athenaDataService
+     * @param url
+     */
+    void initAthenaDataService(String url){
+        //通过ref实例化serviceFactory，避免client、monitor互相引用
+        String className = "com.meidusa.venus.client.factory.simple.SimpleServiceFactory";
+        Object obj = ReftorUtil.newInstance(className);
+        if(obj == null){
+            throw new VenusConfigException("init simpleServiceFactory failed.");
+        }
+        serviceFactoryExtra = (ServiceFactoryExtra)obj;
+        String[] addressArr = {url};
+        serviceFactoryExtra.setAddressList(addressArr);
+
+        AthenaDataService athenaDataService = serviceFactoryExtra.getService(AthenaDataService.class);
+        if(athenaDataService == null){
+            throw new RpcException("init athenaDataService failed.");
+        }
+        this.athenaDataService = athenaDataService;
+    }
 
     /**
      * 手动扫描athena client包并注册到spring上下文
@@ -182,68 +238,52 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         this.clientConfigManager = clientConfigManager;
     }
 
-    /**
-     * 初始化athenaDataService
-     * @param url
-     */
-    void initAthenaDataService(String url){
-        //通过ref实例化serviceFactory，避免client、monitor互相引用
-        String className = "com.meidusa.venus.client.factory.simple.SimpleServiceFactory";
-        Object obj = ReftorUtil.newInstance(className);
-        if(obj == null){
-            throw new VenusConfigException("init simpleServiceFactory failed.");
-        }
-        serviceFactoryExtra = (ServiceFactoryExtra)obj;
-        String[] addressArr = {url};
-        serviceFactoryExtra.setAddressList(addressArr);
-
-        AthenaDataService athenaDataService = serviceFactoryExtra.getService(AthenaDataService.class);
-        if(athenaDataService == null){
-            throw new RpcException("init athenaDataService failed.");
-        }
-        this.athenaDataService = athenaDataService;
-    }
-
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        try {
-            registeBeans(beanFactory);
-        } catch (Exception e) {
-            if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error("postProcessBeanFactory failed.",e);
-            }
-            hasNeededDependences = false;
-        }
+        //注册athena上报依赖beans
+        registeVenusReportBeans(beanFactory);
+
+        //注册venus上报依赖beans
+        registeAthenaReportBeans(beanFactory);
     }
 
     /**
-     * 注册spring beans
+     * 注册venus上报依赖beans
      * @param beanFactory
      */
-    void registeBeans(ConfigurableListableBeanFactory beanFactory){
-        if(hasNeededDependences){
+    void registeVenusReportBeans(ConfigurableListableBeanFactory beanFactory){
+        if(hasVenusReportDepen){
             try {
-                //注册configManager到spring上下文
-                registeClientConfigManager(beanFactory);
-
                 //注册athenaDataService到spring上下文
                 registeAthenaDataService(beanFactory);
             } catch (Exception e) {
                 if(exceptionLogger.isErrorEnabled()){
-                    exceptionLogger.error("registe clientConfigManager and athenaDataService failed.",e);
+                    exceptionLogger.error("registe athenaDataService failed,will disable venus report.",e);
                 }
-                hasNeededDependences = false;
+                hasVenusReportDepen = false;
             }
         }
     }
 
     /**
-     * 注册configManager
+     * 注册athena上报依赖beans
      * @param beanFactory
      */
-    void registeClientConfigManager(ConfigurableListableBeanFactory beanFactory){
-        if(clientConfigManagerIniter != null){
-            clientConfigManagerIniter.registeConfigManager(beanFactory,this.clientConfigManager);
+    void registeAthenaReportBeans(ConfigurableListableBeanFactory beanFactory){
+        if(hasAthenaReportDepen){
+            try {
+                if(beanFactory.getBean(AthenaDataService.class) == null){
+                    throw new VenusConfigException("spring not found AthenaDataService bean.");
+                }
+
+                //注册configManager到spring上下文
+                registeClientConfigManager(beanFactory);
+            } catch (Exception e) {
+                if(exceptionLogger.isErrorEnabled()){
+                    exceptionLogger.error("registe athenaDataService and clientConfigManager failed,will disable venus report.",e);
+                }
+                hasAthenaReportDepen = false;
+            }
         }
     }
 
@@ -265,6 +305,16 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         beanDefinition.setConstructorArgumentValues(args);
         beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
         reg.registerBeanDefinition(beanName, beanDefinition);
+    }
+
+    /**
+     * 注册configManager
+     * @param beanFactory
+     */
+    void registeClientConfigManager(ConfigurableListableBeanFactory beanFactory){
+        if(clientConfigManagerIniter != null){
+            clientConfigManagerIniter.registeConfigManager(beanFactory,this.clientConfigManager);
+        }
     }
 
     /**
@@ -301,7 +351,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     }
 
     public boolean isEnableAthenaReport() {
-        return enableAthenaReport && hasNeededDependences;
+        return enableAthenaReport && hasAthenaReportDepen;
     }
 
     public void setEnableAthenaReport(boolean enableAthenaReport) {
@@ -309,7 +359,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     }
 
     public boolean isEnableVenusReport() {
-        return enableVenusReport && hasNeededDependences;
+        return enableVenusReport && hasVenusReportDepen;
     }
 
     public void setEnableVenusReport(boolean enableVenusReport) {
