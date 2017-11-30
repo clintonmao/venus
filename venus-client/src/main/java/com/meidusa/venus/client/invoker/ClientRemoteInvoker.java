@@ -179,6 +179,10 @@ public class ClientRemoteInvoker implements Invoker{
      */
     List<URL> lookupByRegister(ClientInvocation invocation){
         List<URL> urlList = new ArrayList<URL>();
+
+        //当前接口定义版本号
+        int currentVersion = Integer.parseInt(invocation.getVersion());
+
         //解析请求Url
         URL requestUrl = parseRequestUrl(invocation);
 
@@ -187,12 +191,12 @@ public class ClientRemoteInvoker implements Invoker{
         if(CollectionUtils.isEmpty(srvDefList)){
             throw new RpcException(String.format("not found available service %s providers.",requestUrl.toString()));
         }
-
-        //当前接口定义版本号
-        int currentVersion = Integer.parseInt(invocation.getVersion());
-
-        //判断是否允许访问版本
         for(VenusServiceDefinitionDO srvDef:srvDefList){
+            //若提供者列表为空，则跳过
+            if(CollectionUtils.isEmpty(srvDef.getIpAddress())){
+                continue;
+            }
+            //判断是否允许访问版本
             if(isAllowVersion(srvDef,currentVersion)){
                 for(String addresss:srvDef.getIpAddress()){
                     String[] arr = addresss.split(":");

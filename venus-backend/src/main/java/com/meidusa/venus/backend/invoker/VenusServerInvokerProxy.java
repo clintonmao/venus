@@ -123,23 +123,15 @@ public class VenusServerInvokerProxy implements Invoker {
     }
 
     void addMonitorFilters(List<Filter> filterList){
-        VenusMonitorFactory venusMonitorFactory = getVenusMonitorFactory();
+        VenusMonitorFactory venusMonitorFactory = VenusMonitorFactory.getInstance();
         if(venusMonitorFactory != null){
-            if(venusMonitorFactory.isEnableAthenaReport()){
-                filterList.add(serverAthenaMonitorFilter);
-            }
             if(venusMonitorFactory.isEnableVenusReport()){
                 filterList.add(serverVenusMonitorFilter);
             }
+            if(venusMonitorFactory.isEnableAthenaReport()){
+                filterList.add(serverAthenaMonitorFilter);
+            }
         }
-    }
-
-    /**
-     * 获取VenusMonitorFactory
-     * @return
-     */
-    VenusMonitorFactory getVenusMonitorFactory(){
-        return VenusMonitorFactory.getInstance();
     }
 
     public List<Filter> getBeforeFilters() {

@@ -215,23 +215,15 @@ public class ClientInvokerProxy implements Invoker {
      * 初始化监控filters
      */
     void addMonitorFilters(List<Filter> filterList){
-        VenusMonitorFactory venusMonitorFactory = getVenusMonitorFactory();
+        VenusMonitorFactory venusMonitorFactory = VenusMonitorFactory.getInstance();
         if(venusMonitorFactory != null){
-            if(venusMonitorFactory.isEnableAthenaReport()){
-                filterList.add(clientAthenaMonitorFilter);
-            }
             if(venusMonitorFactory.isEnableVenusReport()){
                 filterList.add(clientVenusMonitorFilter);
             }
+            if(venusMonitorFactory.isEnableAthenaReport()){
+                filterList.add(clientAthenaMonitorFilter);
+            }
         }
-    }
-
-    /**
-     * 获取VenusMonitorFactory
-     * @return
-     */
-    VenusMonitorFactory getVenusMonitorFactory(){
-        return VenusMonitorFactory.getInstance();
     }
 
     public List<Filter> getBeforeFilters() {
