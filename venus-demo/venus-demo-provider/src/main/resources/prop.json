@@ -1,49 +1,131 @@
 {
-  "registeUrls": [
+  "subscribleUrls": [
     {
-      "application": "demo-provider",
+      "application": "ums-service",
       "consumerCheck": false,
-      "host": "10.47.58.49",
-      "interfaceName": "com.chexiang.venus.demo.provider.HelloService",
-      "methods": "sayHello[java.lang.String,com.meidusa.venus.notify.InvocationListener];getHelloForBench[java.lang.String,[B];sayHello[java.lang.String];getHello[java.lang.String]",
-      "path": "com.chexiang.venus.demo.provider.HelloService/helloService",
-      "port": 16800,
+      "host": "10.32.172.114",
+      "interfaceName": "com.saic.framework.service.mail.api.MailService",
+      "path": "com.saic.framework.service.mail.api.MailService/MailService",
+      "port": 0,
       "properties": {
-        "versionRange": "{4, 5, 6}",
-        "application": "demo-provider",
-        "port": "16800",
-        "methods": "sayHello[java.lang.String,com.meidusa.venus.notify.InvocationListener];getHelloForBench[java.lang.String,[B];sayHello[java.lang.String];getHello[java.lang.String]",
-        "host": "10.47.58.49",
-        "version": "6"
+        "application": "ums-service",
+        "host": "10.32.172.114"
       },
       "protocol": "venus",
-      "serviceName": "helloService",
-      "version": "6",
-      "versionRange": "{4, 5, 6}",
+      "serviceName": "MailService",
       "weight": 1
     },
     {
-      "application": "demo-provider",
+      "application": "ums-service",
       "consumerCheck": false,
-      "host": "10.47.58.49",
-      "interfaceName": "com.chexiang.venus.demo.provider.EchoService",
-      "methods": "getEcho[java.lang.String];echo[java.lang.String]",
-      "path": "com.chexiang.venus.demo.provider.EchoService/echoService",
-      "port": 16800,
+      "host": "10.32.172.114",
+      "interfaceName": "com.saic.framework.service.sms.api.SMSService",
+      "path": "com.saic.framework.service.sms.api.SMSService/SMSService",
+      "port": 0,
       "properties": {
-        "versionRange": "{1}",
-        "application": "demo-provider",
-        "port": "16800",
-        "methods": "getEcho[java.lang.String];echo[java.lang.String]",
-        "host": "10.47.58.49",
-        "version": "1"
+        "application": "ums-service",
+        "host": "10.32.172.114"
       },
       "protocol": "venus",
-      "serviceName": "echoService",
-      "version": "1",
-      "versionRange": "{1}",
+      "serviceName": "SMSService",
+      "weight": 1
+    },
+    {
+      "application": "ums-service",
+      "consumerCheck": false,
+      "host": "10.32.172.114",
+      "interfaceName": "com.saic.framework.service.sequence.api.ISequenceService",
+      "path": "com.saic.framework.service.sequence.api.ISequenceService/SequenceService",
+      "port": 0,
+      "properties": {
+        "application": "ums-service",
+        "host": "10.32.172.114"
+      },
+      "protocol": "venus",
+      "serviceName": "SequenceService",
       "weight": 1
     }
   ],
-  "subscribleUrls": []
+  "registeUrls": [
+    {
+      "application": "ums-service",
+      "consumerCheck": false,
+      "host": "10.32.172.114",
+      "interfaceName": "com.saic.framework.message.UniMessageService",
+      "methods": "sendSms[com.saic.framework.message.Sms];sendMail[com.saic.framework.message.Mail]",
+      "path": "com.saic.framework.message.UniMessageService/UniMessageService",
+      "port": 16800,
+      "properties": {
+        "methods": "sendSms[com.saic.framework.message.Sms];sendMail[com.saic.framework.message.Mail]",
+        "port": "16800",
+        "application": "ums-service",
+        "host": "10.32.172.114",
+        "version": "1"
+      },
+      "protocol": "venus",
+      "serviceName": "UniMessageService",
+      "version": "1",
+      "weight": 1
+    },
+    {
+      "application": "ums-service",
+      "consumerCheck": false,
+      "host": "10.32.172.114",
+      "interfaceName": "com.saic.framework.message.schema.SchemaMetaService",
+      "methods": "detail[java.lang.String,java.lang.String,int];createOrUpdate[com.saic.framework.message.schema.SchemaMeta];query[java.lang.String,java.lang.String,int];delete[com.saic.framework.message.schema.SchemaMeta]",
+      "path": "com.saic.framework.message.schema.SchemaMetaService/SchemaMetaService",
+      "port": 16800,
+      "properties": {
+        "methods": "detail[java.lang.String,java.lang.String,int];createOrUpdate[com.saic.framework.message.schema.SchemaMeta];query[java.lang.String,java.lang.String,int];delete[com.saic.framework.message.schema.SchemaMeta]",
+        "port": "16800",
+        "application": "ums-service",
+        "host": "10.32.172.114",
+        "version": "1"
+      },
+      "protocol": "venus",
+      "serviceName": "SchemaMetaService",
+      "version": "1",
+      "weight": 1
+    },
+    {
+      "application": "ums-service",
+      "consumerCheck": false,
+      "host": "10.32.172.114",
+      "interfaceName": "com.saic.framework.message.DebugUniMessageService",
+      "methods": "sendSms[com.saic.framework.message.Sms];sendMail[com.saic.framework.message.Mail]",
+      "path": "com.saic.framework.message.DebugUniMessageService/DebugUniMessageService",
+      "port": 16800,
+      "properties": {
+        "methods": "sendSms[com.saic.framework.message.Sms];sendMail[com.saic.framework.message.Mail]",
+        "port": "16800",
+        "application": "ums-service",
+        "host": "10.32.172.114",
+        "version": "1"
+      },
+      "protocol": "venus",
+      "serviceName": "DebugUniMessageService",
+      "version": "1",
+      "weight": 1
+    },
+    {
+      "application": "ums-service",
+      "consumerCheck": false,
+      "host": "10.32.172.114",
+      "interfaceName": "com.saic.framework.message.api.MessageConfigService",
+      "methods": "getWhiteBlackPhone[java.lang.String,java.lang.String];setWhiteBlackPhone[java.lang.String,java.lang.String];delWhiteBlackPhone[java.lang.String,java.lang.String]",
+      "path": "com.saic.framework.message.api.MessageConfigService/messageConfigService",
+      "port": 16800,
+      "properties": {
+        "methods": "getWhiteBlackPhone[java.lang.String,java.lang.String];setWhiteBlackPhone[java.lang.String,java.lang.String];delWhiteBlackPhone[java.lang.String,java.lang.String]",
+        "port": "16800",
+        "application": "ums-service",
+        "host": "10.32.172.114",
+        "version": "1"
+      },
+      "protocol": "venus",
+      "serviceName": "messageConfigService",
+      "version": "1",
+      "weight": 1
+    }
+  ]
 }

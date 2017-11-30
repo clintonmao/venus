@@ -26,13 +26,36 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
+    private boolean isInited = false;
+
     public ServerVenusMonitorFilter(){
-        init();
     }
 
     @Override
     public void init() throws RpcException {
-        startProcessAndReporterTread();
+        synchronized (ServerVenusMonitorFilter.class){
+            if(!isInited){
+                //启动上报线程
+                startProcessAndReporterTread();
+                isInited = true;
+            }
+        }
+    }
+
+    /**
+     * 起动数据计算及上报线程
+     */
+    void startProcessAndReporterTread(){
+        if(!isRunning){
+            this.processThread = new Thread(new InvocationDataProcessRunnable());
+            this.processThread.setName("provider monitor process");
+            this.processThread.start();
+
+            this.reporterThread = new Thread(new InvocationDataReportRunnable());
+            this.reporterThread.start();
+            this.reporterThread.setName("provider monitor report");
+            isRunning = true;
+        }
     }
 
     @Override

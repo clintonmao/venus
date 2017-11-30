@@ -163,7 +163,7 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
         }
         if(venusRegistryFactory == null || venusRegistryFactory.getRegister() == null){
             if(logger.isWarnEnabled()){
-                logger.warn("venusRegistryFactory not enabled,will skip service subscrible.");
+                logger.warn("venusRegistryFactory not enabled,will disable service subscrible.");
             }
         }
         if(venusMonitorFactory == null){

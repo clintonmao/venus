@@ -23,21 +23,20 @@ public class ClientAthenaMonitorFilter implements Filter {
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
-    static boolean isInited = false;
+    private boolean isInited = false;
 
     public ClientAthenaMonitorFilter(){
-        synchronized (this){
-            if(!isInited){
-                init();
-                isInited = true;
-            }
-        }
     }
 
     @Override
     public void init() throws RpcException {
-        //初始化athena
-        AthenaReporterDelegate.getInstance().init();
+        synchronized (ClientAthenaMonitorFilter.class){
+            if(!isInited){
+                //初始化athena
+                AthenaReporterDelegate.getInstance().init();
+                isInited = true;
+            }
+        }
     }
 
     @Override

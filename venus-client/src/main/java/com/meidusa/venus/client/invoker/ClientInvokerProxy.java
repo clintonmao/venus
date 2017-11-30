@@ -71,10 +71,10 @@ public class ClientInvokerProxy implements Invoker {
     private ClientThrowMockFilter clientThrowMockFilter = new ClientThrowMockFilter();
     //mock降级
     private ClientCallbackMockFilter clientCallbackMockFilter = new ClientCallbackMockFilter();
-    //athena监控
-    private ClientAthenaMonitorFilter clientAthenaMonitorFilter = new ClientAthenaMonitorFilter();
     //venus监控上报filter
-    private static ClientVenusMonitorFilter clientVenusMonitorFilter = new ClientVenusMonitorFilter();
+    private static ClientVenusMonitorFilter clientVenusMonitorFilter = null;
+    //athena监控
+    private ClientAthenaMonitorFilter clientAthenaMonitorFilter = null;
 
 
     public ClientInvokerProxy(){
@@ -172,15 +172,51 @@ public class ClientInvokerProxy implements Invoker {
      * 初始化filters
      */
     void initFilters(){
-        initBeforeFilters();
-        initThrowFilters();
-        initAfterFilters();
+        //初始化monitor filters
+        initMonitorFilters();
+
+        //添加filters
+        addBeforeFilters();
+        addThrowFilters();
+        addAfterFilters();
+    }
+
+    /**
+     * 初始化监控filters
+     */
+    void initMonitorFilters(){
+        VenusMonitorFactory venusMonitorFactory = VenusMonitorFactory.getInstance();
+        if(venusMonitorFactory != null){
+            if(venusMonitorFactory.isEnableVenusReport()){
+                if(clientVenusMonitorFilter == null){
+                    clientVenusMonitorFilter = new ClientVenusMonitorFilter();
+                    clientVenusMonitorFilter.init();
+                }
+            }else{
+                if(logger.isWarnEnabled()){
+                    logger.warn("############not enable venus report,venus monitor filter diabled##############");
+                }
+            }
+
+            if(venusMonitorFactory.isEnableAthenaReport()){
+                clientAthenaMonitorFilter = new ClientAthenaMonitorFilter();
+                clientAthenaMonitorFilter.init();
+            }else{
+                if(logger.isWarnEnabled()){
+                    logger.warn("############not enable athena report,athena monitor filter diabled##############");
+                }
+            }
+        }else{
+            if(logger.isWarnEnabled()){
+                logger.warn("############not enable monitor report,vensu and athena monitor filter diabled##############");
+            }
+        }
     }
 
     /**
      * 初始化前置切面
      */
-    void initBeforeFilters(){
+    void addBeforeFilters(){
         beforeFilters.add(clientValidFilter);
         //流控
         beforeFilters.add(clientActivesLimitFilter);
@@ -190,41 +226,42 @@ public class ClientInvokerProxy implements Invoker {
         beforeFilters.add(clientThrowMockFilter);
         beforeFilters.add(clientCallbackMockFilter);
         //监控
-        addMonitorFilters(beforeFilters);
+        if(clientVenusMonitorFilter != null){
+            beforeFilters.add(clientVenusMonitorFilter);
+        }
+        if(clientAthenaMonitorFilter != null){
+            beforeFilters.add(clientAthenaMonitorFilter);
+        }
     }
 
     /**
      * 初始化异常切面
      */
-    void initThrowFilters(){
+    void addThrowFilters(){
         //监控filters
-        addMonitorFilters(throwFilters);
+        if(clientVenusMonitorFilter != null){
+            throwFilters.add(clientVenusMonitorFilter);
+        }
+        if(clientAthenaMonitorFilter != null){
+            throwFilters.add(clientAthenaMonitorFilter);
+        }
     }
 
     /**
      * 初始化后置切面
      */
-    void initAfterFilters(){
+    void addAfterFilters(){
         //流控
         afterFilters.add(clientActivesLimitFilter);
         //监控
-        addMonitorFilters(afterFilters);
-    }
-
-    /**
-     * 初始化监控filters
-     */
-    void addMonitorFilters(List<Filter> filterList){
-        VenusMonitorFactory venusMonitorFactory = VenusMonitorFactory.getInstance();
-        if(venusMonitorFactory != null){
-            if(venusMonitorFactory.isEnableVenusReport()){
-                filterList.add(clientVenusMonitorFilter);
-            }
-            if(venusMonitorFactory.isEnableAthenaReport()){
-                filterList.add(clientAthenaMonitorFilter);
-            }
+        if(clientVenusMonitorFilter != null){
+            afterFilters.add(clientVenusMonitorFilter);
+        }
+        if(clientAthenaMonitorFilter != null){
+            afterFilters.add(clientAthenaMonitorFilter);
         }
     }
+
 
     public List<Filter> getBeforeFilters() {
         return beforeFilters;
