@@ -24,6 +24,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import com.meidusa.fastjson.JSON;
 import com.meidusa.venus.URL;
+import com.meidusa.venus.registry.LoggUtils;
 import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.dao.CacheVenusServerDAO;
 import com.meidusa.venus.registry.dao.CacheVenusServiceDAO;
@@ -47,7 +48,7 @@ import com.meidusa.venus.support.VenusConstants;
 /**
  * Created by Zhangzhihua on 2017/8/16.
  */
-public class MysqlRegisterService implements RegisterService,DisposableBean {
+public class MysqlRegisterService implements RegisterService, DisposableBean {
 
 	private VenusServiceDAO venusServiceDAO;
 
@@ -58,23 +59,24 @@ public class MysqlRegisterService implements RegisterService,DisposableBean {
 	private VenusServerDAO venusServerDAO;
 
 	private CacheVenusServerDAO cacheVenusServerDAO;
-	
+
 	private CacheVenusServiceDAO cacheVenusServiceDAO;
 
 	private VenusServiceMappingDAO venusServiceMappingDAO;
 
 	private TransactionTemplate transactionTemplate;
-	
+
 	private boolean needRun = true;
-	
+
 	private ExecutorService es = Executors.newSingleThreadExecutor();
-	
+
 	private static final int QUEUE_SIZE_10000 = 10000;
-	
-	public static final LinkedBlockingQueue<UpdateHeartBeatTimeDTO> HEARTBEAT_QUEUE  =new   LinkedBlockingQueue<UpdateHeartBeatTimeDTO>(QUEUE_SIZE_10000);
-	
+
+	public static final LinkedBlockingQueue<UpdateHeartBeatTimeDTO> HEARTBEAT_QUEUE = new LinkedBlockingQueue<UpdateHeartBeatTimeDTO>(
+			QUEUE_SIZE_10000);
+
 	private static final Logger logger = LoggerFactory.getLogger(MysqlRegisterService.class);
-	
+
 	/** 新注册中心数据库地址 */
 	private String connectUrl;
 
@@ -584,17 +586,11 @@ public class MysqlRegisterService implements RegisterService,DisposableBean {
 		}
 		Map<Integer, List<Integer>> maps = new HashMap<Integer, List<Integer>>();
 		try {
+			VenusServerDO server = getServer(urls);
 			for (URL url : urls) {
-				String host = url.getHost();
-				int port = url.getPort();
-
-				VenusServerDO server = cacheVenusServerDAO.getServer(host, port);
-				if (null == server) {
-					server = venusServerDAO.getServer(host, port);
-				}
 				if (null != server) {
-					List<VenusServiceDO> services = cacheVenusServiceDAO.queryServices(url.getInterfaceName(), url.getServiceName(),
-							url.getVersion());
+					List<VenusServiceDO> services = cacheVenusServiceDAO.queryServices(url.getInterfaceName(),
+							url.getServiceName(), url.getVersion());
 					if (CollectionUtils.isEmpty(services)) {
 						services = venusServiceDAO.queryServices(url.getInterfaceName(), url.getServiceName(),
 								url.getVersion());
@@ -603,34 +599,60 @@ public class MysqlRegisterService implements RegisterService,DisposableBean {
 						for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
 							VenusServiceDO venusServiceDO = iterator.next();
 							List<Integer> list = maps.get(server.getId());
+							Integer serviceId = venusServiceDO.getId();
 							if (list != null) {
-								list.add(venusServiceDO.getId());
+								if(!list.contains(serviceId)){
+									list.add(serviceId);
+								}
 							} else {
 								list = new ArrayList<>();
-								list.add(venusServiceDO.getId());
+								if(!list.contains(serviceId)){
+									list.add(serviceId);
+								}
 								maps.put(server.getId(), list);
 							}
 						}
 					}
 				}
 			}
-			if (HEARTBEAT_QUEUE.size()>=QUEUE_SIZE_10000 -1) {
-				logger.info("venus heartbeat drop message=>"+JSON.toJSONString(maps));
-			}else {
+			if (HEARTBEAT_QUEUE.size() >= QUEUE_SIZE_10000 - 1) {
+				LoggUtils.heartbeatLogger.error("venus heartbeat drop message=>" + JSON.toJSONString(maps));
+			} else {
+				LoggUtils.heartbeatLogger.error("venus heartbeat message maps=>{},urls=>{}",JSON.toJSONString(maps),JSON.toJSONString(urls));
 				for (Map.Entry<Integer, List<Integer>> ent : maps.entrySet()) {
 					UpdateHeartBeatTimeDTO heartBeatTimeDTO = new UpdateHeartBeatTimeDTO();
 					heartBeatTimeDTO.setRole(role);
 					heartBeatTimeDTO.setServerId(ent.getKey());
 					heartBeatTimeDTO.setServiceIds(ent.getValue());
-					HEARTBEAT_QUEUE.offer(heartBeatTimeDTO);
+					boolean offer = HEARTBEAT_QUEUE.offer(heartBeatTimeDTO);
+					if (!offer) {
+						LoggUtils.heartbeatLogger.error("HEARTBEAT_QUEUE size=>{}" + HEARTBEAT_QUEUE.size());
+					}
 				}
-				
+
 			}
 		} catch (Exception e) {
 			logger.error("服务{}heartBeatTime入队列异常 ,异常原因：{}", JSON.toJSONString(urls, true), e);
 			throw new VenusRegisteException("heartBeatTime入队列异常", e);
 		}
 
+	}
+
+	private VenusServerDO getServer(Set<URL> urls) {
+		VenusServerDO server = null;
+		for (URL url : urls) {
+			String host = url.getHost();
+			int port = url.getPort();
+
+			server = cacheVenusServerDAO.getServer(host, port);
+			if (null == server) {
+				server = venusServerDAO.getServer(host, port);
+			}
+			if (null != server) {
+				break;
+			}
+		}
+		return server;
 	}
 
 	@Deprecated
@@ -746,7 +768,7 @@ public class MysqlRegisterService implements RegisterService,DisposableBean {
 	public void setCacheVenusServerDAO(CacheVenusServerDAO cacheVenusServerDAO) {
 		this.cacheVenusServerDAO = cacheVenusServerDAO;
 	}
-	
+
 	public CacheVenusServiceDAO getCacheVenusServiceDAO() {
 		return cacheVenusServiceDAO;
 	}
@@ -754,7 +776,7 @@ public class MysqlRegisterService implements RegisterService,DisposableBean {
 	public void setCacheVenusServiceDAO(CacheVenusServiceDAO cacheVenusServiceDAO) {
 		this.cacheVenusServiceDAO = cacheVenusServiceDAO;
 	}
-	
+
 	public TransactionTemplate getTransactionTemplate() {
 		return transactionTemplate;
 	}
@@ -834,17 +856,19 @@ public class MysqlRegisterService implements RegisterService,DisposableBean {
 	@Override
 	public void heartbeat(Map<String, Set<URL>> maps) {
 		long start = System.currentTimeMillis();
-//		logger.info("heartbeat start =>" + start + "," + JSON.toJSON(maps));
 		for (Map.Entry<String, Set<URL>> ent : maps.entrySet()) {
 			heartbeatRegister(ent.getValue(), ent.getKey());
 		}
-		logger.info("heartbeat end =>" + (System.currentTimeMillis() - start));
+		long end = System.currentTimeMillis() - start;
+		if (start >= 30) {
+			logger.info("heartbeat end =>" + end);
+		}
 	}
-	
-	private class UpdateHeartbeatTimeRunnable implements Runnable{
-			
+
+	private class UpdateHeartbeatTimeRunnable implements Runnable {
+
 		private String threadName;
-		
+
 		public String getThreadName() {
 			return threadName;
 		}
@@ -859,16 +883,22 @@ public class MysqlRegisterService implements RegisterService,DisposableBean {
 
 		@Override
 		public void run() {
-			try {
-				while (needRun) {
-					UpdateHeartBeatTimeDTO heartbeatDto = HEARTBEAT_QUEUE.take();
-					venusServiceMappingDAO.updateHeartBeatTime(heartbeatDto.getServerId(), heartbeatDto.getServiceIds(), heartbeatDto.getRole());
+			while (needRun) {
+				try {
+					int startSize = HEARTBEAT_QUEUE.size();
+					UpdateHeartBeatTimeDTO heartbeatDto = HEARTBEAT_QUEUE.poll();
+					if (null != heartbeatDto) {
+						int endSize = HEARTBEAT_QUEUE.size();
+						boolean update = venusServiceMappingDAO.updateHeartBeatTime(heartbeatDto.getServerId(),
+								heartbeatDto.getServiceIds(), heartbeatDto.getRole());
+						LoggUtils.heartbeatLogger.error("HEARTBEAT_QUEUE.poll startSize=>{},endSize=>{endSize},update=>{},heartbeatDto=>{}", startSize, endSize,update,JSON.toJSONString(heartbeatDto));
+					}
+				} catch (Throwable e) {
+					LoggUtils.heartbeatLogger.error("UpdateHeartbeatTimeRunnable consumer thread is error" + e.getMessage(), e);
 				}
-			} catch (Exception e) {
-				logger.error("UpdateHeartbeatTimeRunnable consumer thread is error" + e.getMessage(), e);
 			}
 		}
-		
+
 	}
 
 	@Override
