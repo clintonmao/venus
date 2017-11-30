@@ -16,7 +16,7 @@ public class RandomBuildUtil {
             if("A".equals("A")){
                 throw new IllegalArgumentException("param invalid.");
             }
-        }else if(ThreadLocalRandom.current().nextInt(100) > 50){//构造慢操作
+        }else if(ThreadLocalRandom.current().nextInt(100) > 80){//构造慢操作
             try {
                 Thread.sleep(ThreadLocalRandom.current().nextInt(2000));
             } catch (InterruptedException e) {}

@@ -9,6 +9,7 @@ import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.util.JSONUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 
@@ -29,25 +30,6 @@ public abstract class AbstractMonitorFilter {
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
-    //明细队列
-    private Queue<InvocationDetail> detailQueue = new LinkedBlockingQueue<InvocationDetail>();
-
-    //待上报明细队列
-    private Queue<InvocationDetail> reportDetailQueue = new LinkedBlockingQueue<InvocationDetail>();
-
-    //方法调用汇总映射表
-    private Map<String,InvocationStatistic> statisticMap = new ConcurrentHashMap<String,InvocationStatistic>();
-
-    //计算线程
-    private Executor processExecutor = Executors.newFixedThreadPool(1);
-
-    //上报线程
-    private Executor reporterExecutor = Executors.newFixedThreadPool(1);
-
-    private boolean isRunning = false;
-
-    private VenusMonitorReporter monitorReporter = new VenusMonitorReporter();
-
     //consumer
     protected static int ROLE_CONSUMER = 0;
     //provider
@@ -61,21 +43,26 @@ public abstract class AbstractMonitorFilter {
     //支持最大队列长度
     private static int QUEU_MAX_SIZE = 50000;
 
+    //明细队列
+    private Queue<InvocationDetail> detailQueue = new LinkedBlockingQueue<InvocationDetail>();
+
+    //待上报明细队列
+    private Queue<InvocationDetail> reportDetailQueue = new LinkedBlockingQueue<InvocationDetail>();
+
+    //方法调用汇总映射表
+    private Map<String,InvocationStatistic> statisticMap = new ConcurrentHashMap<String,InvocationStatistic>();
+
+    private VenusMonitorReporter monitorReporter = new VenusMonitorReporter();
+
+    //计算线程
+    protected Thread processThread;
+
+    //上报线程
+    protected Thread reporterThread;
+
+    protected boolean isRunning = false;
 
     public AbstractMonitorFilter(){
-    }
-
-    /**
-     * 起动数据计算及上报线程
-     */
-    public void startProcessAndReporterTread(){
-        synchronized (AbstractMonitorFilter.class){
-            if(!isRunning){
-                processExecutor.execute(new InvocationDataProcessRunnable());
-                reporterExecutor.execute(new InvocationDataReportRunnable());
-                isRunning = true;
-            }
-        }
     }
 
     /**
@@ -166,17 +153,18 @@ public abstract class AbstractMonitorFilter {
                         }
 
                         //2、汇总统计，查1m内汇总记录，若不存在则新建
-                        if(getRole() == ROLE_CONSUMER){//只consumer处理汇总统计
-                            String methodAndEnvPath = getMethodAndEnvPath(detail);
-                            if(StringUtils.isNotEmpty(methodAndEnvPath)){
-                                if(statisticMap.get(methodAndEnvPath) == null){
-                                    InvocationStatistic statistic = new InvocationStatistic();
-                                    statistic.init(detail);
-                                    statisticMap.put(methodAndEnvPath,statistic);
-                                }
-                                InvocationStatistic invocationStatistic = statisticMap.get(methodAndEnvPath);
-                                invocationStatistic.append(detail);
+                        if(getRole() != ROLE_CONSUMER){//只consumer处理汇总统计
+                            continue;
+                        }
+                        String methodAndEnvPath = getMethodAndEnvPath(detail);
+                        if(StringUtils.isNotEmpty(methodAndEnvPath)){
+                            if(statisticMap.get(methodAndEnvPath) == null){
+                                InvocationStatistic statistic = new InvocationStatistic();
+                                statistic.init(detail);
+                                statisticMap.put(methodAndEnvPath,statistic);
                             }
+                            InvocationStatistic invocationStatistic = statisticMap.get(methodAndEnvPath);
+                            invocationStatistic.append(detail);
                         }
                     }
                 } catch (Exception e) {
@@ -204,8 +192,8 @@ public abstract class AbstractMonitorFilter {
             while(true){
                 try {
                     //1、构造明细上报数据
-                    if(logger.isDebugEnabled()){
-                        logger.debug("current detail report queue size:{}.", reportDetailQueue.size());
+                    if(logger.isInfoEnabled()){
+                        logger.info("current detail report queue size:{}.", reportDetailQueue.size());
                     }
                     List<InvocationDetail> detailList = new ArrayList<InvocationDetail>();
                     int fetchNum = perDetailReportNum;
@@ -218,8 +206,8 @@ public abstract class AbstractMonitorFilter {
                     }
 
                     //2、构造汇总上报数据
-                    if(logger.isDebugEnabled()){
-                        logger.debug("current statistic report map size:{}.",statisticMap.size());
+                    if(logger.isInfoEnabled()){
+                        logger.info("current statistic report map size:{}.",statisticMap.size());
                     }
                     Collection<InvocationStatistic> statisticList = statisticMap.values();
 
@@ -236,10 +224,15 @@ public abstract class AbstractMonitorFilter {
                         }
                     }
 
-                    //4、重置统计信息
+                    //4、清空统计信息
+                    if(MapUtils.isNotEmpty(statisticMap)){
+                        statisticMap.clear();
+                    }
+                    /*
                     for(Map.Entry<String,InvocationStatistic> entry:statisticMap.entrySet()){
                         entry.getValue().reset();
                     }
+                    */
 
                 } catch (Exception e) {
                     if(exceptionLogger.isErrorEnabled()){
@@ -269,9 +262,6 @@ public abstract class AbstractMonitorFilter {
             MethodCallDetailDO detailDO = convertDetail(detail);
             if(detailDO != null){
                 detailDOList.add(detailDO);
-                if(logger.isDebugEnabled()){
-                    logger.debug("report detailDO:{}.",JSONUtil.toJSONString(detailDO));
-                }
             }
         }
         return detailDOList;
@@ -296,9 +286,6 @@ public abstract class AbstractMonitorFilter {
                 continue;
             }
             MethodStaticDO staticDO = convertStatistic(statistic);
-            if(logger.isDebugEnabled()){
-                logger.debug("report staticDO:{}.",JSONUtil.toJSONString(staticDO));
-            }
             staticDOList.add(staticDO);
         }
         return staticDOList;

@@ -7,6 +7,8 @@ import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.monitor.athena.filter.ServerAthenaMonitorFilter;
 import com.meidusa.venus.monitor.filter.ServerVenusMonitorFilter;
 import com.meidusa.venus.support.VenusThreadContext;
+import com.meidusa.venus.util.VenusLoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +18,8 @@ import java.util.List;
  * Created by Zhangzhihua on 2017/8/25.
  */
 public class VenusServerInvokerProxy implements Invoker {
+
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
     private VenusServerInvoker venusServerInvoker = new VenusServerInvoker();
 
@@ -28,10 +32,10 @@ public class VenusServerInvokerProxy implements Invoker {
 
     //校验filter
     private ServerValidFilter serverValidFilter = new ServerValidFilter();
-    //athena上报filter
-    private ServerAthenaMonitorFilter serverAthenaMonitorFilter = new ServerAthenaMonitorFilter();
     //venus上报filter
-    private static ServerVenusMonitorFilter serverVenusMonitorFilter = new ServerVenusMonitorFilter();
+    private static ServerVenusMonitorFilter serverVenusMonitorFilter = null;
+    //athena上报filter
+    private ServerAthenaMonitorFilter serverAthenaMonitorFilter = null;
 
     public VenusServerInvokerProxy(){
         init();
@@ -92,45 +96,81 @@ public class VenusServerInvokerProxy implements Invoker {
      * 初始化filters
      */
     void initFilters(){
-        initBeforeFilters();
-        initThrowFilters();
-        initAfterFilters();
+        //初始化监控filters
+        initMonitorFilters();
+
+        //添加filters
+        addBeforeFilters();
+        addThrowFilters();
+        addAfterFilters();
     }
 
     /**
-     * 初始化前置切面
+     * 初始化监控filter
      */
-    void initBeforeFilters(){
-        beforeFilters.add(serverValidFilter);
-        //监控filters
-        addMonitorFilters(beforeFilters);
-    }
-
-    /**
-     * 初始化异常切面
-     */
-    void initThrowFilters(){
-        //监控filters
-        addMonitorFilters(throwFilters);
-    }
-
-    /**
-     * 初始化后置切面
-     */
-    void initAfterFilters(){
-        //监控filters
-        addMonitorFilters(afterFilters);
-    }
-
-    void addMonitorFilters(List<Filter> filterList){
+    void initMonitorFilters(){
         VenusMonitorFactory venusMonitorFactory = VenusMonitorFactory.getInstance();
         if(venusMonitorFactory != null){
             if(venusMonitorFactory.isEnableVenusReport()){
-                filterList.add(serverVenusMonitorFilter);
+                if(serverVenusMonitorFilter == null){
+                    serverVenusMonitorFilter = new ServerVenusMonitorFilter();
+                    serverVenusMonitorFilter.init();
+                }
+            }else{
+                if(logger.isWarnEnabled()){
+                    logger.warn("############not enable venus report,venus monitor filter diabled##############");
+                }
             }
             if(venusMonitorFactory.isEnableAthenaReport()){
-                filterList.add(serverAthenaMonitorFilter);
+                serverAthenaMonitorFilter = new ServerAthenaMonitorFilter();
+                serverAthenaMonitorFilter.init();
+            }else{
+                if(logger.isWarnEnabled()){
+                    logger.warn("############not enable athena report,athena monitor filter diabled##############");
+                }
             }
+        }if(logger.isWarnEnabled()){
+            logger.warn("############not enable monitor report,vensu and athena monitor filter diabled##############");
+        }
+    }
+
+    /**
+     * 添加前置切面
+     */
+    void addBeforeFilters(){
+        beforeFilters.add(serverValidFilter);
+        //监控filters
+        if(serverVenusMonitorFilter != null){
+            beforeFilters.add(serverVenusMonitorFilter);
+        }
+        if(serverAthenaMonitorFilter != null){
+            beforeFilters.add(serverAthenaMonitorFilter);
+        }
+    }
+
+    /**
+     * 添加异常切面
+     */
+    void addThrowFilters(){
+        //监控filters
+        if(serverVenusMonitorFilter != null){
+            throwFilters.add(serverVenusMonitorFilter);
+        }
+        if(serverAthenaMonitorFilter != null){
+            throwFilters.add(serverAthenaMonitorFilter);
+        }
+    }
+
+    /**
+     * 添加后置切面
+     */
+    void addAfterFilters(){
+        //监控filters
+        if(serverVenusMonitorFilter != null){
+            afterFilters.add(serverVenusMonitorFilter);
+        }
+        if(serverAthenaMonitorFilter != null){
+            afterFilters.add(serverAthenaMonitorFilter);
         }
     }
 

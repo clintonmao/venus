@@ -26,20 +26,19 @@ public class ServerAthenaMonitorFilter implements Filter {
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
-    static boolean isRunning = false;
+    private boolean isInited = false;
 
     public ServerAthenaMonitorFilter(){
-        synchronized (this){
-            if(!isRunning){
-                init();
-                isRunning = true;
-            }
-        }
     }
 
     @Override
     public void init() throws RpcException {
-        AthenaReporterDelegate.getInstance().init();
+        synchronized (ServerAthenaMonitorFilter.class){
+            if(!isInited){
+                AthenaReporterDelegate.getInstance().init();
+                isInited = true;
+            }
+        }
     }
 
     @Override

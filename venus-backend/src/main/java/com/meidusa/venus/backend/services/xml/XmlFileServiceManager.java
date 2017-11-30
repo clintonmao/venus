@@ -117,7 +117,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         }
         if(venusRegistryFactory == null || venusRegistryFactory.getRegister() == null){
             if(logger.isWarnEnabled()){
-                logger.warn("venusRegistryFactory not enabled,will skip service registe.");
+                logger.warn("venusRegistryFactory not enabled,will disable service registe.");
             }
         }
         if(venusMonitorFactory == null){
