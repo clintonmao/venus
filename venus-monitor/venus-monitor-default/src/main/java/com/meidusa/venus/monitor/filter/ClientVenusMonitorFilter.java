@@ -2,17 +2,19 @@ package com.meidusa.venus.monitor.filter;
 
 import com.athena.domain.MethodCallDetailDO;
 import com.athena.domain.MethodStaticDO;
-import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
 import com.meidusa.venus.exception.RpcException;
+import com.meidusa.venus.monitor.MonitorOperation;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
+import com.meidusa.venus.monitor.support.VenusMonitorConstants;
+import com.meidusa.venus.monitor.task.MonitorDataProcessTask;
+import com.meidusa.venus.monitor.task.MonitorDataReportTask;
 import com.meidusa.venus.support.VenusThreadContext;
 import com.meidusa.venus.support.VenusUtil;
 import com.meidusa.venus.util.UUIDUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 
@@ -20,7 +22,7 @@ import java.util.Date;
  * client监控filter
  * Created by Zhangzhihua on 2017/8/28.
  */
-public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements Filter {
+public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements Filter,MonitorOperation {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -47,13 +49,13 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
      */
     void startProcessAndReporterTread(){
         if(!isRunning){
-            this.processThread = new Thread(new InvocationDataProcessRunnable());
-            this.processThread.setName("consumer monitor process");
-            this.processThread.start();
+            Thread processThread = new Thread(new MonitorDataProcessTask(detailQueue, reportDetailQueue, statisticMap, this));
+            processThread.setName("consumer monitor process");
+            processThread.start();
 
-            this.reporterThread = new Thread(new InvocationDataReportRunnable());
-            this.reporterThread.setName("consumer monitor report");
-            this.reporterThread.start();
+            Thread reporterThread = new Thread(new MonitorDataReportTask(detailQueue, reportDetailQueue, statisticMap, this));
+            reporterThread.setName("consumer monitor report");
+            reporterThread.start();
             isRunning = true;
         }
     }
@@ -121,34 +123,9 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
         return !VenusUtil.isAthenaInterface(clientInvocation);
     }
 
-    /**
-     * 获取调用方法及调用环境标识路径
-     * @return
-     */
-    String getMethodAndEnvPath(InvocationDetail detail){
-        if(!(detail.getInvocation() instanceof ClientInvocation)){
-            return null;
-        }
-        Invocation invocation = detail.getInvocation();
-        URL url = detail.getUrl();
-        //请求时间，精确为分钟
-        ClientInvocation clientInvocation = (ClientInvocation)invocation;
-        String requestTimeOfMinutes = getTimeOfMinutes(clientInvocation.getRequestTime());
-
-        //方法路径信息
-        String methodAndEnvPath = String.format(
-                "%s/%s?version=%s&method=%s&target=%s&startTime=%s",
-                invocation.getServiceInterfaceName(),
-                invocation.getServiceName(),
-                invocation.getVersion(),
-                invocation.getMethodName(),
-                url.getHost(),
-                requestTimeOfMinutes
-        );
-        if(logger.isDebugEnabled()){
-            logger.debug("methodAndEnvPath:{}.", methodAndEnvPath);
-        }
-        return methodAndEnvPath;
+    @Override
+    public int getRole() {
+        return VenusMonitorConstants.ROLE_CONSUMER;
     }
 
     /**
@@ -156,7 +133,7 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
      * @param detail
      * @return
      */
-    MethodCallDetailDO convertDetail(InvocationDetail detail){
+    public MethodCallDetailDO convertDetail(InvocationDetail detail){
         ClientInvocation clientInvocation = (ClientInvocation)detail.getInvocation();
         URL url = detail.getUrl();
         Result result = detail.getResult();
@@ -215,6 +192,7 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
         long costTime = detail.getResponseTime().getTime()-clientInvocation.getRequestTime().getTime();
         detailDO.setDurationMillisecond(Integer.parseInt(String.valueOf(costTime)));
         //状态相关
+
         return detailDO;
     }
 
@@ -223,7 +201,7 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
      * @param statistic
      * @return
      */
-    MethodStaticDO convertStatistic(InvocationStatistic statistic){
+    public MethodStaticDO convertStatistic(InvocationStatistic statistic){
         MethodStaticDO staticDO = new MethodStaticDO();
         staticDO.setInterfaceName(statistic.getServiceInterfaceName());
         staticDO.setServiceName(statistic.getServiceName());
@@ -240,11 +218,6 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
         staticDO.setStartTime(statistic.getBeginTime());
         staticDO.setEndTime(statistic.getEndTime());
         return staticDO;
-    }
-
-    @Override
-    int getRole() {
-        return ROLE_CONSUMER;
     }
 
     @Override

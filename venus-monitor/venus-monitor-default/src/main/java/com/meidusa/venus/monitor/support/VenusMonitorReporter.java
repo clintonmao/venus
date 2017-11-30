@@ -1,4 +1,4 @@
-package com.meidusa.venus.monitor.reporter;
+package com.meidusa.venus.monitor.support;
 
 import com.athena.domain.MethodCallDetailDO;
 import com.athena.domain.MethodStaticDO;

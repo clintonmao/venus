@@ -129,8 +129,10 @@ public class VenusServerInvokerProxy implements Invoker {
                     logger.warn("############not enable athena report,athena monitor filter diabled##############");
                 }
             }
-        }if(logger.isWarnEnabled()){
-            logger.warn("############not enable monitor report,vensu and athena monitor filter diabled##############");
+        }else{
+            if(logger.isWarnEnabled()){
+                logger.warn("############not enable monitor report,vensu and athena monitor filter diabled##############");
+            }
         }
     }
 

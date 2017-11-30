@@ -2,17 +2,19 @@ package com.meidusa.venus.monitor.filter;
 
 import com.athena.domain.MethodCallDetailDO;
 import com.athena.domain.MethodStaticDO;
-import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.*;
 import com.meidusa.venus.exception.RpcException;
+import com.meidusa.venus.monitor.MonitorOperation;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
+import com.meidusa.venus.monitor.support.VenusMonitorConstants;
+import com.meidusa.venus.monitor.task.MonitorDataProcessTask;
+import com.meidusa.venus.monitor.task.MonitorDataReportTask;
 import com.meidusa.venus.support.VenusThreadContext;
 import com.meidusa.venus.support.VenusUtil;
 import com.meidusa.venus.util.UUIDUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 
@@ -20,7 +22,7 @@ import java.util.Date;
  * server监控filter
  * Created by Zhangzhihua on 2017/8/28.
  */
-public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements Filter{
+public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements Filter,MonitorOperation {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -47,13 +49,13 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
      */
     void startProcessAndReporterTread(){
         if(!isRunning){
-            this.processThread = new Thread(new InvocationDataProcessRunnable());
-            this.processThread.setName("provider monitor process");
-            this.processThread.start();
+            Thread processThread = new Thread(new MonitorDataProcessTask(detailQueue, reportDetailQueue, statisticMap, this));
+            processThread.setName("provider monitor process");
+            processThread.start();
 
-            this.reporterThread = new Thread(new InvocationDataReportRunnable());
-            this.reporterThread.start();
-            this.reporterThread.setName("provider monitor report");
+            Thread reporterThread = new Thread(new MonitorDataReportTask(detailQueue, reportDetailQueue, statisticMap, this));
+            reporterThread.setName("provider monitor report");
+            reporterThread.start();
             isRunning = true;
         }
     }
@@ -144,12 +146,17 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
     }
 
 
+    @Override
+    public int getRole() {
+        return VenusMonitorConstants.ROLE_PROVIDER;
+    }
+
     /**
      * 转化为detailDo
      * @param detail
      * @return
      */
-    MethodCallDetailDO convertDetail(InvocationDetail detail){
+    public MethodCallDetailDO convertDetail(InvocationDetail detail){
         ServerInvocation serverInvocation = (ServerInvocation)detail.getInvocation();
         Result result = detail.getResult();
         Throwable exception = detail.getException();
@@ -209,15 +216,8 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
         return detailDO;
     }
 
-    @Override
-    MethodStaticDO convertStatistic(InvocationStatistic statistic) {
-        //统计上报不在server端上报
+    public MethodStaticDO convertStatistic(InvocationStatistic statistic){
         return null;
-    }
-
-    @Override
-    int getRole() {
-        return ROLE_PROVIDER;
     }
 
     @Override
