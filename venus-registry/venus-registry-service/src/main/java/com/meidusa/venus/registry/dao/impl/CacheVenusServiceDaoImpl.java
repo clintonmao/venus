@@ -59,23 +59,23 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 					mapId = services.get(services.size() - 1).getId();
 					for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
 						VenusServiceDO vs = iterator.next();
-						// if (!cacheServices.contains(vs)) {
-						// cacheServices.add(vs);
-						// }
-						String key = RegistryUtil.getKey(vs);
-						List<VenusServiceDO> list = cacheServiceMap.get(key);
-						if (null == list) {
-							list = new ArrayList<VenusServiceDO>();
-							list.add(vs);
-							cacheServiceMap.put(key, list);
-						} else {
-							if (!list.contains(vs)) {
-								list.add(vs);
-							}
-						}
-						if (list.size() > 1) {
-							logger.error("more than 2 service {}", vs);
-						}
+						 if (!cacheServices.contains(vs)) {
+							 cacheServices.add(vs);
+						 }
+//						String key = RegistryUtil.getKey(vs);
+//						List<VenusServiceDO> list = cacheServiceMap.get(key);
+//						if (null == list) {
+//							list = new ArrayList<VenusServiceDO>();
+//							list.add(vs);
+//							cacheServiceMap.put(key, list);
+//						} else {
+//							if (!list.contains(vs)) {
+//								list.add(vs);
+//							}
+//						}
+//						if (list.size() > 1) {
+//							logger.error("more than 2 service {}", vs);
+//						}
 					}
 				}
 			}

@@ -113,6 +113,7 @@ CREATE TABLE `t_venus_service_mapping` (
   `registe_time` datetime DEFAULT NULL COMMENT '注册时间',
   `heartbeat_time` datetime DEFAULT NULL COMMENT '心跳时间',
   `is_delete` tinyint(1) DEFAULT NULL COMMENT '是否逻辑删除 0否 1是',
+  `has_heartbeat` tinyint(1) DEFAULT NULL COMMENT '是否有过心跳 0否 1是',
   PRIMARY KEY (`id`),
   KEY `idx_provider_id` (`provider_app_id`),
   KEY `idx_consumer_id` (`consumer_app_id`),

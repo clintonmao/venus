@@ -204,7 +204,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 
 	public List<VenusServiceMappingDO> getServiceMappings(String dateStr,int second) throws DAOException {
 		String sql="select m.id, m.server_id, m.service_id, m.version, m.active, m.sync,m.role,m.provider_app_id,m.consumer_app_id,m.is_delete,m.create_time, m.update_time,m.registe_time,m.heartbeat_time from t_venus_service_mapping as m "
-				+ "left join t_venus_service as v on m.service_id=v.id where v.registe_type=1 and m.is_delete=0 and m.heartbeat_time <= subdate(now(),interval "+second+" second) ";
+				+ "left join t_venus_service as v on m.service_id=v.id where m.has_heartbeat=1 and m.is_delete=0 and m.heartbeat_time <= subdate(now(),interval "+second+" second) ";
 		
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] {},
@@ -227,7 +227,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	
 	public List<VenusServiceMappingDO> queryServiceMappings(int hour) throws DAOException {
 		String sql="select m.id, m.server_id, m.service_id, m.version, m.active, m.sync,m.role,m.provider_app_id,m.consumer_app_id,m.is_delete,m.create_time, m.update_time,m.registe_time,m.heartbeat_time from t_venus_service_mapping as m "
-				+ "left join t_venus_service as v on m.service_id=v.id where v.registe_type=1 and m.is_delete=1 and m.heartbeat_time <= subdate(now(),interval "+hour+" hour) ";
+				+ "left join t_venus_service as v on m.service_id=v.id where m.has_heartbeat=1 and m.is_delete=1 and m.heartbeat_time <= subdate(now(),interval "+hour+" hour) ";
 
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] {},
@@ -402,7 +402,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 			sb.append(",");
 		}
 		String str = sb.substring(0, sb.length() - 1);
-		String sql = "update t_venus_service_mapping set is_delete=0,heartbeat_time = now() where server_id = ? and role=? and service_id in(" + str + ")";
+		String sql = "update t_venus_service_mapping set is_delete=0,has_heartbeat=1,heartbeat_time = now() where server_id = ? and role=? and service_id in(" + str + ")";
 		int update = 0;
 		try {
 			update = this.jdbcTemplate.update(sql,serverId, role);

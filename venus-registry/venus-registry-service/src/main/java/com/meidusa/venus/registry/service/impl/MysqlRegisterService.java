@@ -69,9 +69,9 @@ public class MysqlRegisterService implements RegisterService,DisposableBean {
 	
 	private ExecutorService es = Executors.newSingleThreadExecutor();
 	
-	private static final int QUEUE_SIZE_2000 = 2000;
+	private static final int QUEUE_SIZE_10000 = 10000;
 	
-	public static final LinkedBlockingQueue<UpdateHeartBeatTimeDTO> HEARTBEAT_QUEUE  =new   LinkedBlockingQueue<UpdateHeartBeatTimeDTO>(QUEUE_SIZE_2000);
+	public static final LinkedBlockingQueue<UpdateHeartBeatTimeDTO> HEARTBEAT_QUEUE  =new   LinkedBlockingQueue<UpdateHeartBeatTimeDTO>(QUEUE_SIZE_10000);
 	
 	private static final Logger logger = LoggerFactory.getLogger(MysqlRegisterService.class);
 	
@@ -578,7 +578,7 @@ public class MysqlRegisterService implements RegisterService,DisposableBean {
 
 	}
 
-	public void heartbeatRegister(Set<URL> urls, String role) {
+	private void heartbeatRegister(Set<URL> urls, String role) {
 		if (CollectionUtils.isEmpty(urls)) {
 			return;
 		}
@@ -593,7 +593,8 @@ public class MysqlRegisterService implements RegisterService,DisposableBean {
 					server = venusServerDAO.getServer(host, port);
 				}
 				if (null != server) {
-					List<VenusServiceDO> services = cacheVenusServiceDAO.queryServices(url);
+					List<VenusServiceDO> services = cacheVenusServiceDAO.queryServices(url.getInterfaceName(), url.getServiceName(),
+							url.getVersion());
 					if (CollectionUtils.isEmpty(services)) {
 						services = venusServiceDAO.queryServices(url.getInterfaceName(), url.getServiceName(),
 								url.getVersion());
@@ -613,7 +614,7 @@ public class MysqlRegisterService implements RegisterService,DisposableBean {
 					}
 				}
 			}
-			if (HEARTBEAT_QUEUE.size()>=QUEUE_SIZE_2000 -1) {
+			if (HEARTBEAT_QUEUE.size()>=QUEUE_SIZE_10000 -1) {
 				logger.info("venus heartbeat drop message=>"+JSON.toJSONString(maps));
 			}else {
 				for (Map.Entry<Integer, List<Integer>> ent : maps.entrySet()) {
