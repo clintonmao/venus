@@ -891,7 +891,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 						int endSize = HEARTBEAT_QUEUE.size();
 						boolean update = venusServiceMappingDAO.updateHeartBeatTime(heartbeatDto.getServerId(),
 								heartbeatDto.getServiceIds(), heartbeatDto.getRole());
-						LoggUtils.heartbeatLogger.error("HEARTBEAT_QUEUE.poll startSize=>{},endSize=>{endSize},update=>{},heartbeatDto=>{}", startSize, endSize,update,JSON.toJSONString(heartbeatDto));
+						LoggUtils.heartbeatLogger.error("HEARTBEAT_QUEUE.poll startSize=>{},endSize=>{},update=>{},heartbeatDto=>{}", startSize, endSize,update,JSON.toJSONString(heartbeatDto));
 					}
 				} catch (Throwable e) {
 					LoggUtils.heartbeatLogger.error("UpdateHeartbeatTimeRunnable consumer thread is error" + e.getMessage(), e);
