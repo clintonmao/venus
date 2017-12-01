@@ -54,7 +54,7 @@ public class BuildDataController {
                 //begin for
                 for(int i=0;i<count;i++){
                     try {
-                        if(ThreadLocalRandom.current().nextInt(100) < 50){
+                        if(ThreadLocalRandom.current().nextInt(100) < 70){
                             helloService.getHello("jack" + i);
                         }else{
                             echoService.getEcho("jack" + i);
