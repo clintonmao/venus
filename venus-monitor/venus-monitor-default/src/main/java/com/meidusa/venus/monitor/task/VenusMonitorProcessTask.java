@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Queue;
 
 /**
- * 5秒钟数据汇总任务，过滤异常/慢操作记录，汇总统计
+ * 1秒钟数据汇总任务，过滤异常/慢操作记录，汇总统计
  */
 public class VenusMonitorProcessTask implements Runnable{
 
@@ -81,8 +81,8 @@ public class VenusMonitorProcessTask implements Runnable{
             }
 
             try {
-                //5s计算一次
-                Thread.sleep(5000);
+                //1s计算一次
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
             }
         }

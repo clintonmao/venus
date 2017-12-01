@@ -26,7 +26,7 @@ public abstract class AbstractMonitorFilter {
     //待上报明细队列
     protected Queue<InvocationDetail> reportDetailQueue = new LinkedBlockingQueue<InvocationDetail>();
     //方法调用汇总映射表
-    protected Map<String,InvocationStatistic> statisticMap = new ConcurrentHashMap<String,InvocationStatistic>();
+    protected Map<String,InvocationStatistic> statisticMap = Collections.synchronizedMap(new HashMap<String,InvocationStatistic>());
 
     protected boolean isRunning = false;
 

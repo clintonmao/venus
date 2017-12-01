@@ -93,7 +93,7 @@ public class InvocationStatistic {
     }
 
     /**
-     * 获取开始准点时间，精确到分钟
+     * 获取结束准点时间，精确到分钟
      * @param date
      * @return
      */

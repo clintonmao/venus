@@ -56,29 +56,39 @@ public class VenusMonitorReportTask implements Runnable{
                         logger.info("current detail report queue size:{}.", reportDetailQueue.size());
                     }
                 }
-                List<InvocationDetail> detailList = new ArrayList<InvocationDetail>();
+                List<InvocationDetail> reportDetailList = new ArrayList<InvocationDetail>();
                 int fetchNum = VenusMonitorConstants.perDetailReportNum;
                 if(reportDetailQueue.size() < fetchNum){
                     fetchNum = reportDetailQueue.size();
                 }
                 for(int i=0;i<fetchNum;i++){
                     InvocationDetail exceptionDetail = reportDetailQueue.poll();
-                    detailList.add(exceptionDetail);
+                    reportDetailList.add(exceptionDetail);
                 }
 
                 //2、构造汇总上报数据
-                if(statisticMap != null && statisticMap.size() > 0){
-                    if(logger.isInfoEnabled()){
-                        logger.info("current statistic report map size:{}.",statisticMap.size());
+                List<InvocationStatistic> reportStatisticList = new ArrayList<>();
+                List<String> deleteKeys = new ArrayList<>();
+                for(Map.Entry<String,InvocationStatistic> entry:statisticMap.entrySet()){
+                    String key = entry.getKey();
+                    InvocationStatistic statistic = entry.getValue();
+                    //过滤currentTime > statistic.endTime的记录，添加到统计上报列表，上报完要删除
+                    if(new Date().after(statistic.getEndTime())){
+                        reportStatisticList.add(statistic);
+                        deleteKeys.add(key);
                     }
                 }
-                Collection<InvocationStatistic> statisticList = statisticMap.values();
+                if(reportStatisticList != null && reportStatisticList.size() > 0){
+                    if(logger.isInfoEnabled()){
+                        logger.info("current statistic report list size:{}.",reportStatisticList.size());
+                    }
+                }
 
                 //3、上报统计及明细数据
-                if(CollectionUtils.isNotEmpty(detailList) || CollectionUtils.isNotEmpty(statisticList)){
+                if(CollectionUtils.isNotEmpty(reportDetailList) || CollectionUtils.isNotEmpty(reportStatisticList)){
                     try {
-                        List<MethodCallDetailDO> detailDOList = toDetailDOList(detailList);
-                        List<MethodStaticDO> staticDOList = toStaticDOList(statisticList);
+                        List<MethodCallDetailDO> detailDOList = toDetailDOList(reportDetailList);
+                        List<MethodStaticDO> staticDOList = toStaticDOList(reportStatisticList);
                         monitorReporter.reportDetailAndStatic(detailDOList,staticDOList);
                     } catch (Exception e) {
                         if(exceptionLogger.isErrorEnabled()){
@@ -88,8 +98,12 @@ public class VenusMonitorReportTask implements Runnable{
                 }
 
                 //4、清空统计信息
-                if(MapUtils.isNotEmpty(statisticMap)){
-                    statisticMap.clear();
+                if(MapUtils.isNotEmpty(statisticMap) && CollectionUtils.isNotEmpty(deleteKeys)){
+                    for(String delKey:deleteKeys){
+                        if(statisticMap.containsKey(delKey)){
+                            statisticMap.remove(delKey);
+                        }
+                    }
                 }
             } catch (Exception e) {
                 if(exceptionLogger.isErrorEnabled()){
