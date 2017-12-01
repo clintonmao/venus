@@ -5,7 +5,7 @@ package com.meidusa.venus.monitor.task;
  */
 
 import com.meidusa.venus.ClientInvocation;
-import com.meidusa.venus.monitor.MonitorOperation;
+import com.meidusa.venus.monitor.MonitorDataConvert;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.monitor.support.VenusMonitorConstants;
@@ -20,9 +20,9 @@ import java.util.Map;
 import java.util.Queue;
 
 /**
- * 1秒钟数据汇总任务，过滤异常/慢操作记录，汇总统计
+ * 5秒钟数据汇总任务，过滤异常/慢操作记录，汇总统计
  */
-public class MonitorDataProcessTask implements Runnable{
+public class VenusMonitorProcessTask implements Runnable{
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -35,9 +35,9 @@ public class MonitorDataProcessTask implements Runnable{
     //方法调用汇总映射表
     private Map<String,InvocationStatistic> statisticMap = null;
     //监控上报操作对象
-    private MonitorOperation monitorOperation = null;
+    private MonitorDataConvert monitorOperation = null;
 
-    public MonitorDataProcessTask(Queue<InvocationDetail> detailQueue, Queue<InvocationDetail> reportDetailQueue, Map<String,InvocationStatistic> statisticMap, MonitorOperation monitorOperation){
+    public VenusMonitorProcessTask(Queue<InvocationDetail> detailQueue, Queue<InvocationDetail> reportDetailQueue, Map<String,InvocationStatistic> statisticMap, MonitorDataConvert monitorOperation){
         this.detailQueue = detailQueue;
         this.reportDetailQueue = reportDetailQueue;
         this.statisticMap = statisticMap;
@@ -66,15 +66,13 @@ public class MonitorDataProcessTask implements Runnable{
                         continue;
                     }
                     String methodAndEnvPath = getMethodAndEnvPath(detail);
-                    if(StringUtils.isNotEmpty(methodAndEnvPath)){
-                        if(statisticMap.get(methodAndEnvPath) == null){
-                            InvocationStatistic statistic = new InvocationStatistic();
-                            statistic.init(detail);
-                            statisticMap.put(methodAndEnvPath,statistic);
-                        }
-                        InvocationStatistic invocationStatistic = statisticMap.get(methodAndEnvPath);
-                        invocationStatistic.append(detail);
+                    if(statisticMap.get(methodAndEnvPath) == null){
+                        InvocationStatistic statistic = new InvocationStatistic();
+                        statistic.init(detail);
+                        statisticMap.put(methodAndEnvPath,statistic);
                     }
+                    InvocationStatistic invocationStatistic = statisticMap.get(methodAndEnvPath);
+                    invocationStatistic.append(detail);
                 }
             } catch (Exception e) {
                 if(exceptionLogger.isErrorEnabled()){
@@ -83,8 +81,8 @@ public class MonitorDataProcessTask implements Runnable{
             }
 
             try {
-                //1s计算一次
-                Thread.sleep(1000);
+                //5s计算一次
+                Thread.sleep(5000);
             } catch (InterruptedException e) {
             }
         }

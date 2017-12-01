@@ -6,10 +6,10 @@ import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 
 /**
- * venus监控操作接口
+ * venus监控数据转换接口
  * Created by Zhangzhihua on 2017/11/30.
  */
-public interface MonitorOperation {
+public interface MonitorDataConvert {
 
     /**
      * 获取角色

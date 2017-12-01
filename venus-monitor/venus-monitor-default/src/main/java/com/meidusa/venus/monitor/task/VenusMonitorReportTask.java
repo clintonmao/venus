@@ -6,11 +6,11 @@ package com.meidusa.venus.monitor.task;
 
 import com.athena.domain.MethodCallDetailDO;
 import com.athena.domain.MethodStaticDO;
-import com.meidusa.venus.monitor.MonitorOperation;
+import com.meidusa.venus.monitor.MonitorDataConvert;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.monitor.support.VenusMonitorConstants;
-import com.meidusa.venus.monitor.support.VenusMonitorReporter;
+import com.meidusa.venus.monitor.reporter.VenusMonitorReporter;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -21,7 +21,7 @@ import java.util.*;
 /**
  * 1分钟数据上报任务
  */
-public class MonitorDataReportTask implements Runnable{
+public class VenusMonitorReportTask implements Runnable{
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -34,12 +34,12 @@ public class MonitorDataReportTask implements Runnable{
     //方法调用汇总映射表
     private Map<String,InvocationStatistic> statisticMap = null;
     //监控上报操作对象
-    private MonitorOperation monitorOperation = null;
+    private MonitorDataConvert monitorOperation = null;
 
     //venus上报reporter
     private VenusMonitorReporter monitorReporter = new VenusMonitorReporter();
 
-    public MonitorDataReportTask(Queue<InvocationDetail> detailQueue, Queue<InvocationDetail> reportDetailQueue, Map<String,InvocationStatistic> statisticMap, MonitorOperation monitorOperation){
+    public VenusMonitorReportTask(Queue<InvocationDetail> detailQueue, Queue<InvocationDetail> reportDetailQueue, Map<String,InvocationStatistic> statisticMap, MonitorDataConvert monitorOperation){
         this.detailQueue = detailQueue;
         this.reportDetailQueue = reportDetailQueue;
         this.statisticMap = statisticMap;

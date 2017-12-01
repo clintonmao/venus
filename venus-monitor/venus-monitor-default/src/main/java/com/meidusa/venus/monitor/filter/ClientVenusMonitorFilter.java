@@ -4,12 +4,12 @@ import com.athena.domain.MethodCallDetailDO;
 import com.athena.domain.MethodStaticDO;
 import com.meidusa.venus.*;
 import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.monitor.MonitorOperation;
+import com.meidusa.venus.monitor.MonitorDataConvert;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.monitor.support.VenusMonitorConstants;
-import com.meidusa.venus.monitor.task.MonitorDataProcessTask;
-import com.meidusa.venus.monitor.task.MonitorDataReportTask;
+import com.meidusa.venus.monitor.task.VenusMonitorProcessTask;
+import com.meidusa.venus.monitor.task.VenusMonitorReportTask;
 import com.meidusa.venus.support.VenusThreadContext;
 import com.meidusa.venus.support.VenusUtil;
 import com.meidusa.venus.util.UUIDUtil;
@@ -22,7 +22,7 @@ import java.util.Date;
  * client监控filter
  * Created by Zhangzhihua on 2017/8/28.
  */
-public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements Filter,MonitorOperation {
+public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements Filter,MonitorDataConvert {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -35,7 +35,7 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
 
     @Override
     public void init() throws RpcException {
-        synchronized (ClientVenusMonitorFilter.class){
+        synchronized (this){
             if(!isInited){
                 //启动上报线程
                 startProcessAndReporterTread();
@@ -49,11 +49,11 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
      */
     void startProcessAndReporterTread(){
         if(!isRunning){
-            Thread processThread = new Thread(new MonitorDataProcessTask(detailQueue, reportDetailQueue, statisticMap, this));
+            Thread processThread = new Thread(new VenusMonitorProcessTask(detailQueue, reportDetailQueue, statisticMap, this));
             processThread.setName("consumer monitor process");
             processThread.start();
 
-            Thread reporterThread = new Thread(new MonitorDataReportTask(detailQueue, reportDetailQueue, statisticMap, this));
+            Thread reporterThread = new Thread(new VenusMonitorReportTask(detailQueue, reportDetailQueue, statisticMap, this));
             reporterThread.setName("consumer monitor report");
             reporterThread.start();
             isRunning = true;

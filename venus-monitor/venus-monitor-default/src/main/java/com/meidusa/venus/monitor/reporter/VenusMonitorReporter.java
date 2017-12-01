@@ -1,4 +1,4 @@
-package com.meidusa.venus.monitor.support;
+package com.meidusa.venus.monitor.reporter;
 
 import com.athena.domain.MethodCallDetailDO;
 import com.athena.domain.MethodStaticDO;
@@ -20,42 +20,6 @@ public class VenusMonitorReporter {
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
-
-    /**
-     * 上报明细
-     * @param detailDOList
-     */
-    public void reportDetailList(List<MethodCallDetailDO> detailDOList){
-        if(CollectionUtils.isEmpty(detailDOList)){
-            return;
-        }
-        if(logger.isDebugEnabled()){
-            logger.debug("report detail size:{}.",detailDOList.size());
-        }
-
-        AthenaDataService athenaDataService = getAthenaDataService();
-        if(athenaDataService != null){
-            athenaDataService.reportMethodCallDetail(detailDOList);
-        }
-    }
-
-    /**
-     * 上报统计数据
-     * @param staticDOList
-     */
-    public void reportStatisticList(List<MethodStaticDO> staticDOList){
-        if(CollectionUtils.isEmpty(staticDOList)){
-            return;
-        }
-        if(logger.isDebugEnabled()){
-            logger.debug("report static size:{}.",staticDOList.size());
-        }
-
-        AthenaDataService athenaDataService = getAthenaDataService();
-        if(athenaDataService != null){
-            athenaDataService.reportMethodStatic(staticDOList);
-        }
-    }
 
     /**
      * 上报明细及统计数据
