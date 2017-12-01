@@ -150,6 +150,35 @@
                 </exclusion>
 			</exclusions>
 		</dependency>
+		<dependency>
+			<groupId>com.saike.ucm</groupId>
+			<artifactId>ucm-client</artifactId>
+			<version>1.1.8.RELEASE</version>
+		</dependency>
+		
+			<dependency>
+				<groupId>com.saike.ucm</groupId>
+				<artifactId>ucm-client-spring</artifactId>
+				<version>1.1.8.RELEASE</version>
+				<!--依賴項目自己的spring -->
+				<exclusions>
+					<exclusion>
+						<groupId>org.springframework</groupId>
+						<artifactId>spring-beans</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.springframework</groupId>
+						<artifactId>spring-context</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+		
+			<!--web工程多依赖一个 -->
+			<dependency>
+				<groupId>com.saike.ucm</groupId>
+				<artifactId>ucm-client-web</artifactId>
+				<version>1.1.8.RELEASE</version>
+			</dependency>
     </dependencies>
 
     <build>

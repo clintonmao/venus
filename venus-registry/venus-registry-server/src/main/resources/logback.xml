@@ -3,7 +3,7 @@
 
     <!--在没有定义${LOG_HOME}系统变量的时候，可以设置此本地变量。提交测试、上线时，要将其注释掉，使用系统变量。-->
      
-    <!-- <property name="LOG_HOME" value="${user.home}/data/applogs" /> -->
+  <!--   <property name="LOG_HOME" value="${user.home}/data/applogs" /> -->
    
     <!-- 应用名称：和统一配置中的项目代码保持一致（小写） -->
     <property name="APP_NAME" value="registry-service"/>
@@ -45,11 +45,95 @@
         </encoder>
     </appender>
     
-    <appender name="heartbeat" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="registry.heartbeat" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_APP_HOME}/registry-heartbeat.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!--日志文件输出的文件名-->
             <FileNamePattern>${LOG_APP_HOME}/registry-heartbeat.log.%d{yyyy-MM-dd}.log</FileNamePattern>
+            <!--日志文件保留天数-->
+            <MaxHistory>${LOG_MAX_HISTORY}</MaxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <appender name="registry.slow" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_APP_HOME}/registry-slow.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <FileNamePattern>${LOG_APP_HOME}/registry-slow.log.%d{yyyy-MM-dd}.log</FileNamePattern>
+            <!--日志文件保留天数-->
+            <MaxHistory>${LOG_MAX_HISTORY}</MaxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <appender name="registry.default" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_APP_HOME}/registry-default.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <FileNamePattern>${LOG_APP_HOME}/registry-default.log.%d{yyyy-MM-dd}.log</FileNamePattern>
+            <!--日志文件保留天数-->
+            <MaxHistory>${LOG_MAX_HISTORY}</MaxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <appender name="registry.error" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_APP_HOME}/registry-error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <FileNamePattern>${LOG_APP_HOME}/registry-error.log.%d{yyyy-MM-dd}.log</FileNamePattern>
+            <!--日志文件保留天数-->
+            <MaxHistory>${LOG_MAX_HISTORY}</MaxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <appender name="registry.clearinvalid" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_APP_HOME}/registry-clearinvalid.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <FileNamePattern>${LOG_APP_HOME}/registry-clearinvalid.log.%d{yyyy-MM-dd}.log</FileNamePattern>
+            <!--日志文件保留天数-->
+            <MaxHistory>${LOG_MAX_HISTORY}</MaxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <appender name="registry.movedata" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_APP_HOME}/registry-movedata.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <FileNamePattern>${LOG_APP_HOME}/registry-movedata.log.%d{yyyy-MM-dd}.log</FileNamePattern>
+            <!--日志文件保留天数-->
+            <MaxHistory>${LOG_MAX_HISTORY}</MaxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <appender name="registry.loadservicedef" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_APP_HOME}/registry-loadservicedef.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <FileNamePattern>${LOG_APP_HOME}/registry-loadservicedef.log.%d{yyyy-MM-dd}.log</FileNamePattern>
             <!--日志文件保留天数-->
             <MaxHistory>${LOG_MAX_HISTORY}</MaxHistory>
         </rollingPolicy>
@@ -66,9 +150,39 @@
         -->
     </root>
     
-    <logger name="heartbeat" additivity="false">
+    <logger name="registry.heartbeat" additivity="false">
 		<level value="info" />
-		<appender-ref ref="heartbeat" />
+		<appender-ref ref="registry.heartbeat" />
+	</logger>
+	
+    <logger name="registry.slow" additivity="false">
+		<level value="info" />
+		<appender-ref ref="registry.slow" />
+	</logger>
+	
+    <logger name="registry.default" additivity="false">
+		<level value="info" />
+		<appender-ref ref="registry.default" />
+	</logger>
+	
+    <logger name="registry.error" additivity="false">
+		<level value="info" />
+		<appender-ref ref="registry.error" />
+	</logger>
+	
+    <logger name="registry.clearinvalid" additivity="false">
+		<level value="info" />
+		<appender-ref ref="registry.clearinvalid" />
+	</logger>
+	
+    <logger name="registry.movedata" additivity="false">
+		<level value="info" />
+		<appender-ref ref="registry.movedata" />
+	</logger>
+	
+    <logger name="registry.loadservicedef" additivity="false">
+		<level value="info" />
+		<appender-ref ref="registry.loadservicedef" />
 	</logger>
 
 </configuration>

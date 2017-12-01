@@ -6,10 +6,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
+import com.meidusa.venus.registry.LogUtils;
 import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.service.RegisterService;
 import com.meidusa.venus.support.VenusConstants;
@@ -19,17 +17,16 @@ import com.meidusa.venus.support.VenusConstants;
  */
 public class ClearInvalidService {
 
-	private static Logger logger = LoggerFactory.getLogger(ClearInvalidService.class);
-
 	private RegisterService registerService;
 
 	public void init() throws Exception {
-		logger.info("ClearInvalidService init ");
+		LogUtils.CLEAR_INVALID.info("ClearInvalidService init ");
 		GlobalScheduler.getInstance().scheduleAtFixedRate(new ClearInvalidRunnable(), 2, 30, TimeUnit.SECONDS);
 	}
 
 	/**
 	 * 清理操作
+	 * 
 	 * @throws VenusRegisteException
 	 */
 	public void clearInvalid() throws VenusRegisteException {
@@ -40,7 +37,7 @@ public class ClearInvalidService {
 			String currentDateTime = format.format(date);
 			registerService.clearInvalidService(currentDateTime, seconds);
 		} catch (Exception e) {
-			logger.error("ClearInvalidRunnable is error", e);
+			LogUtils.ERROR_LOG.error("ClearInvalidRunnable is error", e);
 		}
 	}
 
@@ -63,9 +60,11 @@ public class ClearInvalidService {
 
 		@Override
 		public void run() {
-			logger.error("ClearInvalidRunnable start at"+System.currentTimeMillis());
+			long start = System.currentTimeMillis();
 			clearInvalid();
-			logger.error("ClearInvalidRunnable end at"+System.currentTimeMillis());
+			long consumerTime = System.currentTimeMillis() - start;
+			LogUtils.logSlow(consumerTime, "ClearInvalidRunnable load() ");
+			LogUtils.CLEAR_INVALID.info("ClearInvalidRunnable end consumerTime=>{}", consumerTime);
 		}
 
 	}
