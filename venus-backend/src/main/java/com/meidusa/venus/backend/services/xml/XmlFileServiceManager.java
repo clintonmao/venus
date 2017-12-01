@@ -475,7 +475,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                     endpoint.setInterceptorStack(stack);
                 }
 
-                //设置打印级别
                 //设置日志打印级别
                 PerformanceLogger pLogger = null;
                 if (endpointConfig != null) {

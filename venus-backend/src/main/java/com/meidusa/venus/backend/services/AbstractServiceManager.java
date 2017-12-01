@@ -27,7 +27,6 @@ import com.meidusa.venus.util.Utils;
 /**
  * 
  * @author Struct
- * 
  */
 public abstract class AbstractServiceManager implements ServiceManager {
 
@@ -47,25 +46,12 @@ public abstract class AbstractServiceManager implements ServiceManager {
         return serviceMap.get(serviceName);
     }
 
-    public Map<String, Service> getServiceMap() {
-        return serviceMap;
-    }
-
-    /**
-     * @return the serviceInstancePool
-     */
-    public Collection<Service> getServices() {
-        return serviceMap.values();
-    }
-
     @Override
     public Endpoint getEndpoint(String apiName) throws ServiceNotFoundException, EndPointNotFoundException, SystemParameterRequiredException {
-
         if (StringUtil.isEmpty(apiName)) {
             throw new EndPointNotFoundException("No method named " + apiName);
-        } else {
-
         }
+
         int index = apiName.lastIndexOf(".");
         if (index > 0) {
             String serviceName = apiName.substring(0, index);
@@ -129,7 +115,6 @@ public abstract class AbstractServiceManager implements ServiceManager {
 
             // modified on 2010-3-19, check if required parameter omitted
             String[] requiredParameterNames = ep.getRequiredParameterNames();
-
             if (Utils.arrayContains(requiredParameterNames, paramNames)) {
                 return ep;
             } else {
@@ -149,20 +134,6 @@ public abstract class AbstractServiceManager implements ServiceManager {
             }
         }
         return null;
-    }
-
-    /**
-     * @return the supportOverload
-     */
-    public boolean isSupportOverload() {
-        return supportOverload;
-    }
-
-    /**
-     * @param supportOverload the supportOverload to set
-     */
-    public void setSupportOverload(boolean supportOverload) {
-        this.supportOverload = supportOverload;
     }
 
     /**
@@ -206,27 +177,21 @@ public abstract class AbstractServiceManager implements ServiceManager {
         }
 
         ep.setParameters(params.toArray(new Parameter[0]));
-
         return ep;
-
     }
 
     protected Parameter loadParameter(Method method, Type paramType, Annotation[] annotations) throws ServiceDefinitionException, ConvertException {
         Parameter p = new Parameter();
-
         // type
         p.setType(paramType);
 
         com.meidusa.venus.annotations.Param paramAnnotation = AnnotationUtil.getAnnotation(annotations, com.meidusa.venus.annotations.Param.class);
-
         if (paramAnnotation == null) {
             throw new ServiceDefinitionException("service=" + method.getDeclaringClass().getName() + ",method=" + method.getName()
                     + " ,one more param annotaions is absent");
         }
-
         // name
         p.setParamName(paramAnnotation.name());
-
         // optional or not
         p.setOptional(paramAnnotation.optional());
 
@@ -241,5 +206,31 @@ public abstract class AbstractServiceManager implements ServiceManager {
 
         return p;
     }
+
+    public Map<String, Service> getServiceMap() {
+        return serviceMap;
+    }
+
+    /**
+     * @return the serviceInstancePool
+     */
+    public Collection<Service> getServices() {
+        return serviceMap.values();
+    }
+
+    /**
+     * @return the supportOverload
+     */
+    public boolean isSupportOverload() {
+        return supportOverload;
+    }
+
+    /**
+     * @param supportOverload the supportOverload to set
+     */
+    public void setSupportOverload(boolean supportOverload) {
+        this.supportOverload = supportOverload;
+    }
+
 
 }
