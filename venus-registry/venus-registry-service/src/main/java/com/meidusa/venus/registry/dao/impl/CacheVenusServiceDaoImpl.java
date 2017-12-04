@@ -183,9 +183,6 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 				LogUtils.DEFAULT_LOG.info(
 						"LoadCacheServicesRunnable start=>{}, end=>{},consumerTime=>{},cacheServices size=>{},cacheServiceMap size=>{}",
 						start, end, consumerTime, cacheServices.size(), cacheServiceMap.size());
-				for (Map.Entry<String, List<VenusServiceDO>> ent : cacheServiceMap.entrySet()) {
-					LogUtils.DEFAULT_LOG.info("key=>{}", ent.getKey());
-				}
 			} catch (Exception e) {
 				LogUtils.ERROR_LOG.error("load service cache data error", e);
 			} finally {
