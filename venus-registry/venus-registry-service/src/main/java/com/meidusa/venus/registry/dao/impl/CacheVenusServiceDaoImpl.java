@@ -108,7 +108,7 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 		}
 		
 		if (isNotBlank(serviceName) && isNotBlank(interfaceName)) {
-			String key1=RegistryUtil.getCacheKey(serviceName, version);
+			String key1=RegistryUtil.getCacheKey(interfaceName, version);
 			String key2=RegistryUtil.getCacheKey(serviceName, version);
 			List<VenusServiceDO> list = cacheServiceMap.get(key1);
 			List<VenusServiceDO> list2 = cacheServiceMap.get(key2);

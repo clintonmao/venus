@@ -111,6 +111,9 @@
 	<bean id="cacheVenusServiceDAO" class="com.meidusa.venus.registry.dao.impl.CacheVenusServiceDaoImpl" init-method="init">  
 	    <property name="venusServiceDAO" ref="venusServiceDAO"></property>  
 	</bean> 
+	<bean id="cacheApplicationDAO" class="com.meidusa.venus.registry.dao.impl.CacheVenusApplicationDaoImpl" init-method="init">  
+	    <property name="venusApplicationDAO" ref="venusApplicationDAO"></property>  
+	</bean> 
 
 	<!--注册服务-->
 	<bean id="mysqlRegisterService" class="com.meidusa.venus.registry.service.impl.MysqlRegisterService" init-method="init">

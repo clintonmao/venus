@@ -25,6 +25,8 @@ public class CacheVenusServerDaoImpl implements CacheVenusServerDAO {
 	private List<VenusServerDO> cacheServers = new ArrayList<VenusServerDO>();
 
 	private Map<String, VenusServerDO> cacheServerMap = new HashMap<String, VenusServerDO>();
+	
+	private Map<Integer, VenusServerDO> cacheIdServerMap = new HashMap<Integer, VenusServerDO>();
 
 	private volatile boolean loacCacheRunning = false;
 
@@ -63,8 +65,8 @@ public class CacheVenusServerDaoImpl implements CacheVenusServerDAO {
 	void load() {
 		loacCacheRunning = true;
 		if (loacCacheRunning) {
-			cacheServers.clear();
 			cacheServerMap.clear();
+			cacheIdServerMap.clear();
 		}
 		Integer totalCount = venusServerDAO.getServerCount();
 		if (null != totalCount && totalCount > 0) {
@@ -81,6 +83,7 @@ public class CacheVenusServerDaoImpl implements CacheVenusServerDAO {
 					for (VenusServerDO serverDO : queryServers) {
 						String key = getKey(serverDO.getHostname(), serverDO.getPort());
 						cacheServerMap.put(key, serverDO);
+						cacheIdServerMap.put(serverDO.getId(), serverDO);
 					}
 				}
 			}
@@ -124,6 +127,18 @@ public class CacheVenusServerDaoImpl implements CacheVenusServerDAO {
 			}
 		}
 
+	}
+
+	@Override
+	public List<VenusServerDO> getServers(List<Integer> ids) throws DAOException {
+		List<VenusServerDO> returnList = new ArrayList<VenusServerDO>();
+		for (Integer id : ids) {
+			VenusServerDO venusServerDO = cacheIdServerMap.get(id);
+			if (null != venusServerDO) {
+				returnList.add(venusServerDO);
+			}
+		}
+		return returnList;
 	}
 
 }
