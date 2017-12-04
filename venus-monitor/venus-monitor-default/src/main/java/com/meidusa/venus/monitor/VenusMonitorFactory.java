@@ -9,6 +9,7 @@ import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.monitor.config.ClientConfigManagerIniter;
 import com.meidusa.venus.monitor.support.CustomScanAndRegisteUtil;
 import com.meidusa.venus.monitor.support.ApplicationContextHolder;
+import com.meidusa.venus.registry.VenusRegistryFactory;
 import com.meidusa.venus.util.ReftorUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
@@ -45,6 +46,11 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      * 注册中心地址，多个地址以;分隔
      */
     private String address;
+
+    /**
+     * 注册中心工厂
+     */
+    private VenusRegistryFactory venusRegistryFactory;
 
     private ApplicationContext applicationContext;
 
@@ -116,8 +122,8 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         if(application == null){
             throw new VenusConfigException("application not config.");
         }
-        if(StringUtils.isEmpty(address)){
-            throw new VenusConfigException("address not allow empty.");
+        if(StringUtils.isEmpty(address) && venusRegistryFactory == null){
+            throw new VenusConfigException("address and venusRegistryFactory not allow empty.");
         }
     }
 
@@ -138,7 +144,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     void initVenusReportDepen(){
         try {
             //初始化athenaDataService
-            initAthenaDataService(address);
+            initAthenaDataService();
         } catch (Exception e) {
             if(exceptionLogger.isErrorEnabled()){
                 exceptionLogger.error("init athenaDataService failed,will disable venus report. fail reason:{}",e.getLocalizedMessage());
@@ -171,9 +177,8 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
 
     /**
      * 初始化athenaDataService
-     * @param url
      */
-    void initAthenaDataService(String url){
+    void initAthenaDataService(){
         //通过ref实例化serviceFactory，避免client、monitor互相引用
         String className = "com.meidusa.venus.client.factory.simple.SimpleServiceFactory";
         Object obj = ReftorUtil.newInstance(className);
@@ -181,8 +186,11 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
             throw new VenusConfigException("init simpleServiceFactory failed.");
         }
         serviceFactoryExtra = (ServiceFactoryExtra)obj;
-        String ipAddressList = url;
-        serviceFactoryExtra.setAddressList(ipAddressList);
+        if(StringUtils.isNotEmpty(address)){
+            serviceFactoryExtra.setAddressList(address);
+        }else if(venusRegistryFactory != null && venusRegistryFactory.getRegister() != null){
+            serviceFactoryExtra.setRegister(venusRegistryFactory.getRegister());
+        }
 
         AthenaDataService athenaDataService = serviceFactoryExtra.getService(AthenaDataService.class);
         if(athenaDataService == null){
@@ -374,4 +382,11 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         this.application = application;
     }
 
+    public VenusRegistryFactory getVenusRegistryFactory() {
+        return venusRegistryFactory;
+    }
+
+    public void setVenusRegistryFactory(VenusRegistryFactory venusRegistryFactory) {
+        this.venusRegistryFactory = venusRegistryFactory;
+    }
 }

@@ -2,8 +2,10 @@ package com.meidusa.venus.client.factory.simple;
 
 import com.meidusa.toolkit.common.bean.config.ConfigUtil;
 import com.meidusa.toolkit.common.util.Tuple;
+import com.meidusa.venus.Application;
 import com.meidusa.venus.ServiceFactoryExtra;
 import com.meidusa.venus.annotations.Endpoint;
+import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.factory.InvokerInvocationHandler;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.factory.xml.config.ReferenceService;
@@ -14,6 +16,10 @@ import com.meidusa.venus.exception.XmlVenusExceptionFactory;
 import com.meidusa.venus.io.authenticate.Authenticator;
 import com.meidusa.venus.io.authenticate.DummyAuthenticator;
 import com.meidusa.venus.io.packet.DummyAuthenPacket;
+import com.meidusa.venus.metainfo.AnnotationUtil;
+import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.util.NetUtil;
+import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,12 +36,16 @@ import java.util.Map;
  */
 public class SimpleServiceFactory implements ServiceFactoryExtra {
 
-    private static Logger logger = LoggerFactory.getLogger(SimpleServiceFactory.class);
+    private static Logger logger = VenusLoggerFactory.getDefaultLogger();
+
+    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
     /**
      * 地址列表，如:"192.168.0.1:9000;192.168.0.2:9000"
      */
     private String ipAddressList;
+
+    private Register register;
 
     /**
      * 读取返回数据包的超时时间
@@ -114,6 +124,12 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
         }
     }
 
+    @Override
+    public void setRegister(Object register) {
+        Register reg = (Register)register;
+        this.register = reg;
+    }
+
     public Authenticator getAuthenticator() {
         return authenticator;
     }
@@ -163,6 +179,17 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
     protected <T> T initService(Class<T> t) {
         //初始化服务代理
         T serviceProxy = initServiceProxy(t);
+
+        //订阅服务信息
+        if(StringUtils.isEmpty(ipAddressList) && register != null){
+            try {
+                subscribleService(t);
+            } catch (Exception e) {
+                if(exceptionLogger.isErrorEnabled()){
+                    exceptionLogger.error("subscrible service failed,will retry.",e);
+                }
+            }
+        }
         return serviceProxy;
     }
 
@@ -173,12 +200,17 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
      * @return
      */
     <T> T initServiceProxy(Class<T> t) {
+        if(logger.isInfoEnabled()){
+            logger.info("init service proxy:{}.",t.getName());
+        }
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
         invocationHandler.setServiceInterface(t);
         if(StringUtils.isNotEmpty(ipAddressList)){
             invocationHandler.setRemoteConfig(ClientRemoteConfig.newInstace(ipAddressList));
+        }else if(register != null){
+            invocationHandler.setRegister(register);
         }else{
-            throw new VenusConfigException("ipAddressList not allow empty.");
+            throw new VenusConfigException("ipAddressList and register not allow empty.");
         }
 
         if(this.getAuthenticator() == null){
@@ -204,6 +236,28 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
         Tuple<Object, InvokerInvocationHandler> serviceTuple = new Tuple<Object, InvokerInvocationHandler>(object, invocationHandler);
         servicesMap.put(t, serviceTuple);
         return object;
+    }
+
+    /**
+     * 订阅服务信息
+     * @param t
+     * @param <T>
+     */
+    <T> void subscribleService(Class<T> t){
+        Service service = AnnotationUtil.getAnnotation(t.getAnnotations(), Service.class);
+        String appName = Application.getInstance().getName();
+        String serviceInterfaceName = t.getName();
+        String serivceName = service.name();
+        String consumerHost = NetUtil.getLocalIp();
+
+        StringBuffer buf = new StringBuffer();
+        buf.append("/").append(serviceInterfaceName);
+        buf.append("/").append(serivceName);
+        buf.append("?application=").append(appName);
+        buf.append("&host=").append(consumerHost);
+        String subscribleUrl = buf.toString();
+        com.meidusa.venus.URL url = com.meidusa.venus.URL.parse(subscribleUrl);
+        register.subscrible(url);
     }
 
     @Override

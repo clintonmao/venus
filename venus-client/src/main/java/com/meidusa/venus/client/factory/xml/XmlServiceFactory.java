@@ -473,6 +473,7 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
 
                 String simpleClassName = entry.getValue().getClazz().getSimpleName();
                 String beanName = formatClassName(simpleClassName);
+                beanName = beanName.concat("#0");
                 if(reg.containsBeanDefinition(beanName)){
                     beanName = beanName.concat("#0");
                 }

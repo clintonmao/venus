@@ -11,4 +11,10 @@ public interface ServiceFactoryExtra extends ServiceFactory{
      * @param ipAddressList
      */
     void setAddressList(String ipAddressList);
+
+    /**
+     * 设置注册中心
+     * @param register
+     */
+    void setRegister(Object register);
 }
