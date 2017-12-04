@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -15,6 +17,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.dao.VenusApplicationDAO;
 import com.meidusa.venus.registry.domain.VenusApplicationDO;
+import com.meidusa.venus.registry.domain.VenusServerDO;
 
 public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 
@@ -92,6 +95,39 @@ public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 			});
 		} catch (Exception e) {
 			throw new DAOException("获取venusApplication异常", e);
+		}
+	}
+	
+	public int getApplicationCount() throws DAOException {
+		String sql = "SELECT count(id) as records FROM t_venus_application ";
+		try {
+			return this.jdbcTemplate.queryForObject(sql, Integer.class);
+		} catch (Exception e) {
+			throw new DAOException("根据sql=>" + sql + ";获取主机记录数异常", e);
+		}
+	}
+	
+	public List<VenusApplicationDO> queryApplications(Integer pageSize, Integer id) throws DAOException {
+		String sql = "select id,app_code,provider,consumer,create_name,update_name,create_time, update_time from t_venus_application ";
+
+		if (null != id) {
+			sql = sql + " where id>" + id;
+		}
+		sql = sql + " order by id asc limit " + pageSize;
+
+		try {
+			return this.jdbcTemplate.query(sql, new Object[] {}, new ResultSetExtractor<List<VenusApplicationDO>>() {
+				@Override
+				public List<VenusApplicationDO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<VenusApplicationDO> returnList = new ArrayList<VenusApplicationDO>();
+					while (rs.next()) {
+						returnList.add(ResultUtils.resultToVenusApplicationDO(rs));
+					}
+					return returnList;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据sql=>" + sql + ";获取主机列表异常", e);
 		}
 	}
 
