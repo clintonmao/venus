@@ -9,14 +9,14 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.DAOException;
+import com.meidusa.venus.registry.LogUtils;
 import com.meidusa.venus.registry.dao.CacheVenusServiceDAO;
 import com.meidusa.venus.registry.dao.VenusServiceDAO;
+import com.meidusa.venus.registry.domain.VenusServerDO;
 import com.meidusa.venus.registry.domain.VenusServiceDO;
 import com.meidusa.venus.registry.util.RegistryUtil;
 
@@ -30,8 +30,6 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 
 	private static final int PAGE_SIZE_200 = 200;
 
-	private static Logger logger = LoggerFactory.getLogger(CacheVenusServiceDaoImpl.class);
-	
 	private volatile boolean loacCacheRunning = false;
 
 	public VenusServiceDAO getVenusServiceDAO() {
@@ -47,7 +45,7 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 	}
 
 	public void load() {
-		loacCacheRunning=true;
+		loacCacheRunning = true;
 		if (loacCacheRunning) {
 			cacheServices.clear();
 			cacheServiceMap.clear();
@@ -66,28 +64,37 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 					mapId = services.get(services.size() - 1).getId();
 					for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
 						VenusServiceDO vs = iterator.next();
-						if (!cacheServices.contains(vs)) {
-							cacheServices.add(vs);
+//						if (!cacheServices.contains(vs)) {
+//							cacheServices.add(vs);
+//						}
+						if (isNotBlank(vs.getInterfaceName())) {
+							String interfaceNamekey = RegistryUtil.getCacheKey(vs.getInterfaceName(), vs.getVersion());
+							putToMap(vs, interfaceNamekey);
 						}
-//						 String key = RegistryUtil.getKey(vs);
-//						 List<VenusServiceDO> list = cacheServiceMap.get(key);
-//						 if (null == list) {
-//						 list = new ArrayList<VenusServiceDO>();
-//						 list.add(vs);
-//						 cacheServiceMap.put(key, list);
-//						 } else {
-//						 if (!list.contains(vs)) {
-//						 list.add(vs);
-//						 }
-//						 }
-//						 if (list.size() > 1) {
-//						 logger.error("more than 2 service {}", vs);
-//						 }
+						if (isNotBlank(vs.getName())) {
+							String namekey = RegistryUtil.getCacheKey(vs.getName(), vs.getVersion());
+							putToMap(vs, namekey);
+						}
+						String key = RegistryUtil.getCacheKey(vs);
+						putToMap(vs,key);
 					}
 				}
 			}
 		}
 		loacCacheRunning = false;
+	}
+
+	private void putToMap(VenusServiceDO vs,String key) {
+		List<VenusServiceDO> list = cacheServiceMap.get(key);
+		if (null == list) {
+			list = new ArrayList<VenusServiceDO>();
+			list.add(vs);
+			cacheServiceMap.put(key, list);
+		} else {
+			if (!list.contains(vs)) {
+				list.add(vs);
+			}
+		}
 	}
 
 	@Override
@@ -96,10 +103,30 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 		if (StringUtils.isBlank(interfaceName) && StringUtils.isBlank(serviceName)) {
 			throw new DAOException("serviceName与interfaceName不能同时为空");
 		}
-		if(loacCacheRunning){//缓存加载过程中，直接返回空，让从数据库中查询;
+		if (loacCacheRunning) {// 缓存加载过程中，直接返回空，让从数据库中查询;
 			return new ArrayList<VenusServiceDO>();
 		}
-		List<VenusServiceDO> returnList = new ArrayList<VenusServiceDO>();
+		
+		if (isNotBlank(serviceName) && isNotBlank(interfaceName)) {
+			String key1=RegistryUtil.getCacheKey(serviceName, version);
+			String key2=RegistryUtil.getCacheKey(serviceName, version);
+			List<VenusServiceDO> list = cacheServiceMap.get(key1);
+			List<VenusServiceDO> list2 = cacheServiceMap.get(key2);
+			List<VenusServiceDO> returnList=new ArrayList<VenusServiceDO>();
+			if(CollectionUtils.isNotEmpty(list)){
+				returnList.addAll(list);
+			}
+			if(CollectionUtils.isNotEmpty(list2)){
+				returnList.addAll(list2);
+			}
+			return returnList;
+		}else{
+			String key=RegistryUtil.getCacheKey(interfaceName,serviceName,version);
+			return cacheServiceMap.get(key);
+		}
+		
+		
+/*		List<VenusServiceDO> returnList = new ArrayList<VenusServiceDO>();
 
 		for (Iterator<VenusServiceDO> iterator = cacheServices.iterator(); iterator.hasNext();) {
 			VenusServiceDO vs = iterator.next();
@@ -120,8 +147,8 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 					}
 				}
 			}
-			
-			if (nameFind) {//名称匹配再看版本匹配
+
+			if (nameFind) {// 名称匹配再看版本匹配
 				if (isNotBlank(version)) {
 					if (version.equals(vs.getVersion())) {
 						nameFind = true;
@@ -135,7 +162,7 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 				returnList.add(vs);
 			}
 		}
-		return returnList;
+		return returnList;*/
 
 	}
 
@@ -152,13 +179,17 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 				load();
 				long end = System.currentTimeMillis();
 				long consumerTime = end - start;
-				logger.error(
+				LogUtils.logSlow(consumerTime, "LoadCacheServicesRunnable load() ");
+				LogUtils.DEFAULT_LOG.info(
 						"LoadCacheServicesRunnable start=>{}, end=>{},consumerTime=>{},cacheServices size=>{},cacheServiceMap size=>{}",
 						start, end, consumerTime, cacheServices.size(), cacheServiceMap.size());
+				for (Map.Entry<String, List<VenusServiceDO>> ent : cacheServiceMap.entrySet()) {
+					LogUtils.DEFAULT_LOG.info("key=>{}", ent.getKey());
+				}
 			} catch (Exception e) {
-				logger.error("load service cache data error", e);
-			}finally{
-				loacCacheRunning=false;
+				LogUtils.ERROR_LOG.error("load service cache data error", e);
+			} finally {
+				loacCacheRunning = false;
 			}
 		}
 

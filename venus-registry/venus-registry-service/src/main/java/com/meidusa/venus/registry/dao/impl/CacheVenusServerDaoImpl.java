@@ -1,16 +1,17 @@
 package com.meidusa.venus.registry.dao.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.registry.DAOException;
+import com.meidusa.venus.registry.LogUtils;
 import com.meidusa.venus.registry.dao.CacheVenusServerDAO;
 import com.meidusa.venus.registry.dao.VenusServerDAO;
 import com.meidusa.venus.registry.domain.VenusServerDO;
@@ -21,10 +22,10 @@ public class CacheVenusServerDaoImpl implements CacheVenusServerDAO {
 
 	private VenusServerDAO venusServerDAO;
 
-	private static Logger logger = LoggerFactory.getLogger(CacheVenusServerDaoImpl.class);
-
 	private List<VenusServerDO> cacheServers = new ArrayList<VenusServerDO>();
-	
+
+	private Map<String, VenusServerDO> cacheServerMap = new HashMap<String, VenusServerDO>();
+
 	private volatile boolean loacCacheRunning = false;
 
 	public VenusServerDAO getVenusServerDAO() {
@@ -41,24 +42,29 @@ public class CacheVenusServerDaoImpl implements CacheVenusServerDAO {
 
 	@Override
 	public VenusServerDO getServer(String host, int port) throws DAOException {
-		if(loacCacheRunning){//缓存加载过程中，直接返回空，让从数据库中查询;
+		if (loacCacheRunning) {// 缓存加载过程中，直接返回空，让从数据库中查询;
 			return null;
 		}
-		for (Iterator<VenusServerDO> iterator = cacheServers.iterator(); iterator.hasNext();) {
+		/*for (Iterator<VenusServerDO> iterator = cacheServers.iterator(); iterator.hasNext();) {
 			VenusServerDO server = iterator.next();
 			if (server.getHostname().equals(host)) {
 				if (server.getPort().intValue() == port) {
 					return server;
 				}
 			}
-		}
-		return null;
+		}*/
+		return cacheServerMap.get(getKey(host, port));
+	}
+
+	private String getKey(String host, int port) {
+		return host + ":" + port;
 	}
 
 	void load() {
 		loacCacheRunning = true;
 		if (loacCacheRunning) {
 			cacheServers.clear();
+			cacheServerMap.clear();
 		}
 		Integer totalCount = venusServerDAO.getServerCount();
 		if (null != totalCount && totalCount > 0) {
@@ -73,10 +79,8 @@ public class CacheVenusServerDaoImpl implements CacheVenusServerDAO {
 				if (CollectionUtils.isNotEmpty(queryServers)) {
 					id = queryServers.get(queryServers.size() - 1).getId();
 					for (VenusServerDO serverDO : queryServers) {
-						boolean contains = contains(serverDO);
-						if (!contains) {
-							cacheServers.add(serverDO);
-						}
+						String key = getKey(serverDO.getHostname(), serverDO.getPort());
+						cacheServerMap.put(key, serverDO);
 					}
 				}
 			}
@@ -109,13 +113,13 @@ public class CacheVenusServerDaoImpl implements CacheVenusServerDAO {
 			try {
 				long start = System.currentTimeMillis();
 				load();
-				long end = System.currentTimeMillis();
-				long consumerTime = end - start;
-				logger.error("LoadCacheServersRunnable start=>{}, end=>{},consumerTime=>{},cacheServers size=>{}",
-						start, end, consumerTime, cacheServers.size());
+				long consumerTime = System.currentTimeMillis() - start;
+				LogUtils.logSlow(consumerTime, "LoadCacheServersRunnable load() ");
+				LogUtils.DEFAULT_LOG.info("LoadCacheServersRunnable start=>{}, end=>{},consumerTime=>{},cacheServers size=>{}",
+						start, System.currentTimeMillis(), consumerTime, cacheServers.size());
 			} catch (Exception e) {
-				logger.error("load server cache data error", e);
-			}finally{
+				LogUtils.ERROR_LOG.error("load server cache data error", e);
+			} finally {
 				loacCacheRunning = false;
 			}
 		}

@@ -8,11 +8,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.meidusa.fastjson.JSON;
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
+import com.meidusa.venus.registry.LogUtils;
 import com.meidusa.venus.registry.dao.OldServiceMappingDAO;
 import com.meidusa.venus.registry.dao.VenusServiceMappingDAO;
 import com.meidusa.venus.registry.data.move.OldServerDO;
@@ -20,7 +18,6 @@ import com.meidusa.venus.registry.data.move.OldServiceDO;
 import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
 import com.meidusa.venus.registry.data.move.ServiceMappingDTO;
 import com.meidusa.venus.registry.service.RegisterService;
-import com.meidusa.venus.support.VenusConstants;
 
 public class OLdServiceMappingService {
 
@@ -29,8 +26,6 @@ public class OLdServiceMappingService {
 	private static final int PAGE_SIZE_30 = 30;
 	
 	private static final int PAGE_SIZE_50 = 50;
-
-	private static Logger logger = LoggerFactory.getLogger(OLdServiceMappingService.class);
 
 	private OldServiceMappingDAO oldServiceMappingDAO;
 
@@ -46,10 +41,10 @@ public class OLdServiceMappingService {
 
 	public void init() {
 		if (this.isNeedDataSync()) {
-			logger.info("Sync Data Thread initialize is need");
+			LogUtils.MOVE_DATA_LOG.info("Sync Data Thread initialize is need");
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new MoveDataRunnable(), 1, 5, TimeUnit.MINUTES);
 		} else {
-			logger.info("Sync Data Thread initialize is not need");
+			LogUtils.MOVE_DATA_LOG.info("Sync Data Thread initialize is not need");
 		}
 	}
 
@@ -73,18 +68,11 @@ public class OLdServiceMappingService {
 								oldServiceMappingDO.getVersion(),oldServiceMappingDO.getDescription());
 					}
 				}
-//				try {
-//					Thread.sleep(200);
-//				} catch (InterruptedException e) {
-//					
-//				}
-
 			}
 		}
 	}
 
 	public void moveServices() {
-		logger.error("---------start------------------");
 		Integer totalCount = oldServiceMappingDAO.getOldServiceCount();
 		if (null != totalCount && totalCount > 0) {
 			int mod = totalCount % PAGE_SIZE_30;
@@ -99,14 +87,8 @@ public class OLdServiceMappingService {
 					mapId = services.get(services.size() - 1).getId();
 					delOldMappingIds(services);
 				}
-//				try {
-//					Thread.sleep(200);
-//				} catch (InterruptedException e) {
-//					
-//				}
 			}
 		}
-		logger.error("--------end----------");
 	}
 	
 	private void delOldMappingIds(List<OldServiceDO> services) {
@@ -166,7 +148,7 @@ public class OLdServiceMappingService {
 				}
 
 				if (needDel) {
-					logger.error("mapId=>{},hostName=>{},serviceId=>{},serverId=>{},serverName=>{}", map.getMapId(),
+					LogUtils.MOVE_DATA_LOG.info("mapId=>{},hostName=>{},serviceId=>{},serverId=>{},serverName=>{}", map.getMapId(),
 							map.getHostName(), map.getServiceId(), map.getServerId(), map.getServiceName());
 					deleteMapIds.add(map.getMapId());
 				}
@@ -194,8 +176,8 @@ public class OLdServiceMappingService {
 					}
 				}
 				if (needDel) {
-					logger.error("@@mapId=>{},hostName=>{},serviceId=>{},serverId=>{},serverName=>{}", map.getMapId(),
-							map.getHostName(), map.getServiceId(), map.getServerId(), map.getServiceName());
+					LogUtils.MOVE_DATA_LOG.info("@@@@mapId=>{},hostName=>{},port={},serviceId=>{},serverId=>{},serverName=>{}", map.getMapId(),
+							map.getHostName(), map.getPort(),map.getServiceId(), map.getServerId(), map.getServiceName());
 					deleteMapIds.add(map.getMapId());
 				}
 			}
@@ -300,29 +282,31 @@ public class OLdServiceMappingService {
 		public void run() {
 			try {
 				long start = System.currentTimeMillis();
-				logger.error("*********MoveDataRunnable start*************"+start);
-				logger.error("moveServers start at=>{}", start);
+				long firstStart=start;
+				LogUtils.MOVE_DATA_LOG.info("*********MoveDataRunnable start at=>{}*********", start);
 				moveServers();
 				long end = System.currentTimeMillis();
 				long consumerTime = end - start;
-				logger.error("moveServers end at=>{},consumerTime=>{}", end, consumerTime);
+				LogUtils.logSlow(consumerTime, "MoveDataRunnable  moveServers() ");
+				LogUtils.MOVE_DATA_LOG.info("moveServers end at=>{},consumerTime=>{}", end, consumerTime);
 				
 				start = System.currentTimeMillis();
-				logger.error("moveServiceMappings start=>{}", end);
 				moveServiceMappings();
 				end = System.currentTimeMillis();
 				consumerTime = end - start;
-				logger.error("moveServiceMappings end at=>{},consumerTime=>{}", end, consumerTime);
+				LogUtils.logSlow(consumerTime, "MoveDataRunnable  moveServiceMappings() ");
+				LogUtils.MOVE_DATA_LOG.info("moveServiceMappings end at=>{},consumerTime=>{}", end, consumerTime);
 				
 				start = System.currentTimeMillis();
-				logger.error("moveServices start=>{}", end);
 				moveServices();
 				end = System.currentTimeMillis();
 				consumerTime = end - start;
-				logger.error("moveServices end at=>{},consumerTime=>{}", end, consumerTime);
-				logger.error("*********MoveDataRunnable end*************"+System.currentTimeMillis());
+				LogUtils.MOVE_DATA_LOG.info("moveServices end at=>{},consumerTime=>{}", end, consumerTime);
+				LogUtils.logSlow(consumerTime, "MoveDataRunnable  moveServices() ");
+				
+				LogUtils.MOVE_DATA_LOG.info("*********MoveDataRunnable end at=>{},consumerTime=>{}*************", end,(end-firstStart));
 			} catch (Exception e) {
-				logger.error("moveServers method is error", e);
+				LogUtils.ERROR_LOG.error("moveServers method is error", e);
 			}
 		}
 
