@@ -181,8 +181,8 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
             throw new VenusConfigException("init simpleServiceFactory failed.");
         }
         serviceFactoryExtra = (ServiceFactoryExtra)obj;
-        String[] addressArr = {url};
-        serviceFactoryExtra.setAddressList(addressArr);
+        String ipAddressList = url;
+        serviceFactoryExtra.setAddressList(ipAddressList);
 
         AthenaDataService athenaDataService = serviceFactoryExtra.getService(AthenaDataService.class);
         if(athenaDataService == null){

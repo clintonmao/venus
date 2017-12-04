@@ -206,6 +206,8 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
             return;
         }
 
+        //TODO 若开启monitor配置，则添加athenaDataService配置，那provider端怎么办，要保持一致？
+
         //初始化service实例
         for (ReferenceService serviceConfig : venusClientConfig.getReferenceServices()) {
             initService(serviceConfig,venusClientConfig);

@@ -1,10 +1,12 @@
 package com.meidusa.venus.client.factory.simple;
 
+import com.meidusa.toolkit.common.bean.config.ConfigUtil;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.venus.ServiceFactoryExtra;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.client.factory.InvokerInvocationHandler;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
+import com.meidusa.venus.client.factory.xml.config.ReferenceService;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
@@ -58,11 +60,58 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
     }
 
     @Override
-    public void setAddressList(String[] addressArr) {
-        if(addressArr == null || addressArr.length == 0){
-            throw new VenusConfigException("addressArr is empty.");
+    public void setAddressList(String ipAddressList) {
+        if(StringUtils.isEmpty(ipAddressList)){
+            throw new VenusConfigException("ipAddressList is empty.");
         }
-        this.ipAddressList = StringUtils.join(addressArr,";");
+        //转换ucm属性地址
+        ipAddressList = parsePropertyConfig(ipAddressList);
+        //转换','分隔地址
+        ipAddressList = ipAddressList.trim();
+        if(ipAddressList.contains(",")){
+            ipAddressList = ipAddressList.replace(",",";");
+        }
+        //校验地址有效性
+        validAddress(ipAddressList);
+
+        this.ipAddressList = ipAddressList;
+    }
+
+
+    /**
+     * 解析spring或ucm属性配置，如${x.x.x}
+     */
+    String parsePropertyConfig(String ipAddressList){
+        if(StringUtils.isNotEmpty(ipAddressList)){
+            if(ipAddressList.startsWith("${") && ipAddressList.endsWith("}")){
+                String realAddress = (String) ConfigUtil.filter(ipAddressList);
+                if(StringUtils.isEmpty(realAddress)){
+                    throw new VenusConfigException("ucm parse empty,ipAddressList config invalid.");
+                }
+                if(logger.isInfoEnabled()){
+                    logger.info("##########realIpAddress:{}#############.",realAddress);
+                }
+                return realAddress;
+            }
+        }
+        return ipAddressList;
+    }
+
+    /**
+     * 校验地址有效性
+     * @param ipAddressList
+     */
+    void validAddress(String ipAddressList){
+        String[] addressArr = ipAddressList.split(";");
+        if(addressArr == null || addressArr.length == 0){
+            throw new VenusConfigException("ipAddressList invalid:" + ipAddressList);
+        }
+        for(String address:addressArr){
+            String[] arr = address.split(":");
+            if(arr == null || arr.length != 2){
+                throw new VenusConfigException("ipAddressList invalid:" + ipAddressList);
+            }
+        }
     }
 
     public Authenticator getAuthenticator() {
