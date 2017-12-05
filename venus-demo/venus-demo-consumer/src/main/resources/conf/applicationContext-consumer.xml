@@ -34,7 +34,6 @@
 
 	<!--监控配置-->
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
-		<property name="address" value="${venus.monitor.address}"/>
 	</bean>
 
 	<!--服务引用配置-->
