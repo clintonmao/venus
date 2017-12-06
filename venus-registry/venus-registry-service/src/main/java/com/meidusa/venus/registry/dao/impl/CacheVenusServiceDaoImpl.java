@@ -194,6 +194,9 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 
 	@Override
 	public List<VenusServiceDO> queryServices(URL url) throws DAOException {
+		if (loacCacheRunning) {
+			return null;
+		}
 		return cacheServiceMap.get(RegistryUtil.getKeyFromUrl(url));
 	}
 }
