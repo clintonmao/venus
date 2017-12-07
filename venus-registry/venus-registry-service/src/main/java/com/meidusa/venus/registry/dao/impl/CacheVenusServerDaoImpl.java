@@ -131,6 +131,9 @@ public class CacheVenusServerDaoImpl implements CacheVenusServerDAO {
 
 	@Override
 	public List<VenusServerDO> getServers(List<Integer> ids) throws DAOException {
+		if (loacCacheRunning) {// 缓存加载过程中，直接返回空，让从数据库中查询;
+			return null;
+		}
 		List<VenusServerDO> returnList = new ArrayList<VenusServerDO>();
 		for (Integer id : ids) {
 			VenusServerDO venusServerDO = cacheIdServerMap.get(id);

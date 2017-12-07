@@ -31,6 +31,7 @@ import com.meidusa.venus.registry.dao.VenusServerDAO;
 import com.meidusa.venus.registry.dao.VenusServiceConfigDAO;
 import com.meidusa.venus.registry.dao.VenusServiceDAO;
 import com.meidusa.venus.registry.dao.VenusServiceMappingDAO;
+import com.meidusa.venus.registry.dao.CacheApplicationDAO;
 import com.meidusa.venus.registry.dao.impl.ResultUtils;
 import com.meidusa.venus.registry.data.move.UpdateHeartBeatTimeDTO;
 import com.meidusa.venus.registry.domain.RegisteConstant;
@@ -53,6 +54,8 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	private VenusServiceConfigDAO venusServiceConfigDAO;
 
 	private VenusApplicationDAO venusApplicationDAO;
+	
+	private CacheApplicationDAO cacheApplicationDAO;
 
 	private VenusServerDAO venusServerDAO;
 
@@ -342,8 +345,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		String serviceName = url.getServiceName();
 		String version = url.getVersion();
 		try {
-			List<VenusServiceDO> services = venusServiceDAO.queryServices(interfaceName, serviceName, version);// servicePath
-																												// interfaceName/serviceName?version=version
+			List<VenusServiceDO> services = venusServiceDAO.queryServices(interfaceName, serviceName, version);// servicePath interfaceName/serviceName?version=version
 			for (Iterator<VenusServiceDO> ite = services.iterator(); ite.hasNext();) {
 				List<Integer> serverIds = new ArrayList<Integer>();
 				VenusServiceDO service = ite.next();
@@ -361,7 +363,10 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 
 				Set<String> hostPortSet = new HashSet<String>();
 				if (CollectionUtils.isNotEmpty(serverIds)) {
-					List<VenusServerDO> servers = venusServerDAO.getServers(serverIds);
+					List<VenusServerDO> servers = cacheVenusServerDAO.getServers(serverIds);
+					if (CollectionUtils.isEmpty(servers)) {
+						servers = venusServerDAO.getServers(serverIds);
+					}
 					if (CollectionUtils.isNotEmpty(servers)) {
 						for (Iterator<VenusServerDO> iterator = servers.iterator(); iterator.hasNext();) {
 							VenusServerDO venusServerDO = iterator.next();
@@ -371,7 +376,10 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					}
 				}
 				if (CollectionUtils.isNotEmpty(hostPortSet)) {
-					VenusApplicationDO application = venusApplicationDAO.getApplication(service.getAppId());
+					VenusApplicationDO application = cacheApplicationDAO.getApplication(service.getAppId());
+					if (null == application) {
+						application = venusApplicationDAO.getApplication(service.getAppId());
+					}
 					VenusServiceDefinitionDO def = new VenusServiceDefinitionDO();
 					def.setInterfaceName(interfaceName);
 					def.setName(serviceName);
@@ -791,11 +799,21 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	public void setConnectUrl(String connectUrl) {
 		this.connectUrl = connectUrl;
 	}
+	
+	
 
 /*	public static void main(String args[]) {
 		Date d = new Date(1506498850000L);
 		System.out.println(d);
 	}*/
+
+	public CacheApplicationDAO getCacheApplicationDAO() {
+		return this.cacheApplicationDAO;
+	}
+
+	public void setCacheApplicationDAO(CacheApplicationDAO cacheApplicationDAO) {
+		this.cacheApplicationDAO = cacheApplicationDAO;
+	}
 
 	public void updateServiceAppIds() {
 		Integer totalCount = venusServiceDAO.getServiceCount();

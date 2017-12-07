@@ -124,6 +124,7 @@
 		<property name="venusServiceMappingDAO" ref="venusServiceMappingDAO"></property>
 		<property name="cacheVenusServerDAO" ref="cacheVenusServerDAO"></property>
 		<property name="cacheVenusServiceDAO" ref="cacheVenusServiceDAO"></property>
+		<property name="cacheApplicationDAO" ref="cacheApplicationDAO"></property>
 		<property name="transactionTemplate" ref="transactionTemplate"></property>
 	</bean>
 

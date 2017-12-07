@@ -69,14 +69,14 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 //						}
 						if (isNotBlank(vs.getInterfaceName())) {
 							String interfaceNamekey = RegistryUtil.getCacheKey(vs.getInterfaceName(), vs.getVersion());
-							putToMap(vs, interfaceNamekey);
+							putToMap(interfaceNamekey, vs);
 						}
 						if (isNotBlank(vs.getName())) {
 							String namekey = RegistryUtil.getCacheKey(vs.getName(), vs.getVersion());
-							putToMap(vs, namekey);
+							putToMap(namekey, vs);
 						}
 						String key = RegistryUtil.getCacheKey(vs);
-						putToMap(vs,key);
+						putToMap(key,vs);
 					}
 				}
 			}
@@ -84,7 +84,7 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 		loacCacheRunning = false;
 	}
 
-	private void putToMap(VenusServiceDO vs,String key) {
+	private void putToMap(String key,VenusServiceDO vs) {
 		List<VenusServiceDO> list = cacheServiceMap.get(key);
 		if (null == list) {
 			list = new ArrayList<VenusServiceDO>();
@@ -194,6 +194,9 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 
 	@Override
 	public List<VenusServiceDO> queryServices(URL url) throws DAOException {
+		if (loacCacheRunning) {
+			return null;
+		}
 		return cacheServiceMap.get(RegistryUtil.getKeyFromUrl(url));
 	}
 }
