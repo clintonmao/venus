@@ -5,7 +5,7 @@
 	<parent>
 		<artifactId>venus-common</artifactId>
 		<groupId>com.meidusa.venus</groupId>
-		<version>4.0.5-SNAPSHOT</version>
+		<version>4.0.6-SNAPSHOT</version>
 	</parent>
 	<artifactId>venus-common-validator</artifactId>
 
