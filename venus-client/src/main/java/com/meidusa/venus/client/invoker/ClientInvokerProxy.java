@@ -8,7 +8,6 @@ import com.meidusa.venus.client.filter.mock.ClientCallbackMockFilter;
 import com.meidusa.venus.client.filter.mock.ClientReturnMockFilter;
 import com.meidusa.venus.client.filter.mock.ClientThrowMockFilter;
 import com.meidusa.venus.client.filter.valid.ClientValidFilter;
-import com.meidusa.venus.client.invoker.injvm.InjvmClientInvoker;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.monitor.athena.filter.ClientAthenaMonitorFilter;
@@ -45,7 +44,7 @@ public class ClientInvokerProxy implements Invoker {
     /**
      * injvm调用
      */
-    private InjvmClientInvoker injvmInvoker = new InjvmClientInvoker();
+    private ClientLocalInvoker injvmInvoker = new ClientLocalInvoker();
 
     /**
      * 远程(包含同ip实例间)调用
@@ -150,7 +149,7 @@ public class ClientInvokerProxy implements Invoker {
         }
     }
 
-    public InjvmClientInvoker getInjvmInvoker() {
+    public ClientLocalInvoker getInjvmInvoker() {
         return injvmInvoker;
     }
 

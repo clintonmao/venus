@@ -24,6 +24,7 @@ import com.meidusa.venus.ServiceFactory;
 import com.meidusa.venus.ServiceFactoryBean;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
+import com.meidusa.venus.client.factory.AbstractServiceFactory;
 import com.meidusa.venus.client.factory.InvokerInvocationHandler;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.factory.xml.config.ReferenceService;
@@ -67,7 +68,7 @@ import java.util.Map;
 /**
  * 基于xml配置服务工厂
  */
-public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFactoryPostProcessor,ApplicationContextAware {
+public class XmlServiceFactory extends AbstractServiceFactory implements ServiceFactory,InitializingBean,BeanFactoryPostProcessor,ApplicationContextAware {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -390,16 +391,9 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
                 VenusClientConfig venusClientConfig = (VenusClientConfig) xStream.fromXML(configFile.getURL());
                 for (ReferenceService referenceService : venusClientConfig.getReferenceServices()) {
                     if(StringUtils.isNotEmpty(referenceService.getIpAddressList())){
-                        //转换ucm属性地址
-                        parsePropertyConfig(referenceService);
-                        //转换','分隔地址
-                        String ipAddress = referenceService.getIpAddressList().trim();
-                        if(ipAddress.contains(",")){
-                            ipAddress = ipAddress.replace(",",";");
-                            referenceService.setIpAddressList(ipAddress);
-                        }
-                        //校验地址有效性
-                        validAddress(referenceService.getIpAddressList());
+                        //转化及校验地址
+                        String ipAddressList = convertAndValidAddress(referenceService.getIpAddressList());
+                        referenceService.setIpAddressList(ipAddressList);
                     }
 
                     String interfaceType = referenceService.getType();
@@ -424,43 +418,6 @@ public class XmlServiceFactory implements ServiceFactory,InitializingBean,BeanFa
             }
         }
         return clientConfig;
-    }
-
-    /**
-     * 解析spring或ucm属性配置，如${x.x.x}
-     * @param referenceConfig
-     */
-    void parsePropertyConfig(ReferenceService referenceConfig){
-        String address = referenceConfig.getIpAddressList();
-        if(StringUtils.isNotEmpty(address)){
-            if(address.startsWith("${") && address.endsWith("}")){
-                String realAddress = (String)ConfigUtil.filter(address);
-                if(StringUtils.isEmpty(realAddress)){
-                    throw new VenusConfigException("ucm parse empty,ipAddressList config invalid.");
-                }
-                if(logger.isInfoEnabled()){
-                    logger.info("##########realIpAddress:{}#############.",realAddress);
-                }
-                referenceConfig.setIpAddressList(realAddress);
-            }
-        }
-    }
-
-    /**
-     * 校验地址有效性
-     * @param ipAddressList
-     */
-    void validAddress(String ipAddressList){
-        String[] addressArr = ipAddressList.split(";");
-        if(addressArr == null || addressArr.length == 0){
-            throw new VenusConfigException("ipAddressList invalid:" + ipAddressList);
-        }
-        for(String address:addressArr){
-            String[] arr = address.split(":");
-            if(arr == null || arr.length != 2){
-                throw new VenusConfigException("ipAddressList invalid:" + ipAddressList);
-            }
-        }
     }
 
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {

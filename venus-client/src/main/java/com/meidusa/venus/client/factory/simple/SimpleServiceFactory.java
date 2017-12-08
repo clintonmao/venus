@@ -6,6 +6,7 @@ import com.meidusa.venus.Application;
 import com.meidusa.venus.ServiceFactoryExtra;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
+import com.meidusa.venus.client.factory.AbstractServiceFactory;
 import com.meidusa.venus.client.factory.InvokerInvocationHandler;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.factory.xml.config.ReferenceService;
@@ -34,7 +35,7 @@ import java.util.Map;
  * @author structchen
  * 
  */
-public class SimpleServiceFactory implements ServiceFactoryExtra {
+public class SimpleServiceFactory extends AbstractServiceFactory implements ServiceFactoryExtra {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -74,54 +75,10 @@ public class SimpleServiceFactory implements ServiceFactoryExtra {
         if(StringUtils.isEmpty(ipAddressList)){
             throw new VenusConfigException("ipAddressList is empty.");
         }
-        //转换ucm属性地址
-        ipAddressList = parsePropertyConfig(ipAddressList);
-        //转换','分隔地址
-        ipAddressList = ipAddressList.trim();
-        if(ipAddressList.contains(",")){
-            ipAddressList = ipAddressList.replace(",",";");
-        }
-        //校验地址有效性
-        validAddress(ipAddressList);
 
+        //转化及校验地址
+        ipAddressList = convertAndValidAddress(ipAddressList);
         this.ipAddressList = ipAddressList;
-    }
-
-
-    /**
-     * 解析spring或ucm属性配置，如${x.x.x}
-     */
-    String parsePropertyConfig(String ipAddressList){
-        if(StringUtils.isNotEmpty(ipAddressList)){
-            if(ipAddressList.startsWith("${") && ipAddressList.endsWith("}")){
-                String realAddress = (String) ConfigUtil.filter(ipAddressList);
-                if(StringUtils.isEmpty(realAddress)){
-                    throw new VenusConfigException("ucm parse empty,ipAddressList config invalid.");
-                }
-                if(logger.isInfoEnabled()){
-                    logger.info("##########realIpAddress:{}#############.",realAddress);
-                }
-                return realAddress;
-            }
-        }
-        return ipAddressList;
-    }
-
-    /**
-     * 校验地址有效性
-     * @param ipAddressList
-     */
-    void validAddress(String ipAddressList){
-        String[] addressArr = ipAddressList.split(";");
-        if(addressArr == null || addressArr.length == 0){
-            throw new VenusConfigException("ipAddressList invalid:" + ipAddressList);
-        }
-        for(String address:addressArr){
-            String[] arr = address.split(":");
-            if(arr == null || arr.length != 2){
-                throw new VenusConfigException("ipAddressList invalid:" + ipAddressList);
-            }
-        }
     }
 
     @Override
