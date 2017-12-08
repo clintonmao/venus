@@ -32,6 +32,7 @@ import com.meidusa.venus.registry.dao.VenusServiceConfigDAO;
 import com.meidusa.venus.registry.dao.VenusServiceDAO;
 import com.meidusa.venus.registry.dao.VenusServiceMappingDAO;
 import com.meidusa.venus.registry.dao.CacheApplicationDAO;
+import com.meidusa.venus.registry.dao.CacheServiceConfigDAO;
 import com.meidusa.venus.registry.dao.impl.ResultUtils;
 import com.meidusa.venus.registry.data.move.UpdateHeartBeatTimeDTO;
 import com.meidusa.venus.registry.domain.RegisteConstant;
@@ -62,6 +63,8 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	private CacheVenusServerDAO cacheVenusServerDAO;
 
 	private CacheVenusServiceDAO cacheVenusServiceDAO;
+	
+	private CacheServiceConfigDAO cacheServiceConfigDAO;
 
 	private VenusServiceMappingDAO venusServiceMappingDAO;
 
@@ -789,6 +792,14 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 
 	public void setCacheVenusServiceDAO(CacheVenusServiceDAO cacheVenusServiceDAO) {
 		this.cacheVenusServiceDAO = cacheVenusServiceDAO;
+	}
+
+	public CacheServiceConfigDAO getCacheServiceConfigDAO() {
+		return cacheServiceConfigDAO;
+	}
+
+	public void setCacheServiceConfigDAO(CacheServiceConfigDAO cacheServiceConfigDAO) {
+		this.cacheServiceConfigDAO = cacheServiceConfigDAO;
 	}
 
 	public TransactionTemplate getTransactionTemplate() {
