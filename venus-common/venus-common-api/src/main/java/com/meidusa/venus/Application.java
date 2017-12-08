@@ -179,7 +179,7 @@ public class Application implements InitializingBean,DisposableBean {
     }
 
     /**
-     * 释放应用释放，如释放连接，反订阅、反注册等
+     * 释放应用资源，如释放连接，反订阅、反注册等
      */
     void doDestroy(){
         try {
