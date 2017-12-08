@@ -251,6 +251,9 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	public void subscrible(URL url) throws VenusRegisteException {
 		List<VenusServiceDO> services = venusServiceDAO.queryServices(url.getInterfaceName(), url.getServiceName(),
 				url.getVersion());
+		if(CollectionUtils.isEmpty(services)){
+			return;
+		}
 		for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
 			VenusServiceDO service = iterator.next();
 			if (null == service && url.isConsumerCheck()) {// 服务不存在并且配置了检测则抛出异常
@@ -319,6 +322,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	public boolean unsubscrible(URL url) throws VenusRegisteException {
 		List<VenusServiceDO> services = venusServiceDAO.queryServices(url.getInterfaceName(), url.getServiceName(),
 				url.getVersion());
+		if(CollectionUtils.isNotEmpty(services)){
 		for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
 			VenusServiceDO service = iterator.next();
 			if (null != service) {
@@ -335,6 +339,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				}
 			}
 		}
+		}
 		return false;
 	}
 
@@ -346,6 +351,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		String version = url.getVersion();
 		try {
 			List<VenusServiceDO> services = venusServiceDAO.queryServices(interfaceName, serviceName, version);// servicePath interfaceName/serviceName?version=version
+			if(CollectionUtils.isNotEmpty(services)){
 			for (Iterator<VenusServiceDO> ite = services.iterator(); ite.hasNext();) {
 				List<Integer> serverIds = new ArrayList<Integer>();
 				VenusServiceDO service = ite.next();
@@ -396,6 +402,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					def.setServiceConfigs(serviceConfigs);
 					returnList.add(def);
 				}
+			}
 			}
 		} catch (Exception e) {
 			LogUtils.ERROR_LOG.error("findServiceDefinitions调用异常,url=>{},异常原因：{}", url, e);

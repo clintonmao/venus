@@ -56,7 +56,18 @@
 		<property name="testOnReturn" value="${venus4.db.registry.testOnReturn}" />
 		<property name="testWhileIdle" value="${venus4.db.registry.testWhileIdle}" />
 		<property name="testOnBorrow" value="${venus4.db.registry.testOnBorrow}" />
+		<property name="removeAbandoned" value="${venus4.db.registry.removeAbandoned}" />
+		<property name="removeAbandonedTimeout" value="${venus4.db.registry.removeAbandonedTimeout}" />
 		<property name="validationQuery" value="select 1 " />
+		
+		<!-- <property name="validationQuery" value="select 1 " />    -->       	<!--  验证连接是否可用，使用的SQL语句 -->
+	   	<!--  <property name="testWhileIdle" value="true" />     -->      			<!-- 指明连接是否被空闲连接回收器(如果有)进行检验.如果检测失败,则连接将被从池中去除. -->
+	    <!-- <property name="testOnBorrow" value="false" />   -->       			<!--  借出连接时不要测试，否则很影响性能,若配置为true,对性能有非常大的影响，性能会下降7-10倍 -->
+	    <!-- <property name="timeBetweenEvictionRunsMillis" value="30000" /> -->    <!-- 每30秒运行一次空闲连接回收器 -->
+	    <!-- <property name="minEvictableIdleTimeMillis" value="1800000" />  -->    <!-- 池中的连接空闲30分钟后被回收,默认值就是30分钟。 -->
+	    <!-- <property name="numTestsPerEvictionRun" value="3" />  -->           	<!-- 在每次空闲连接回收器线程(如果有)运行时检查的连接数量，默认值就是3 -->
+	   	<!--  <property name="removeAbandoned" value="true"/> -->                  	<!-- 连接泄漏回收参数，当可用连接数少于3个时才执行   -->
+ 		<!-- <property name="removeAbandonedTimeout" value="180" /> -->           	<!--连接泄漏回收参数，180秒，泄露的连接可以被删除的超时值  -->
 	</bean>
 	
 	<bean id="oldDataSource" class="org.apache.commons.dbcp.BasicDataSource"
@@ -76,6 +87,8 @@
 		<property name="testOnReturn" value="${venus4.db.registry.testOnReturn}" />
 		<property name="testWhileIdle" value="${venus4.db.registry.testWhileIdle}" />
 		<property name="testOnBorrow" value="${venus4.db.registry.testOnBorrow}" />
+		<property name="removeAbandoned" value="${venus4.db.registry.removeAbandoned}" />
+		<property name="removeAbandonedTimeout" value="${venus4.db.registry.removeAbandonedTimeout}" />
 		<property name="validationQuery" value="select 1 " />
 	</bean> 
 	
