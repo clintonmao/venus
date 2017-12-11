@@ -400,9 +400,17 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					if (null != application) {
 						def.setProvider(application.getAppCode());
 					}
-					List<VenusServiceConfigDO> serviceConfigs = venusServiceConfigDAO.getServiceConfigs(serviceId);
-					ResultUtils.setServiceConfigs(serviceConfigs);
-					def.setServiceConfigs(serviceConfigs);
+						if (cacheServiceConfigDAO.getVenusServiceConfigCount() > 0) {
+							List<VenusServiceConfigDO> serviceConfigs = null;
+							if (cacheServiceConfigDAO.isLoacCacheRunning()) {//缓存加载中，从数据库中查找,否则从当前缓存中查找
+								serviceConfigs = venusServiceConfigDAO.getServiceConfigs(serviceId);
+							}else{
+								serviceConfigs = cacheServiceConfigDAO.getVenusServiceConfig(serviceId);
+								//serviceConfigs = venusServiceConfigDAO.getServiceConfigs(serviceId);
+							}
+							ResultUtils.setServiceConfigs(serviceConfigs);
+							def.setServiceConfigs(serviceConfigs);
+						}
 					returnList.add(def);
 				}
 			}
@@ -411,10 +419,13 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			LogUtils.ERROR_LOG.error("findServiceDefinitions调用异常,url=>{},异常原因：{}", url, e);
 			throw new VenusRegisteException("findServiceDefinitions调用异常,服务名：" + log_service_name(url), e);
 		}
-		long consumerTime = System.currentTimeMillis() - start;
-		LogUtils.logSlow(consumerTime, "findServiceDefinitions is slow,url=>"+JSON.toJSONString(url));
-		LogUtils.LOAD_SERVICE_DEF_LOG.info("findServiceDefinitions consumerTime=>{},url=>{}", consumerTime,
+		long end = System.currentTimeMillis();
+		long consumerTime = end - start;
+		LogUtils.logSlow(consumerTime, "findServiceDefs is slow,url=>"+JSON.toJSONString(url));
+		if(end % 10 ==1){
+		LogUtils.LOAD_SERVICE_DEF_LOG.info("findServiceDefs sampling consumerTime=>{},url=>{}", consumerTime,
 				JSON.toJSONString(url));
+		}
 		return returnList;
 	}
 
@@ -926,13 +937,22 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 								heartbeatDto.getServiceIds(), heartbeatDto.getRole());
 						long consumerTime = System.currentTimeMillis() - start;
 						LogUtils.logSlow(consumerTime, "UpdateHeartbeatTimeRunnable run() ");
-						LogUtils.HEARTBEAT_LOG.info("HEARTBEAT_QUEUE.poll startSize=>{},endSize=>{},update=>{},heartbeatDto=>{}", startSize, endSize,update,JSON.toJSONString(heartbeatDto));
+						if(!update){
+							LogUtils.HEARTBEAT_LOG.info("UpdateHeartbeatTimeRunnable.poll startSize=>{},endSize=>{},update=>{},heartbeatDto=>{}", startSize, endSize,update,JSON.toJSONString(heartbeatDto));
+						}
+						if(start % 10 ==1){
+							LogUtils.HEARTBEAT_LOG.info("UpdateHeartbeatTimeRunnable.sampling startSize=>{},endSize=>{},update=>{},heartbeatDto=>{}", startSize, endSize,update,JSON.toJSONString(heartbeatDto));
+						}
 					}
 				} catch (Throwable e) {
 					LogUtils.ERROR_LOG.error("UpdateHeartbeatTimeRunnable consumer thread is error" + e.getMessage(), e);
 				}
 			}
 		}
+		// TODO
+		/* heartbeat loaddef 只打外部请求的数据，错误和大于200毫秒的全打 */
+		/* 正常的采样打 10个打一个  清理程序 和同步数据(按5000毫秒，别的按200毫秒) slow时间需更改 */
+
 
 	}
 

@@ -63,7 +63,7 @@ public class ClearInvalidService {
 			long start = System.currentTimeMillis();
 			clearInvalid();
 			long consumerTime = System.currentTimeMillis() - start;
-			LogUtils.logSlow(consumerTime, "ClearInvalidRunnable load() ");
+			LogUtils.logSlow5000(consumerTime, "ClearInvalidRunnable load() ");
 			LogUtils.CLEAR_INVALID.info("ClearInvalidRunnable end consumerTime=>{}", consumerTime);
 		}
 

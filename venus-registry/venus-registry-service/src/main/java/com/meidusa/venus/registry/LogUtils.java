@@ -20,15 +20,17 @@ public class LogUtils {
 	public static final Logger LOAD_SERVICE_DEF_LOG = LoggerFactory.getLogger("registry.loadservicedef");
 	
 	public static void logSlow(long consumerTime, String msg) {
-		if (consumerTime > 500) {
-			SLOW_LOG.info(msg + " consumerTime=>{}", consumerTime);
-		}
-		if (consumerTime > 1000) {
-			SLOW_LOG.info(msg + " consumerTime=>{}", consumerTime);
-		}
-		if (consumerTime > 3000) {
+		if (consumerTime > 200) {
 			SLOW_LOG.info(msg + " consumerTime=>{}", consumerTime);
 		}
 	}
+	
+	public static void logSlow5000(long consumerTime, String msg) {
+		if (consumerTime > 5000) {
+			SLOW_LOG.info(msg + " consumerTime=>{}", consumerTime);
+		}
+	}
+	
+	
 	
 }

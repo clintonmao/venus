@@ -287,14 +287,14 @@ public class OLdServiceMappingService {
 				moveServers();
 				long end = System.currentTimeMillis();
 				long consumerTime = end - start;
-				LogUtils.logSlow(consumerTime, "MoveDataRunnable  moveServers() ");
+				LogUtils.logSlow5000(consumerTime, "MoveDataRunnable  moveServers() ");
 				LogUtils.MOVE_DATA_LOG.info("moveServers end at=>{},consumerTime=>{}", end, consumerTime);
 				
 				start = System.currentTimeMillis();
 				moveServiceMappings();
 				end = System.currentTimeMillis();
 				consumerTime = end - start;
-				LogUtils.logSlow(consumerTime, "MoveDataRunnable  moveServiceMappings() ");
+				LogUtils.logSlow5000(consumerTime, "MoveDataRunnable  moveServiceMappings() ");
 				LogUtils.MOVE_DATA_LOG.info("moveServiceMappings end at=>{},consumerTime=>{}", end, consumerTime);
 				
 				start = System.currentTimeMillis();
@@ -302,7 +302,7 @@ public class OLdServiceMappingService {
 				end = System.currentTimeMillis();
 				consumerTime = end - start;
 				LogUtils.MOVE_DATA_LOG.info("moveServices end at=>{},consumerTime=>{}", end, consumerTime);
-				LogUtils.logSlow(consumerTime, "MoveDataRunnable  moveServices() ");
+				LogUtils.logSlow5000(consumerTime, "MoveDataRunnable  moveServices() ");
 				
 				LogUtils.MOVE_DATA_LOG.info("*********MoveDataRunnable end at=>{},consumerTime=>{}*************", end,(end-firstStart));
 			} catch (Exception e) {

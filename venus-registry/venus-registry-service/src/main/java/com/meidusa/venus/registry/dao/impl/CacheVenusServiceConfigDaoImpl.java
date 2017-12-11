@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.collections.CollectionUtils;
 
@@ -22,6 +23,8 @@ public class CacheVenusServiceConfigDaoImpl implements CacheServiceConfigDAO {
 	private VenusServiceConfigDAO venusServiceConfigDAO;
 
 	private Map<Integer, List<VenusServiceConfigDO>> cacheVenusServiceConfigMap = new HashMap<Integer, List<VenusServiceConfigDO>>();
+
+	private AtomicInteger cacheTotalCount = new AtomicInteger(0);
 
 	private volatile boolean loacCacheRunning = false;
 
@@ -53,6 +56,7 @@ public class CacheVenusServiceConfigDaoImpl implements CacheServiceConfigDAO {
 			cacheVenusServiceConfigMap.clear();
 		}
 		Integer totalCount = venusServiceConfigDAO.getServiceConfigCount();
+		cacheTotalCount.set(totalCount);
 		if (null != totalCount && totalCount > 0) {
 			int mod = totalCount % PAGE_SIZE_200;
 			int count = totalCount / PAGE_SIZE_200;
@@ -87,6 +91,10 @@ public class CacheVenusServiceConfigDaoImpl implements CacheServiceConfigDAO {
 		}
 	}
 
+	public boolean isLoacCacheRunning() {
+		return loacCacheRunning;
+	}
+
 	private class LoadCacheVenusServiceConfigRunnable implements Runnable {
 
 		@Override
@@ -106,6 +114,11 @@ public class CacheVenusServiceConfigDaoImpl implements CacheServiceConfigDAO {
 			}
 		}
 
+	}
+
+	@Override
+	public int getVenusServiceConfigCount() throws DAOException {
+		return cacheTotalCount.get();
 	}
 
 }
