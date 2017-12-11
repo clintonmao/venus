@@ -37,7 +37,6 @@ public class CacheVenusServiceConfigDaoImpl implements CacheServiceConfigDAO {
 	}
 
 	public void init() {
-		System.out.println("CacheVenusServiceConfigDaoImpl init()");
 		GlobalScheduler.getInstance().scheduleAtFixedRate(new LoadCacheVenusServiceConfigRunnable(), 1, 5,
 				TimeUnit.SECONDS);
 	}
@@ -103,7 +102,7 @@ public class CacheVenusServiceConfigDaoImpl implements CacheServiceConfigDAO {
 				long start = System.currentTimeMillis();
 				load();
 				long consumerTime = System.currentTimeMillis() - start;
-				LogUtils.logSlow(consumerTime, "LoadCacheVenusServiceConfigRunnable load() ");
+				LogUtils.logCacheSlow(consumerTime, "LoadCacheVenusServiceConfigRunnable load() ");
 				LogUtils.DEFAULT_LOG.info(
 						"LoadCacheVenusServiceConfigRunnable start=>{}, end=>{},consumerTime=>{},cacheVenusServiceConfigMap size=>{}",
 						start, System.currentTimeMillis(), consumerTime, cacheVenusServiceConfigMap.size());

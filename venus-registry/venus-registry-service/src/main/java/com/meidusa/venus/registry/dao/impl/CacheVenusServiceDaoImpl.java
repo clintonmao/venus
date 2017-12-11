@@ -179,7 +179,7 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 				load();
 				long end = System.currentTimeMillis();
 				long consumerTime = end - start;
-				LogUtils.logSlow(consumerTime, "LoadCacheServicesRunnable load() ");
+				LogUtils.logCacheSlow(consumerTime, "LoadCacheServicesRunnable load() ");
 				LogUtils.DEFAULT_LOG.info(
 						"LoadCacheServicesRunnable start=>{}, end=>{},consumerTime=>{},cacheServices size=>{},cacheServiceMap size=>{}",
 						start, end, consumerTime, cacheServices.size(), cacheServiceMap.size());

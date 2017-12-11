@@ -90,7 +90,7 @@ public class CacheVenusApplicationDaoImpl implements CacheApplicationDAO {
 				long start = System.currentTimeMillis();
 				load();
 				long consumerTime = System.currentTimeMillis() - start;
-				LogUtils.logSlow(consumerTime, "LoadCacheApplicationsRunnable load() ");
+				LogUtils.logCacheSlow(consumerTime, "LoadCacheApplicationsRunnable load() ");
 				LogUtils.DEFAULT_LOG.info(
 						"LoadCacheApplicationsRunnable start=>{}, end=>{},consumerTime=>{},cacheCodeApplicationMap size=>{}",
 						start, System.currentTimeMillis(), consumerTime, cacheCodeApplicationMap.size());

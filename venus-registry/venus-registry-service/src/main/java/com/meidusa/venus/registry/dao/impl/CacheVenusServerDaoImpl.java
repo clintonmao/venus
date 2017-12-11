@@ -117,7 +117,7 @@ public class CacheVenusServerDaoImpl implements CacheVenusServerDAO {
 				long start = System.currentTimeMillis();
 				load();
 				long consumerTime = System.currentTimeMillis() - start;
-				LogUtils.logSlow(consumerTime, "LoadCacheServersRunnable load() ");
+				LogUtils.logCacheSlow(consumerTime, "LoadCacheServersRunnable load() ");
 				LogUtils.DEFAULT_LOG.info("LoadCacheServersRunnable start=>{}, end=>{},consumerTime=>{},cacheServers size=>{}",
 						start, System.currentTimeMillis(), consumerTime, cacheServers.size());
 			} catch (Exception e) {
