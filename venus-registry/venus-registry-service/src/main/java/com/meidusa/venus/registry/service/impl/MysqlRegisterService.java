@@ -944,7 +944,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 							LogUtils.HEARTBEAT_LOG.info("UpdateHeartbeatTimeRunnable.poll startSize=>{},endSize=>{},update=>{},heartbeatDto=>{}", startSize, endSize,update,JSON.toJSONString(heartbeatDto));
 						}
 						if(start % sampleMod ==1){
-							LogUtils.HEARTBEAT_LOG.info("UpdateHeartbeatTimeRunnable.sampling startSize=>{},endSize=>{},update=>{},heartbeatDto=>{}", startSize, endSize,update,JSON.toJSONString(heartbeatDto));
+							LogUtils.HEARTBEAT_LOG.info("UpdateHeartbeatTimeRunnable.sampling startSize=>{},endSize=>{},update=>{},consumerTime=>{},heartbeatDto=>{}", startSize, endSize,update,consumerTime,JSON.toJSONString(heartbeatDto));
 						}
 					}
 				} catch (Throwable e) {
