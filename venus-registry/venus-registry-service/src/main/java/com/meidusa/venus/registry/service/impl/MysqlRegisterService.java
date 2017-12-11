@@ -70,11 +70,13 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 
 	private TransactionTemplate transactionTemplate;
 
-	private boolean needRun = true;
+	private volatile boolean needRun = true;
 
 	private ExecutorService es = Executors.newSingleThreadExecutor();
 
 	private static final int QUEUE_SIZE_10000 = 10000;
+	
+	private int sampleMod = 10;
 
 	public static final LinkedBlockingQueue<UpdateHeartBeatTimeDTO> HEARTBEAT_QUEUE = new LinkedBlockingQueue<UpdateHeartBeatTimeDTO>(
 			QUEUE_SIZE_10000);
@@ -422,7 +424,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		long end = System.currentTimeMillis();
 		long consumerTime = end - start;
 		LogUtils.logSlow(consumerTime, "findServiceDefs is slow,url=>"+JSON.toJSONString(url));
-		if(end % 10 ==1){
+		if(end % sampleMod ==1){
 		LogUtils.LOAD_SERVICE_DEF_LOG.info("findServiceDefs sampling consumerTime=>{},url=>{}", consumerTime,
 				JSON.toJSONString(url));
 		}
@@ -829,12 +831,13 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		this.connectUrl = connectUrl;
 	}
 	
-	
+	public int getSampleMod() {
+		return sampleMod;
+	}
 
-/*	public static void main(String args[]) {
-		Date d = new Date(1506498850000L);
-		System.out.println(d);
-	}*/
+	public void setSampleMod(int sampleMod) {
+		this.sampleMod = sampleMod;
+	}
 
 	public CacheApplicationDAO getCacheApplicationDAO() {
 		return this.cacheApplicationDAO;
@@ -940,7 +943,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 						if(!update){
 							LogUtils.HEARTBEAT_LOG.info("UpdateHeartbeatTimeRunnable.poll startSize=>{},endSize=>{},update=>{},heartbeatDto=>{}", startSize, endSize,update,JSON.toJSONString(heartbeatDto));
 						}
-						if(start % 10 ==1){
+						if(start % sampleMod ==1){
 							LogUtils.HEARTBEAT_LOG.info("UpdateHeartbeatTimeRunnable.sampling startSize=>{},endSize=>{},update=>{},heartbeatDto=>{}", startSize, endSize,update,JSON.toJSONString(heartbeatDto));
 						}
 					}

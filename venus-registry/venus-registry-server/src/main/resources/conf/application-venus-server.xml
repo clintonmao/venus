@@ -143,6 +143,7 @@
 		<property name="cacheApplicationDAO" ref="cacheApplicationDAO"></property>
 		<property name="cacheServiceConfigDAO" ref="cacheServiceConfigDAO"></property>
 		<property name="transactionTemplate" ref="transactionTemplate"></property>
+		<property name="sampleMod" value="${venus4.sample.mod}"></property>
 	</bean>
 
 	<!--清理服务-->
