@@ -9,7 +9,7 @@ public class LogUtils {
 	
 	public static final Logger SLOW_LOG = LoggerFactory.getLogger("registry.slow");
 	
-	public static final Logger CACHE_SLOW_LOG = LoggerFactory.getLogger("registry.cache.slow");
+	public static final Logger CACHE_LOG = LoggerFactory.getLogger("registry.cache");
 	
 	public static final Logger DEFAULT_LOG = LoggerFactory.getLogger("registry.default");
 	
@@ -29,7 +29,7 @@ public class LogUtils {
 	
 	public static void logCacheSlow(long consumerTime, String msg) {
 		if (consumerTime > 3000) {
-			CACHE_SLOW_LOG.info(msg + " consumerTime=>{}", consumerTime);
+			CACHE_LOG.info(msg + " consumerTime=>{}", consumerTime);
 		}
 	}
 	
