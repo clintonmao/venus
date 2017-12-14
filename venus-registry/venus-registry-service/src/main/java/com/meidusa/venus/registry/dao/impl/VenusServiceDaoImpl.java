@@ -22,6 +22,7 @@ import com.meidusa.venus.registry.dao.VenusServiceDAO;
 import com.meidusa.venus.registry.data.move.OldServiceDO;
 import com.meidusa.venus.registry.domain.RegisteConstant;
 import com.meidusa.venus.registry.domain.VenusServiceDO;
+import com.meidusa.venus.registry.util.RegistryUtil;
 
 public class VenusServiceDaoImpl implements VenusServiceDAO {
 
@@ -58,26 +59,26 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		StringBuilder columns = new StringBuilder();
 		StringBuilder values = new StringBuilder();
 		
-		if (isNotBlank(vs.getName())) {
+		if (RegistryUtil.isNotBlank(vs.getName())) {
 			columns.append("name,");
 			values.append("'" + vs.getName() + "',");
 		}
 		
-		if (isNotBlank(vs.getInterfaceName())) {
+		if (RegistryUtil.isNotBlank(vs.getInterfaceName())) {
 			columns.append("interface_name,");
 			values.append("'" + vs.getInterfaceName() + "',");
 		}
 		
-		if (isNotBlank(vs.getVersion())) {
+		if (RegistryUtil.isNotBlank(vs.getVersion())) {
 			columns.append("version,");
 			values.append("'" + vs.getVersion() + "',");
 		}
-		if (isNotBlank(vs.getVersionRange())) {
+		if (RegistryUtil.isNotBlank(vs.getVersionRange())) {
 			columns.append("version_range,");
 			values.append("'" + vs.getVersionRange() + "',");
 		}
 		
-		if (isNotBlank(vs.getDescription())) {
+		if (RegistryUtil.isNotBlank(vs.getDescription())) {
 			columns.append("description,");
 			values.append("'" + vs.getDescription() + "',");
 		}else{
@@ -93,7 +94,7 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		columns.append("registe_type,");
 		values.append(vs.getRegisteType() + ",");
 
-		if (StringUtils.isNotBlank(vs.getMethods()) && !"null".equals(vs.getMethods())) {
+		if (RegistryUtil.isNotBlank(vs.getMethods())) {
 			columns.append("methods,");
 			values.append("'" + vs.getMethods() + "',");
 		}
@@ -114,10 +115,6 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 
 	}
 
-	public static boolean isNotBlank(String param) {
-		return StringUtils.isNotBlank(param) && !"null".equals(param);
-	}
-	
 	public static void main(String args[]){
 		URL u = new URL();
 		u.setServiceName("orderService");
@@ -213,11 +210,11 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		String sql = SELECT_FIELDS + " from t_venus_service where version=? ";
 		List<Object> params = new ArrayList<Object>();
 		params.add(version);
-		if (isNotBlank(serviceName)) {
+		if (RegistryUtil.isNotBlank(serviceName)) {
 			sql = sql + " and name=? ";
 			params.add(serviceName);
 		}
-		if (isNotBlank(interfaceName)) {
+		if (RegistryUtil.isNotBlank(interfaceName)) {
 			sql = sql + " and interface_name=?";
 			params.add(interfaceName);
 		}
@@ -301,22 +298,22 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		StringBuilder whereSql = new StringBuilder();
 		List<Object> params = new ArrayList<Object>();
 		
-		if(isNotBlank(serviceName) && isNotBlank(interfaceName)){
+		if(RegistryUtil.isNotBlank(serviceName) && RegistryUtil.isNotBlank(interfaceName)){
 			whereSql.append(" (name=? or interface_name=?) ");
 			params.add(serviceName);
 			params.add(interfaceName);
 		}else{
-			if (isNotBlank(serviceName)) {
+			if (RegistryUtil.isNotBlank(serviceName)) {
 				whereSql.append(" and name=? ");
 				params.add(serviceName);
 			}
-			if (isNotBlank(interfaceName)) {
+			if (RegistryUtil.isNotBlank(interfaceName)) {
 				whereSql.append(" and interface_name=? ");
 				params.add(interfaceName);
 			}
 		}
 
-		if (isNotBlank(version)) {
+		if (RegistryUtil.isNotBlank(version)) {
 			whereSql.append(" and version=? ");
 			params.add(version);
 		}
