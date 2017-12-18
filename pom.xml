@@ -43,9 +43,7 @@
 		
 		<fastbson.version>1.3.4</fastbson.version>
 		<fastmark.version>1.0.3</fastmark.version>
-		<saike-commons.version>1.0.1.RELEASE</saike-commons.version>
-
-		
+		<saike-commons.version>1.0.2.RELEASE</saike-commons.version>
 	</properties>
 
 	<modules>
