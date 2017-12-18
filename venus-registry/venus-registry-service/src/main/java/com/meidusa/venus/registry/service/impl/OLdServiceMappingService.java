@@ -18,6 +18,7 @@ import com.meidusa.venus.registry.data.move.OldServiceDO;
 import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
 import com.meidusa.venus.registry.data.move.ServiceMappingDTO;
 import com.meidusa.venus.registry.service.RegisterService;
+import com.meidusa.venus.registry.util.RegistryUtil;
 
 public class OLdServiceMappingService {
 
@@ -63,9 +64,11 @@ public class OLdServiceMappingService {
 				if (CollectionUtils.isNotEmpty(oldServiceMappings)) {
 					mapId = oldServiceMappings.get(oldServiceMappings.size() - 1).getMapId();
 					for (OldServiceMappingDO oldServiceMappingDO : oldServiceMappings) {
-						registerService.addNewServiceMapping(oldServiceMappingDO.getHostName(),
-								oldServiceMappingDO.getPort(), oldServiceMappingDO.getServiceName(),
-								oldServiceMappingDO.getVersion(),oldServiceMappingDO.getDescription());
+						if(RegistryUtil.isNotBlank(oldServiceMappingDO.getHostName())){
+							registerService.addNewServiceMapping(oldServiceMappingDO.getHostName(),
+									oldServiceMappingDO.getPort(), oldServiceMappingDO.getServiceName(),
+									oldServiceMappingDO.getVersion(),oldServiceMappingDO.getDescription());
+						}
 					}
 				}
 			}

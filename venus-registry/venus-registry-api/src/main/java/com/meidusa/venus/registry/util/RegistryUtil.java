@@ -66,4 +66,8 @@ public class RegistryUtil {
 		return buf.toString();
 	}
 
+	public static boolean isNotBlank(String param) {
+		return StringUtils.isNotBlank(param) && !"null".equals(param);
+	}
+
 }

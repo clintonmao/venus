@@ -67,11 +67,11 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 //						if (!cacheServices.contains(vs)) {
 //							cacheServices.add(vs);
 //						}
-						if (isNotBlank(vs.getInterfaceName())) {
+						if (RegistryUtil.isNotBlank(vs.getInterfaceName())) {
 							String interfaceNamekey = RegistryUtil.getCacheKey(vs.getInterfaceName(), vs.getVersion());
 							putToMap(interfaceNamekey, vs);
 						}
-						if (isNotBlank(vs.getName())) {
+						if (RegistryUtil.isNotBlank(vs.getName())) {
 							String namekey = RegistryUtil.getCacheKey(vs.getName(), vs.getVersion());
 							putToMap(namekey, vs);
 						}
@@ -107,7 +107,7 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 			return new ArrayList<VenusServiceDO>();
 		}
 		
-		if (isNotBlank(serviceName) && isNotBlank(interfaceName)) {
+		if (RegistryUtil.isNotBlank(serviceName) && RegistryUtil.isNotBlank(interfaceName)) {
 			String key1=RegistryUtil.getCacheKey(interfaceName, version);
 			String key2=RegistryUtil.getCacheKey(serviceName, version);
 			List<VenusServiceDO> list = cacheServiceMap.get(key1);
@@ -164,10 +164,6 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 		}
 		return returnList;*/
 
-	}
-
-	public static boolean isNotBlank(String param) {
-		return StringUtils.isNotBlank(param) && !"null".equals(param);
 	}
 
 	private class LoadCacheServicesRunnable implements Runnable {

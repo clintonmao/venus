@@ -43,6 +43,7 @@ import com.meidusa.venus.registry.domain.VenusServiceDO;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.registry.domain.VenusServiceMappingDO;
 import com.meidusa.venus.registry.service.RegisterService;
+import com.meidusa.venus.registry.util.RegistryUtil;
 import com.meidusa.venus.support.VenusConstants;
 
 /**
@@ -77,6 +78,12 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	private static final int QUEUE_SIZE_10000 = 10000;
 	
 	private int sampleMod = 10;
+	
+	private String enableLocalIp="on";//是否开启本机ip优先
+	
+	private String enableFilterIp="off"; //是否开启开发机器ip过滤
+	
+	private String envIpRange;
 
 	public static final LinkedBlockingQueue<UpdateHeartBeatTimeDTO> HEARTBEAT_QUEUE = new LinkedBlockingQueue<UpdateHeartBeatTimeDTO>(
 			QUEUE_SIZE_10000);
@@ -386,7 +393,34 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 						}
 					}
 				}
-				if (CollectionUtils.isNotEmpty(hostPortSet)) {
+				// TODO 本机->sit->其他;如果本机server ip发现 同subcribe ip相同，只返回本机ip
+				Set<String> needHostPorts = new HashSet<String>();
+				String msg="before=>"+JSON.toJSONString(hostPortSet);
+				
+				if(getEnableLocalIp().equals("on")){// 是否开启本地优先
+					boolean filterIP = findLocalIP(hostPortSet,url.getHost());
+					if(filterIP){//找到的是本机的
+						needHostPorts = hostPortSet;
+					}
+				}
+				
+				if(getEnableFilterIp().equals("on")){// 是否开启同网络环境优先
+					if (CollectionUtils.isEmpty(needHostPorts)){
+						List<String> sitIpSegments = getSitIpSegments();//sit ip 网段列表
+						LogUtils.DEFAULT_LOG.info("sitIpSegments=>{}",JSON.toJSONString(sitIpSegments));
+						Set<String> afterFilterIps = filterSitIps(hostPortSet, sitIpSegments);//符合sit网段的IPs,从ucm读取网段，不在该网段中，排除 
+						if(CollectionUtils.isNotEmpty(afterFilterIps)) {
+							needHostPorts=afterFilterIps;
+							LogUtils.DEFAULT_LOG.info(msg+",afterFilterIps=>{}",JSON.toJSONString(afterFilterIps));
+						}
+					}
+				}
+				
+				if (CollectionUtils.isEmpty(needHostPorts)){
+					needHostPorts=hostPortSet;
+				}
+				
+				if (CollectionUtils.isNotEmpty(needHostPorts)) {
 					VenusApplicationDO application = cacheApplicationDAO.getApplication(service.getAppId());
 					if (null == application) {
 						application = venusApplicationDAO.getApplication(service.getAppId());
@@ -394,7 +428,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					VenusServiceDefinitionDO def = new VenusServiceDefinitionDO();
 					def.setInterfaceName(interfaceName);
 					def.setName(serviceName);
-					def.setIpAddress(hostPortSet);
+					def.setIpAddress(needHostPorts);
 					def.setActive(true);
 					def.setDescription(service.getDescription());
 					def.setVersion(service.getVersion());
@@ -429,6 +463,63 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				JSON.toJSONString(url));
 		}
 		return returnList;
+	}
+
+	private Set<String> filterSitIps(Set<String> hostPortSet, List<String> sitIpSegments) {
+		if (CollectionUtils.isNotEmpty(sitIpSegments)) {
+			Set<String> set = new HashSet<String>();
+			if (CollectionUtils.isNotEmpty(hostPortSet)) {
+				for (String ip : hostPortSet) {
+					for (String sitSegment : sitIpSegments) {
+						if (ip.startsWith(sitSegment)) {
+							set.add(ip);
+							break;
+						}
+					}
+				}
+			}
+			return set;
+		} else {
+			return hostPortSet;
+		}
+	}
+
+	private List<String> getSitIpSegments() {
+		List<String> sitIpSegments = new ArrayList<String>();
+		if (RegistryUtil.isNotBlank(this.getEnvIpRange())) {
+			String[] split = this.getEnvIpRange().split(",");
+			int len = split.length;
+			if (len > 0) {
+				for (int i = 0; i < len; i++) {
+					String ip = split[i];
+					sitIpSegments.add(ip);
+				}
+			}
+		}
+		return sitIpSegments;
+	}
+	
+	public static boolean findLocalIP(Set<String> hostPortSet, String localIp) {
+		boolean hasFindLocalIp = false;
+		if (RegistryUtil.isNotBlank(localIp)) {
+			for (Iterator<String> iterator = hostPortSet.iterator(); iterator.hasNext();) {
+				String str = iterator.next();
+				if (str.startsWith(localIp)) {
+					hasFindLocalIp = true;
+					break;
+				}
+			}
+
+			if (hasFindLocalIp) {
+				for (Iterator<String> iterator = hostPortSet.iterator(); iterator.hasNext();) {
+					String str = iterator.next();
+					if (!str.startsWith(localIp)) {
+						iterator.remove();
+					}
+				}
+			}
+		}
+		return hasFindLocalIp;
 	}
 
 	public void addNewServiceMapping(String hostName, int port, String serviceName, String version,
@@ -845,6 +936,30 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 
 	public void setCacheApplicationDAO(CacheApplicationDAO cacheApplicationDAO) {
 		this.cacheApplicationDAO = cacheApplicationDAO;
+	}
+
+	public String getEnableLocalIp() {
+		return enableLocalIp;
+	}
+
+	public void setEnableLocalIp(String enableLocalIp) {
+		this.enableLocalIp = enableLocalIp;
+	}
+
+	public String getEnableFilterIp() {
+		return enableFilterIp;
+	}
+
+	public void setEnableFilterIp(String enableFilterIp) {
+		this.enableFilterIp = enableFilterIp;
+	}
+	
+	public String getEnvIpRange() {
+		return envIpRange;
+	}
+
+	public void setEnvIpRange(String envIpRange) {
+		this.envIpRange = envIpRange;
 	}
 
 	public void updateServiceAppIds() {
