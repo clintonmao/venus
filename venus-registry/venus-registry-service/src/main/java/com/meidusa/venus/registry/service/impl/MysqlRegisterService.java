@@ -395,6 +395,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				}
 				// TODO 本机->sit->其他;如果本机server ip发现 同subcribe ip相同，只返回本机ip
 				Set<String> needHostPorts = new HashSet<String>();
+				String msg="before=>"+JSON.toJSONString(hostPortSet);
 				
 				if(getEnableLocalIp().equals("on")){// 是否开启本地优先
 					boolean filterIP = findLocalIP(hostPortSet,url.getHost());
@@ -410,7 +411,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 						Set<String> afterFilterIps = filterSitIps(hostPortSet, sitIpSegments);//符合sit网段的IPs,从ucm读取网段，不在该网段中，排除 
 						if(CollectionUtils.isNotEmpty(afterFilterIps)) {
 							needHostPorts=afterFilterIps;
-							LogUtils.DEFAULT_LOG.info("afterFilterIps=>{}",JSON.toJSONString(afterFilterIps));
+							LogUtils.DEFAULT_LOG.info(msg+",afterFilterIps=>{}",JSON.toJSONString(afterFilterIps));
 						}
 					}
 				}
