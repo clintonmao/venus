@@ -1,7 +1,7 @@
 package com.meidusa.venus.monitor;
 
 import com.athena.service.api.AthenaDataService;
-import com.meidusa.venus.Application;
+import com.meidusa.venus.VenusApplication;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.ServiceFactoryBean;
 import com.meidusa.venus.ServiceFactoryExtra;
@@ -40,19 +40,19 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
-    private Application application;
+    private ApplicationContext applicationContext;
 
     /**
      * 注册中心地址，多个地址以;分隔
      */
     private String address;
 
+    private VenusApplication venusApplication;
+
     /**
      * 注册中心工厂
      */
     private VenusRegistryFactory venusRegistryFactory;
-
-    private ApplicationContext applicationContext;
 
     /**
      * athena配置信息初始化
@@ -119,8 +119,8 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      * 校验
      */
     void valid(){
-        if(application == null){
-            throw new VenusConfigException("application not config.");
+        if(venusApplication == null){
+            throw new VenusConfigException("venusApplication not config.");
         }
         if(StringUtils.isEmpty(address) && venusRegistryFactory == null){
             throw new VenusConfigException("address and venusRegistryFactory not allow empty.");
@@ -235,7 +235,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         this.clientConfigManagerIniter = clientConfigManagerRegister;
 
         //初始化配置信息实例
-        String appName = application.getName();
+        String appName = venusApplication.getName();
         if(StringUtils.isEmpty(appName)){
             throw new VenusConfigException("application not config.");
         }
@@ -374,12 +374,12 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         this.enableVenusReport = enableVenusReport;
     }
 
-    public Application getApplication() {
-        return application;
+    public VenusApplication getVenusApplication() {
+        return venusApplication;
     }
 
-    public void setApplication(Application application) {
-        this.application = application;
+    public void setVenusApplication(VenusApplication venusApplication) {
+        this.venusApplication = venusApplication;
     }
 
     public VenusRegistryFactory getVenusRegistryFactory() {

@@ -6,7 +6,7 @@ import com.meidusa.toolkit.net.ConnectionManager;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.authenticate.server.AuthenticateProvider;
 import com.meidusa.toolkit.net.factory.FrontendConnectionFactory;
-import com.meidusa.venus.Application;
+import com.meidusa.venus.VenusApplication;
 import com.meidusa.venus.Protocol;
 import com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider;
 import com.meidusa.venus.backend.handler.VenusServerConnectionObserver;
@@ -15,9 +15,7 @@ import com.meidusa.venus.backend.services.ServiceManager;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.io.network.VenusBackendFrontendConnectionFactory;
 import com.meidusa.venus.support.VenusConstants;
-import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.VenusLoggerFactory;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -51,7 +49,7 @@ public class VenusProtocol implements Protocol,InitializingBean{
     private int coreThreads = VenusConstants.VENUS_PROTOCOL_DEFAULT_CORE_THREADS;
 
     public VenusProtocol(){
-        Application.addProtocol(this);
+        VenusApplication.addProtocol(this);
     }
 
     @Override

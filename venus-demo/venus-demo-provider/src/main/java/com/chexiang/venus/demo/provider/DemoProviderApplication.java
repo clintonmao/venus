@@ -17,7 +17,7 @@ import org.springframework.context.annotation.ImportResource;
                 DataSourceAutoConfiguration.class,
                 HibernateJpaAutoConfiguration.class
         })
-@ImportResource("classpath:conf/applicationContext-provider.xml")
+@ImportResource("classpath:conf/applicationContext-provider-ucm.xml")
 public class DemoProviderApplication {
 
     public static final Logger logger = LoggerFactory.getLogger(DemoProviderApplication.class);

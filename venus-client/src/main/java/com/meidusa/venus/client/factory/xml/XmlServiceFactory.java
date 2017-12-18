@@ -17,9 +17,8 @@ package com.meidusa.venus.client.factory.xml;
 import com.meidusa.fastjson.JSON;
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
-import com.meidusa.toolkit.common.bean.config.ConfigUtil;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
-import com.meidusa.venus.Application;
+import com.meidusa.venus.VenusApplication;
 import com.meidusa.venus.ServiceFactory;
 import com.meidusa.venus.ServiceFactoryBean;
 import com.meidusa.venus.annotations.Endpoint;
@@ -98,7 +97,7 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
     private BeanContext beanContext;
 
     //应用配置
-    private Application application;
+    private VenusApplication venusApplication;
 
     //注册中心工厂
     private VenusRegistryFactory venusRegistryFactory;
@@ -107,7 +106,7 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
     private VenusMonitorFactory venusMonitorFactory;
 
     public XmlServiceFactory(){
-        Application.addServiceFactory(this);
+        VenusApplication.addServiceFactory(this);
     }
 
     @SuppressWarnings("unchecked")
@@ -159,8 +158,8 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
      * 校验
      */
     void valid(){
-        if(application == null){
-            throw new VenusConfigException("application not config.");
+        if(venusApplication == null){
+            throw new VenusConfigException("venusApplication not config.");
         }
         if(venusRegistryFactory == null || venusRegistryFactory.getRegister() == null){
             if(logger.isWarnEnabled()){
@@ -332,7 +331,7 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
         if(StringUtils.isNotEmpty(referenceConfig.getRemote()) || StringUtils.isNotEmpty(referenceConfig.getIpAddressList())){
             return;
         }
-        String appName = application.getName();
+        String appName = venusApplication.getName();
         String serviceInterfaceName = "null";
         if(referenceConfig.getType() != null){
             serviceInterfaceName = referenceConfig.getClzType().getName();
@@ -506,12 +505,12 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
         this.venusRegistryFactory = venusRegistryFactory;
     }
 
-    public Application getApplication() {
-        return application;
+    public VenusApplication getVenusApplication() {
+        return venusApplication;
     }
 
-    public void setApplication(Application application) {
-        this.application = application;
+    public void setVenusApplication(VenusApplication venusApplication) {
+        this.venusApplication = venusApplication;
     }
 
     public VenusMonitorFactory getVenusMonitorFactory() {

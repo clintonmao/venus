@@ -12,7 +12,7 @@ public class RandomBuildUtil {
         if(!isBuildDataModel){
             return;
         }
-        if(ThreadLocalRandom.current().nextInt(100) > 101){//构造异常操作
+        if(ThreadLocalRandom.current().nextInt(100) > 90){//构造异常操作
             if("A".equals("A")){
                 throw new IllegalArgumentException("param invalid.");
             }

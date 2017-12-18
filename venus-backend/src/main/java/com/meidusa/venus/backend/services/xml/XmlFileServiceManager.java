@@ -7,7 +7,7 @@ import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.toolkit.common.util.StringUtil;
-import com.meidusa.venus.Application;
+import com.meidusa.venus.VenusApplication;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.annotations.PerformanceLevel;
 import com.meidusa.venus.backend.VenusProtocol;
@@ -33,7 +33,6 @@ import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.BeansException;
@@ -67,7 +66,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     /**
      * 应用配置
      */
-    private Application application;
+    private VenusApplication venusApplication;
 
     /**
      * venus协议
@@ -93,7 +92,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     }
 
     public XmlFileServiceManager(){
-        Application.addServiceManager(this);
+        VenusApplication.addServiceManager(this);
     }
 
     @Override
@@ -109,8 +108,8 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * 校验
      */
     void valid(){
-        if(application == null){
-            throw new VenusConfigException("application not config.");
+        if(venusApplication == null){
+            throw new VenusConfigException("venusApplication not config.");
         }
         if(venusProtocol == null){
             throw new VenusConfigException("venusProtocol not config.");
@@ -342,7 +341,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @return
      */
     URL parseRegisterUrl(ExportService serviceConfig, Service service){
-        String appName = application.getName();
+        String appName = venusApplication.getName();
         //String protocol = "venus";
         String serviceInterfaceName = serviceConfig.getInterfaceType().getName();
         String serviceName = service.getName();
@@ -556,12 +555,12 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         this.venusRegistryFactory = venusRegistryFactory;
     }
 
-    public Application getApplication() {
-        return application;
+    public VenusApplication getVenusApplication() {
+        return venusApplication;
     }
 
-    public void setApplication(Application application) {
-        this.application = application;
+    public void setVenusApplication(VenusApplication venusApplication) {
+        this.venusApplication = venusApplication;
     }
 
     public VenusMonitorFactory getVenusMonitorFactory() {

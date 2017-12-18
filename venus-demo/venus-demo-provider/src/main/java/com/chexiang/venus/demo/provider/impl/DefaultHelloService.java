@@ -4,14 +4,12 @@ import com.chexiang.venus.demo.provider.EchoService;
 import com.chexiang.venus.demo.provider.HelloService;
 import com.chexiang.venus.demo.provider.model.Hello;
 import com.chexiang.venus.demo.provider.model.HelloEx;
-import com.meidusa.venus.Application;
+import com.meidusa.venus.VenusApplication;
 import com.meidusa.venus.backend.VenusProtocol;
 import com.meidusa.venus.notify.InvocationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 /**
  * Created by Zhangzhihua on 2017/8/15.
@@ -20,7 +18,7 @@ public class DefaultHelloService implements HelloService {
 
     private static Logger logger = LoggerFactory.getLogger(DefaultHelloService.class);
 
-    Application application;
+    VenusApplication venusApplication;
 
     VenusProtocol venusProtocol;
 
@@ -69,12 +67,12 @@ public class DefaultHelloService implements HelloService {
         return o;
     }
 
-    public Application getApplication() {
-        return application;
+    public VenusApplication getVenusApplication() {
+        return venusApplication;
     }
 
-    public void setApplication(Application application) {
-        this.application = application;
+    public void setVenusApplication(VenusApplication venusApplication) {
+        this.venusApplication = venusApplication;
     }
 
     public VenusProtocol getVenusProtocol() {

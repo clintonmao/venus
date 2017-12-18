@@ -229,7 +229,6 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
      * @return
      */
     void parseEndpointAndRequest(ServerInvocation invocation){
-        byte[] message = invocation.getMessage();
         byte serializeType = invocation.getSerializeType();
         ServiceAPIPacket apiPacket = invocation.getApiPacket();
         ServicePacketBuffer packetBuffer = invocation.getPacketBuffer();

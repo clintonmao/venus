@@ -83,7 +83,7 @@ public class ClientInvokerProxy implements Invoker {
     @Override
     public void init() throws RpcException {
         synchronized (this){
-            boolean isEnableFilter = Application.getInstance().isEnableFilter();
+            boolean isEnableFilter = VenusApplication.getInstance().isEnableFilter();
             if(isEnableFilter){
                 initFilters();
             }

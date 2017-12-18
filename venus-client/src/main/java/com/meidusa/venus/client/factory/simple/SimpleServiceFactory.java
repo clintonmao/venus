@@ -1,15 +1,13 @@
 package com.meidusa.venus.client.factory.simple;
 
-import com.meidusa.toolkit.common.bean.config.ConfigUtil;
 import com.meidusa.toolkit.common.util.Tuple;
-import com.meidusa.venus.Application;
+import com.meidusa.venus.VenusApplication;
 import com.meidusa.venus.ServiceFactoryExtra;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.factory.AbstractServiceFactory;
 import com.meidusa.venus.client.factory.InvokerInvocationHandler;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
-import com.meidusa.venus.client.factory.xml.config.ReferenceService;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
@@ -23,7 +21,6 @@ import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -202,7 +199,7 @@ public class SimpleServiceFactory extends AbstractServiceFactory implements Serv
      */
     <T> void subscribleService(Class<T> t){
         Service service = AnnotationUtil.getAnnotation(t.getAnnotations(), Service.class);
-        String appName = Application.getInstance().getName();
+        String appName = VenusApplication.getInstance().getName();
         String serviceInterfaceName = t.getName();
         String serivceName = service.name();
         String consumerHost = NetUtil.getLocalIp();

@@ -13,6 +13,7 @@
 	<context:component-scan base-package="com.chexiang.*" />
 	<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" />
 
+
 	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="locations">
 			<list>
@@ -22,8 +23,9 @@
 		</property>
 	</bean>
 
+
 	<!--应用配置-->
-	<bean id="application" class="com.meidusa.venus.Application">
+	<bean id="venusApplication" class="com.meidusa.venus.VenusApplication">
 		<property name="name" value="${venus.application.name}"/>
 	</bean>
 

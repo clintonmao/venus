@@ -28,6 +28,10 @@
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-remoting</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.saike.commons</groupId>
+            <artifactId>saike-commons</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

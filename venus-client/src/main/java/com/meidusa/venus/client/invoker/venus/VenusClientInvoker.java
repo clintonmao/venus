@@ -30,9 +30,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -80,7 +78,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     public VenusClientInvoker(){
         synchronized (this){
             //添加invoker资源
-            Application.addInvoker(this);
+            VenusApplication.addInvoker(this);
 
             //构造连接
             if(connector == null && connectionManagers == null){

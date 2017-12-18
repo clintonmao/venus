@@ -5,10 +5,10 @@ import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.exception.XmlVenusExceptionFactory;
 import com.meidusa.venus.io.serializer.SerializerFactory;
-import com.meidusa.venus.support.MonitorResource;
 import com.meidusa.venus.support.MonitorResourceFacade;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.VenusLoggerFactory;
+import com.saike.commons.Application;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -23,7 +23,7 @@ import java.util.List;
  * Venus应用定义
  * Created by Zhangzhihua on 2017/9/15.
  */
-public class Application implements InitializingBean,DisposableBean {
+public class VenusApplication implements InitializingBean,DisposableBean {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -32,10 +32,12 @@ public class Application implements InitializingBean,DisposableBean {
     //应用名称
     private String name;
 
+    private Application application;
+
     //是否开启filter，默认开启
     private boolean enableFilter = true;
 
-    private static Application application;
+    private static VenusApplication venusApplication;
 
     //是否已释放
     private static boolean isDestroyed = false;
@@ -54,16 +56,16 @@ public class Application implements InitializingBean,DisposableBean {
     //服务管理列表[backend]
     private static List<ServiceManager> serviceManagerList = new ArrayList<ServiceManager>();
 
-    private Application(){
-        application = this;
+    private VenusApplication(){
+        venusApplication = this;
         Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownListener()));
     }
 
-    public static Application getInstance(){
-        if(application == null){
-            throw new VenusConfigException("application not inited.");
+    public static VenusApplication getInstance(){
+        if(venusApplication == null){
+            throw new VenusConfigException("venusApplication not inited.");
         }
-        return application;
+        return venusApplication;
     }
 
     @Override
@@ -81,7 +83,9 @@ public class Application implements InitializingBean,DisposableBean {
     void valid(){
         //校验名称
         if(StringUtils.isEmpty(name)){
-            throw new VenusConfigException("application name not allow empty.");
+            if(application == null || StringUtils.isEmpty(application.getAppName())){
+                throw new VenusConfigException("venusApplication name and application not allow empty.");
+            }
         }
 
         //验证jar包有效性
@@ -131,6 +135,9 @@ public class Application implements InitializingBean,DisposableBean {
      * 初始化
      */
     void init(){
+        if(StringUtils.isEmpty(name)){
+            name = application.getAppName();
+        }
         VenusContext.getInstance().setApplication(name);
 
         //初始化序列化配置
@@ -147,7 +154,7 @@ public class Application implements InitializingBean,DisposableBean {
         if(logger.isWarnEnabled()){
             logger.warn("spring container destroy,release resource.");
         }
-        synchronized (Application.class){
+        synchronized (VenusApplication.class){
             if(!isDestroyed){
                 doDestroy();
                 isDestroyed = true;
@@ -165,14 +172,14 @@ public class Application implements InitializingBean,DisposableBean {
         @Override
         public void run() {
             if(logger.isWarnEnabled()){
-                logger.warn("application exit,release resource.");
+                logger.warn("venusApplication exit,release resource.");
             }
-            synchronized (Application.class){
+            synchronized (VenusApplication.class){
                 if(!isDestroyed){
                     doDestroy();
                     isDestroyed = true;
                 }else{
-                    logger.info("application already released.");
+                    logger.info("venusApplication already released.");
                 }
             }
         }
@@ -323,4 +330,11 @@ public class Application implements InitializingBean,DisposableBean {
         protocolList.add(protocol);
     }
 
+    public Application getApplication() {
+        return application;
+    }
+
+    public void setApplication(Application application) {
+        this.application = application;
+    }
 }
