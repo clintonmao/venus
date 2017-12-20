@@ -27,23 +27,26 @@
 	<!--业务bean，也可通过注解声明-->
 	<bean id="helloService" class="com.chexiang.venus.demo.provider.impl.DefaultHelloService"/>
 
+	<!--saike应用配置-->
 	<bean id="application" class="com.saike.commons.Application">
+		<!--appName 可选，默认从CMDB获取，若不配置则默认使用UCM从CMDB获取的应用名称-->
+		<!--
 		<property name="appName" value="${venus.application.name}"/>
+		-->
 	</bean>
 
-	<!--应用配置-->
+	<!--venus应用配置-->
 	<bean id="venusApplication" class="com.meidusa.venus.VenusApplication">
-		<property name="name" value="${venus.application.name}"/>
 		<property name="application" ref="application"/>
 	</bean>
 
 	<!--注册配置-->
 	<bean id="venusRegistryFactory" class="com.meidusa.venus.registry.VenusRegistryFactory">
+		<property name="address" value="${venus.register.address}"/>
 	</bean>
 
 	<!--监控配置-->
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
-		<property name="address" value="${venus.monitor.address}"/>
 	</bean>
 
 	<!--venus协议配置-->
