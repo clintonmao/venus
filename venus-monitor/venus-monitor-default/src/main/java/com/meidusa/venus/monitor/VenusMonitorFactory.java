@@ -115,8 +115,9 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
             return;
         }
 
+        //校验
         valid();
-
+        //初始化
         init();
     }
 
@@ -136,11 +137,15 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      * 初始化
      */
     void init(){
-        //初始化venus上报依赖
-        initVenusReportDepen();
+        if(enableVenusReport){
+            //初始化venus上报依赖
+            initVenusReportDepen();
+        }
 
-        //初始化athena上报依赖
-        initAthenaReportDepen();
+        if(enableAthenaReport){
+            //初始化athena上报依赖
+            initAthenaReportDepen();
+        }
     }
 
     /**
@@ -253,16 +258,15 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        //若都没开启，则跳过
-        if(!enableAthenaReport && !enableVenusReport){
-            return;
+        if(enableVenusReport){
+            //注册venus上报依赖beans
+            registeVenusReportBeans(beanFactory);
         }
 
-        //注册athena上报依赖beans
-        registeVenusReportBeans(beanFactory);
-
-        //注册venus上报依赖beans
-        registeAthenaReportBeans(beanFactory);
+        if(enableAthenaReport){
+            //注册athena上报依赖beans
+            registeAthenaReportBeans(beanFactory);
+        }
     }
 
     /**
