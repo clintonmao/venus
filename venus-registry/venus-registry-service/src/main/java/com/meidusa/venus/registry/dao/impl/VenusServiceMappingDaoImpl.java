@@ -14,22 +14,15 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 
 import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.dao.VenusServiceMappingDAO;
-import com.meidusa.venus.registry.data.move.OldServiceMappingDO;
 import com.meidusa.venus.registry.data.move.ServiceMappingDTO;
 import com.meidusa.venus.registry.domain.RegisteConstant;
-import com.meidusa.venus.registry.domain.VenusServiceDO;
 import com.meidusa.venus.registry.domain.VenusServiceMappingDO;
-import com.meidusa.venus.registry.service.impl.OLdServiceMappingService;
-import com.meidusa.venus.support.VenusConstants;
 
 public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 
 	private static final String SELECT_FIELDS_TABLE = "select id, server_id, service_id, version, active, sync,role,provider_app_id,consumer_app_id,is_delete,create_time, update_time,registe_time,heartbeat_time from t_venus_service_mapping ";
 
 	private JdbcTemplate jdbcTemplate;
-	
-	private static Logger logger = LoggerFactory.getLogger(VenusServiceMappingDaoImpl.class);
-
 
 	public VenusServiceMappingDaoImpl(JdbcTemplate jdbcTemplate) {
 		super();

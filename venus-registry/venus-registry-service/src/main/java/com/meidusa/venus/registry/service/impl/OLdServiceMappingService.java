@@ -234,11 +234,6 @@ public class OLdServiceMappingService {
 						registerService.addServer(oldServerDO.getHostName(), oldServerDO.getPort());
 					}
 				}
-				/*try {
-					Thread.sleep(200);
-				} catch (InterruptedException e) {
-					
-				}*/
 			}
 		}
 	}

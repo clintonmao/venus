@@ -16,7 +16,6 @@ import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.LogUtils;
 import com.meidusa.venus.registry.dao.CacheVenusServiceDAO;
 import com.meidusa.venus.registry.dao.VenusServiceDAO;
-import com.meidusa.venus.registry.domain.VenusServerDO;
 import com.meidusa.venus.registry.domain.VenusServiceDO;
 import com.meidusa.venus.registry.util.RegistryUtil;
 

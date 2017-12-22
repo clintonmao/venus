@@ -11,7 +11,6 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 
 import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.dao.VenusServiceConfigDAO;
-import com.meidusa.venus.registry.domain.VenusApplicationDO;
 import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
 
 public class VenusServiceConfigDaoImpl implements VenusServiceConfigDAO {

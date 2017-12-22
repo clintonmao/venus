@@ -16,7 +16,6 @@ import org.springframework.jdbc.support.KeyHolder;
 
 import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.dao.VenusServerDAO;
-import com.meidusa.venus.registry.data.move.OldServerDO;
 import com.meidusa.venus.registry.domain.VenusServerDO;
 
 public class VenusServerDaoImpl implements VenusServerDAO {

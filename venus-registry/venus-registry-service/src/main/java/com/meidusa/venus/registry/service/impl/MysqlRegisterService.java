@@ -393,7 +393,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 						}
 					}
 				}
-				// TODO 本机->sit->其他;如果本机server ip发现 同subcribe ip相同，只返回本机ip
+				// 本机->sit->其他;如果本机server ip发现 同subcribe ip相同，只返回本机ip
 				Set<String> needHostPorts = new HashSet<String>();
 				String msg="before=>"+JSON.toJSONString(hostPortSet);
 				
@@ -569,10 +569,6 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				venusServiceMappingDO.setVersion(version);
 				venusServiceMappingDO.setIsDelete(false);
 				venusServiceMappingDAO.addServiceMapping(venusServiceMappingDO);
-				// String versionRange=version;
-				// venusServiceDAO.updateServiceVersionRange(service.getId(),
-				// versionRange);
-
 			}
 		} else {
 			// logger.error("exits=>"+sb.toString());
@@ -1067,7 +1063,6 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				}
 			}
 		}
-		// TODO
 		/* heartbeat loaddef 只打外部请求的数据，错误和大于200毫秒的全打 */
 		/* 正常的采样打 10个打一个  清理程序 和同步数据(按5000毫秒，别的按200毫秒) slow时间需更改 */
 
