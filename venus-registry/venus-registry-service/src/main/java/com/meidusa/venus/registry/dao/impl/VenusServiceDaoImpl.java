@@ -19,7 +19,6 @@ import org.springframework.jdbc.support.KeyHolder;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.dao.VenusServiceDAO;
-import com.meidusa.venus.registry.data.move.OldServiceDO;
 import com.meidusa.venus.registry.domain.RegisteConstant;
 import com.meidusa.venus.registry.domain.VenusServiceDO;
 import com.meidusa.venus.registry.util.RegistryUtil;
@@ -37,11 +36,6 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 
 	@Override
 	public int addService(VenusServiceDO venusServiceDO) throws DAOException {
-//		final String sql = "insert into t_venus_service (name,interface_name,version,description,app_id,registe_type,methods,is_delete,create_time,update_time) values ('"
-//		+ vs.getName() + "','" + vs.getInterfaceName() + "','"
-//		+ vs.getVersion() + "','" + vs.getDescription() + "',"
-//		+ vs.getAppId() + "," + vs.getRegisteType() + ",'" + vs.getMethods()
-//		+ "'," + vs.getIsDelete() + ",now(),now())";
 		final String insertSql=genInsertSql(venusServiceDO);
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		int autoIncId = 0;

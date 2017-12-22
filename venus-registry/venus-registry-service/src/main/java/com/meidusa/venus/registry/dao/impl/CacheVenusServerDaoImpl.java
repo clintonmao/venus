@@ -47,15 +47,19 @@ public class CacheVenusServerDaoImpl implements CacheVenusServerDAO {
 		if (loacCacheRunning) {// 缓存加载过程中，直接返回空，让从数据库中查询;
 			return null;
 		}
-		/*for (Iterator<VenusServerDO> iterator = cacheServers.iterator(); iterator.hasNext();) {
+		return cacheServerMap.get(getKey(host, port));
+	}
+
+	private VenusServerDO getOneServer(String host, int port) {
+		for (Iterator<VenusServerDO> iterator = cacheServers.iterator(); iterator.hasNext();) {
 			VenusServerDO server = iterator.next();
 			if (server.getHostname().equals(host)) {
 				if (server.getPort().intValue() == port) {
 					return server;
 				}
 			}
-		}*/
-		return cacheServerMap.get(getKey(host, port));
+		}
+		return null;
 	}
 
 	private String getKey(String host, int port) {
