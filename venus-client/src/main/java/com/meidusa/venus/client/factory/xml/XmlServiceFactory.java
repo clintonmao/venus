@@ -420,7 +420,7 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
     }
 
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        Map<String,ConstructorArgumentValues> refBeanMap = new HashMap<String, ConstructorArgumentValues>();
+        Map<String,String> refBeanMap = new HashMap<String, String>();
         // register to resolvable dependency container
         for (Map.Entry<Class<?>, ServiceDefinedBean> entry : serviceMap.entrySet()) {
             final Object bean = entry.getValue().getService();
@@ -445,12 +445,14 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
                 beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
                 reg.registerBeanDefinition(beanName, beanDefinition);
 
-                refBeanMap.put(beanName,beanDefinition.getConstructorArgumentValues());
+                refBeanMap.put(beanName,entry.getValue().getClazz().getName());
             }
         }
 
-        if(logger.isInfoEnabled()){
-            logger.info("##########ref beans##############:\n{}.",JSON.toJSONString(refBeanMap,true));
+        if(isPrintRefBean()){
+            if(logger.isInfoEnabled()){
+                logger.info("##########ref beans##############:\n{}.",JSON.toJSONString(refBeanMap,true));
+            }
         }
     }
 
@@ -520,4 +522,9 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
     public void setVenusMonitorFactory(VenusMonitorFactory venusMonitorFactory) {
         this.venusMonitorFactory = venusMonitorFactory;
     }
+
+    public boolean isPrintRefBean(){
+        return true;
+    }
+
 }

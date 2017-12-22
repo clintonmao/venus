@@ -196,7 +196,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      */
     private VenusServerConfig parseServerConfig() {
         //所有导出的beans
-        Map<String,Object> exportBeanMap = new HashMap<String,Object>();
+        Map<String,String> exportBeanMap = new HashMap<String,String>();
 
         VenusServerConfig allVenusServerConfig = new VenusServerConfig();
         List<ExportService> serviceConfigList = new ArrayList<ExportService>();
