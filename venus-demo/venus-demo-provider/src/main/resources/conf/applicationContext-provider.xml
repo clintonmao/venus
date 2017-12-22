@@ -47,6 +47,8 @@
 
 	<!--监控配置-->
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
+		<property name="enableAthenaReport" value="false"/>
+		<property name="enableVenusReport" value="false"/>
 	</bean>
 
 	<!--venus协议配置-->

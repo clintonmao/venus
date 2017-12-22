@@ -43,7 +43,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     private ApplicationContext applicationContext;
 
     /**
-     * 注册中心地址，多个地址以;分隔
+     * 监控心地址，多个地址以;分隔
      */
     private String address;
 
@@ -110,6 +110,11 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        //若都没开启，则跳过
+        if(!enableAthenaReport && !enableVenusReport){
+            return;
+        }
+
         valid();
 
         init();
@@ -248,6 +253,11 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        //若都没开启，则跳过
+        if(!enableAthenaReport && !enableVenusReport){
+            return;
+        }
+
         //注册athena上报依赖beans
         registeVenusReportBeans(beanFactory);
 
