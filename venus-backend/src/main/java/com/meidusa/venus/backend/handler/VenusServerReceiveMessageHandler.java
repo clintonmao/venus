@@ -205,6 +205,8 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
         invocation.setProviderApp(providerApp);
         invocation.setProviderIp(providerIp);
         invocation.setConsumerIp(consumerIp);
+        //设置默认响应类型
+        invocation.setResultType(EndpointInvocation.ResultType.RESPONSE);
 
         return invocation;
     }
