@@ -8,7 +8,7 @@
     <!-- 应用名称：和统一配置中的项目代码保持一致（小写） -->
     <property name="APP_NAME" value="registry-service"/>
     <!--日志文件保留天数-->
-    <property name="LOG_MAX_HISTORY" value="30"/>
+    <property name="LOG_MAX_HISTORY" value="7"/>
     <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径-->
     <!--应用日志文件保存路径-->
     <property name="LOG_APP_HOME" value="${LOG_HOME}/${APP_NAME}/app"/>
