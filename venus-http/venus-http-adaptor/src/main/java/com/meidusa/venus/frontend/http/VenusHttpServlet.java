@@ -10,7 +10,7 @@ import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.backend.serializer.MediaTypes;
 import com.meidusa.venus.backend.services.RequestInfo;
-import com.meidusa.venus.backend.support.Response;
+import com.meidusa.venus.Response;
 import com.meidusa.venus.backend.support.UtilTimerStack;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.ExceptionLevel;

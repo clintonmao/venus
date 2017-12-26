@@ -16,7 +16,9 @@ package com.meidusa.venus.client.invoker.venus;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.venus.ClientInvocation;
 import com.meidusa.venus.Result;
+import com.meidusa.venus.exception.DefaultVenusException;
 import com.meidusa.venus.exception.RpcException;
+import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.exception.XmlVenusExceptionFactory;
 import com.meidusa.venus.io.handler.VenusClientMessageHandler;
 import com.meidusa.venus.io.network.VenusBackendConnection;
@@ -26,16 +28,13 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceResponsePacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.io.utils.RpcIdUtil;
-import com.meidusa.venus.support.ErrorPacketConvert;
 import com.meidusa.venus.support.VenusUtil;
-import com.meidusa.venus.util.JSONUtil;
+import com.meidusa.venus.util.Utils;
 import com.meidusa.venus.util.VenusLoggerFactory;
-import com.meidusa.venus.util.VenusTracerUtil;
+import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.concurrent.*;
 
 /**
  * 服务调用NIO消息响应处理
@@ -86,7 +85,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 break;
             case PacketConstant.PACKET_TYPE_NOTIFY_PUBLISH:
                 //处理publish响应消息
-                handleForPublish(conn,message,serializer);
+                handleForNotify(conn,message,serializer);
                 break;
             case PacketConstant.PACKET_TYPE_PONG:
                 super.handle(conn, message);
@@ -130,7 +129,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 return;
             }
 
-            Throwable exception = ErrorPacketConvert.toExceptionFromErrorPacket(errorPacket,serializer, XmlVenusExceptionFactory.getInstance());
+            Throwable exception = toExceptionFromErrorPacket(errorPacket,serializer, XmlVenusExceptionFactory.getInstance());
             reqRespWrapper.setResult(new Result().setException(exception));
         } catch (Exception e) {
             reqRespWrapper.setResult(new Result().setException(e));
@@ -236,7 +235,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
      * @param message
      * @param serializer
      */
-    void handleForPublish(VenusBackendConnection conn, byte[] message,Serializer serializer){
+    void handleForNotify(VenusBackendConnection conn, byte[] message, Serializer serializer){
         String rpcId = null;
         ClientInvocation asyncInvocation = null;
 
@@ -269,7 +268,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             nofityPacket.init(message);
 
             if (nofityPacket.errorCode != 0) {
-                Throwable t = ErrorPacketConvert.toExceptionFromNotifyPacket(nofityPacket,serializer,XmlVenusExceptionFactory.getInstance());
+                Throwable t = toExceptionFromNotifyPacket(nofityPacket,serializer,XmlVenusExceptionFactory.getInstance());
                 Exception exception = null;
                 if(t instanceof  Exception){
                     exception = (Exception)t;
@@ -287,6 +286,63 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 serviceReqCallbackMap.remove(rpcId);
             }
         }
+    }
+
+    /**
+     * 将errorPacket转化为exception
+     * @param errorPacket
+     * @return
+     * @throws Exception
+     */
+    Throwable toExceptionFromErrorPacket(ErrorPacket errorPacket,Serializer serializer,VenusExceptionFactory venusExceptionFactory) throws Exception{
+        if(venusExceptionFactory == null){
+            RpcException rpcException = new RpcException(errorPacket.errorCode,errorPacket.message);
+            return rpcException;
+        }
+
+        //反序列化异常
+        Exception exception = venusExceptionFactory.getException(errorPacket.errorCode, errorPacket.message);
+        if (exception == null) {
+            exceptionLogger.error("receive error packet,errorCode=" + errorPacket.errorCode + ",message=" + errorPacket.message);
+        } else {
+            if (errorPacket.additionalData != null) {
+                Object obj = serializer.decode(errorPacket.additionalData, Utils.getBeanFieldType(exception.getClass(), Exception.class));
+                try {
+                    BeanUtils.copyProperties(exception, obj);
+                } catch (Exception e1) {
+                    exceptionLogger.error("copy properties error", e1);
+                }
+            }
+        }
+        return exception;
+    }
+
+    /**
+     * 将notifyPacket错误信息转化为exception
+     * @param nofityPacket
+     * @return
+     * @throws Exception
+     */
+    Throwable toExceptionFromNotifyPacket(SerializeServiceNofityPacket nofityPacket,Serializer serializer,VenusExceptionFactory venusExceptionFactory) throws Exception{
+        if(venusExceptionFactory == null){
+            RpcException rpcException = new RpcException(nofityPacket.errorCode,nofityPacket.errorMessage);
+            return rpcException;
+        }
+
+        Exception exception = venusExceptionFactory.getException(nofityPacket.errorCode, nofityPacket.errorMessage);
+        if (exception == null) {
+            exception = new DefaultVenusException(nofityPacket.errorCode, nofityPacket.errorMessage);
+        } else {
+            if (nofityPacket.additionalData != null) {
+                Object obj = serializer.decode(nofityPacket.additionalData, Utils.getBeanFieldType(exception.getClass(), Exception.class));
+                try {
+                    BeanUtils.copyProperties(exception, obj);
+                } catch (Exception e1) {
+                    exceptionLogger.error("copy properties error", e1);
+                }
+            }
+        }
+        return exception;
     }
 
     /**

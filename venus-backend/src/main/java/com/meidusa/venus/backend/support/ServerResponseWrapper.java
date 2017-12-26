@@ -4,6 +4,8 @@ import com.meidusa.venus.Result;
 import com.meidusa.venus.ServerInvocation;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
+import com.meidusa.venus.io.packet.AbstractServicePacket;
+import com.meidusa.venus.io.packet.ServiceAPIPacket;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.notify.InvocationListener;
@@ -14,6 +16,7 @@ import com.meidusa.venus.notify.InvocationListener;
  */
 public class ServerResponseWrapper {
     VenusFrontendConnection conn;
+    ServiceAPIPacket apiPacket;
     VenusRouterPacket routerPacket;
     Endpoint endpoint;
     SerializeServiceRequestPacket request;
@@ -29,6 +32,7 @@ public class ServerResponseWrapper {
         ServerResponseWrapper wrapper = new ServerResponseWrapper();
         wrapper.setConn(invocation.getConn());
         wrapper.setRouterPacket(invocation.getRouterPacket());
+        wrapper.setApiPacket(invocation.getApiPacket());
         wrapper.setRequest(invocation.getServiceRequestPacket());
         wrapper.setEndpoint(invocation.getEndpointDef());
         wrapper.setInvocationListener(invocation.getInvocationListener());
@@ -100,5 +104,13 @@ public class ServerResponseWrapper {
 
     public void setInvocationListener(InvocationListener invocationListener) {
         this.invocationListener = invocationListener;
+    }
+
+    public ServiceAPIPacket getApiPacket() {
+        return apiPacket;
+    }
+
+    public void setApiPacket(ServiceAPIPacket apiPacket) {
+        this.apiPacket = apiPacket;
     }
 }

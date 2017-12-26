@@ -81,10 +81,10 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
            case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:
                //处理服务调用消息
                doHandle(invocation);
-                break;
-            default:
-                super.handle(conn, data);
-        }
+               break;
+           default:
+               super.handle(conn, data);
+       }
 
     }
 
