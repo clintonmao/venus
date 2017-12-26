@@ -2,7 +2,6 @@ package com.meidusa.venus.backend.filter.valid;
 
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.venus.*;
-import com.meidusa.venus.ErrorPacketWrapperException;
 import com.meidusa.venus.ServerInvocation;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.services.Service;
@@ -133,6 +132,41 @@ public class ServerValidFilter implements Filter {
             error.errorCode = VenusExceptionCodeConstant.SERVICE_VERSION_NOT_ALLOWD_EXCEPTION;
             error.message = "Service=" + endpoint.getService().getName() + ",version=" + request.serviceVersion + " not allow";
             throw new ErrorPacketWrapperException(error);
+        }
+    }
+
+
+    class ErrorPacketWrapperException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        private ErrorPacket errorPacket;
+
+        public ErrorPacketWrapperException() {
+        }
+
+        public ErrorPacketWrapperException(String msg) {
+            super(msg);
+        }
+
+        public ErrorPacketWrapperException(Throwable throwable) {
+            super(throwable);
+        }
+
+        public ErrorPacketWrapperException(String msg, Throwable throwable) {
+            super(msg, throwable);
+        }
+
+        public ErrorPacketWrapperException(ErrorPacket errorPacket) {
+            super("error packet.");
+            this.errorPacket = errorPacket;
+        }
+
+        public ErrorPacket getErrorPacket() {
+            return errorPacket;
+        }
+
+        public void setErrorPacket(ErrorPacket errorPacket) {
+            this.errorPacket = errorPacket;
         }
     }
 }
