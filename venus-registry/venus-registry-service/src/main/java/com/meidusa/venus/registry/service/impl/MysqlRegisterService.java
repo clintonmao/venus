@@ -361,8 +361,13 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		String interfaceName = url.getInterfaceName();
 		String serviceName = url.getServiceName();
 		String version = url.getVersion();
+		List<VenusServiceDO> services = null;
 		try {
-			List<VenusServiceDO> services = venusServiceDAO.queryServices(interfaceName, serviceName, version);// servicePath interfaceName/serviceName?version=version
+			services = venusServiceDAO.queryServices(interfaceName, serviceName, version);// servicePath interfaceName/serviceName?version=version
+		} catch (Exception e) {
+			LogUtils.ERROR_LOG.error("findServiceDefinitions queryServices 调用异常,interfaceName=>"+interfaceName+",serviceName=>"+serviceName+",version=>"+version,e);
+		}
+		try{
 			if(CollectionUtils.isNotEmpty(services)){
 			for (Iterator<VenusServiceDO> ite = services.iterator(); ite.hasNext();) {
 				List<Integer> serverIds = new ArrayList<Integer>();
@@ -763,7 +768,11 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 
 			server = cacheVenusServerDAO.getServer(host, port);
 			if (null == server) {
-				server = venusServerDAO.getServer(host, port);
+				try{
+					server = venusServerDAO.getServer(host, port);
+				} catch (Exception e) {
+					LogUtils.ERROR_LOG.error("根据host=>{},port=>{}查询server服务异常 ",host,port);
+				}
 			}
 			if (null != server) {
 				break;

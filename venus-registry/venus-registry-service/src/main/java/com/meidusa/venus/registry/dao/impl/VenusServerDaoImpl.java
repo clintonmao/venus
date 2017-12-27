@@ -116,8 +116,7 @@ public class VenusServerDaoImpl implements VenusServerDAO {
 			});
 		} catch (Exception e) {
 			throw new DAOException("根据host 和 port 获取venusServer异常", e);
-		}
-	}
+		}	}
 
 	public List<VenusServerDO> getServer(String host) throws DAOException {
 		String sql = "select id, hostname,port,create_time, update_time from t_venus_server where hostname = ?  ";
