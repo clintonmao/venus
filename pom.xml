@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.meidusa.venus</groupId>
 	<artifactId>venus</artifactId>
-	<version>4.0.9</version>
+	<version>4.0.10-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	
 	<name>${project.artifactId}</name>
