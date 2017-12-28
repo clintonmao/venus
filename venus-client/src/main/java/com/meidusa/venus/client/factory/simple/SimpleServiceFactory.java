@@ -138,6 +138,9 @@ public class SimpleServiceFactory extends AbstractServiceFactory implements Serv
         if(StringUtils.isEmpty(ipAddressList) && register != null){
             try {
                 subscribleService(t);
+
+                //加载订阅服务信息
+                register.load();
             } catch (Exception e) {
                 if(exceptionLogger.isErrorEnabled()){
                     exceptionLogger.error("subscrible service failed,will retry.",e);

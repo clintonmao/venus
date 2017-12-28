@@ -22,6 +22,7 @@ import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.VenusRegistryFactory;
 import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.support.VenusContext;
@@ -234,7 +235,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                         exportService.setInstance(refBean);
                         exportBeanMap.put(interfaceType,refBean.getClass() + "@" + refBean.hashCode());
                     } catch (BeansException e) {
-                        throw new VenusConfigException("ref bean not found:" + refBeanName);
+                        throw new ConfigurationException("ref bean not found:" + refBeanName,e);
                     }
                 }
                 serviceConfigList.addAll(venusServerConfig.getExportServices());

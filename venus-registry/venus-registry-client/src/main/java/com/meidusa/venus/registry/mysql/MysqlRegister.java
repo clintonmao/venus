@@ -131,6 +131,7 @@ public class MysqlRegister implements Register {
 
 	@Override
 	public boolean subscrible(URL url) throws VenusRegisteException {
+		long bTime = System.currentTimeMillis();
 		if(logger.isInfoEnabled()){
 			logger.info("subscrible service:{}.", url);
 		}
@@ -144,7 +145,6 @@ public class MysqlRegister implements Register {
 			success = false;
 		}
 		subscribleUrls.add(url);
-		load();
 		return success;
 	}
 
@@ -161,7 +161,6 @@ public class MysqlRegister implements Register {
 		} catch (Exception e) {
 			throw new VenusRegisteException("unsubscrible service failed:" + getServiceName(url), e);
 		}
-		load();
 	}
 
 	@Override
@@ -292,6 +291,9 @@ public class MysqlRegister implements Register {
 			for (URL url : subscribleUrls) {
 				unsubscrible(url);
 			}
+
+			//刷新订阅信息
+			load();
 		}
 		registeUrls.clear();
 		subscribleUrls.clear();

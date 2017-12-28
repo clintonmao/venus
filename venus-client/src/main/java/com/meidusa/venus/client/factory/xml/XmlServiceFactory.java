@@ -206,11 +206,14 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
             return;
         }
 
-        //TODO 若开启monitor配置，则添加athenaDataService配置，那provider端怎么办，要保持一致？
-
         //初始化service实例
         for (ReferenceService serviceConfig : venusClientConfig.getReferenceServices()) {
             initService(serviceConfig,venusClientConfig);
+        }
+
+        //加载注册信息
+        if(venusRegistryFactory != null && venusRegistryFactory.getRegister() != null){
+            venusRegistryFactory.getRegister().load();
         }
 
         //TODO 设置序列化类型
@@ -223,6 +226,7 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
      */
     void initService(ReferenceService serviceConfig, VenusClientConfig venusClientConfig) {
         //初始化服务代理
+        long bTime = System.currentTimeMillis();
         initServiceProxy(serviceConfig,venusClientConfig);
 
         //若走注册中心，则订阅服务
