@@ -281,7 +281,10 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			String appCode = url.getApplication();
 			int appId = 0;
 			if (StringUtils.isNotBlank(appCode)) {
-				VenusApplicationDO application = venusApplicationDAO.getApplication(appCode);
+				VenusApplicationDO application=cacheApplicationDAO.getApplication(appCode);
+				if (null == application) {
+					application = venusApplicationDAO.getApplication(appCode);
+				}
 				if (null == application) {
 					VenusApplicationDO venusApplicationDO = new VenusApplicationDO();
 					venusApplicationDO.setAppCode(appCode);
@@ -299,7 +302,11 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					}
 				}
 			}
-			VenusServerDO server = venusServerDAO.getServer(url.getHost(), 0);// 订阅server的端口为0
+			
+			VenusServerDO server =cacheVenusServerDAO.getServer(url.getHost(), 0);
+			if (null == server) {
+				server = venusServerDAO.getServer(url.getHost(), 0);// 订阅server的端口为0
+			}
 			int serverId = 0;
 			if (null == server) {
 				VenusServerDO venusServerDO = new VenusServerDO();
