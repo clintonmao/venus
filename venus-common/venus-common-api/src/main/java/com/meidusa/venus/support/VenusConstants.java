@@ -6,8 +6,8 @@ package com.meidusa.venus.support;
  */
 public class VenusConstants {
 
-    //超时时间，默认3000ms
-    public static final int TIMEOUT_DEFAULT = 3000;
+    //超时时间，默认30000ms
+    public static final int TIMEOUT_DEFAULT = 30000;
 
     //重试次数，若retries不为空，则cluster默认开启failover
     public static final int RETRIES_DEFAULT = 0;

@@ -76,7 +76,7 @@ public class ClientInvocation implements Invocation {
     //负载均衡策略,默认random
     private String loadbalance = VenusConstants.LOADBALANCE_DEFAULT;
 
-    //超时时间，默认3000ms
+    //超时时间，默认30000ms
     private int timeout = VenusConstants.TIMEOUT_DEFAULT;
 
     //连接数，默认8（一个服务）
