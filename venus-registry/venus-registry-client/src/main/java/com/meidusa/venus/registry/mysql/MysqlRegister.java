@@ -13,11 +13,13 @@ import com.meidusa.venus.registry.util.RegistryUtil;
 import com.meidusa.venus.support.MonitorResourceFacade;
 import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.util.VenusLoggerFactory;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -217,12 +219,15 @@ public class MysqlRegister implements Register {
 				}
 			}
 
-			if (hasException) {// 查询接口有异常 不写本地缓存
+			// 查询接口有异常 不写本地缓存
+			if (hasException) {
 				return;
 			}
-			if (CollectionUtils.isEmpty(jsons)) {// 查询数据为空，不写本地缓存
+			// 查询数据为空，不写本地缓存
+			if (CollectionUtils.isEmpty(jsons)) {
 				return;
 			}
+
 			//若开启本地文件缓存，则写文件
 			if (isEnableFileCache()) {
 				saveSrvDefListToFileCache(jsons);
@@ -301,9 +306,6 @@ public class MysqlRegister implements Register {
 	private class ServiceDefLoaderRunnable implements Runnable {
 		public void run() {
 			try {
-				if(logger.isDebugEnabled()){
-					logger.debug("load services def.");
-				}
 				load();
 			} catch (VenusRegisteException e) {
 				if(exceptionLogger.isErrorEnabled()){
@@ -320,23 +322,66 @@ public class MysqlRegister implements Register {
 		@Override
 		public void run() {
 			Map<String, Set<URL>> maps = new HashMap<String, Set<URL>>();
-			maps.put(RegisteConstant.PROVIDER, registeUrls);
-			maps.put(RegisteConstant.CONSUMER, subscribleUrls);
+
+			Set<URL> copyRegisteUrls = copyUrls(registeUrls);
+			filteProperties(copyRegisteUrls);
+			Set<URL> copySubscribleUrls = copyUrls(subscribleUrls);
+			filteProperties(copySubscribleUrls);
+
+			maps.put(RegisteConstant.PROVIDER, copyRegisteUrls);
+			maps.put(RegisteConstant.CONSUMER, copySubscribleUrls);
 			try {
-				if(logger.isDebugEnabled()){
-					logger.debug("hearbeat report:{}.",JSON.toJSONString(maps));
-				}
 				registerService.heartbeat(maps);
 
 				//添加到监控项中
-				MonitorResourceFacade.getInstance().addProperty("registeUrls",registeUrls);
-				MonitorResourceFacade.getInstance().addProperty("subscribleUrls",subscribleUrls);
+				MonitorResourceFacade.getInstance().addProperty("registeUrls",copyRegisteUrls);
+				MonitorResourceFacade.getInstance().addProperty("subscribleUrls",copySubscribleUrls);
 			} catch (Exception e) {
 				exceptionLogger.error("heartbeat report failed.", e);
 			}
 		}
-	}
 
+		/**
+		 * 复制url列表，目的过滤心跳上报不需要的属性
+		 * @param sourceUrls
+		 * @return
+		 */
+		Set<URL> copyUrls(Set<URL> sourceUrls){
+			if(CollectionUtils.isEmpty(sourceUrls)){
+				return sourceUrls;
+			}
+
+			Set<URL> targetUrls = new CopyOnWriteArraySet<URL>();
+			try {
+				for(URL sourceUrl:sourceUrls){
+                    URL targetUrl = new URL();
+                    BeanUtils.copyProperties(targetUrl,sourceUrl);
+                    targetUrls.add(targetUrl);
+                }
+			} catch (IllegalAccessException e) {
+				return sourceUrls;
+			} catch (InvocationTargetException e) {
+				return sourceUrls;
+			}
+			return targetUrls;
+		}
+
+		/**
+		 * 过滤心跳上报不需要的属性
+		 * @param urls
+		 */
+		void filteProperties(Set<URL> urls){
+			if(CollectionUtils.isEmpty(urls)){
+				return;
+			}
+			for(URL url:urls){
+				url.setMethods(null);
+				url.setProperties(null);
+				url.setRemoteConfig(null);
+				url.setServiceDefinition(null);
+			}
+		}
+	}
 
 
 	/**

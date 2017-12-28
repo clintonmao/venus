@@ -154,8 +154,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      */
     public Result doInvokeWithSync(ClientInvocation invocation, URL url) throws RpcException {
         Result result = null;
-
-        long bWaitTime = System.currentTimeMillis();
         int timeout = invocation.getTimeout();
 
         //构造请求消息
