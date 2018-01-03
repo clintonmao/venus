@@ -28,12 +28,17 @@ import java.util.Map;
 @XStreamAlias("service")
 public class ReferenceService {
 
+    //spring实例名称
+    @XStreamAsAttribute
+    private String name;
+
+    //服务名称
+    private String serviceName;
+
     @XStreamAsAttribute
     private String type;
 
     private Class<?> clzType;
-
-    private String beanName;
 
     private Object instance;
 
@@ -70,7 +75,9 @@ public class ReferenceService {
     private List<ReferenceMethod> methodList = new ArrayList<ReferenceMethod>();
 
     private Map<String, ReferenceServiceConfig> endPointMap = new HashMap<String, ReferenceServiceConfig>();
+
     private int timeWait;
+
     private boolean enabled = true;
     
     public int getTimeWait() {
@@ -129,15 +136,15 @@ public class ReferenceService {
         return endPointMap.get(key);
     }
 
-    public String getBeanName() {
-        return beanName;
+    public String getName() {
+        return name;
     }
 
-    public void setBeanName(String beanName) {
-        this.beanName = beanName;
+    public void setName(String name) {
+        this.name = name;
     }
 
-	public boolean isEnabled() {
+    public boolean isEnabled() {
 		return enabled;
 	}
 
@@ -199,5 +206,13 @@ public class ReferenceService {
 
     public void setMethodList(List<ReferenceMethod> methodList) {
         this.methodList = methodList;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 }

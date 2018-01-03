@@ -226,7 +226,6 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
      */
     void initService(ReferenceService serviceConfig, VenusClientConfig venusClientConfig) {
         //初始化服务代理
-        long bTime = System.currentTimeMillis();
         initServiceProxy(serviceConfig,venusClientConfig);
 
         //若走注册中心，则订阅服务
@@ -298,7 +297,7 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
         */
 
         //创建服务代理
-        Object object = Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{referenceService.getClzType()}, invocationHandler);
+        Object serviceProxyObject = Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{referenceService.getClzType()}, invocationHandler);
 
         VenusExceptionFactory venusExceptionFactory = XmlVenusExceptionFactory.getInstance();
         for (Method method : referenceService.getClzType().getMethods()) {
@@ -306,7 +305,7 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
             if (endpoint != null) {
                 Service service = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
                 if(service != null){
-                    referenceService.setBeanName(service.name());
+                    referenceService.setServiceName(service.name());
                     referenceService.setVersion(service.version());
                 }
 
@@ -322,7 +321,12 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
         //不设置beanName，统一以clzType为key，避免包不同但类名称相同情况下会少注册实例
         //如c.x.m.AccountService、c.y.m.AccountService，此时AccountService相同但在执行post注册时
         //当第二个bean注册时已经存在同ID的，导致第二个注册失败
-        ServiceDefinedBean serviceDefinedBean = new ServiceDefinedBean(referenceService.getBeanName(),referenceService.getClzType(),object, invocationHandler);
+        ServiceDefinedBean serviceDefinedBean = new ServiceDefinedBean();
+        serviceDefinedBean.setName(referenceService.getName());
+        serviceDefinedBean.setServiceName(referenceService.getServiceName());
+        serviceDefinedBean.setClazz(referenceService.getClzType());
+        serviceDefinedBean.setService(serviceProxyObject);
+        serviceDefinedBean.setHandler(invocationHandler);
         serviceMap.put(referenceService.getClzType(), serviceDefinedBean);
     }
 
@@ -340,7 +344,7 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
         if(referenceConfig.getType() != null){
             serviceInterfaceName = referenceConfig.getClzType().getName();
         }
-        String serivceName = referenceConfig.getBeanName();
+        String serivceName = referenceConfig.getServiceName();
         //int version = VenusConstants.VERSION_DEFAULT;
         String consumerHost = NetUtil.getLocalIp();
 
@@ -427,29 +431,32 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
         Map<String,String> refBeanMap = new HashMap<String, String>();
         // register to resolvable dependency container
         for (Map.Entry<Class<?>, ServiceDefinedBean> entry : serviceMap.entrySet()) {
-            final Object bean = entry.getValue().getService();
+            ServiceDefinedBean srvDefBean = entry.getValue();
             if (beanFactory instanceof BeanDefinitionRegistry) {
                 BeanDefinitionRegistry reg = (BeanDefinitionRegistry) beanFactory;
 
-                String simpleClassName = entry.getValue().getClazz().getSimpleName();
-                String beanName = formatClassName(simpleClassName);
-                beanName = beanName.concat("#0");
+                //设置spring bean name，若指定了name名称则以自定义为准，否则取venus接口定义中的serviceName
+                String beanName = srvDefBean.getName();
+                if(StringUtils.isEmpty(beanName)){
+                    beanName = srvDefBean.getServiceName();
+                }
                 if(reg.containsBeanDefinition(beanName)){
                     beanName = beanName.concat("#0");
                 }
+
                 GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
                 beanDefinition.setBeanClass(ServiceFactoryBean.class);
                 beanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, beanName));
                 beanDefinition.setScope(BeanDefinition.SCOPE_SINGLETON);
                 ConstructorArgumentValues args = new ConstructorArgumentValues();
-                args.addIndexedArgumentValue(0, bean);
-                args.addIndexedArgumentValue(1, entry.getValue().getClazz());
+                args.addIndexedArgumentValue(0, srvDefBean.getService());
+                args.addIndexedArgumentValue(1, srvDefBean.getClazz());
                 beanDefinition.setConstructorArgumentValues(args);
 
                 beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
                 reg.registerBeanDefinition(beanName, beanDefinition);
 
-                refBeanMap.put(beanName,entry.getValue().getClazz().getName());
+                refBeanMap.put(beanName,srvDefBean.getClazz().getName());
             }
         }
 
