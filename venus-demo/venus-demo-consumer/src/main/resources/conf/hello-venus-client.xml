@@ -19,7 +19,6 @@
 			<method name="getHello" timeout="3000"/>
 			-->
 		</service>
-
 		<service type="com.chexiang.venus.demo.provider.EchoService"/>
 		<service name="serviceRegistryEx" type="com.meidusa.venus.service.registry.ServiceRegistry" ipAddressList="10.47.58.49:16800"/>
 	</services>
