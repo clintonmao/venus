@@ -5,7 +5,6 @@ import com.meidusa.venus.Result;
 import com.meidusa.venus.ServiceFactory;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Service;
-import com.meidusa.venus.client.authenticate.DummyAuthenticator;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.factory.xml.config.ReferenceMethod;
 import com.meidusa.venus.client.factory.xml.config.ReferenceService;
@@ -29,7 +28,6 @@ import com.meidusa.venus.util.VenusTracerUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -83,9 +81,9 @@ public class InvokerInvocationHandler implements InvocationHandler {
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        //忽略调用
-        if(isNeedIgnore(proxy, method)){
-            return ignoreInvoke(proxy, method, args);
+        //对object默认方法，不作远程调用
+        if(isObjectInvoke(proxy, method,args)){
+            return invokeObject(proxy, method, args);
         }
 
         long bTime = System.currentTimeMillis();
@@ -340,24 +338,36 @@ public class InvokerInvocationHandler implements InvocationHandler {
     }
 
     /**
-     * 是否需要忽略调用
+     * 判断是否为Object内置方法，如toString,equals,hashcode等
      * @param proxy
      * @param method
      * @return
      */
-    boolean isNeedIgnore(Object proxy, Method method){
-        //忽略toString
-        return method.getName().equals("toString");
+    boolean isObjectInvoke(Object proxy, Method method, Object[] args){
+        Class<?> declaringClazz = method.getDeclaringClass();
+        if(declaringClazz == null){
+            throw new IllegalStateException(String.valueOf(method));
+        }
+        return Object.class == declaringClazz;
     }
 
     /**
-     * 忽略调用处理
+     * 调用object内置方法
      * @param proxy
      * @param method
      * @return
      */
-    Object ignoreInvoke(Object proxy, Method method,Object[] args){
-        return this.getServiceInterface().getName() + "@VenusServiceProxy";
+    Object invokeObject(Object proxy, Method method, Object[] args){
+        String name = method.getName();
+        if ("equals".equals(name)) {
+            return proxy == args[0];
+        } else if ("hashCode".equals(name)) {
+            return System.identityHashCode(proxy);
+        } else if ("toString".equals(name)) {
+            return proxy.getClass().getName() + "@" + Integer.toHexString(System.identityHashCode(proxy)) + "," + this;
+        } else {
+            throw new IllegalStateException(String.valueOf(method));
+        }
     }
 
     public Class<?> getServiceInterface() {
