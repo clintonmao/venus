@@ -2,6 +2,7 @@ package com.chexiang.venus.demo.provider.impl;
 
 import com.chexiang.venus.demo.provider.EchoService;
 import com.chexiang.venus.demo.provider.HelloService;
+import com.chexiang.venus.demo.provider.UserDefException;
 import com.chexiang.venus.demo.provider.model.Hello;
 import com.chexiang.venus.demo.provider.model.HelloEx;
 import com.meidusa.venus.VenusApplication;
@@ -85,6 +86,20 @@ public class DefaultHelloService implements HelloService {
         this.venusProtocol = venusProtocol;
     }
 
+	@Override
+	public int querys(int id)  throws UserDefException{
+		int ret=10;
+		try{
+			ret=10/0;
+		}catch(Exception e){
+			throw new UserDefException(200001,"exception is UserDefException!.");
+		}
+		return ret;
+	}
 
+	@Override
+	public int getOnes(int id) {
+		return 0;
+	}
 
 }

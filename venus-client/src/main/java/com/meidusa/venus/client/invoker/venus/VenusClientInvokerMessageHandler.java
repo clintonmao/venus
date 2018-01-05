@@ -130,7 +130,10 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             }
 
             Throwable exception = toExceptionFromErrorPacket(errorPacket,serializer, XmlVenusExceptionFactory.getInstance());
-            reqRespWrapper.setResult(new Result().setException(exception));
+            Result result = new Result();
+            result.setException(exception);
+            result.setErrorCode(errorPacket.errorCode);
+            reqRespWrapper.setResult(result);
         } catch (Exception e) {
             reqRespWrapper.setResult(new Result().setException(e));
         } finally {

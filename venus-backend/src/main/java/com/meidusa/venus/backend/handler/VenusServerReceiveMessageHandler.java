@@ -384,9 +384,13 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
     Throwable restoreException(Throwable t){
         if(t instanceof RpcException){
             RpcException rex = (RpcException)t;
-            if(rex.getCause() != null){
-                return rex.getCause();
-            }else{
+            Throwable cause = rex.getCause();
+			if (cause != null) {
+				if (cause.getCause() != null) {
+					return cause.getCause();
+				}
+				return cause;
+			}else{
                 DefaultVenusException dex = new DefaultVenusException(rex.getErrorCode(),rex.getMessage());
                 return dex;
             }

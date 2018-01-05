@@ -441,6 +441,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					def.setInterfaceName(interfaceName);
 					def.setName(serviceName);
 					def.setIpAddress(needHostPorts);
+					LogUtils.DEFAULT_LOG.info("serviceName=>{},ipAddress=>{}",serviceName,JSON.toJSONString(needHostPorts));
 					def.setActive(true);
 					def.setDescription(service.getDescription());
 					def.setVersion(service.getVersion());

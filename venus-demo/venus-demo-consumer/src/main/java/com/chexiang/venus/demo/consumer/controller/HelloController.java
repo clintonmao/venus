@@ -1,6 +1,7 @@
 package com.chexiang.venus.demo.consumer.controller;
 
 import com.chexiang.venus.demo.provider.HelloService;
+import com.chexiang.venus.demo.provider.UserDefException;
 import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.notify.InvocationListener;
@@ -32,7 +33,13 @@ public class HelloController {
 
     @RequestMapping("/sayHello")
     public Result sayHello(){
-        helloService.sayHello("jack");
+    	helloService.sayHello("jack");
+    	return new Result("ok");
+    }
+    
+    @RequestMapping("/querys")
+    public Result querys() throws UserDefException{
+        int one = helloService.querys(1);
         return new Result("ok");
     }
 
