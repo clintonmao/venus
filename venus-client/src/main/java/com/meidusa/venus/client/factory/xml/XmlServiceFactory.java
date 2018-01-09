@@ -270,7 +270,7 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
     void initServiceProxy(ReferenceService referenceService, VenusClientConfig venusClientConfig) {
         //创建服务代理invocation
         if(logger.isInfoEnabled()){
-            logger.info("init service proxy:{}.",referenceService.getClzType().getName());
+            logger.info("init service proxy:{}.",referenceService.getServiceInterface().getName());
         }
         //若地址或注册中心都未配置，则抛异常
         if(StringUtils.isEmpty(referenceService.getRemote()) && StringUtils.isEmpty(referenceService.getIpAddressList())){
@@ -280,7 +280,7 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
         }
 
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
-        invocationHandler.setServiceInterface(referenceService.getClzType());
+        invocationHandler.setServiceInterface(referenceService.getServiceInterface());
         //若配置静态地址，以静态为先
         if(StringUtils.isNotEmpty(referenceService.getRemote()) || StringUtils.isNotEmpty(referenceService.getIpAddressList())){
             ClientRemoteConfig remoteConfig = getRemoteConfig(referenceService,venusClientConfig);
@@ -297,54 +297,32 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
         */
 
         //创建服务代理
-        Object serviceProxyObject = Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{referenceService.getClzType()}, invocationHandler);
+        Object serviceProxyObject = Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{referenceService.getServiceInterface()}, invocationHandler);
 
-        VenusExceptionFactory venusExceptionFactory = XmlVenusExceptionFactory.getInstance();
-        for (Method method : referenceService.getClzType().getMethods()) {
-            Endpoint endpoint = method.getAnnotation(Endpoint.class);
-            if (endpoint != null) {
-                Service service = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
-                if(service != null){
-                    referenceService.setServiceName(service.name());
-                    referenceService.setVersion(service.version());
-                }
-
-                Class[] eclazz = method.getExceptionTypes();
-                for (Class clazz : eclazz) {
-                    if (venusExceptionFactory != null && CodedException.class.isAssignableFrom(clazz)) {
-                        venusExceptionFactory.addException(clazz);
-                    }
-                }
-            }
-        }
-
-        //不设置beanName，统一以clzType为key，避免包不同但类名称相同情况下会少注册实例
-        //如c.x.m.AccountService、c.y.m.AccountService，此时AccountService相同但在执行post注册时
-        //当第二个bean注册时已经存在同ID的，导致第二个注册失败
         ServiceDefinedBean serviceDefinedBean = new ServiceDefinedBean();
         serviceDefinedBean.setName(referenceService.getName());
         serviceDefinedBean.setServiceName(referenceService.getServiceName());
-        serviceDefinedBean.setClazz(referenceService.getClzType());
+        serviceDefinedBean.setServiceInterface(referenceService.getServiceInterface());
         serviceDefinedBean.setService(serviceProxyObject);
         serviceDefinedBean.setHandler(invocationHandler);
-        serviceMap.put(referenceService.getClzType(), serviceDefinedBean);
+        serviceMap.put(referenceService.getServiceInterface(), serviceDefinedBean);
     }
 
 
     /**
      * 订阅服务
      */
-    void subscribleService(ReferenceService referenceConfig){
+    void subscribleService(ReferenceService referenceService){
         //若配置静态地址，则跳过
-        if(StringUtils.isNotEmpty(referenceConfig.getRemote()) || StringUtils.isNotEmpty(referenceConfig.getIpAddressList())){
+        if(StringUtils.isNotEmpty(referenceService.getRemote()) || StringUtils.isNotEmpty(referenceService.getIpAddressList())){
             return;
         }
         String appName = venusApplication.getName();
         String serviceInterfaceName = "null";
-        if(referenceConfig.getType() != null){
-            serviceInterfaceName = referenceConfig.getClzType().getName();
+        if(referenceService.getType() != null){
+            serviceInterfaceName = referenceService.getServiceInterface().getName();
         }
-        String serivceName = referenceConfig.getServiceName();
+        String serivceName = referenceService.getServiceName();
         //int version = VenusConstants.VERSION_DEFAULT;
         String consumerHost = NetUtil.getLocalIp();
 
@@ -397,21 +375,50 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
             try {
                 VenusClientConfig venusClientConfig = (VenusClientConfig) xStream.fromXML(configFile.getURL());
                 for (ReferenceService referenceService : venusClientConfig.getReferenceServices()) {
+                    //初始化服务接口
+                    String serviceInterfaceName = referenceService.getType();
+                    if (serviceInterfaceName == null) {
+                        throw new VenusConfigException("Service type can not be null:" + configFile);
+                    }
+                    Class<?> serviceInterface = null;
+                    try {
+                        serviceInterface = Class.forName(serviceInterfaceName);
+                        referenceService.setServiceInterface(serviceInterface);
+                    } catch (ClassNotFoundException e) {
+                        throw new VenusConfigException("service interface class not found:" + serviceInterfaceName);
+                    }
+
+                    //初始化service
+                    Service service = AnnotationUtil.getAnnotation(serviceInterface.getAnnotations(), Service.class);
+                    if(service == null){
+                        throw new VenusConfigException("service interface annotation config is null:" + serviceInterface.getName());
+                    }
+                    String serviceName = service.name();
+                    if(StringUtils.isEmpty(serviceName)){
+                        serviceName = serviceInterface.getSimpleName();
+                    }
+                    referenceService.setServiceName(serviceName);
+                    referenceService.setVersion(service.version());
+
+                    //初始化方法
+                    VenusExceptionFactory venusExceptionFactory = XmlVenusExceptionFactory.getInstance();
+                    for (Method method : serviceInterface.getMethods()) {
+                        Endpoint endpoint = method.getAnnotation(Endpoint.class);
+                        if (endpoint != null) {
+                            Class[] eclazz = method.getExceptionTypes();
+                            for (Class clazz : eclazz) {
+                                if (venusExceptionFactory != null && CodedException.class.isAssignableFrom(clazz)) {
+                                    venusExceptionFactory.addException(clazz);
+                                }
+                            }
+                        }
+                    }
+
+                    //设置服务地址
                     if(StringUtils.isNotEmpty(referenceService.getIpAddressList())){
                         //转化及校验地址
                         String ipAddressList = convertAndValidAddress(referenceService.getIpAddressList());
                         referenceService.setIpAddressList(ipAddressList);
-                    }
-
-                    String interfaceType = referenceService.getType();
-                    if (interfaceType == null) {
-                        throw new VenusConfigException("Service type can not be null:" + configFile);
-                    }
-                    try {
-                        Class<?> clzType = Class.forName(interfaceType);
-                        referenceService.setClzType(clzType);
-                    } catch (ClassNotFoundException e) {
-                        throw new VenusConfigException("service interface class not found:" + interfaceType);
                     }
                 }
                 if(venusClientConfig.getReferenceServices() != null){
@@ -438,10 +445,10 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
                 //设置spring bean name，若指定了name名称则以自定义为准，否则取venus接口定义中的serviceName
                 String beanName = srvDefBean.getName();
                 if(StringUtils.isEmpty(beanName)){
-                    beanName = srvDefBean.getServiceName();
+                    beanName = srvDefBean.getServiceName().concat("#0");
                 }
                 if(StringUtils.isEmpty(beanName)){
-                    throw new VenusConfigException("spring bean name and annotation service name is empty:" + srvDefBean.getClazz());
+                    throw new VenusConfigException("spring bean name and annotation service name is empty:" + srvDefBean.getServiceInterface());
                 }
                 if(reg.containsBeanDefinition(beanName)){
                     beanName = beanName.concat("#0");
@@ -453,13 +460,13 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
                 beanDefinition.setScope(BeanDefinition.SCOPE_SINGLETON);
                 ConstructorArgumentValues args = new ConstructorArgumentValues();
                 args.addIndexedArgumentValue(0, srvDefBean.getService());
-                args.addIndexedArgumentValue(1, srvDefBean.getClazz());
+                args.addIndexedArgumentValue(1, srvDefBean.getServiceInterface());
                 beanDefinition.setConstructorArgumentValues(args);
 
                 beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
                 reg.registerBeanDefinition(beanName, beanDefinition);
 
-                refBeanMap.put(beanName,srvDefBean.getClazz().getName());
+                refBeanMap.put(beanName,srvDefBean.getServiceInterface().getName());
             }
         }
 
@@ -474,6 +481,7 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
      * 将simpleClassName转为首字母小写
      * @return
      */
+    /*
     String formatClassName(String simpleClassName){
         if(simpleClassName.contains(".")){
             simpleClassName=simpleClassName.substring(simpleClassName.lastIndexOf(".")+1);
@@ -481,6 +489,7 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
         simpleClassName = simpleClassName.substring(0, 1).toLowerCase().concat(simpleClassName.substring(1));
         return simpleClassName;
     }
+    */
 
     @Override
     public void destroy() {

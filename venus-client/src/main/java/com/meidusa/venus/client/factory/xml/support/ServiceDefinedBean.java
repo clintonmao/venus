@@ -8,14 +8,14 @@ import com.meidusa.venus.client.factory.InvokerInvocationHandler;
  */
 public class ServiceDefinedBean {
 
-    //spring实例名称
+    //spring bean名称
     private String name;
 
     //服务名称
     private String serviceName;
 
     //服务接口
-    private Class<?> clazz;
+    private Class<?> serviceInterface;
 
     private Object service;
 
@@ -29,12 +29,12 @@ public class ServiceDefinedBean {
         this.name = name;
     }
 
-    public Class<?> getClazz() {
-        return clazz;
+    public Class<?> getServiceInterface() {
+        return serviceInterface;
     }
 
-    public void setClazz(Class<?> clazz) {
-        this.clazz = clazz;
+    public void setServiceInterface(Class<?> serviceInterface) {
+        this.serviceInterface = serviceInterface;
     }
 
     public Object getService() {

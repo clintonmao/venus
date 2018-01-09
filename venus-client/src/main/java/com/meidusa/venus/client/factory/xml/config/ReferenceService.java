@@ -38,7 +38,7 @@ public class ReferenceService {
     @XStreamAsAttribute
     private String type;
 
-    private Class<?> clzType;
+    private Class<?> serviceInterface;
 
     private Object instance;
 
@@ -112,12 +112,12 @@ public class ReferenceService {
         this.type = type;
     }
 
-    public Class<?> getClzType() {
-        return clzType;
+    public Class<?> getServiceInterface() {
+        return serviceInterface;
     }
 
-    public void setClzType(Class<?> clzType) {
-        this.clzType = clzType;
+    public void setServiceInterface(Class<?> serviceInterface) {
+        this.serviceInterface = serviceInterface;
     }
 
     public Object getInstance() {
