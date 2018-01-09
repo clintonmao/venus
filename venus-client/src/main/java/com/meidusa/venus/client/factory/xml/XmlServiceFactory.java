@@ -450,9 +450,6 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
                 if(StringUtils.isEmpty(beanName)){
                     throw new VenusConfigException("spring bean name and annotation service name is empty:" + srvDefBean.getServiceInterface());
                 }
-                if(reg.containsBeanDefinition(beanName)){
-                    beanName = beanName.concat("#0");
-                }
 
                 GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
                 beanDefinition.setBeanClass(ServiceFactoryBean.class);
