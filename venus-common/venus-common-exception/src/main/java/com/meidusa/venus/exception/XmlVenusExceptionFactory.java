@@ -58,6 +58,7 @@ public class XmlVenusExceptionFactory implements VenusExceptionFactory {
      * 扫描异常注解配置
      */
     static void scanAnnotitionException(){
+        //扫描ExceptionCode anno定义
         Map<Class<?>,ExceptionCode> exceptionCodeMap = ClasspathAnnotationScanner.find(Exception.class,ExceptionCode.class);
         for(Map.Entry<Class<?>, ExceptionCode> entry: exceptionCodeMap.entrySet()){
             ExceptionConfig config = new ExceptionConfig();
@@ -67,6 +68,7 @@ public class XmlVenusExceptionFactory implements VenusExceptionFactory {
             classMap.put(entry.getKey(), config);
         }
 
+        //扫描RemoteException anno定义
         Map<Class<?>,RemoteException> rMap = ClasspathAnnotationScanner.find(Exception.class,RemoteException.class);
         for(Map.Entry<Class<?>, RemoteException> entry: rMap.entrySet()){
             ExceptionConfig config = new ExceptionConfig();
@@ -76,8 +78,6 @@ public class XmlVenusExceptionFactory implements VenusExceptionFactory {
             classMap.put(entry.getKey(), config);
         }
 
-        //初始化venus异常定义
-        VenusExceptionLoader.init();
     }
 
     private XmlVenusExceptionFactory(){}

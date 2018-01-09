@@ -2,7 +2,8 @@ package com.chexiang.venus.demo.provider.impl;
 
 import com.chexiang.venus.demo.provider.EchoService;
 import com.chexiang.venus.demo.provider.HelloService;
-import com.chexiang.venus.demo.provider.UserDefException;
+import com.chexiang.venus.demo.provider.HelloValidException;
+import com.chexiang.venus.demo.provider.InvalidParamException;
 import com.chexiang.venus.demo.provider.model.Hello;
 import com.chexiang.venus.demo.provider.model.HelloEx;
 import com.meidusa.venus.VenusApplication;
@@ -11,8 +12,6 @@ import com.meidusa.venus.notify.InvocationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.annotation.PostConstruct;
 
 /**
  * Created by Zhangzhihua on 2017/8/15.
@@ -70,6 +69,25 @@ public class DefaultHelloService implements HelloService {
         return o;
     }
 
+    @Override
+    public int cal(int param)  throws HelloValidException,InvalidParamException {
+        if(param > 10000){
+            throw new InvalidParamException();
+        }
+        if(param > 1000){
+            throw new HelloValidException(200001,"param is invalid.");
+        }
+
+
+        try{
+            int ret=100/param;
+            logger.info("ret:{}",ret);
+            return ret;
+        }catch(Exception e){
+            throw e;
+        }
+    }
+
     public VenusApplication getVenusApplication() {
         return venusApplication;
     }
@@ -85,21 +103,5 @@ public class DefaultHelloService implements HelloService {
     public void setVenusProtocol(VenusProtocol venusProtocol) {
         this.venusProtocol = venusProtocol;
     }
-
-	@Override
-	public int querys(int id)  throws UserDefException{
-		int ret=10;
-		try{
-			ret=10/0;
-		}catch(Exception e){
-			throw new UserDefException(200001,"exception is UserDefException!.");
-		}
-		return ret;
-	}
-
-	@Override
-	public int getOnes(int id) {
-		return 0;
-	}
 
 }

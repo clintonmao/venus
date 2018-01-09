@@ -130,8 +130,9 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
 
             //通过代理调用服务
             result = getVenusServerInvokerProxy().invoke(invocation, null);
-        } catch (Throwable t) {
-            result = buildExceptionResult(t);
+        } catch (Throwable e) {
+            //将exception转化为result
+            result = buildResultFromException(e);
         }finally {
             try {
                 //输出tracer日志
@@ -353,49 +354,52 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
 
     /**
      * 将异常转化为result
-     * @param t
+     * @param e
      * @return
      */
-    Result buildExceptionResult(Throwable t){
+    Result buildResultFromException(Throwable e){
         Result result = new Result();
         //将rpcException包装异常转化为v3内置异常
-        Throwable ex = restoreException(t);
+        Throwable ex = processRpcException(e);
 
-        int errorCode = XmlVenusExceptionFactory.getInstance().getErrorCode(ex.getClass());
-        if(errorCode != 0){//自定义异常
-            result.setErrorCode(errorCode);
-            result.setErrorMessage(ex.getMessage());
+        if (ex instanceof CodedException) {
+            CodedException cex = (CodedException)ex;
+            result.setErrorCode(cex.getErrorCode());
+            result.setErrorMessage(cex.getMessage());
             result.setException(ex);
-        }else{//内置异常
-            //包装为venus默认异常，以便到client能还原异常信息
-            DefaultVenusException dex = new DefaultVenusException(VenusExceptionCodeConstant.UNKNOW_EXCEPTION,ex.getMessage(),ex);
-            result.setErrorCode(dex.getErrorCode());
-            result.setErrorMessage(dex.getMessage());
-            result.setException(dex);
+        }else{
+            int errorCode = XmlVenusExceptionFactory.getInstance().getErrorCode(ex.getClass());
+            if(errorCode != 0){//自定义异常
+                result.setErrorCode(errorCode);
+                result.setErrorMessage(ex.getMessage());
+                result.setException(ex);
+            }else{//内置异常
+                //包装为venus默认异常，以便到client能还原异常信息
+                DefaultVenusException dex = new DefaultVenusException(VenusExceptionCodeConstant.UNKNOW_EXCEPTION,ex.getMessage(),ex);
+                result.setErrorCode(VenusExceptionCodeConstant.UNKNOW_EXCEPTION);
+                result.setErrorMessage(dex.getMessage());
+                result.setException(dex);
+            }
         }
         return result;
     }
 
     /**
-     * 将rpcExcpetion包装异常转换为V3版本已内置异常，为不兼容升级
-     * @param t
+     * 将rpcExcpetion异常转化为V3版本兼容异常定义
+     * @param e
      * @return
      */
-    Throwable restoreException(Throwable t){
-        if(t instanceof RpcException){
-            RpcException rex = (RpcException)t;
-            Throwable cause = rex.getCause();
-			if (cause != null) {
-				if (cause.getCause() != null) {
-					return cause.getCause();
-				}
-				return cause;
+    Throwable processRpcException(Throwable e){
+        if(e instanceof RpcException){
+            RpcException re = (RpcException)e;
+			if (re.getCause() != null) {
+				return re.getCause();
 			}else{
-                DefaultVenusException dex = new DefaultVenusException(rex.getErrorCode(),rex.getMessage());
-                return dex;
+                DefaultVenusException de = new DefaultVenusException(re.getErrorCode(),re.getMessage());
+                return de;
             }
         }else{
-            return t;
+            return e;
         }
     }
 

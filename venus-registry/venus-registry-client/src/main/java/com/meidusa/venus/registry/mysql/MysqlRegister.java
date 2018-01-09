@@ -3,7 +3,6 @@ package com.meidusa.venus.registry.mysql;
 import com.meidusa.fastjson.JSON;
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.URL;
-import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.domain.RegisteConstant;
@@ -66,7 +65,7 @@ public class MysqlRegister implements Register {
 		try {
 			init();
 		} catch (Exception e) {
-			throw new RpcException(e);
+			throw new VenusRegisteException(e);
 		}
 	}
 

@@ -11,6 +11,8 @@ import java.util.Map;
  * venus异常定义加载
  * Created by godzillahua on 7/4/16.
  */
+@Deprecated
+//由XmlVenusExceptionFactory实现
 public class VenusExceptionLoader {
 
     private static Map<Class<?>, Integer> codeMap = new HashMap<Class<?>, Integer>();

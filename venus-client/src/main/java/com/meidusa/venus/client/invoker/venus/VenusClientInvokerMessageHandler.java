@@ -129,7 +129,8 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
                 return;
             }
 
-            Throwable exception = toExceptionFromErrorPacket(errorPacket,serializer, XmlVenusExceptionFactory.getInstance());
+            //将errorPacket转化为exception
+            Throwable exception = buildExceptionFromErrorPacket(errorPacket,serializer, XmlVenusExceptionFactory.getInstance());
             Result result = new Result();
             result.setException(exception);
             result.setErrorCode(errorPacket.errorCode);
@@ -271,7 +272,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             nofityPacket.init(message);
 
             if (nofityPacket.errorCode != 0) {
-                Throwable t = toExceptionFromNotifyPacket(nofityPacket,serializer,XmlVenusExceptionFactory.getInstance());
+                Throwable t = buildExceptionFromNotifyPacket(nofityPacket,serializer,XmlVenusExceptionFactory.getInstance());
                 Exception exception = null;
                 if(t instanceof  Exception){
                     exception = (Exception)t;
@@ -297,7 +298,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
      * @return
      * @throws Exception
      */
-    Throwable toExceptionFromErrorPacket(ErrorPacket errorPacket,Serializer serializer,VenusExceptionFactory venusExceptionFactory) throws Exception{
+    Throwable buildExceptionFromErrorPacket(ErrorPacket errorPacket, Serializer serializer, VenusExceptionFactory venusExceptionFactory) throws Exception{
         if(venusExceptionFactory == null){
             RpcException rpcException = new RpcException(errorPacket.errorCode,errorPacket.message);
             return rpcException;
@@ -306,7 +307,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
         //反序列化异常
         Exception exception = venusExceptionFactory.getException(errorPacket.errorCode, errorPacket.message);
         if (exception == null) {
-            exceptionLogger.error("receive error packet,errorCode=" + errorPacket.errorCode + ",message=" + errorPacket.message);
+            exception = new DefaultVenusException(errorPacket.errorCode, errorPacket.message);
         } else {
             if (errorPacket.additionalData != null) {
                 Object obj = serializer.decode(errorPacket.additionalData, Utils.getBeanFieldType(exception.getClass(), Exception.class));
@@ -326,7 +327,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
      * @return
      * @throws Exception
      */
-    Throwable toExceptionFromNotifyPacket(SerializeServiceNofityPacket nofityPacket,Serializer serializer,VenusExceptionFactory venusExceptionFactory) throws Exception{
+    Throwable buildExceptionFromNotifyPacket(SerializeServiceNofityPacket nofityPacket, Serializer serializer, VenusExceptionFactory venusExceptionFactory) throws Exception{
         if(venusExceptionFactory == null){
             RpcException rpcException = new RpcException(nofityPacket.errorCode,nofityPacket.errorMessage);
             return rpcException;

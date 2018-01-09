@@ -79,7 +79,7 @@ public class VenusServerInvokerProxy implements Invoker {
                     return result;
                 }
             }
-            throw new RpcException(e);
+            throw e;
         } finally {
             //调用后切面
             try {
@@ -87,7 +87,7 @@ public class VenusServerInvokerProxy implements Invoker {
                     filter.afterInvoke(invocation, url);
                 }
             } catch (Throwable e) {
-                throw new RpcException(e);
+                throw e;
             }
         }
     }

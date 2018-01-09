@@ -55,10 +55,10 @@ public class VenusServerInvoker implements Invoker {
             return new Result(result);
         } catch (Exception e) {
             throw e;
-        } catch (OutOfMemoryError e) {
-            VenusStatus.getInstance().setStatus(PacketConstant.VENUS_STATUS_OUT_OF_MEMORY);
-            throw e;
         } catch (Error e) {
+            if(e instanceof OutOfMemoryError){
+                VenusStatus.getInstance().setStatus(PacketConstant.VENUS_STATUS_OUT_OF_MEMORY);
+            }
             throw e;
         } finally {
             ThreadLocalMap.remove(ThreadLocalConstant.REQUEST_CONTEXT);

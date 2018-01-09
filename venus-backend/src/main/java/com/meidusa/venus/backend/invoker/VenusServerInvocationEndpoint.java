@@ -114,15 +114,15 @@ public class VenusServerInvocationEndpoint implements EndpointInvocation {
                 result = ep.getMethod().invoke(ep.getService().getInstance(), parameters);
             } catch (IllegalArgumentException e) {
                 throw e;
+            } catch (IllegalAccessException e) {
+                throw new RpcException(e);
             } catch (InvocationTargetException e) {
                 if (e.getTargetException() != null) {
                     throw new RpcException(e.getTargetException());
                 } else {
                     throw new RpcException(e);
                 }
-            } catch (IllegalAccessException e) {
-                throw new RpcException(e);
-            }finally {
+            } finally {
                 UtilTimerStack.pop(ENDPOINT_INVOKED);
             }
         }

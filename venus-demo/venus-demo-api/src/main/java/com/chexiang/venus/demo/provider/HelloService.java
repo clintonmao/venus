@@ -38,9 +38,6 @@ public interface HelloService {
     @Endpoint(name = "getHelloForBench")
     HelloEx getHelloForBench(@Param(name = "name") String name, @Param(name = "params") byte[] params);
     
-    @Endpoint(name = "getOnes")
-    int getOnes(@Param(name = "id")int id);
-    
-    @Endpoint(name = "querys")
-    int querys(@Param(name = "id")int id) throws UserDefException;
+    @Endpoint(name = "cal")
+    int cal(@Param(name = "param")int param) throws HelloValidException,InvalidParamException;
 }

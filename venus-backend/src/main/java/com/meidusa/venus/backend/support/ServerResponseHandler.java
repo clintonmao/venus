@@ -115,13 +115,13 @@ public class ServerResponseHandler {
         }
         error.errorCode = result.getErrorCode();
         error.message = result.getErrorMessage();
-        Throwable throwable = result.getException();
-        if (throwable != null) {
-            Map<String, PropertyDescriptor> mpd = Utils.getBeanPropertyDescriptor(throwable.getClass());
+        Throwable ex = result.getException();
+        if (ex != null) {
+            Map<String, PropertyDescriptor> mpd = Utils.getBeanPropertyDescriptor(ex.getClass());
             Map<String, Object> additionalData = new HashMap<String, Object>();
 
             for (Map.Entry<String, PropertyDescriptor> entry : mpd.entrySet()) {
-                additionalData.put(entry.getKey(), entry.getValue().getReadMethod().invoke(throwable));
+                additionalData.put(entry.getKey(), entry.getValue().getReadMethod().invoke(ex));
             }
             error.additionalData = serializer.encode(additionalData);
         }

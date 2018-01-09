@@ -45,23 +45,8 @@ public class RpcException extends RuntimeException {
         this.errorCode = UNKNOWN_EXCEPTION;
     }
 
-    public RpcException(int code) {
-        super();
-        this.errorCode = code;
-    }
-
-    public RpcException(int code, String message, Throwable cause) {
-        super(message, cause);
-        this.errorCode = code;
-    }
-
     public RpcException(int code, String message) {
         super(message);
-        this.errorCode = code;
-    }
-
-    public RpcException(int code, Throwable cause) {
-        super(cause);
         this.errorCode = code;
     }
 

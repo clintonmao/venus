@@ -165,7 +165,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
             venusProtocol.setSrvMgr(this);
             venusProtocol.init();
         } catch (Exception e) {
-            throw new RpcException("init protocol failed.",e);
+            throw new RuntimeException("init protocol failed.",e);
         }
     }
 
