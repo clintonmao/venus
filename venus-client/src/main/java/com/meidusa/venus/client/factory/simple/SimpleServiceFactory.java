@@ -45,6 +45,8 @@ public class SimpleServiceFactory extends AbstractServiceFactory implements Serv
 
     private Register register;
 
+    private String appName = "unknow app";
+
     /**
      * 读取返回数据包的超时时间
      */
@@ -201,10 +203,19 @@ public class SimpleServiceFactory extends AbstractServiceFactory implements Serv
      * @param <T>
      */
     <T> void subscribleService(Class<T> t){
-        Service service = AnnotationUtil.getAnnotation(t.getAnnotations(), Service.class);
-        String appName = VenusApplication.getInstance().getName();
+        String appName = this.appName;
+        VenusApplication venusApplication = VenusApplication.getInstance();
+        if(venusApplication != null && StringUtils.isNotEmpty(venusApplication.getName())){
+            appName = venusApplication.getName();
+        }
         String serviceInterfaceName = t.getName();
-        String serivceName = service.name();
+        Service service = AnnotationUtil.getAnnotation(t.getAnnotations(), Service.class);
+        String serivceName = null;
+        if(service != null){
+            serivceName = service.name();
+        }else{
+            serivceName = t.getCanonicalName();
+        }
         String consumerHost = NetUtil.getLocalIp();
 
         StringBuffer buf = new StringBuffer();
@@ -226,11 +237,11 @@ public class SimpleServiceFactory extends AbstractServiceFactory implements Serv
 		return getService(t);
 	}
 
-    public String getIpAddressList() {
-        return ipAddressList;
+    public String getAppName() {
+        return appName;
     }
 
-    public void setIpAddressList(String ipAddressList) {
-        this.ipAddressList = ipAddressList;
+    public void setAppName(String appName) {
+        this.appName = appName;
     }
 }

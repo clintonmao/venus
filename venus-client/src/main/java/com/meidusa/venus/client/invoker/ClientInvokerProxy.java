@@ -83,16 +83,17 @@ public class ClientInvokerProxy implements Invoker {
     @Override
     public void init() throws RpcException {
         synchronized (this){
-            boolean isEnableFilter = VenusApplication.getInstance().isEnableFilter();
-            if(isEnableFilter){
+            VenusApplication venusApplication = VenusApplication.getInstance();
+            if(venusApplication != null && venusApplication.isEnableFilter()){
                 initFilters();
+            }else{
+                logger.warn("venus application is undefined or disabled filters,will disable filters.");
             }
         }
     }
 
     @Override
     public Result invoke(Invocation invocation, URL url) throws RpcException {
-        long bTime = System.currentTimeMillis();
         ClientInvocation clientInvocation = (ClientInvocation)invocation;
         try {
             //调用前切面处理，校验、流控、降级等
