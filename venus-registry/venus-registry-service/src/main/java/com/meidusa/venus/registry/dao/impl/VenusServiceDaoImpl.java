@@ -137,8 +137,8 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 	}
 
 	@Override
-	public boolean updateService(String methods, boolean isDelete, int id, Integer appId) throws DAOException {
-		String sql = "update t_venus_service set methods=?,is_delete=?,update_time=now()";
+	public boolean updateService(String methods, boolean isDelete, int id, Integer appId,String supportVersion) throws DAOException {
+		String sql = "update t_venus_service set methods=?,is_delete=?,version_range=?,update_time=now()";
 		if (null != appId && appId > 0) {
 			sql = sql + ",app_id=? ";
 		}
@@ -146,9 +146,9 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		int update = 0;
 		try {
 			if (null != appId && appId > 0) {
-				update = this.jdbcTemplate.update(sql, methods, isDelete, appId, id);
+				update = this.jdbcTemplate.update(sql, methods, isDelete,supportVersion, appId, id);
 			} else {
-				update = this.jdbcTemplate.update(sql, methods, isDelete, id);
+				update = this.jdbcTemplate.update(sql, methods, isDelete,supportVersion, id);
 			}
 		} catch (Exception e) {
 			throw new DAOException("更新venusService异常", e);

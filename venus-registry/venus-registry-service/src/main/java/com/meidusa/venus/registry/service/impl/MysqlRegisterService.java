@@ -155,7 +155,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			if (StringUtils.isBlank(url.getMethods())) {
 				url.setMethods("");
 			}
-			venusServiceDAO.updateService(url.getMethods(), false, serviceId, appId);
+			venusServiceDAO.updateService(url.getMethods(), false, serviceId, appId,url.getVersionRange());
 		}
 
 		VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(serverId, serviceId,
@@ -303,7 +303,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				}
 			}
 			
-			VenusServerDO server =cacheVenusServerDAO.getServer(url.getHost(), 0);
+			VenusServerDO server =null;//cacheVenusServerDAO.getServer(url.getHost(), 0);
 			if (null == server) {
 				server = venusServerDAO.getServer(url.getHost(), 0);// 订阅server的端口为0
 			}
