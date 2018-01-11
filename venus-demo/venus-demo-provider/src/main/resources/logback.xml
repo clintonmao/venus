@@ -77,6 +77,8 @@
         </rollingPolicy>
     </appender>
 
+    <appender name="athenaAppender" class="com.saic.framework.athena.log4j.AthenaAppender"></appender>
+
     <logger name="venus.default" additivity="true">
         <level value="info"/>
         <appender-ref ref="venus.default"/>
@@ -95,6 +97,9 @@
     <!--root-->
     <root level="info">
         <appender-ref ref="stdout" />
+        <!--
+        <appender-ref ref="athenaAppender"/>
+        -->
     </root>
 
 </configuration>

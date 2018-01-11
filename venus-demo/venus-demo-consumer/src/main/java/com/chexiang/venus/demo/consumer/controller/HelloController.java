@@ -68,7 +68,15 @@ public class HelloController {
 
     @RequestMapping("/cal/{param}")
     public Result cal(@PathVariable String param) throws HelloValidException,InvalidParamException {
-        int ret = helloService.cal(Integer.parseInt(param));
+        try {
+            int ret = helloService.cal(Integer.parseInt(param));
+        } catch (HelloValidException e) {
+            logger.error("HelloValidException error",e);
+        } catch (InvalidParamException e) {
+            logger.error("InvalidParamException error",e);
+        } catch (NumberFormatException e) {
+            logger.error("NumberFormatException error",e);
+        }
         return new Result("ok");
     }
 

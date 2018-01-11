@@ -36,9 +36,6 @@ public class Converters {
             return convertDict.get(type);
         } else {
             return getDefaultConverter();
-            // throw new UnsupportedOperationException(
-            // "Does not hander conversion between "
-            // + type.getSimpleName());
         }
     }
 

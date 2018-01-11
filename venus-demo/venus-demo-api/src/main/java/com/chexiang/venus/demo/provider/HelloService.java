@@ -10,6 +10,7 @@ import com.meidusa.venus.notify.InvocationListener;
 /**
  * Created by Zhangzhihua on 2017/8/15.
  */
+//@Service(version = 4)
 @Service(name = "helloService",version = 6,description = "venus hello示例服务")
 public interface HelloService {
 

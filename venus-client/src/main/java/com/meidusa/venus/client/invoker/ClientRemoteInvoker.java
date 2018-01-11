@@ -150,7 +150,7 @@ public class ClientRemoteInvoker implements Invoker{
         }
 
         if(CollectionUtils.isEmpty(urlList)){
-            throw new RpcException("not found avalid providers.");
+            throw new RpcException("not found avalid service providers.");
         }
 
 
@@ -189,7 +189,7 @@ public class ClientRemoteInvoker implements Invoker{
         //查找服务定义
         List<VenusServiceDefinitionDO> srvDefList = getRegister().lookup(requestUrl);
         if(CollectionUtils.isEmpty(srvDefList)){
-            throw new RpcException(String.format("not found available service %s providers.",requestUrl.toString()));
+            throw new RpcException(String.format("not found available service providers,service:%s",requestUrl.toString()));
         }
         for(VenusServiceDefinitionDO srvDef:srvDefList){
             //若提供者列表为空，则跳过
@@ -215,7 +215,7 @@ public class ClientRemoteInvoker implements Invoker{
         }
 
         if(CollectionUtils.isEmpty(urlList)){
-            throw new RpcException("with version filter,not found allowed service providers.");
+            throw new RpcException("with filter,not found allowed service providers,service:" + requestUrl.toString());
         }
 
         //输出寻址结果信息
@@ -259,15 +259,8 @@ public class ClientRemoteInvoker implements Invoker{
      * @return
      */
     URL parseRequestUrl(ClientInvocation invocation){
-        String serviceInterfaceName = "null";
-        if(invocation.getServiceInterface() != null){
-            serviceInterfaceName = invocation.getServiceInterface().getName();
-        }
-        String serviceName = "null";
-        if(invocation.getService() != null){
-            serviceName = invocation.getService().getName();
-        }
-
+        String serviceInterfaceName = invocation.getServiceInterface().getName();
+        String serviceName = invocation.getServiceName();
         StringBuilder buf = new StringBuilder();
         buf.append("/").append(serviceInterfaceName);
         buf.append("/").append(serviceName);

@@ -37,6 +37,7 @@ import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.VenusRegistryFactory;
+import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
@@ -196,12 +197,12 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
      * @throws Exception
      */
     private void initConfiguration() throws Exception {
-        //加载客户端配置信息
+        //解析客户端配置信息
         VenusClientConfig venusClientConfig = parseClientConfig();
 
         if(CollectionUtils.isEmpty(venusClientConfig.getReferenceServices())){
             if(logger.isWarnEnabled()){
-                logger.warn("not config reference provider services.");
+                logger.warn("not config reference services.");
             }
             return;
         }
@@ -242,12 +243,12 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
 
     /**
      * 判断是否
-     * @param serviceConfig
+     * @param referenceService
      * @return
      */
-    boolean isNeedSubscrible(ReferenceService serviceConfig){
+    boolean isNeedSubscrible(ReferenceService referenceService){
         //若直连，则不订阅
-        if(StringUtils.isNotEmpty(serviceConfig.getRemote()) || StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
+        if(StringUtils.isNotEmpty(referenceService.getRemote()) || StringUtils.isNotEmpty(referenceService.getIpAddressList())){
             if(logger.isWarnEnabled()){
                 logger.warn("direct connect provider,will skip subscrible service.");
             }
@@ -323,7 +324,6 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
             serviceInterfaceName = referenceService.getServiceInterface().getName();
         }
         String serivceName = referenceService.getServiceName();
-        //int version = VenusConstants.VERSION_DEFAULT;
         String consumerHost = NetUtil.getLocalIp();
 
         StringBuffer buf = new StringBuffer();
@@ -389,16 +389,16 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
                     }
 
                     //初始化service
-                    Service service = AnnotationUtil.getAnnotation(serviceInterface.getAnnotations(), Service.class);
-                    if(service == null){
-                        throw new VenusConfigException("service interface annotation config is null:" + serviceInterface.getName());
+                    Service serviceAnno = AnnotationUtil.getAnnotation(serviceInterface.getAnnotations(), Service.class);
+                    if(serviceAnno == null){
+                        throw new VenusConfigException(String.format("service %s service annotation not declare",serviceInterface.getName()));
                     }
-                    String serviceName = service.name();
+                    String serviceName = serviceAnno.name();
                     if(StringUtils.isEmpty(serviceName)){
-                        serviceName = serviceInterface.getSimpleName();
+                        serviceName = serviceInterface.getCanonicalName();
                     }
                     referenceService.setServiceName(serviceName);
-                    referenceService.setVersion(service.version());
+                    referenceService.setVersion(serviceAnno.version());
 
                     //初始化方法
                     VenusExceptionFactory venusExceptionFactory = XmlVenusExceptionFactory.getInstance();
@@ -442,7 +442,7 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
             if (beanFactory instanceof BeanDefinitionRegistry) {
                 BeanDefinitionRegistry reg = (BeanDefinitionRegistry) beanFactory;
 
-                //设置spring bean name，若指定了name名称则以自定义为准，否则取venus接口定义中的serviceName
+                //设置spring bean name
                 String beanName = srvDefBean.getName();
                 if(StringUtils.isEmpty(beanName)){
                     beanName = srvDefBean.getServiceName().concat("#0");

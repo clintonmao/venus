@@ -7,8 +7,8 @@ import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.toolkit.common.util.StringUtil;
-import com.meidusa.venus.VenusApplication;
 import com.meidusa.venus.URL;
+import com.meidusa.venus.VenusApplication;
 import com.meidusa.venus.annotations.PerformanceLevel;
 import com.meidusa.venus.backend.VenusProtocol;
 import com.meidusa.venus.backend.interceptor.Configurable;
@@ -17,12 +17,10 @@ import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.config.*;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanContext;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanUtilsBean;
-import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.VenusRegistryFactory;
 import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.support.VenusContext;
@@ -209,20 +207,24 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         xStream.processAnnotations(VenusServerConfig.class);
         xStream.processAnnotations(ExportService.class);
 
-        for (Resource config : configFiles) {
+        for (Resource configFile : configFiles) {
             try {
-                VenusServerConfig venusServerConfig = (VenusServerConfig) xStream.fromXML(config.getURL());
+                VenusServerConfig venusServerConfig = (VenusServerConfig) xStream.fromXML(configFile.getURL());
                 if(CollectionUtils.isEmpty(venusServerConfig.getExportServices())){
                     throw new VenusConfigException("not found service config.");
                 }
                 for(ExportService exportService:venusServerConfig.getExportServices()){
                     //接口名称
-                    String interfaceType = exportService.getType();
+                    String serviceInterfaceName = exportService.getType();
+                    if (serviceInterfaceName == null) {
+                        throw new VenusConfigException("Service type can not be null:" + configFile);
+                    }
+                    Class<?> serviceInterface = null;
                     try {
-                        Class<?> interType = Class.forName(interfaceType);
-                        exportService.setInterfaceType(interType);
+                        serviceInterface = Class.forName(serviceInterfaceName);
+                        exportService.setServiceInterface(serviceInterface);
                     } catch (ClassNotFoundException e) {
-                       throw new VenusConfigException("not found service type class:" + interfaceType);
+                       throw new VenusConfigException("service interface class not found:" + serviceInterfaceName);
                     }
                     //引用实例
                     String refBeanName = exportService.getRef();
@@ -233,11 +235,26 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                         }
                         exportService.setActive(true);
                         exportService.setInstance(refBean);
-                        exportBeanMap.put(interfaceType,refBean.getClass() + "@" + refBean.hashCode());
+                        exportBeanMap.put(serviceInterfaceName,refBean.getClass() + "@" + refBean.hashCode());
                     } catch (BeansException e) {
                         throw new ConfigurationException("ref bean not found:" + refBeanName,e);
                     }
+                    //服务定义
+                    com.meidusa.venus.annotations.Service serviceAnno = serviceInterface.getAnnotation(com.meidusa.venus.annotations.Service.class);
+                    if(serviceAnno == null){
+                        throw new VenusConfigException(String.format("service %s service annotation not declare",serviceInterface.getName()));
+                    }
+                    String serviceName = serviceAnno.name();
+                    if(StringUtils.isEmpty(serviceName)){
+                        serviceName = serviceInterface.getCanonicalName();
+                    }
+                    exportService.setServiceName(serviceName);
+                    exportService.setVersion(serviceAnno.version());
+                    exportService.setAthenaFlag(serviceAnno.athenaFlag());
+                    exportService.setDescription(serviceAnno.description());
                 }
+
+
                 serviceConfigList.addAll(venusServerConfig.getExportServices());
                 if(venusServerConfig.getInterceptors() != null){
                     interceptors.putAll(venusServerConfig.getInterceptors());
@@ -246,7 +263,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                     interceptorStacks.putAll(venusServerConfig.getInterceptorStatcks());
                 }
             } catch (Exception e) {
-                throw new ConfigurationException("parser venus server config failed:" + config.getFilename(), e);
+                throw new ConfigurationException("parser venus server config failed:" + configFile.getFilename(), e);
             }
         }
 
@@ -262,98 +279,81 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
     /**
      * 初始化服务
-     * @param serviceConfig
+     * @param exportService
      * @param interceptors
      * @param interceptorStatcks
      */
-    void initSerivce(ExportService serviceConfig, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks){
+    void initSerivce(ExportService exportService, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks){
         //初始化服务stub
-        Service service = initServiceStub(serviceConfig, interceptors, interceptorStatcks);
+        Service service = initServiceStub(exportService, interceptors, interceptorStatcks);
 
         //若开启注册中心，则注册服务
-        if(venusRegistryFactory != null && venusRegistryFactory.getRegister() != null){
-            registeService(serviceConfig, service,venusRegistryFactory.getRegister());
-        }
-    }
-
-    /**
-     * 初始化服务stub
-     * @param serviceConfig
-     * @param interceptors
-     * @param interceptorStatcks
-     * @return
-     */
-    protected Service initServiceStub(ExportService serviceConfig, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks) {
-        if(logger.isInfoEnabled()){
-            logger.info("init service stub:{}.",serviceConfig.getInterfaceType().getName());
-        }
-        //初始化service
-        SingletonService service = new SingletonService();
-        service.setType(serviceConfig.getInterfaceType());
-        service.setInstance(serviceConfig.getInstance());
-        Class<?> type = serviceConfig.getInterfaceType();
-        type.cast(serviceConfig.getInstance());
-        service.setActive(serviceConfig.isActive());
-        service.setSupportVersionRange(serviceConfig.getSupportVersionRange());
-        com.meidusa.venus.annotations.Service serviceAnnotation = type.getAnnotation(com.meidusa.venus.annotations.Service.class);
-        if(serviceAnnotation == null){
-        	throw new VenusConfigException("Service annotation not found in class="+type.getClass());
-        }
-        service.setAthenaFlag(serviceAnnotation.athenaFlag());
-        if (!serviceAnnotation.name().isEmpty()) {
-            service.setName(serviceAnnotation.name());
-        } else {
-            service.setName(type.getCanonicalName());
-        }
-        if(serviceAnnotation.version() != 0){
-            service.setVersion(serviceAnnotation.version());
-        }
-        service.setDescription(serviceAnnotation.description());
-
-        //初始化endpoints
-        Method[] methods = service.getType().getMethods();
-        Multimap<String, Endpoint> endpoints = initEndpoinits(service,methods,serviceConfig,interceptors,interceptorStatcks);
-        service.setEndpoints(endpoints);
-
-        this.serviceMap.put(service.getName(), service);
-        return service;
-    }
-
-    /**
-     * 注册服务
-     */
-    void registeService(ExportService serviceConfig, Service service, Register register){
-        //获取服务注册url
-        URL serviceRegisterUrl = parseRegisterUrl(serviceConfig,service);
-
-        //注册服务
-        try {
-            register.registe(serviceRegisterUrl);
-        } catch (Exception e) {
-            if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error("registe service failed,will retry.",e);
+        if(isNeedRegiste(exportService)){
+            try {
+                registeService(exportService, service);
+            } catch (Exception e) {
+                if(exceptionLogger.isErrorEnabled()){
+                    exceptionLogger.error("registe service failed,will retry.",e);
+                }
             }
         }
     }
 
     /**
-     * 获取服务注册url
-     * @param serviceConfig
+     * 初始化服务stub
+     * @param exportService
+     * @param interceptors
+     * @param interceptorStatcks
      * @return
      */
-    URL parseRegisterUrl(ExportService serviceConfig, Service service){
+    protected Service initServiceStub(ExportService exportService, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks) {
+        if(logger.isInfoEnabled()){
+            logger.info("init service stub:{}.",exportService.getServiceInterface().getName());
+        }
+        //初始化service
+        SingletonService service = new SingletonService();
+        service.setType(exportService.getServiceInterface());
+        service.setInstance(exportService.getInstance());
+        Class<?> serviceInterface = exportService.getServiceInterface();
+        serviceInterface.cast(exportService.getInstance());
+        service.setName(exportService.getServiceName());
+        service.setVersion(exportService.getVersion());
+        service.setSupportVersionRange(exportService.getSupportVersionRange());
+        service.setAthenaFlag(exportService.isAthenaFlag());
+        service.setDescription(exportService.getDescription());
+        service.setActive(exportService.isActive());
+
+        //初始化endpoints
+        Method[] methods = service.getType().getMethods();
+        Multimap<String, Endpoint> endpoints = initEndpoinits(service,methods,exportService,interceptors,interceptorStatcks);
+        service.setEndpoints(endpoints);
+
+        this.serviceMap.put(exportService.getServiceName(), service);
+        return service;
+    }
+
+    /**
+     * 判断是否需要注册服务
+     * @param exportService
+     * @return
+     */
+    boolean isNeedRegiste(ExportService exportService){
+        return venusRegistryFactory != null && venusRegistryFactory.getRegister() != null;
+    }
+
+    /**
+     * 注册服务
+     */
+    void registeService(ExportService exportService, Service service){
         String appName = venusApplication.getName();
         //String protocol = "venus";
-        String serviceInterfaceName = serviceConfig.getInterfaceType().getName();
-        String serviceName = service.getName();
-        int version = VenusConstants.VERSION_DEFAULT;
-        if(service.getVersion() != 0){
-            version = service.getVersion();
-        }
+        String serviceInterfaceName = exportService.getServiceInterface().getName();
+        String serviceName = exportService.getServiceName();
+        int version = exportService.getVersion();
         String host = NetUtil.getLocalIp();
         String port = String.valueOf(venusProtocol.getPort());
         //获取方法定义列表
-        String methodsDef = getMethodsDef(service);
+        String methodsDef = getMethodsDefOfService(service);
         StringBuffer buf = new StringBuffer();
         buf.append("/").append(serviceInterfaceName);
         buf.append("/").append(serviceName);
@@ -364,12 +364,14 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         if(StringUtils.isNotEmpty(methodsDef)){
             buf.append("&methods=").append(methodsDef);
         }
-        if(serviceConfig.getSupportVersionRange() != null){
-            buf.append("&versionRange=").append(serviceConfig.getSupportVersionRange().toString());
+        if(exportService.getSupportVersionRange() != null){
+            buf.append("&versionRange=").append(exportService.getSupportVersionRange().toString());
         }
         String registerUrl = buf.toString();
         URL url = URL.parse(registerUrl);
-        return url;
+
+        //注册服务
+        venusRegistryFactory.getRegister().registe(url);
     }
 
     @Override
@@ -384,18 +386,18 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     }
 
     /**
-     * 获取所有方法定义字符串
+     * 获取服务所有方法定义字符串
      * @param service
      * @return
      */
-    String getMethodsDef(Service service){
+    String getMethodsDefOfService(Service service){
         StringBuffer buf = new StringBuffer();
         Multimap<String, Endpoint> endpointMultimap = service.getEndpoints();
         Collection<Endpoint> endpoints = endpointMultimap.values();
         if(CollectionUtils.isNotEmpty(endpoints)){
             int i = 0;
             for(Endpoint endpoint:endpoints){
-                String methodDef = getMethodDef(endpoint);
+                String methodDef = getMethodDefOfEndpoint(endpoint);
                 buf.append(methodDef);
                 if(i < (endpoints.size()-1)){
                     buf.append(";");
@@ -412,7 +414,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @param endpoint
      * @return
      */
-    String getMethodDef(Endpoint endpoint){
+    String getMethodDefOfEndpoint(Endpoint endpoint){
         StringBuffer buf = new StringBuffer();
         buf.append(endpoint.getMethod().getName());
         buf.append("[");

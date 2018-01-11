@@ -35,13 +35,16 @@ public class ClientInvocation implements Invocation {
 
     private byte[] messageId;
 
+    //服务接口
     private Class<?> serviceInterface;
+
+    private String serviceName;
+
+    private String apiName;
 
     private ServiceWrapper service;
 
     private EndpointWrapper endpoint;
-
-    private String apiName;
 
     private Method method;
 
@@ -245,11 +248,6 @@ public class ClientInvocation implements Invocation {
     }
 
     @Override
-    public String getServiceName() {
-        return service.getName();
-    }
-
-    @Override
     public String getMethodName() {
         return this.getMethod().getName();
     }
@@ -349,5 +347,14 @@ public class ClientInvocation implements Invocation {
 
     public boolean isAthenaInvoker() {
         return isAthenaInvoker;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    @Override
+    public String getServiceName() {
+        return serviceName;
     }
 }

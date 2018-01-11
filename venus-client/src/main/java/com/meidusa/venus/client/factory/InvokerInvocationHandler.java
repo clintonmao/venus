@@ -136,25 +136,35 @@ public class InvokerInvocationHandler implements InvocationHandler {
     ClientInvocation buildInvocation(Object proxy, Method method, Object[] args){
         ClientInvocation invocation = new ClientInvocation();
         invocation.setServiceInterface(serviceInterface);
-        Endpoint endpoint =  AnnotationUtil.getAnnotation(method.getAnnotations(), Endpoint.class);
-        if(endpoint == null){
+        //初始化service
+        Service serviceAnno = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
+        if(serviceAnno == null){
+            throw new VenusConfigException(String.format("service %s service annotation not declare",serviceInterface.getName()));
+        }
+        ServiceWrapper serviceWrapper = ServiceWrapper.wrapper(serviceAnno);
+        invocation.setService(serviceWrapper);
+        String serviceName = serviceAnno.name();
+        if(StringUtils.isEmpty(serviceName)){
+            serviceName = serviceInterface.getCanonicalName();
+        }
+        invocation.setServiceName(serviceName);
+        invocation.setVersion(String.valueOf(serviceAnno.version()));
+        //初始化endpoint
+        Endpoint endpointAnno =  AnnotationUtil.getAnnotation(method.getAnnotations(), Endpoint.class);
+        if(endpointAnno == null){
             throw new VenusConfigException(String.format("method %s endpoint annotation not declare",method.getName()));
         }
-        EndpointWrapper endpointWrapper = EndpointWrapper.wrapper(endpoint);
+        EndpointWrapper endpointWrapper = EndpointWrapper.wrapper(endpointAnno);
         invocation.setEndpoint(endpointWrapper);
-        Service service = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
-        if(service == null){
-            throw new VenusConfigException(String.format("service %s service annotation not declare",method.getDeclaringClass()));
-        }
-        ServiceWrapper serviceWrapper = ServiceWrapper.wrapper(service);
-        invocation.setService(serviceWrapper);
+        //初始化apiName
         String apiName = VenusUtil.getApiName(method,serviceWrapper,endpointWrapper);
         invocation.setApiName(apiName);
-        invocation.setVersion(String.valueOf(service.version()));
+        //方法相关
         EndpointParameter[] params = EndpointParameterUtil.getPrameters(method);
         invocation.setParams(params);
         invocation.setMethod(method);
         invocation.setArgs(args);
+        //其它设置
         invocation.setRequestTime(new Date());
         String consumerApp = VenusContext.getInstance().getApplication();
         invocation.setConsumerApp(consumerApp);

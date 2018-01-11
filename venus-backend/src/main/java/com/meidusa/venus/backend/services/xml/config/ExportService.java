@@ -21,18 +21,53 @@ public class ExportService {
     @XStreamAsAttribute
     private String type;
 
-    private Class<?> interfaceType;
+    private Class<?> serviceInterface;
 
-    private String name;
+    private String serviceName;
+
+    private int version;
+
+    private boolean athenaFlag;
+
+    private String description;
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
+    public boolean isAthenaFlag() {
+        return athenaFlag;
+    }
+
+    public void setAthenaFlag(boolean athenaFlag) {
+        this.athenaFlag = athenaFlag;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     //引用spring实例名称
     @XStreamAsAttribute
     private String ref;
 
     private Object instance;
-
-    //版本号，如1.0.0
-    private String version;
 
     //兼容版本
     @XStreamAsAttribute
@@ -48,10 +83,6 @@ public class ExportService {
     private int coreThreads;
 
     private boolean active = true;
-
-    public String getVersion() {
-        return version;
-    }
 
     public Range getSupportVersionRange() {
         if (supportVersionRange != null) {
@@ -76,24 +107,12 @@ public class ExportService {
         }
     }
 
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
     public String getInterceptorStack() {
         return interceptorStack;
     }
 
     public void setInterceptorStack(String interceptorStack) {
         this.interceptorStack = interceptorStack;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public boolean isActive() {
@@ -104,12 +123,12 @@ public class ExportService {
         this.active = active;
     }
 
-    public Class<?> getInterfaceType() {
-        return interfaceType;
+    public Class<?> getServiceInterface() {
+        return serviceInterface;
     }
 
-    public void setInterfaceType(Class<?> interfaceType) {
-        this.interfaceType = interfaceType;
+    public void setServiceInterface(Class<?> serviceInterface) {
+        this.serviceInterface = serviceInterface;
     }
 
     public Object getInstance() {

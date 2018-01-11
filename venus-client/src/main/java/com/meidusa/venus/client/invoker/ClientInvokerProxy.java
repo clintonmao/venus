@@ -124,7 +124,7 @@ public class ClientInvokerProxy implements Invoker {
                     return result;
                 }
             }
-            throw new RpcException(e);
+            throw e;
         }finally {
             //调用结束切面处理
             for(Filter filter : getAfterFilters()){

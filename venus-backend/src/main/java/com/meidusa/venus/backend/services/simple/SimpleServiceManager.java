@@ -102,11 +102,9 @@ public class SimpleServiceManager extends AbstractServiceManager implements Init
         // set name
         com.meidusa.venus.annotations.Service serviceAnnotation = type.getAnnotation(com.meidusa.venus.annotations.Service.class);
         if (!serviceAnnotation.name().isEmpty()) {
-
             service.setName(serviceAnnotation.name());
         } else {
             service.setName(type.getCanonicalName());
-
         }
         if (logger.isInfoEnabled()) {
             logger.info("Use Name: " + service.getName());
