@@ -86,7 +86,7 @@ public class SyncApplicationisNewService {
 				long end = System.currentTimeMillis();
 				long consumerTime = end - start;
 			} catch (Exception e) {
-				LogUtils.ERROR_LOG.error("load service cache data error", e);
+				LogUtils.ERROR_LOG.error("SyncApplicationisNew service cache data error", e);
 			} finally {
 				loacCacheRunning = false;
 			}
