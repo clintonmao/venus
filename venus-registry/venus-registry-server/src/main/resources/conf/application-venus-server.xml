@@ -153,6 +153,11 @@
 	<bean id="clearInvalidService" class="com.meidusa.venus.registry.service.impl.ClearInvalidService" init-method="init">
 		<property name="registerService" ref="mysqlRegisterService" ></property>
 	</bean>
+	
+	<bean id="syncApplicationisNewService" class="com.meidusa.venus.registry.service.impl.SyncApplicationisNewService" init-method="init">
+		<property name="venusServiceDAO" ref="venusServiceDAO" ></property>
+		<property name="venusApplicationDAO" ref="venusApplicationDAO" ></property>
+	</bean>
 
 	<!--旧注册中心-》新注册中心同步服务-->
 	<bean id="oLdServiceMappingService" class="com.meidusa.venus.registry.service.impl.OLdServiceMappingService" init-method="init">

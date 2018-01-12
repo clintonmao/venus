@@ -29,10 +29,10 @@ public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 
 	@Override
 	public int addApplication(VenusApplicationDO venusApplicationDO) throws DAOException {
-		final String sql = "insert into t_venus_application (app_code,provider,consumer,create_name,update_name,create_time, update_time) values ('"
+		final String sql = "insert into t_venus_application (app_code,provider,consumer,create_name,update_name,create_time, update_time,new_app) values ('"
 				+ venusApplicationDO.getAppCode() + "'," + venusApplicationDO.isProvider() + ","
 				+ venusApplicationDO.isConsumer() + ", '" + venusApplicationDO.getCreateName() + "', '"
-				+ venusApplicationDO.getUpdateName() + "', now(), now())";
+				+ venusApplicationDO.getUpdateName() + "', now(), now(),"+venusApplicationDO.getNewApp()+")";
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		int autoIncId = 0;
 		jdbcTemplate.update(new PreparedStatementCreator() {
@@ -55,6 +55,17 @@ public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 					venusApplicationDO.getId());
 		} catch (Exception e) {
 			throw new DAOException("更新venusApplication异常", e);
+		}
+		return update > 0;
+	}
+	
+	public boolean updateApplication(boolean newApp,int id) throws DAOException {
+		String sql = "update t_venus_application set new_app=? where id=?";
+		int update = 0;
+		try {
+			update = this.jdbcTemplate.update(sql, newApp,id);
+		} catch (Exception e) {
+			throw new DAOException("更新venusApplication newApp异常", e);
 		}
 		return update > 0;
 	}

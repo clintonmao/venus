@@ -10,6 +10,8 @@ public interface VenusApplicationDAO {
 	int addApplication(VenusApplicationDO venusApplicationDO) throws DAOException;
 
 	boolean updateApplication(VenusApplicationDO venusApplicationDO) throws DAOException;
+	
+	boolean updateApplication(boolean newApp,int id) throws DAOException;
 
 	VenusApplicationDO getApplication(String appCode) throws DAOException;
 

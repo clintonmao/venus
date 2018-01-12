@@ -33,6 +33,8 @@ public class VenusApplicationDO implements Serializable {
 	private Date createTime;
 
 	private Date updateTime;
+	
+	private Boolean newApp;
 
 	public Integer getId() {
 		return id;
@@ -96,6 +98,14 @@ public class VenusApplicationDO implements Serializable {
 
 	public void setConsumer(Boolean consumer) {
 		this.consumer = consumer;
+	}
+
+	public Boolean getNewApp() {
+		return newApp;
+	}
+
+	public void setNewApp(Boolean newApp) {
+		this.newApp = newApp;
 	}
 
 	@Override

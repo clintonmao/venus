@@ -125,6 +125,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				venusApplicationDO.setUpdateName(RegisteConstant.PROVIDER);
 				venusApplicationDO.setProvider(true);
 				venusApplicationDO.setConsumer(false);
+				venusApplicationDO.setNewApp(true);
 				appId = venusApplicationDAO.addApplication(venusApplicationDO);
 			} else {
 				appId = application.getId();
@@ -224,6 +225,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				venusApplicationDO.setUpdateName(RegisteConstant.PROVIDER);
 				venusApplicationDO.setProvider(true);
 				venusApplicationDO.setConsumer(false);
+				venusApplicationDO.setNewApp(false);
 				appId = venusApplicationDAO.addApplication(venusApplicationDO);
 			} else {
 				appId = application.getId();
@@ -292,6 +294,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					venusApplicationDO.setConsumer(true);
 					venusApplicationDO.setUpdateName(RegisteConstant.CONSUMER);
 					venusApplicationDO.setCreateName(RegisteConstant.CONSUMER);
+					venusApplicationDO.setNewApp(true);
 					appId = venusApplicationDAO.addApplication(venusApplicationDO);
 				} else {
 					appId = application.getId();
@@ -1002,6 +1005,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 								venusApplicationDO.setUpdateName(RegisteConstant.PROVIDER);
 								venusApplicationDO.setProvider(true);
 								venusApplicationDO.setConsumer(false);
+								venusApplicationDO.setNewApp(false);
 								appId = venusApplicationDAO.addApplication(venusApplicationDO);
 							} else {
 								appId = application.getId();
