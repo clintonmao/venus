@@ -20,6 +20,8 @@ import com.meidusa.venus.registry.domain.VenusApplicationDO;
 
 public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 
+	private static final String SELECT_FIELDS =  "select id,app_code,provider,consumer,create_name,update_name,create_time,update_time,new_app from t_venus_application ";
+	
 	private JdbcTemplate jdbcTemplate;
 
 	public VenusApplicationDaoImpl(JdbcTemplate jdbcTemplate) {
@@ -72,7 +74,8 @@ public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 
 	@Override
 	public VenusApplicationDO getApplication(String appCode) throws DAOException {
-		String sql = "select id, app_code,provider,consumer,create_name,update_name,create_time, update_time from t_venus_application where app_code = ?";
+		String sql = SELECT_FIELDS
+				+ " where app_code = ?";
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] { appCode }, new ResultSetExtractor<VenusApplicationDO>() {
 				@Override
@@ -91,7 +94,8 @@ public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 
 	@Override
 	public VenusApplicationDO getApplication(Integer id) throws DAOException {
-		String sql = "select id,app_code,provider,consumer,create_name,update_name,create_time, update_time from t_venus_application where id = ?";
+		String sql = SELECT_FIELDS
+				+ " where id = ?";
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] { id }, new ResultSetExtractor<VenusApplicationDO>() {
 				@Override
@@ -118,7 +122,7 @@ public class VenusApplicationDaoImpl implements VenusApplicationDAO {
 	}
 	
 	public List<VenusApplicationDO> queryApplications(Integer pageSize, Integer id) throws DAOException {
-		String sql = "select id,app_code,provider,consumer,create_name,update_name,create_time, update_time from t_venus_application ";
+		String sql = SELECT_FIELDS;
 
 		if (null != id) {
 			sql = sql + " where id>" + id;

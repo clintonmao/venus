@@ -102,6 +102,7 @@ public class ResultUtils {
 
 		application.setCreateTime(rs.getTimestamp("create_time"));
 		application.setUpdateTime(rs.getTimestamp("update_time"));
+		application.setNewApp(rs.getBoolean("new_app"));
 		return application;
 	}
 

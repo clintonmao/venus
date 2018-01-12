@@ -2,9 +2,11 @@ package com.meidusa.venus.registry.service.impl;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections.CollectionUtils;
 
+import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.registry.LogUtils;
 import com.meidusa.venus.registry.dao.VenusApplicationDAO;
 import com.meidusa.venus.registry.dao.VenusServiceDAO;
@@ -38,8 +40,7 @@ public class SyncApplicationisNewService {
 	}
 
 	public void init() {
-		load();
-		//GlobalScheduler.getInstance().scheduleAtFixedRate(new LoadCacheServicesRunnable(), 1, 20, TimeUnit.HOURS);
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new SyncApplicationisNewRunnable(), 1, 10, TimeUnit.HOURS);
 	}
 
 	public void load() {
@@ -64,9 +65,8 @@ public class SyncApplicationisNewService {
 						String serviceName = vs.getName();
 						String oldAppCode = serviceName + "_app";
 						VenusApplicationDO application = venusApplicationDAO.getApplication(oldAppCode);
-						if(null!=application){
+						if (null != application && application.getNewApp() != null && application.getNewApp()) {
 							venusApplicationDAO.updateApplication(false, application.getId());
-							System.out.println("application.getId()"+application.getId()+"is update");
 							LogUtils.DEFAULT_LOG.error("application.getId()"+application.getId()+"is update");
 						}
 					}
@@ -76,22 +76,22 @@ public class SyncApplicationisNewService {
 		loacCacheRunning = false;
 	}
 
-//	private class LoadCacheServicesRunnable implements Runnable {
-//
-//		@Override
-//		public void run() {
-//			try {
-//				long start = System.currentTimeMillis();
-//				load();
-//				long end = System.currentTimeMillis();
-//				long consumerTime = end - start;
-//			} catch (Exception e) {
-//				LogUtils.ERROR_LOG.error("load service cache data error", e);
-//			} finally {
-//				loacCacheRunning = false;
-//			}
-//		}
-//
-//	}
+	private class SyncApplicationisNewRunnable implements Runnable {
+
+		@Override
+		public void run() {
+			try {
+				long start = System.currentTimeMillis();
+				load();
+				long end = System.currentTimeMillis();
+				long consumerTime = end - start;
+			} catch (Exception e) {
+				LogUtils.ERROR_LOG.error("load service cache data error", e);
+			} finally {
+				loacCacheRunning = false;
+			}
+		}
+
+	}
 
 }
