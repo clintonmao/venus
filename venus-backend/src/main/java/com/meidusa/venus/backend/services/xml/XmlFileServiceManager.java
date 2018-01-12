@@ -230,9 +230,6 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                     String refBeanName = exportService.getRef();
                     try {
                         Object refBean = beanFactory.getBean(refBeanName);
-                        if(refBean == null){
-                            throw new VenusConfigException("ref bean not found:" + refBeanName);
-                        }
                         exportService.setActive(true);
                         exportService.setInstance(refBean);
                         exportBeanMap.put(serviceInterfaceName,refBean.getClass() + "@" + refBean.hashCode());
