@@ -62,9 +62,6 @@ public class VenusApplication implements InitializingBean,DisposableBean {
     }
 
     public static VenusApplication getInstance(){
-        if(venusApplication == null){
-            throw new VenusConfigException("venusApplication not inited.");
-        }
         return venusApplication;
     }
 
