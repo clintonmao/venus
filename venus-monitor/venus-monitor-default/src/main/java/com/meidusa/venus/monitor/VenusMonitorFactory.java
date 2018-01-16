@@ -260,12 +260,12 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
         if(enableVenusReport){
             //注册venus上报依赖beans
-            registeVenusReportBeans(beanFactory);
+            registeAthenaDataServiceBean(beanFactory);
         }
 
         if(enableAthenaReport){
             //注册athena上报依赖beans
-            registeAthenaReportBeans(beanFactory);
+            registeClientConfigManagerBean(beanFactory);
         }
     }
 
@@ -273,11 +273,23 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      * 注册venus上报依赖beans
      * @param beanFactory
      */
-    void registeVenusReportBeans(ConfigurableListableBeanFactory beanFactory){
+    void registeAthenaDataServiceBean(ConfigurableListableBeanFactory beanFactory){
         if(hasVenusReportDepen){
             try {
                 //注册athenaDataService到spring上下文
-                registeAthenaDataService(beanFactory);
+                String simpleClassName = AthenaDataService.class.getSimpleName();
+                String beanName = formatClassName(simpleClassName);
+                BeanDefinitionRegistry reg = (BeanDefinitionRegistry) beanFactory;
+                GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+                beanDefinition.setBeanClass(ServiceFactoryBean.class);
+                beanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, beanName));
+                beanDefinition.setScope(BeanDefinition.SCOPE_SINGLETON);
+                ConstructorArgumentValues args = new ConstructorArgumentValues();
+                args.addIndexedArgumentValue(0, this.athenaDataService);
+                args.addIndexedArgumentValue(1, AthenaDataService.class);
+                beanDefinition.setConstructorArgumentValues(args);
+                beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
+                reg.registerBeanDefinition(beanName, beanDefinition);
             } catch (Exception e) {
                 if(exceptionLogger.isErrorEnabled()){
                     exceptionLogger.error("registe athenaDataService failed,will disable venus report.",e);
@@ -291,52 +303,27 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      * 注册athena上报依赖beans
      * @param beanFactory
      */
-    void registeAthenaReportBeans(ConfigurableListableBeanFactory beanFactory){
-        if(hasAthenaReportDepen){
-            try {
-                if(beanFactory.getBean(AthenaDataService.class) == null){
-                    throw new VenusConfigException("spring not found AthenaDataService bean.");
+    void registeClientConfigManagerBean(ConfigurableListableBeanFactory beanFactory){
+        if(hasVenusReportDepen){
+            if(hasAthenaReportDepen){
+                try {
+                    //注册configManager到spring上下文
+                    if(clientConfigManagerIniter != null){
+                        clientConfigManagerIniter.registeConfigManager(beanFactory,this.clientConfigManager);
+                    }
+                } catch (Exception e) {
+                    if(exceptionLogger.isErrorEnabled()){
+                        exceptionLogger.error("registe athenaDataService and clientConfigManager failed,will disable venus report.",e);
+                    }
+                    hasAthenaReportDepen = false;
                 }
-
-                //注册configManager到spring上下文
-                registeClientConfigManager(beanFactory);
-            } catch (Exception e) {
-                if(exceptionLogger.isErrorEnabled()){
-                    exceptionLogger.error("registe athenaDataService and clientConfigManager failed,will disable venus report.",e);
-                }
-                hasAthenaReportDepen = false;
+            }
+        }else{
+            if(logger.isWarnEnabled()){
+                logger.warn("not found athenaDataService,will disabled athena report.");
             }
         }
-    }
 
-    /**
-     * 注册athenaDataService
-     * @param beanFactory
-     */
-    void registeAthenaDataService(ConfigurableListableBeanFactory beanFactory){
-        String simpleClassName = AthenaDataService.class.getSimpleName();
-        String beanName = formatClassName(simpleClassName);
-        BeanDefinitionRegistry reg = (BeanDefinitionRegistry) beanFactory;
-        GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
-        beanDefinition.setBeanClass(ServiceFactoryBean.class);
-        beanDefinition.addQualifier(new AutowireCandidateQualifier(Qualifier.class, beanName));
-        beanDefinition.setScope(BeanDefinition.SCOPE_SINGLETON);
-        ConstructorArgumentValues args = new ConstructorArgumentValues();
-        args.addIndexedArgumentValue(0, this.athenaDataService);
-        args.addIndexedArgumentValue(1, AthenaDataService.class);
-        beanDefinition.setConstructorArgumentValues(args);
-        beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
-        reg.registerBeanDefinition(beanName, beanDefinition);
-    }
-
-    /**
-     * 注册configManager
-     * @param beanFactory
-     */
-    void registeClientConfigManager(ConfigurableListableBeanFactory beanFactory){
-        if(clientConfigManagerIniter != null){
-            clientConfigManagerIniter.registeConfigManager(beanFactory,this.clientConfigManager);
-        }
     }
 
     /**

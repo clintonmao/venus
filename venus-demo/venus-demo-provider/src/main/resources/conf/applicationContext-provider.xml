@@ -82,4 +82,8 @@
         </property>
     </bean>
 
+	<bean id="orderService" class="com.chexiang.venus.demo.provider.impl.OrderServiceImpl"/>
+
+	<bean id="productService" class="com.chexiang.venus.demo.provider.impl.ProductServiceImpl"/>
+
 </beans>
