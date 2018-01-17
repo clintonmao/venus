@@ -4,14 +4,22 @@ import com.chexiang.venus.demo.provider.HelloService;
 import com.chexiang.venus.demo.provider.HelloValidException;
 import com.chexiang.venus.demo.provider.InvalidParamException;
 import com.chexiang.venus.demo.provider.model.Hello;
+import com.meidusa.fastjson.JSON;
+import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.notify.InvocationListener;
+import com.saic.ebiz.mdsecenter.carmall.vo.SpuVO;
+import com.saic.ebiz.mdsecenter.vo.MdseCityPriceVO;
+import com.saic.ebiz.order.service.api.HugePayService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * HelloController
@@ -25,6 +33,9 @@ public class HelloController {
 
     @Autowired
     HelloService helloService;
+
+    @Autowired
+    HugePayService hugePayService;
 
     @RequestMapping("/sayHello")
     public Result sayHello(){
@@ -79,5 +90,37 @@ public class HelloController {
         }
         return new Result("ok");
     }
+
+    @RequestMapping("/order/{param}")
+    public Result order(@PathVariable String param) throws HelloValidException,InvalidParamException {
+        //构造VO
+        SpuVO spuVO = new SpuVO();
+        spuVO.setBrandName("ABC");
+        Map<Long, MdseCityPriceVO> mdseCityPriceMap = new HashMap<>();
+        MdseCityPriceVO cityPriceVO = new MdseCityPriceVO();
+        cityPriceVO.setStatus(1);
+        mdseCityPriceMap.put(new Long(324),cityPriceVO);
+        spuVO.setMdseCityPriceMap(mdseCityPriceMap);
+
+        SerializerFeature[] serializerFeature = new SerializerFeature[]{SerializerFeature.WriteNonStringKeyAsString};
+        String serialVo = com.meidusa.fastjson.JSON.toJSONString(spuVO,serializerFeature);
+        logger.info("serialVo:{}",serialVo);
+
+        Object deseriaVo = JSON.parse(serialVo);
+        logger.info("deseriaVo:{}",serialVo);
+
+        boolean ret = false;
+        try {
+            ret = hugePayService.isMallHugePay(spuVO);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        logger.info("ret:",ret);
+        return new Result("ok");
+    }
+
+
+
+
 
 }

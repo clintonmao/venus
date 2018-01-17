@@ -6,6 +6,7 @@ import java.util.Map;
 import com.meidusa.fastjson.JSON;
 import com.meidusa.fastjson.parser.DefaultExtJSONParser;
 import com.meidusa.fastjson.parser.ParserConfig;
+import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.packet.ServicePacketBuffer;
 import com.meidusa.venus.io.serializer.AbstractSerializer;
@@ -42,8 +43,11 @@ public class JsonSerializer extends AbstractSerializer implements PacketConstant
     @Override
     public byte[] encode(Object obj) {
         if (obj != null) {
-            return JSON.toJSONString(obj).getBytes(PACKET_CHARSET);
-
+            //处理MAP结构非字符串KEY未关闭字符问题 zhangzh 2018.1.17
+            //String jsonValue = JSON.toJSONString(obj);
+            SerializerFeature[] serializerFeature = new SerializerFeature[]{SerializerFeature.WriteNonStringKeyAsString};
+            String jsonValue = JSON.toJSONString(obj,serializerFeature);
+            return jsonValue.getBytes(PACKET_CHARSET);
         }
         return null;
     }
