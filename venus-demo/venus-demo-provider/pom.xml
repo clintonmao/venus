@@ -12,6 +12,8 @@
     <properties>
         <project.home>${basedir}</project.home>
         <spring.version>4.3.3.RELEASE</spring.version>
+        <!--<fastjson-hexnova.version>1.4.3</fastjson-hexnova.version>-->
+        <!--<fastjson-hexnova.version>1.3.17</fastjson-hexnova.version>-->
         <!--
         <spring.version>3.2.4.RELEASE</spring.version>
         -->

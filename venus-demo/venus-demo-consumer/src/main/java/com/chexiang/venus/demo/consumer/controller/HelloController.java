@@ -11,6 +11,11 @@ import com.meidusa.venus.notify.InvocationListener;
 import com.saic.ebiz.mdsecenter.carmall.vo.SpuVO;
 import com.saic.ebiz.mdsecenter.vo.MdseCityPriceVO;
 import com.saic.ebiz.order.service.api.HugePayService;
+import com.saic.usedcar.shangcheng.model.UsedCarMerchandiseVO;
+import com.saic.usedcar.shangcheng.model.UsedCarParamVO;
+import com.saic.usedcar.shangcheng.pagination.Pagination;
+import com.saic.usedcar.shangcheng.pagination.PaginationResult;
+import com.saic.usedcar.shangcheng.service.api.IUsedCarMallService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,6 +42,9 @@ public class HelloController {
 
     @Autowired
     HugePayService hugePayService;
+
+    @Autowired
+    IUsedCarMallService iUsedCarMallService;
 
     @RequestMapping("/sayHello")
     public Result sayHello(){
@@ -119,6 +128,64 @@ public class HelloController {
         return new Result("ok");
     }
 
+    @RequestMapping("/usedcar/{param}")
+    public Result usedcar(@PathVariable String param) throws HelloValidException,InvalidParamException {
+//        String url = databaseConfigure.getUrl();
+//   		String user = databaseConfigure.getUser();
+//   		String password = databaseConfigure.getPassword();
+//   		Connection conn = null;
+//   		Statement ps = null;
+
+        UsedCarParamVO paramVO = new UsedCarParamVO();
+        paramVO.setBrandCode("");
+        paramVO.setPriceSection(""); // {"0", ""}, {"1", "3万以下"}, {"2", "3-5万"},
+        // {"3", "5-8万"}, {"4", "8-10万"}, {"5",
+        // "10-15万"}, {"6", "15-20万"}, {"7",
+        // "20-30万"}, {"8", "30-50万"}, {"9",
+        // "50万以上"}
+        paramVO.setCarUsedTimeSection(""); // {"0", ""}, {"1", "3年以内"}, {"2",
+        // "3-5年"}, {"3", "5-8年"}, {"4",
+        // "8-10年"}, {"5", "10年以上"}
+        paramVO.setLevel(""); // {"0", ""}, {"1", "紧凑型"}, {"2", "中型"}, {"3",
+        // "中大型"}, {"4", "MPV"}, {"5", "SUV"}, {"6",
+        // "跑车"}, {"7", "小型车"},
+        paramVO.setLocation(""); // {"0", ""}, {"1", "上海"}, {"2", "北京"}, {"3",
+        // "成都"}, {"4", "杭州"}, {"5", "南京"}, {"6",
+        // "天津"}, {"7", "石家庄"}, {"8", "广州"}, {"9",
+        // "深圳"}, {"10", "郑州"}
+        paramVO.setDistanceSection(""); // {"0", ""}, {"1", "1万公里以内"}, {"2",
+        // "1-3万公里"}, {"3", "3-5万公里"}, {"4",
+        // "5-8万公里"}, {"5", "8-10万公里"}, {"6",
+        // "10万公里以上"}
+        paramVO.setSource(""); // {"0", ""}, {"1", "否"},//自营 {"2", "是"} //加盟
+        paramVO.setIsSale("");
+        paramVO.setIsDesc(1);
+        paramVO.setOrderBy(0); // 0:代表默认按照最新的时间排序
+        try {
+//   			Class.forName(databaseConfigure.getDriver());
+//   			conn = DriverManager.getConnection(url, user, password);
+//   			for (int j = 1; j <= 22; j++) {
+            //Pagination page = new Pagination(9, 2);
+            Pagination page = new Pagination();
+            page.setPagesize(9);
+            page.setCurrentPage(2);
+            page.setCurPage(2);
+
+            PaginationResult<List<UsedCarMerchandiseVO>> carMessage = iUsedCarMallService.getUsedCarInfoList(paramVO, page);
+            System.out.println(carMessage);
+            /*
+            List<UsedCarMerchandiseVO> carList = carMessage.getR();
+            for (int i = 0; i < carList.size(); i++) {
+                JSONObject a = JSONObject.fromObject(carList.get(i));
+                UsedCarMerchandiseVO source = (UsedCarMerchandiseVO) JSONObject.toBean(a, UsedCarMerchandiseVO.class);
+            }
+            */
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return new Result("ok");
+    }
 
 
 
