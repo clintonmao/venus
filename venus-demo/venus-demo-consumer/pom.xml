@@ -117,34 +117,6 @@
             <version>4.0.11-SNAPSHOT</version>
         </dependency>
         -->
-        <dependency>
-            <groupId>com.saic.ebiz</groupId>
-            <artifactId>ebiz-order-api</artifactId>
-            <version>1.8.8-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.meidusa.venus.commons</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.meidusa.venus</groupId>
-                    <artifactId>venus-annotations</artifactId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>spring-data-commons</artifactId>
-                    <groupId>org.springframework.data</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>spring-data-mongodb</artifactId>
-                    <groupId>org.springframework.data</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>spring-security-core</artifactId>
-                    <groupId>org.springframework.security</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
         <!--venus依赖-->
         <dependency>
             <groupId>com.meidusa.venus</groupId>

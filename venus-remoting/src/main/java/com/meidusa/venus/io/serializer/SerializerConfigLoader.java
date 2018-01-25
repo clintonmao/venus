@@ -83,10 +83,6 @@ public class SerializerConfigLoader {
                     Class<?> bean = Class.forName(value.trim());
                     Object object = PureJavaReflectionProvider.getInstance().newInstance(bean);
                     Class<?> clazz = Class.forName(key);
-                    if(clazz.getSimpleName().contains("Pagination") || clazz.getSimpleName().contains("UsedCarParamVO")){
-                        System.out.println(clazz);
-                        System.out.println(object);
-                    }
                     if (type == 1) {
                         itype = "bson";
                         FastBsonSerializer.registerSerializer(clazz, (com.meidusa.fastbson.serializer.ObjectSerializer) object);

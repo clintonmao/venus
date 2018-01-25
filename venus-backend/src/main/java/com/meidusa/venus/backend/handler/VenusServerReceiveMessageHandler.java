@@ -169,10 +169,6 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
      */
     ServerInvocation parseInvocation(VenusFrontendConnection conn, Tuple<Long, byte[]> data){
         byte[] message = data.right;
-
-        String bufParam = new String(message);
-        System.out.println(bufParam);
-
         int type = AbstractServicePacket.getType(message);
         byte serializeType = conn.getSerializeType();
         String sourceIp = conn.getHost();
@@ -248,10 +244,6 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
         invocation.setMethod(endpoint.getMethod());
         invocation.setResultType(getResultType(endpoint));
 
-        byte[] packetByte = packetBuffer.toByteBuffer().array();
-        String bufParam = new String(packetByte);
-        System.out.println("============#################=================");
-        System.out.println(bufParam);
         //解析serviceRequest
         Serializer serializer = SerializerFactory.getSerializer(serializeType);
         SerializeServiceRequestPacket serviceRequestPacket = new SerializeServiceRequestPacket(serializer, endpoint.getParameterTypeDict());

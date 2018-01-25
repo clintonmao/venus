@@ -170,7 +170,6 @@ public class JavaBeanSerializerEx extends SerializeFilterable implements ObjectS
                 FieldInfo fieldInfo = fieldSerializer.fieldInfo;
                 String fieldInfoName = fieldInfo.name;
                 if(fieldInfoName != null && "mdseCityPriceMap".equals(fieldInfoName)){
-                    System.out.println(fieldInfoName);
                 }
                 Class<?> fieldClass = fieldInfo.fieldClass;
 

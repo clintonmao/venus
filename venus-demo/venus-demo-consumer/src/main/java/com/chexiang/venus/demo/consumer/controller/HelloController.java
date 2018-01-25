@@ -168,7 +168,7 @@ public class HelloController {
             //Pagination page = new Pagination(9, 2);
             Pagination page = new Pagination();
             page.setPagesize(9);
-            page.setCurrentPage(2);
+            page.setCurrentPagex(2);
             page.setCurPage(2);
 
             PaginationResult<List<UsedCarMerchandiseVO>> carMessage = iUsedCarMallService.getUsedCarInfoList(paramVO, page);

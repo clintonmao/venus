@@ -68,17 +68,12 @@ public class SerializeServiceRequestPacket extends AbstractServiceRequestPacket 
     protected void wirteParams(ServicePacketBuffer buffer) {
         if (parameterMap != null) {
             byte[] bts = serializer.encode(parameterMap);
-            String strParam = new String(bts);
-            System.out.println(strParam);
             if (bts != null) {
                 if (PacketConstant.AUTO_COMPRESS_SIZE > 0 && bts.length > PacketConstant.AUTO_COMPRESS_SIZE) {
                     buffer.writeLengthCodedBytes(GZipUtil.compress(bts));
                     this.flags = (byte) (this.flags | CAPABILITY_GZIP);
                 } else {
                     buffer.writeLengthCodedBytes(bts);
-                    byte[] sbyte = buffer.toByteBuffer().array();
-                    String bufParam = new String(sbyte);
-                    System.out.println(bufParam);
                 }
             } else {
                 buffer.writeInt(0);

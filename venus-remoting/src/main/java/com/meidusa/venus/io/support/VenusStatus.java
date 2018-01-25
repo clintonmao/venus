@@ -71,7 +71,8 @@ public class VenusStatus {
 		this.status = status;
 	}
 	
-	/*public static double getProcessCpuLoad() throws Exception {
+	/*
+	public static double getProcessCpuLoad() throws Exception {
 
 		OperatingSystemMXBean  mbs    = ManagementFactory.getOperatingSystemMXBean();
 	    ObjectName name    = ObjectName.getInstance("java.lang:type=OperatingSystem");
@@ -87,35 +88,7 @@ public class VenusStatus {
 	    if (value == -1.0)      return Double.NaN;
 
 	    return ((int)(value * 1000) / 10.0);        // returns a percentage value with 1 decimal point precision
-	}*/
-	
-	public static void main(String[] args) throws Exception {
-		ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed();
-		
-		List<MemoryPoolMXBean> list = ManagementFactory.getMemoryPoolMXBeans();
-		for(MemoryPoolMXBean bean : list){
-			System.out.println("------"+bean.getName()+"--------");
-			MemoryUsage usage = bean.getUsage();
-			System.out.println(bean);
-			
-			System.out.println(usage);
-			
-			/*if(StringUtils.equalsIgnoreCase(config.getName(), PS_OLD_GEN)){
-			}*/
-		}
-		
-		List<GarbageCollectorMXBean> gcList = ManagementFactory.getGarbageCollectorMXBeans();
-		for(GarbageCollectorMXBean mxBean : gcList){
-			mxBean.getMemoryPoolNames();
-			System.out.println("name="+mxBean.getName()+",times="+mxBean.getCollectionCount()+",time="+mxBean.getCollectionTime());
-		}
-		
-		com.sun.management.OperatingSystemMXBean osBean = (com.sun.management.OperatingSystemMXBean)ManagementFactory.getOperatingSystemMXBean();
-		// What % CPU load this current JVM is taking, from 0.0-1.0
-		System.out.println(osBean.getSystemLoadAverage());
-
-		// What % load the overall system is at, from 0.0-1.0
-		//System.out.println(osBean.getSystemCpuLoad());
-		//System.out.println(getProcessCpuLoad());
 	}
+	*/
+	
 }

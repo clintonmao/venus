@@ -7,7 +7,5 @@
 		-->
 		<service type="com.chexiang.venus.demo.provider.HelloService" ref="helloService" supportVersion="{0,1,2,3,4,5,6}"/>
 		<service type="com.chexiang.venus.demo.provider.EchoService" ref="echoService" supportVersion="{1}"/>
-		<service type="com.saic.usedcar.shangcheng.service.api.IUsedCarMallService" ref="usedCarMallService"/>
-
 	</services>
 </venus-server>
