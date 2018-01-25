@@ -20,5 +20,6 @@
 			-->
 		</service>
 		<service type="com.chexiang.venus.demo.provider.EchoService"/>
+		<service type="com.saic.framework.message.UniMessageService" ipAddressList="127.0.0.1:16800"/>
 	</services>
 </venus-client>

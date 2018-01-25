@@ -244,11 +244,16 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
         invocation.setMethod(endpoint.getMethod());
         invocation.setResultType(getResultType(endpoint));
 
+        byte[] revParam = packetBuffer.toByteBuffer().array();
+        String revString = new String(revParam);
+        System.out.println(revString);
+
         //解析serviceRequest
         Serializer serializer = SerializerFactory.getSerializer(serializeType);
         SerializeServiceRequestPacket serviceRequestPacket = new SerializeServiceRequestPacket(serializer, endpoint.getParameterTypeDict());
         packetBuffer.setPosition(0);
         serviceRequestPacket.init(packetBuffer);
+
         invocation.setServiceRequestPacket(serviceRequestPacket);
     }
 
