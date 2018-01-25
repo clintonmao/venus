@@ -102,19 +102,4 @@ public class SimpleServiceRequestPacket extends AbstractServiceRequestPacket {
 
     }
     
-    public static void main(String[] args) {
-    	SimpleServiceRequestPacket request = new SimpleServiceRequestPacket();
-    	request.paramterBytes = new byte[32 * 1024 * 1024];
-    	request.apiName = "hello.getName";
-    	request.traceId = VenusTracerUtil.randomTracerID();
-    	
-    	byte[] bts = request.toByteArray();
-    	
-    	ServicePacketBuffer buffer = new ServicePacketBuffer(bts);
-    	SimpleServiceRequestPacket response = new SimpleServiceRequestPacket();
-    	
-    	response.init(buffer);
-    	
-    	System.out.println(response.apiName+","+new UUID(response.traceId));
-	}
 }

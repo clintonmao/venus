@@ -199,7 +199,6 @@ public abstract class AbstractBenchmark {
 
             File logbackFile = new File(logbackConf);
             if (logbackFile.exists()) {
-                System.out.println("Log system load configuration form " + logbackConf);
                 System.setProperty("logback.configurationFile", logbackConf);
                 break __INIT_LOG;
             }
@@ -217,8 +216,6 @@ public abstract class AbstractBenchmark {
             if (log4jFile.exists()) {
                 try {
                     System.setProperty("log4j.configuration", log4jConf);
-                    System.out.println("Log system load configuration form " + log4jConf);
-
                     Log4jConfigurer.initLogging(log4jConf, 30 * 1000);
                     try {
                         Thread.sleep(2000);
@@ -461,7 +458,7 @@ public abstract class AbstractBenchmark {
                     long requested = (total - context.getResponseLatcher().getCount());
                     System.out.println("completed requests total=" + requested + ", cost="
                             + TimeUnit.MILLISECONDS.convert((maxend - minStart), TimeUnit.NANOSECONDS) + "ms , TPS="
-                            + (time > 0 ? ((long) requested * 1000) / time : requested) + "/s");
+                            + (time > 0 ? (requested * 1000) / time : requested) + "/s");
 
                     double thisTime = (double) (TimeUnit.MICROSECONDS.convert(min, TimeUnit.NANOSECONDS)) / (double) 1000;
                     System.out.println("min=" + thisTime + " ms");
@@ -476,7 +473,7 @@ public abstract class AbstractBenchmark {
                     System.out.println("create Connections time="
                             + TimeUnit.MILLISECONDS.convert(createConnectionEndTime - createConnectionStartTime, TimeUnit.NANOSECONDS) + "ms");
                     long tpsTime = TimeUnit.MILLISECONDS.convert(endBenchmarkTime - createConnectionEndTime, TimeUnit.NANOSECONDS);
-                    System.out.println("TPS(after connected)=" + (tpsTime > 0 ? ((long) requested * 1000) / tpsTime : requested) + "/s");
+                    System.out.println("TPS(after connected)=" + (tpsTime > 0 ? (requested * 1000) / tpsTime : requested) + "/s");
                     executor.shutdown();
                     connector.shutdown();
                 }

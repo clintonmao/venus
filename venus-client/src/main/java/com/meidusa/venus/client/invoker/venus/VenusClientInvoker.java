@@ -300,7 +300,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             //发送请求消息，响应由handler类处理
             ByteBuffer buffer = serviceRequestPacket.toByteBuffer();
             VenusThreadContext.set(VenusThreadContext.CLIENT_OUTPUT_SIZE,Integer.valueOf(buffer.limit()));
-
             conn.write(buffer);
         } catch (RpcException e){
             exception = e;

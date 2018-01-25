@@ -20,7 +20,5 @@
 			-->
 		</service>
 		<service type="com.chexiang.venus.demo.provider.EchoService"/>
-		<!-- <service name="serviceRegistryEx" type="com.meidusa.venus.service.registry.ServiceRegistry" ipAddressList="10.47.58.49:16800"/> -->
-		 <service type="com.saic.ebiz.order.service.api.HugePayService" ipAddressList="127.0.0.1:16800"/>
 	</services>
 </venus-client>
