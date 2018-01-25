@@ -17,6 +17,8 @@ import com.meidusa.venus.io.support.convert.ConvertService;
 import com.meidusa.venus.io.support.convert.DefaultConvertService;
 import com.meidusa.venus.util.Range;
 import com.meidusa.venus.util.Utils;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +32,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -132,13 +136,12 @@ public class VenusHttpServlet extends HttpServlet {
             endpoint = serviceManager.getEndpoint(apiName);
 
             if (req.getContentLength() > 0) {
-                byte[] message = new byte[req.getContentLength()];
-                req.getInputStream().read(message);
-                parameterMap = serializer.decode(message, endpoint.getParameterTypeDict());
+    			ByteArrayOutputStream bao = new ByteArrayOutputStream();
+    			IOUtils.copyLarge(req.getInputStream(),bao);
+                parameterMap = serializer.decode(bao.toByteArray(), endpoint.getParameterTypeDict());
             } else {
                 parameterMap = new HashMap<String, Object>();
             }
-
             Set<String> keys = req.getParameterMap().keySet();
             for (String key : keys) {
                 Type type = endpoint.getParameterTypeDict().get(key);
