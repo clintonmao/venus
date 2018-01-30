@@ -64,7 +64,6 @@ public class DefaultMonitorResource implements MonitorResource {
     void oneHourTask(){
         try {
             //打印版本号
-            //TODO 版本号打印
             //readVersion();
         } catch (Exception e) {
             exceptionLogger.error("schedual task error.",e);
@@ -77,9 +76,11 @@ public class DefaultMonitorResource implements MonitorResource {
     void oneMinutesTask(){
         try {
             //打印属性项
+            /*
             if(logger.isInfoEnabled()){
                 logger.info("properties:{}.", JSON.toJSONString(this.properties));
             }
+            */
         } catch (Exception e) {
             exceptionLogger.error("schedual task error.",e);
         }
