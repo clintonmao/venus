@@ -1,11 +1,14 @@
 package com.meidusa.venus.registry.mysql;
 
 import com.meidusa.fastjson.JSON;
+import com.meidusa.fastjson.TypeReference;
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.domain.RegisteConstant;
+import com.meidusa.venus.registry.domain.RouterRule;
+import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.registry.service.RegisterService;
 import com.meidusa.venus.registry.util.RegistryUtil;
@@ -14,6 +17,7 @@ import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 
@@ -199,7 +203,7 @@ public class MysqlRegister implements Register {
 	@Override
 	public void load() throws VenusRegisteException {
 		if (CollectionUtils.isNotEmpty(subscribleUrls)) {
-			List<String> jsons = new ArrayList<String>();
+			Map<String, List<VenusServiceDefinitionDO>> localDefinitionMap = new HashMap<String, List<VenusServiceDefinitionDO>>();
 			boolean hasException=false;
 			for (URL url : subscribleUrls) {
 				try {
@@ -207,7 +211,7 @@ public class MysqlRegister implements Register {
 					String key = RegistryUtil.getKeyFromUrl(url);
 					if (CollectionUtils.isNotEmpty(serviceDefinitions)) {
 						subscribleServiceDefinitionMap.put(key, serviceDefinitions);
-						jsons.add(JSON.toJSONString(serviceDefinitions));
+						localDefinitionMap.put(key, serviceDefinitions);
 					}else{
 						subscribleServiceDefinitionMap.remove(key);
 					}
@@ -222,13 +226,13 @@ public class MysqlRegister implements Register {
 				return;
 			}
 			// 查询数据为空，不写本地缓存
-			if (CollectionUtils.isEmpty(jsons)) {
+			if (MapUtils.isEmpty(localDefinitionMap)) {
 				return;
 			}
 
 			//若开启本地文件缓存，则写文件
 			if (isEnableFileCache()) {
-				saveSrvDefListToFileCache(jsons);
+				saveSrvDefListToFileCache(localDefinitionMap);
 			}
 
 		}
@@ -255,7 +259,7 @@ public class MysqlRegister implements Register {
 	 * 保存服务定义清单到本地文件缓存
 	 * @param jsons
 	 */
-	void saveSrvDefListToFileCache(List<String> jsons){
+	void saveSrvDefListToFileCache(Map<String, List<VenusServiceDefinitionDO>>  jsons){
 		writeFile(fileCachePath, jsons);
 	}
 
@@ -265,16 +269,16 @@ public class MysqlRegister implements Register {
 	 * @return
 	 */
 	List<VenusServiceDefinitionDO> findSrvDefListFromFileCache(String key){
-		List<String> readFileJsons = readFile(fileCachePath);
-		Map<String, List<VenusServiceDefinitionDO>> map = new HashMap<String, List<VenusServiceDefinitionDO>>();
-		if (CollectionUtils.isNotEmpty(readFileJsons)) {
+//		List<String> readFileJsons = readFile(fileCachePath);
+		Map<String, List<VenusServiceDefinitionDO>> map = readFile(fileCachePath);//new HashMap<String, List<VenusServiceDefinitionDO>>();
+/*		if (MapUtils.isNotEmpty(map)) {
 			for (String str : readFileJsons) {
 				List<VenusServiceDefinitionDO> parseObject = JSON.parseArray(str, VenusServiceDefinitionDO.class);
 				if (CollectionUtils.isNotEmpty(parseObject)) {
 					map.put(RegistryUtil.getKey(parseObject.get(0)), parseObject);
 				}
 			}
-		}
+		}*/
 		List<VenusServiceDefinitionDO> serviceDefinitions = map.get(key);
 		return serviceDefinitions;
 	}
@@ -443,12 +447,12 @@ public class MysqlRegister implements Register {
 		return name;
 	}
 	
-	public static List<String> readFile(String filePath) {
-		List<String> fileContents = new ArrayList<String>();
+	public static Map<String, List<VenusServiceDefinitionDO>> readFile(String filePath) {
 		if (!filePath.endsWith(".txt")) {
-			return fileContents;
+			return null;
 		}
 		File file = new File(filePath);
+		Map<String, List<VenusServiceDefinitionDO>> parseMap = null;
 		if (file.exists()) {
 			RandomAccessFile randomAccessFile = null;
 			try {
@@ -459,7 +463,8 @@ public class MysqlRegister implements Register {
 			String str = null;
 			try {
 				while ((str = randomAccessFile.readLine()) != null) {
-					fileContents.add(new String(str.getBytes("ISO-8859-1"),"UTF-8"));
+					String e = new String(str.getBytes("ISO-8859-1"),"UTF-8");
+					parseMap = JSON.parseObject(e, new TypeReference<HashMap<String, List<VenusServiceDefinitionDO>>>(){});
 				}
 			} catch (IOException e) {
 				exceptionLogger.error("readFile filePath=>" + filePath + " is error", e);
@@ -473,54 +478,7 @@ public class MysqlRegister implements Register {
 				}
 			}
 		}
-		return fileContents;
-	}
-
-	/**
-	 * 读文件
-	 * 
-	 * @param filePath
-	 * @return
-	 */
-	public static List<String> readFileEx(String filePath) {
-		List<String> fileContents = new ArrayList<String>();
-		if (!filePath.endsWith(".txt")) {
-			return fileContents;
-		}
-		File file = new File(filePath);
-		if (file.exists()) {
-			FileReader reader = null;
-			try {
-				reader = new FileReader(file);
-			} catch (FileNotFoundException e) {
-				logger.error("readFile filePath=>" + filePath + " is error", e);
-			}
-			BufferedReader br = new BufferedReader(reader);
-			String str = null;
-			try {
-				while ((str = br.readLine()) != null) {
-					fileContents.add(str);
-				}
-			} catch (IOException e) {
-				logger.error("readFile filePath=>" + filePath + " is error", e);
-			} finally {
-				if (null != br) {
-					try {
-						br.close();
-					} catch (IOException e) {
-						// ingore
-					}
-				}
-				if (null != reader) {
-					try {
-						reader.close();
-					} catch (IOException e) {
-						// ingore
-					}
-				}
-			}
-		}
-		return fileContents;
+		return parseMap;
 	}
 
 	private static void mkDir(File file) {
@@ -537,7 +495,7 @@ public class MysqlRegister implements Register {
 	 * 
 	 * @param filePath
 	 */
-	public static void writeFile(String filePath, List<String> jsons) {
+	public static void writeFile(String filePath, Map<String, List<VenusServiceDefinitionDO>>  jsons) {
 		if (filePath.endsWith(".txt")) {
 			String folderPath = filePath.substring(0, filePath.lastIndexOf(File.separator));
 			File f = new File(folderPath);
@@ -547,7 +505,7 @@ public class MysqlRegister implements Register {
 		} else {
 			return;
 		}
-		if (CollectionUtils.isEmpty(jsons)) {
+		if (MapUtils.isEmpty(jsons)) {
 			File f = new File(filePath);
 			try {
 				if(f.exists()){
@@ -563,8 +521,8 @@ public class MysqlRegister implements Register {
 			}
 			return;
 		}
-		List<String> needWriteList = jsons;
-		if (CollectionUtils.isEmpty(needWriteList)) {
+		Map<String, List<VenusServiceDefinitionDO>> needWriteList = jsons;
+		if (MapUtils.isEmpty(needWriteList)) {
 			return;
 		}
 		RandomAccessFile randomAccessFile =null;
@@ -577,18 +535,12 @@ public class MysqlRegister implements Register {
 				file.setWritable(true);
 			}
 			if (file.isFile()) {
-				/*fileWriter = new FileWriter(file);
-				bufferWriter = new BufferedWriter(fileWriter);
-				for (String json : need_write_list) {
-					bufferWriter.write(json);
-					bufferWriter.newLine();
-				}*/
-				
 				randomAccessFile = new RandomAccessFile(file, "rw");
-				for (String json : needWriteList) {
+				randomAccessFile.write(JSON.toJSONString(needWriteList).getBytes("UTF-8"));
+				/*for (String json : needWriteList) {
 					randomAccessFile.write(json.getBytes("UTF-8"));
 					randomAccessFile.write("\n".getBytes("UTF-8"));
-				}
+				}*/
 				randomAccessFile.close();
 			}
 		} catch (IOException e) {
@@ -634,8 +586,8 @@ public class MysqlRegister implements Register {
 		return os.toLowerCase().startsWith("win");
 	}
 
-	/*
-	public static void main(String args[]) {
+	
+/*	public static void main(String args[]) {
 		List<String> readFileJsons = readFile("D:\\Users\\longhaisheng\\venus\\.venusCache.txt");
 		Map<String, List<VenusServiceDefinitionDO>> map = new HashMap<String, List<VenusServiceDefinitionDO>>();
 		if (CollectionUtils.isNotEmpty(readFileJsons)) {
@@ -645,19 +597,27 @@ public class MysqlRegister implements Register {
 					map.put(getKey(parseObject.get(0)), parseObject);
 				}
 			}
-	}
-	public static void main(String args[]) {
+	}*/
+	
+	/*public static void main(String args[]) {
 		VenusServiceDefinitionDO def1 = new VenusServiceDefinitionDO();
 		VenusServiceDefinitionDO def2 = new VenusServiceDefinitionDO();
 
 		RouterRule rr = new RouterRule();
 		VenusServiceConfigDO conf = new VenusServiceConfigDO();
 		conf.setRouterRule(rr);
-
+		
 		List<VenusServiceConfigDO> serviceConfigs = new ArrayList<VenusServiceConfigDO>();
 		serviceConfigs.add(conf);
+		
+		RouterRule rr2 = new RouterRule();
+		VenusServiceConfigDO conf2 = new VenusServiceConfigDO();
+		conf2.setRouterRule(rr2);
+
+		List<VenusServiceConfigDO> serviceConfigs2 = new ArrayList<VenusServiceConfigDO>();
+		serviceConfigs2.add(conf2);
 		def1.setServiceConfigs(serviceConfigs);
-		def2.setServiceConfigs(serviceConfigs);
+		def2.setServiceConfigs(serviceConfigs2);
 		def1.setName("orderService");
 		def2.setName("userService");
 		def1.setVersionRange("1.0.0");
@@ -665,7 +625,7 @@ public class MysqlRegister implements Register {
 		def1.setInterfaceName("com.chexiang.Orderservice");
 		def2.setInterfaceName("com.chexiang.Userservice");
 		def1.setDescription("中国北中华天线网");
-		def2.setDescription("史可隽");
+		def2.setDescription("史可秀");
 
 		List<VenusServiceDefinitionDO> list1=new ArrayList<VenusServiceDefinitionDO>();
 		List<VenusServiceDefinitionDO> list2=new ArrayList<VenusServiceDefinitionDO>();
@@ -676,12 +636,16 @@ public class MysqlRegister implements Register {
 		jsons.add(JSON.toJSONString(list2));
 		String filePath = "D:\\soft\\b\\a.txt";
 		//writeFile(filePath,  new ArrayList<String>() );
-		writeFile(filePath, jsons);
-		List<String> readFile = readFile(filePath);
-		for (String str : readFile) {
+		
+		Map<String, List<VenusServiceDefinitionDO>> map=new HashMap<String, List<VenusServiceDefinitionDO>>();
+		map.put(RegistryUtil.getKey(list1.get(0)), list1);
+		map.put(RegistryUtil.getKey(list2.get(0)), list2);
+		writeFile(filePath, map);
+		Map<String, List<VenusServiceDefinitionDO>> readMap = readFile(filePath);
+		for (Map.Entry<String, List<VenusServiceDefinitionDO>> str : readMap.entrySet()) {
 			System.out.println(str);
 		}
-	}
-	*/
+	}*/
+	
 
 }
