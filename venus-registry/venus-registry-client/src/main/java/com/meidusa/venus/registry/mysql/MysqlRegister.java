@@ -452,7 +452,7 @@ public class MysqlRegister implements Register {
 			return null;
 		}
 		File file = new File(filePath);
-		Map<String, List<VenusServiceDefinitionDO>> parseMap = null;
+		Map<String, List<VenusServiceDefinitionDO>> parseMap = new HashMap<String, List<VenusServiceDefinitionDO>>();
 		if (file.exists()) {
 			RandomAccessFile randomAccessFile = null;
 			try {
@@ -464,7 +464,7 @@ public class MysqlRegister implements Register {
 			try {
 				while ((str = randomAccessFile.readLine()) != null) {
 					String e = new String(str.getBytes("ISO-8859-1"),"UTF-8");
-					parseMap = JSON.parseObject(e, new TypeReference<HashMap<String, List<VenusServiceDefinitionDO>>>(){});
+					parseMap = JSON.parseObject(e, new TypeReference<Map<String, List<VenusServiceDefinitionDO>>>(){});
 				}
 			} catch (IOException e) {
 				exceptionLogger.error("readFile filePath=>" + filePath + " is error", e);
@@ -495,7 +495,7 @@ public class MysqlRegister implements Register {
 	 * 
 	 * @param filePath
 	 */
-	public static void writeFile(String filePath, Map<String, List<VenusServiceDefinitionDO>>  jsons) {
+	public static void writeFile(String filePath, Map<String, List<VenusServiceDefinitionDO>>  jsonMap) {
 		if (filePath.endsWith(".txt")) {
 			String folderPath = filePath.substring(0, filePath.lastIndexOf(File.separator));
 			File f = new File(folderPath);
@@ -505,7 +505,7 @@ public class MysqlRegister implements Register {
 		} else {
 			return;
 		}
-		if (MapUtils.isEmpty(jsons)) {
+		if (MapUtils.isEmpty(jsonMap)) {
 			File f = new File(filePath);
 			try {
 				if(f.exists()){
@@ -521,8 +521,8 @@ public class MysqlRegister implements Register {
 			}
 			return;
 		}
-		Map<String, List<VenusServiceDefinitionDO>> needWriteList = jsons;
-		if (MapUtils.isEmpty(needWriteList)) {
+//		Map<String, List<VenusServiceDefinitionDO>> needWriteMap = jsonMap;
+		if (MapUtils.isEmpty(jsonMap)) {
 			return;
 		}
 		RandomAccessFile randomAccessFile =null;
@@ -536,7 +536,7 @@ public class MysqlRegister implements Register {
 			}
 			if (file.isFile()) {
 				randomAccessFile = new RandomAccessFile(file, "rw");
-				randomAccessFile.write(JSON.toJSONString(needWriteList).getBytes("UTF-8"));
+				randomAccessFile.write(JSON.toJSONString(jsonMap).getBytes("UTF-8"));
 				/*for (String json : needWriteList) {
 					randomAccessFile.write(json.getBytes("UTF-8"));
 					randomAccessFile.write("\n".getBytes("UTF-8"));
