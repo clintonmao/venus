@@ -34,6 +34,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * venus协议服务调用实现
@@ -371,18 +373,17 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         //若存在，则直接使用连接池
         if(connectionPoolMap.get(address) != null){
             return connectionPoolMap.get(address);
-        }else{
-            //若不存在，则创建连接池
-            synchronized (this){
-                BackendConnectionPool backendConnectionPool = null;
-                if(connectionPoolMap.get(address) != null){
-                    backendConnectionPool = connectionPoolMap.get(address);
-                }else{
-                    backendConnectionPool = createNioPool(url,invocation,new ClientRemoteConfig());
-                    connectionPoolMap.put(address,backendConnectionPool);
-                }
-                return backendConnectionPool;
+        }
+        //若不存在，则创建连接池
+        synchronized (connectionPoolMap){
+            BackendConnectionPool backendConnectionPool = null;
+            if(connectionPoolMap.get(address) != null){
+                backendConnectionPool = connectionPoolMap.get(address);
+            }else{
+                backendConnectionPool = createNioPool(url,invocation,new ClientRemoteConfig());
+                connectionPoolMap.put(address,backendConnectionPool);
             }
+            return backendConnectionPool;
         }
     }
 

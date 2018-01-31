@@ -16,16 +16,10 @@
 	<context:annotation-config/>
 	<context:component-scan base-package="com.chexiang" />
 
-	<!--
-	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-		<property name="locations">
-			<list>
-				<value>classpath:application.properties</value>
-				<value>classpath:tomcat.properties</value>
-			</list>
-		</property>
-	</bean>
-	-->
+	<!--业务bean，也可通过注解声明-->
+	<bean id="helloService" class="com.chexiang.venus.demo.provider.impl.DefaultHelloService"/>
+	<bean id="orderService" class="com.chexiang.venus.demo.provider.impl.OrderServiceImpl"/>
+	<bean id="productService" class="com.chexiang.venus.demo.provider.impl.ProductServiceImpl"/>
 
 	<bean class="com.saike.ucm.client.spring.UcmVenusPropertyPlaceholderConfigurer" destroy-method="destroy">
 		<property name="clientType">
@@ -42,9 +36,6 @@
 		</property>
 		<property name="ignoreResourceNotFound" value="true"/>
 	</bean>
-
-	<!--业务bean，也可通过注解声明-->
-	<bean id="helloService" class="com.chexiang.venus.demo.provider.impl.DefaultHelloService"/>
 
 	<!--saike应用配置-->
 	<bean id="application" class="com.saike.commons.Application" init-method="init">
@@ -65,10 +56,9 @@
 	</bean>
 
 	<!--监控配置-->
-	<!--
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
+		<!--<property name="address" value="10.32.174.20:16800"/>-->
 	</bean>
-	-->
 
 	<!--venus协议配置-->
 	<bean id="venusProtocol" class="com.meidusa.venus.backend.VenusProtocol">
@@ -83,9 +73,5 @@
             </list>
         </property>
     </bean>
-
-	<bean id="orderService" class="com.chexiang.venus.demo.provider.impl.OrderServiceImpl"/>
-
-	<bean id="productService" class="com.chexiang.venus.demo.provider.impl.ProductServiceImpl"/>
 
 </beans>

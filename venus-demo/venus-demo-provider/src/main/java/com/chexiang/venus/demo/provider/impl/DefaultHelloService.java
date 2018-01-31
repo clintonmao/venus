@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
  * Created by Zhangzhihua on 2017/8/15.
  */
@@ -56,8 +58,22 @@ public class DefaultHelloService implements HelloService {
 
     @Override
     public Hello getHello(String name) {
-        logger.info("invoke getHello,param:" + name);
-        RandomBuildUtil.randomSleepOrThrow(true);
+        //logger.info("invoke getHello,param:" + name);
+        try {
+            if(ThreadLocalRandom.current().nextInt(100) > 20){//构造异常操作
+                if("A".equals("A")){
+                    throw new IllegalArgumentException("param invalid.");
+                }
+            }else if(ThreadLocalRandom.current().nextInt(100) > 80){//构造慢操作
+                /*
+                try {
+                    Thread.sleep(ThreadLocalRandom.current().nextInt(2000));
+                } catch (InterruptedException e) {}
+                */
+            }
+        } catch (Exception e) {
+            logger.error("getHello failed.",e);
+        }
         return new Hello(name,name);
     }
 

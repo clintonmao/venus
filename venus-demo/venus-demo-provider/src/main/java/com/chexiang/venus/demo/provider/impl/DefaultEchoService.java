@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by Zhangzhihua on 2017/10/29.
@@ -28,7 +29,11 @@ public class DefaultEchoService implements EchoService {
     @Override
     public Echo getEcho(String name) {
         logger.info("invoke getEcho,param:" + name);
-        RandomBuildUtil.randomSleepOrThrow(true);
+        if(ThreadLocalRandom.current().nextInt(100) > 20){//构造异常操作
+            if("A".equals("A")){
+                throw new IllegalArgumentException("param invalid.");
+            }
+        }
         return new Echo("hi",name);
     }
 }
