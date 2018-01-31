@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -468,7 +469,9 @@ public class MysqlRegister implements Register {
 				}
 			} catch (IOException e) {
 				exceptionLogger.error("readFile filePath=>" + filePath + " is error", e);
-			} finally {
+			} catch (Exception e) {//解析出错，清空内容,解决缓存内容 老的格式与新格式不兼容 问题
+				clearCacheContent(filePath);
+			}finally {
 				if (null != randomAccessFile) {
 					try {
 						randomAccessFile.close();
@@ -479,6 +482,36 @@ public class MysqlRegister implements Register {
 			}
 		}
 		return parseMap;
+	}
+
+	private static void clearCacheContent(String filePath) {
+		RandomAccessFile ra = null;
+		FileChannel fc = null;
+		try {
+			File f = new File(filePath);
+			if (f.isFile()) {
+				ra = new RandomAccessFile(f, "rw");
+				fc = ra.getChannel();
+				fc.truncate(0);
+			}
+		} catch (Exception ee) {
+			exceptionLogger.error("clearCacheContent readFile filePath=>" + filePath + " is error", ee);
+		} finally {
+			if (null != fc) {
+				try {
+					fc.close();
+				} catch (Exception eee) {
+					// ingore
+				}
+			}
+			if (null != ra) {
+				try {
+					ra.close();
+				} catch (Exception eee) {
+					// ingore
+				}
+			}
+		}
 	}
 
 	private static void mkDir(File file) {
@@ -587,8 +620,8 @@ public class MysqlRegister implements Register {
 	}
 
 	
-/*	public static void main(String args[]) {
-		List<String> readFileJsons = readFile("D:\\Users\\longhaisheng\\venus\\.venusCache.txt");
+	/*public static void main(String args[]) {
+		Map<String, List<VenusServiceDefinitionDO>> readFileJsons = readFile("D:\\Users\\longhaisheng\\venus\\old_cache.txt");
 		Map<String, List<VenusServiceDefinitionDO>> map = new HashMap<String, List<VenusServiceDefinitionDO>>();
 		if (CollectionUtils.isNotEmpty(readFileJsons)) {
 			for (String str : readFileJsons) {
@@ -634,7 +667,7 @@ public class MysqlRegister implements Register {
 		List<String> jsons = new ArrayList<String>();
 		jsons.add(JSON.toJSONString(list1));
 		jsons.add(JSON.toJSONString(list2));
-		String filePath = "D:\\soft\\b\\a.txt";
+		String filePath = "D:\\Users\\longhaisheng\\venus\\old_cache.txt";
 		//writeFile(filePath,  new ArrayList<String>() );
 		
 		Map<String, List<VenusServiceDefinitionDO>> map=new HashMap<String, List<VenusServiceDefinitionDO>>();
