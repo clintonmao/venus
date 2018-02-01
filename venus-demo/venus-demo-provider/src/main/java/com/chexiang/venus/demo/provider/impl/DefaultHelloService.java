@@ -6,6 +6,8 @@ import com.chexiang.venus.demo.provider.HelloValidException;
 import com.chexiang.venus.demo.provider.InvalidParamException;
 import com.chexiang.venus.demo.provider.model.Hello;
 import com.chexiang.venus.demo.provider.model.HelloEx;
+import com.meidusa.fastjson.JSONArray;
+import com.meidusa.fastjson.JSONObject;
 import com.meidusa.venus.VenusApplication;
 import com.meidusa.venus.backend.VenusProtocol;
 import com.meidusa.venus.notify.InvocationListener;
@@ -61,15 +63,9 @@ public class DefaultHelloService implements HelloService {
         //logger.info("invoke getHello,param:" + name);
         try {
             if(ThreadLocalRandom.current().nextInt(100) > 20){//构造异常操作
-                if("A".equals("A")){
+                if("A".equals("B")){
                     throw new IllegalArgumentException("param invalid.");
                 }
-            }else if(ThreadLocalRandom.current().nextInt(100) > 80){//构造慢操作
-                /*
-                try {
-                    Thread.sleep(ThreadLocalRandom.current().nextInt(2000));
-                } catch (InterruptedException e) {}
-                */
             }
         } catch (Exception e) {
             logger.error("getHello failed.",e);

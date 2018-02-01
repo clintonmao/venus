@@ -30,7 +30,7 @@ public class DefaultEchoService implements EchoService {
     public Echo getEcho(String name) {
         logger.info("invoke getEcho,param:" + name);
         if(ThreadLocalRandom.current().nextInt(100) > 20){//构造异常操作
-            if("A".equals("A")){
+            if("A".equals("B")){
                 throw new IllegalArgumentException("param invalid.");
             }
         }
