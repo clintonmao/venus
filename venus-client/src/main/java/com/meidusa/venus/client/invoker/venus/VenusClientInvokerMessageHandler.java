@@ -47,14 +47,10 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
-    /**
-     * rpcId-请求&响应映射表
-     */
+    //rpcId-请求&响应映射表
     private Map<String, VenusReqRespWrapper> serviceReqRespMap;
 
-    /**
-     * rpcId-请求&回调映射表
-     */
+    //rpcId-请求&回调映射表
     private Map<String, ClientInvocation> serviceReqCallbackMap;
 
     public void handle(final VenusBackendConnection conn, final byte[] message) {

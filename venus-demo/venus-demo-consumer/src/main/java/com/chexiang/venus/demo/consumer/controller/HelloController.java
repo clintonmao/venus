@@ -60,6 +60,12 @@ public class HelloController {
         return new Result("callback.");
     }
 
+    @RequestMapping("/exit")
+    public void exit(){
+        logger.info("exit...");
+        System.exit(0);
+    }
+
     @RequestMapping("/getHello/{name}")
     public Result getHello(@PathVariable String name){
         if("A".equalsIgnoreCase("B")){

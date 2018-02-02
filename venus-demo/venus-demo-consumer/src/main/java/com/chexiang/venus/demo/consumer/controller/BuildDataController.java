@@ -49,26 +49,26 @@ public class BuildDataController {
         }
         @Override
         public void run() {
-            int loop = 1;
-            for(int j=0;j<loop;j++){
-                //begin for
-                for(int i=0;i<count;i++){
-                    try {
+            //begin for
+            for(int i=0;i<count;i++){
+                try {
+                    helloService.getHello("jack" + i);
+                        /*
                         if(ThreadLocalRandom.current().nextInt(100) < 70){
                             helloService.getHello("jack" + i);
                         }else{
                             echoService.getEcho("jack" + i);
                         }
-                        logger.info("current index:{}.",i);
-                    } catch (Exception e) {
-                        logger.error("invoke error.",e);
-                    }
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {}
+                        */
+                    logger.info("current index:{}.",i);
+                } catch (Exception e) {
+                    logger.error("invoke error.",e);
                 }
-                //end for
+                try {
+                    Thread.sleep(5);
+                } catch (InterruptedException e) {}
             }
+            //end for
         }
     }
 

@@ -54,26 +54,18 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      */
     private ClientRemoteConfig remoteConfig;
 
-    //rpcId-请求&响应映射表
-    private Map<String, VenusReqRespWrapper> serviceReqRespMap = new ConcurrentHashMap<String, VenusReqRespWrapper>();
-
-    //rpcId-请求&回调映射表
-    private Map<String, ClientInvocation> serviceReqCallbackMap = new ConcurrentHashMap<String, ClientInvocation>();
-
-    //NIO消息响应处理
-    private VenusClientInvokerMessageHandler messageHandler = new VenusClientInvokerMessageHandler();
-
-    //nio连接映射表
-    private Map<String, BackendConnectionPool> connectionPoolMap = new ConcurrentHashMap<String, BackendConnectionPool>();
-
     private static ConnectionConnector connector;
 
     private static ConnectionManager[] connectionManagers;
 
-    //连接事件监听
-    private VenusClientConnectionObserver connectionObserver = new VenusClientConnectionObserver();
+    //nio连接映射表
+    private static Map<String, BackendConnectionPool> connectionPoolMap = new ConcurrentHashMap<String, BackendConnectionPool>();
 
-    private boolean isInit = false;
+    //rpcId-请求&响应映射表
+    private static Map<String, VenusReqRespWrapper> serviceReqRespMap = new ConcurrentHashMap<String, VenusReqRespWrapper>();
+
+    //rpcId-请求&回调映射表
+    private static Map<String, ClientInvocation> serviceReqCallbackMap = new ConcurrentHashMap<String, ClientInvocation>();
 
     public VenusClientInvoker(){
         synchronized (this){
@@ -92,6 +84,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                     for(int i=0;i<ioThreads;i++){
                         ConnectionManager connManager = new ConnectionManager("connection manager-" + i, -1);
                         //添加连接监听
+                        VenusClientConnectionObserver connectionObserver = new VenusClientConnectionObserver();
                         connectionObserver.setServiceReqRespMap(serviceReqRespMap);
                         connManager.addConnectionObserver(connectionObserver);
                         connectionManagers[i] = connManager;
@@ -110,12 +103,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     @Override
     public void init() throws RpcException {
-        if(!isInit){
-            messageHandler.setServiceReqCallbackMap(serviceReqCallbackMap);
-            messageHandler.setServiceReqRespMap(serviceReqRespMap);
-            isInit = true;
-        }
-
     }
 
     @Override
@@ -371,18 +358,17 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         //若存在，则直接使用连接池
         if(connectionPoolMap.get(address) != null){
             return connectionPoolMap.get(address);
-        }else{
-            //若不存在，则创建连接池
-            synchronized (this){
-                BackendConnectionPool backendConnectionPool = null;
-                if(connectionPoolMap.get(address) != null){
-                    backendConnectionPool = connectionPoolMap.get(address);
-                }else{
-                    backendConnectionPool = createNioPool(url,invocation,new ClientRemoteConfig());
-                    connectionPoolMap.put(address,backendConnectionPool);
-                }
-                return backendConnectionPool;
+        }
+        //若不存在，则创建连接池
+        synchronized (connectionPoolMap){
+            BackendConnectionPool backendConnectionPool = null;
+            if(connectionPoolMap.get(address) != null){
+                backendConnectionPool = connectionPoolMap.get(address);
+            }else{
+                backendConnectionPool = createNioPool(url,invocation,new ClientRemoteConfig());
+                connectionPoolMap.put(address,backendConnectionPool);
             }
+            return backendConnectionPool;
         }
     }
 
@@ -409,6 +395,11 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             //BeanUtils.copyProperties(nioFactory, factoryConfig);
         }
         nioFactory.setConnector(connector);
+
+        //初始化messageHandler
+        VenusClientInvokerMessageHandler messageHandler = new VenusClientInvokerMessageHandler();
+        messageHandler.setServiceReqRespMap(serviceReqRespMap);
+        messageHandler.setServiceReqCallbackMap(serviceReqCallbackMap);
         nioFactory.setMessageHandler(messageHandler);
         //nioFactory.setSendBufferSize(2);
         //nioFactory.setReceiveBufferSize(4);
@@ -482,14 +473,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     public void setRemoteConfig(ClientRemoteConfig remoteConfig) {
         this.remoteConfig = remoteConfig;
-    }
-
-    public VenusClientInvokerMessageHandler getMessageHandler() {
-        return messageHandler;
-    }
-
-    public void setMessageHandler(VenusClientInvokerMessageHandler messageHandler) {
-        this.messageHandler = messageHandler;
     }
 
     @Override

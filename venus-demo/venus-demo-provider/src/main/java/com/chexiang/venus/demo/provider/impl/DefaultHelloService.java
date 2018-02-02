@@ -6,12 +6,16 @@ import com.chexiang.venus.demo.provider.HelloValidException;
 import com.chexiang.venus.demo.provider.InvalidParamException;
 import com.chexiang.venus.demo.provider.model.Hello;
 import com.chexiang.venus.demo.provider.model.HelloEx;
+import com.meidusa.fastjson.JSONArray;
+import com.meidusa.fastjson.JSONObject;
 import com.meidusa.venus.VenusApplication;
 import com.meidusa.venus.backend.VenusProtocol;
 import com.meidusa.venus.notify.InvocationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by Zhangzhihua on 2017/8/15.
@@ -56,8 +60,16 @@ public class DefaultHelloService implements HelloService {
 
     @Override
     public Hello getHello(String name) {
-        logger.info("invoke getHello,param:" + name);
-        RandomBuildUtil.randomSleepOrThrow(true);
+        //logger.info("invoke getHello,param:" + name);
+        try {
+            if(ThreadLocalRandom.current().nextInt(100) > 20){//构造异常操作
+                if("A".equals("B")){
+                    throw new IllegalArgumentException("param invalid.");
+                }
+            }
+        } catch (Exception e) {
+            logger.error("getHello failed.",e);
+        }
         return new Hello(name,name);
     }
 
