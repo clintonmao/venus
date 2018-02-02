@@ -1,11 +1,12 @@
-package com.meidusa.venus.backend.services;
+package com.meidusa.venus.backend.services.xml.config;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 public class InterceptorStack {
     private String name;
-    private List<InterceptorMapping> interceptors = new ArrayList<InterceptorMapping>();
+    private List<InterceptorDef> interceptors = new ArrayList<InterceptorDef>();
 
     public String getName() {
         return name;
@@ -15,7 +16,7 @@ public class InterceptorStack {
         this.name = name;
     }
 
-    public void addInterceptor(InterceptorMapping interceptor) {
+    public void addInterceptor(InterceptorDef interceptor) {
         interceptors.add(interceptor);
     }
 
@@ -23,11 +24,11 @@ public class InterceptorStack {
         interceptors.addAll(stack.getInterceptors());
     }
 
-    public List<InterceptorMapping> getInterceptors() {
+    public List<InterceptorDef> getInterceptors() {
         return interceptors;
     }
 
-    public void setInterceptors(List<InterceptorMapping> interceptors) {
+    public void setInterceptors(List<InterceptorDef> interceptors) {
         this.interceptors = interceptors;
     }
 

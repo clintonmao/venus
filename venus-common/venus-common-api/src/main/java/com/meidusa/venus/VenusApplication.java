@@ -1,6 +1,5 @@
 package com.meidusa.venus;
 
-import com.meidusa.venus.backend.services.ServiceManager;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.exception.XmlVenusExceptionFactory;
@@ -54,7 +53,7 @@ public class VenusApplication implements InitializingBean,DisposableBean {
     private static List<Protocol> protocolList = new ArrayList<Protocol>();
 
     //服务管理列表[backend]
-    private static List<ServiceManager> serviceManagerList = new ArrayList<ServiceManager>();
+    private static List<Destroyier> serviceManagerList = new ArrayList<Destroyier>();
 
     private VenusApplication(){
         venusApplication = this;
@@ -246,7 +245,7 @@ public class VenusApplication implements InitializingBean,DisposableBean {
         if(CollectionUtils.isEmpty(serviceManagerList)){
             return;
         }
-        for(ServiceManager serviceManager:serviceManagerList){
+        for(Destroyier serviceManager:serviceManagerList){
             if(serviceManager != null){
                 try {
                     serviceManager.destroy();
@@ -303,7 +302,7 @@ public class VenusApplication implements InitializingBean,DisposableBean {
         return serviceFactoryList;
     }
 
-    public static List<ServiceManager> getServiceManagerList() {
+    public static List<Destroyier> getServiceManagerList() {
         return serviceManagerList;
     }
 
@@ -319,7 +318,7 @@ public class VenusApplication implements InitializingBean,DisposableBean {
         serviceFactoryList.add(serviceFactory);
     }
 
-    public static void addServiceManager(ServiceManager serviceManager){
+    public static void addServiceManager(Destroyier serviceManager){
         serviceManagerList.add(serviceManager);
     }
 

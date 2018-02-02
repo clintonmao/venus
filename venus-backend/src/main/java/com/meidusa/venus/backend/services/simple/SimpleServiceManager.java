@@ -115,7 +115,7 @@ public class SimpleServiceManager extends AbstractServiceManager implements Init
         Multimap<String, Endpoint> endpoints = HashMultimap.create();
         for (Method method : methods) {
             if (method.isAnnotationPresent(com.meidusa.venus.annotations.Endpoint.class)) {
-                Endpoint ep = loadEndpoint(method);
+                Endpoint ep = initEndpoint(method);
                 ep.setService(service);
                 if (logger.isInfoEnabled()) {
                     logger.info("Add Endpoint: " + ep.getService().getName() + "." + ep.getName());

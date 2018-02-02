@@ -1,7 +1,5 @@
 package com.meidusa.venus;
 
-import com.meidusa.venus.annotations.Endpoint;
-import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.support.EndpointWrapper;

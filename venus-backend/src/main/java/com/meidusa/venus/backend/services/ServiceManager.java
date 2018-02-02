@@ -28,5 +28,5 @@ public interface ServiceManager extends EndpointLocator {
     /**
      * 资源释放
      */
-    void destroy() throws Exception;
+    //void destroy() throws Exception;
 }

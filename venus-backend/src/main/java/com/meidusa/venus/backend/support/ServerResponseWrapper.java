@@ -4,7 +4,6 @@ import com.meidusa.venus.Result;
 import com.meidusa.venus.ServerInvocation;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
-import com.meidusa.venus.io.packet.AbstractServicePacket;
 import com.meidusa.venus.io.packet.ServiceAPIPacket;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;

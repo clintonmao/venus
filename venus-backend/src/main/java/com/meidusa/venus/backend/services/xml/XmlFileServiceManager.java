@@ -6,23 +6,17 @@ import com.meidusa.fastjson.JSON;
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
-import com.meidusa.toolkit.common.util.StringUtil;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.VenusApplication;
-import com.meidusa.venus.annotations.PerformanceLevel;
 import com.meidusa.venus.backend.VenusProtocol;
-import com.meidusa.venus.backend.interceptor.Configurable;
-import com.meidusa.venus.backend.interceptor.config.InterceptorConfig;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.services.xml.config.*;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanContext;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanUtilsBean;
 import com.meidusa.venus.exception.VenusConfigException;
-import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.VenusRegistryFactory;
-import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
@@ -31,7 +25,6 @@ import com.thoughtworks.xstream.XStream;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.BeansException;
@@ -173,19 +166,17 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     void initConfiguration(){
         //解析配置文件
         VenusServerConfig venusServerConfig = parseServerConfig();
-        List<ExportService> serviceConfigList = venusServerConfig.getExportServices();
-        Map<String, InterceptorMapping> interceptors = venusServerConfig.getInterceptors();
-        Map<String, InterceptorStackConfig> interceptorStacks = venusServerConfig.getInterceptorStatcks();
+        List<ExportService> exportServiceList = venusServerConfig.getExportServices();
 
         //初始化服务
-        if(CollectionUtils.isEmpty(serviceConfigList)){
+        if(CollectionUtils.isEmpty(exportServiceList)){
             if(logger.isWarnEnabled()){
                 logger.warn("not config export services.");
             }
             return;
         }
-        for (ExportService serviceConfig : serviceConfigList) {
-            initSerivce(serviceConfig,interceptors,interceptorStacks);
+        for (ExportService exportService : exportServiceList) {
+            initSerivce(exportService);
         }
     }
 
@@ -196,20 +187,39 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     private VenusServerConfig parseServerConfig() {
         //所有导出的beans
         Map<String,String> exportBeanMap = new HashMap<String,String>();
-
+        //所有导出服务配置
         VenusServerConfig allVenusServerConfig = new VenusServerConfig();
-        List<ExportService> serviceConfigList = new ArrayList<ExportService>();
-        Map<String, InterceptorMapping> interceptors = new HashMap<String, InterceptorMapping>();
-        Map<String, InterceptorStackConfig> interceptorStacks = new HashMap<String, InterceptorStackConfig>();
+        List<ExportService> allExportServiceList = new ArrayList<ExportService>();
+        allVenusServerConfig.setExportServices(allExportServiceList);
 
         XStream xStream = new XStream();
         xStream.autodetectAnnotations(true);
         xStream.processAnnotations(VenusServerConfig.class);
         xStream.processAnnotations(ExportService.class);
+        xStream.processAnnotations(InterceptorDef.class);
 
         for (Resource configFile : configFiles) {
             try {
                 VenusServerConfig venusServerConfig = (VenusServerConfig) xStream.fromXML(configFile.getURL());
+                //初始化interceptors
+                Map<String,InterceptorDef> interceptorDefMap = new HashMap<>();
+                if(CollectionUtils.isNotEmpty(venusServerConfig.getInterceptorDefList())){
+                    for(InterceptorDef interceptorDef:venusServerConfig.getInterceptorDefList()){
+                        String interceptorClassName = interceptorDef.getType();
+                        try {
+                            Object obj = Class.forName(interceptorClassName).newInstance();
+                            if(!(obj instanceof Interceptor)){
+                                throw new ConfigurationException("init inteceptor failed:" + interceptorClassName + ",not interceptor class.");
+                            }
+                            interceptorDef.setInterceptor((Interceptor)obj);
+                        } catch (Exception e) {
+                            throw new ConfigurationException("init inteceptor failed:" + interceptorClassName,e);
+                        }
+                        interceptorDefMap.put(interceptorDef.getName(),interceptorDef);
+                    }
+                }
+
+                //初始化exporte service
                 if(CollectionUtils.isEmpty(venusServerConfig.getExportServices())){
                     throw new VenusConfigException("not found service config.");
                 }
@@ -249,24 +259,25 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                     exportService.setVersion(serviceAnno.version());
                     exportService.setAthenaFlag(serviceAnno.athenaFlag());
                     exportService.setDescription(serviceAnno.description());
+                    //interceptor引用
+                    String interceptors = exportService.getInterceptors();
+                    if(StringUtils.isNotEmpty(interceptors)){
+                        if(interceptorDefMap.get(interceptors) == null){
+                            throw new VenusConfigException("interceptor:" + interceptors + " not defined.");
+                        }
+                        List<Interceptor> interceptorList = new ArrayList<>();
+                        InterceptorDef  interceptorDef = interceptorDefMap.get(interceptors);
+                        interceptorList.add(interceptorDef.getInterceptor());
+                        exportService.setInterceptorList(interceptorList);
+                    }
                 }
 
-
-                serviceConfigList.addAll(venusServerConfig.getExportServices());
-                if(venusServerConfig.getInterceptors() != null){
-                    interceptors.putAll(venusServerConfig.getInterceptors());
-                }
-                if(venusServerConfig.getInterceptorStatcks() != null){
-                    interceptorStacks.putAll(venusServerConfig.getInterceptorStatcks());
-                }
+                //添加到all列表
+                allExportServiceList.addAll(venusServerConfig.getExportServices());
             } catch (Exception e) {
                 throw new ConfigurationException("parser venus server config failed:" + configFile.getFilename(), e);
             }
         }
-
-        allVenusServerConfig.setExportServices(serviceConfigList);
-        allVenusServerConfig.setInterceptors(interceptors);
-        allVenusServerConfig.setInterceptorStatcks(interceptorStacks);
 
         if(logger.isInfoEnabled()){
             logger.info("##########export beans###########:\n{}.",JSON.toJSONString(exportBeanMap,true));
@@ -277,12 +288,10 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     /**
      * 初始化服务
      * @param exportService
-     * @param interceptors
-     * @param interceptorStatcks
      */
-    void initSerivce(ExportService exportService, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks){
+    void initSerivce(ExportService exportService){
         //初始化服务stub
-        Service service = initServiceStub(exportService, interceptors, interceptorStatcks);
+        Service service = initServiceStub(exportService);
 
         //若开启注册中心，则注册服务
         if(isNeedRegiste(exportService)){
@@ -299,11 +308,9 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     /**
      * 初始化服务stub
      * @param exportService
-     * @param interceptors
-     * @param interceptorStatcks
      * @return
      */
-    protected Service initServiceStub(ExportService exportService, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks) {
+    protected Service initServiceStub(ExportService exportService) {
         if(logger.isInfoEnabled()){
             logger.info("init service stub:{}.",exportService.getServiceInterface().getName());
         }
@@ -322,7 +329,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
 
         //初始化endpoints
         Method[] methods = service.getType().getMethods();
-        Multimap<String, Endpoint> endpoints = initEndpoinits(service,methods,exportService,interceptors,interceptorStatcks);
+        Multimap<String, Endpoint> endpoints = initEndpoinits(service,methods,exportService);
         service.setEndpoints(endpoints);
 
         this.serviceMap.put(exportService.getServiceName(), service);
@@ -435,79 +442,35 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @param service
      * @param methods
      * @param exportService
-     * @param interceptors
-     * @param interceptorStatcks
      */
-    Multimap<String, Endpoint> initEndpoinits(Service service, Method[] methods, ExportService exportService, Map<String, InterceptorMapping> interceptors, Map<String, InterceptorStackConfig> interceptorStatcks){
+    Multimap<String, Endpoint> initEndpoinits(Service service, Method[] methods, ExportService exportService){
         Multimap<String, Endpoint> endpointMultimap = HashMultimap.create();
         for (Method method : methods) {
             if (!method.isAnnotationPresent(com.meidusa.venus.annotations.Endpoint.class)) {
                 continue;
             }
-            Endpoint endpoint = loadEndpoint(method);
 
-            if(MapUtils.isNotEmpty(exportService.getEndpointConfigMap())){
-                ExportServiceConfig endpointConfig = exportService.getEndpointConfig(endpoint.getName());
-
-                String id = (endpointConfig == null ? exportService.getInterceptorStack() : endpointConfig.getInterceptorStack());
-                Map<String, InterceptorConfig> interceptorConfigs = null;
-                if (endpointConfig != null) {
-                    endpoint.setActive(endpointConfig.isActive());
-                    if (endpointConfig.getTimeWait() > 0) {
-                        endpoint.setTimeWait(endpointConfig.getTimeWait());
-                    }
-                    interceptorConfigs = endpointConfig.getInterceptorConfigs();
-                }
-
-                // ignore 'null' or empty filte stack name
-                if (!StringUtil.isEmpty(id) && !"null".equalsIgnoreCase(id)) {
-                    List<InterceptorMapping> list = new ArrayList<InterceptorMapping>();
-                    InterceptorStackConfig stackConfig = interceptorStatcks.get(id);
-                    if (stackConfig == null) {
-                        throw new VenusConfigException("filte stack not found with name=" + id);
-                    }
-                    InterceptorStack stack = new InterceptorStack();
-                    stack.setName(stackConfig.getName());
-
-                    loadInterceptors(interceptorStatcks, interceptors, id, list, interceptorConfigs, service.getType(), endpoint.getName());
-                    stack.setInterceptors(list);
-                    endpoint.setInterceptorStack(stack);
-                }
-
-                //设置日志打印级别
-                PerformanceLogger pLogger = null;
-                if (endpointConfig != null) {
-                    pLogger = endpointConfig.getPerformanceLogger();
-                }
-                if (pLogger == null) {
-                    PerformanceLevel pLevel = AnnotationUtil.getAnnotation(endpoint.getMethod().getAnnotations(), PerformanceLevel.class);
-                    if (pLevel != null) {
-                        pLogger = new PerformanceLogger();
-                        pLogger.setError(pLevel.error());
-                        pLogger.setInfo(pLevel.info());
-                        pLogger.setWarn(pLevel.warn());
-                        pLogger.setPrintParams(pLevel.printParams());
-                        pLogger.setPrintResult(pLevel.printResult());
-                    }
-                }
-                endpoint.setPerformanceLogger(pLogger);
+            //初始化endpoinit
+            Endpoint endpoint = initEndpoint(method);
+            if(CollectionUtils.isNotEmpty(exportService.getInterceptorList())){
+                endpoint.setInterceptorList(exportService.getInterceptorList());
             }
-
             endpoint.setService(service);
             endpointMultimap.put(endpoint.getName(), endpoint);
         }
         return endpointMultimap;
     }
 
-    protected void loadInterceptors(Map<String, InterceptorStackConfig> interceptorStatcks, Map<String, InterceptorMapping> interceptors, String id,
-            List<InterceptorMapping> result, Map<String, InterceptorConfig> configs, Class<?> clazz, String ep) throws VenusConfigException {
+    /*
+    protected void loadInterceptors(Map<String, InterceptorStackConfig> interceptorStatcks, Map<String, InterceptorDef> interceptors, String id,
+                                    List<InterceptorDef> result, Map<String, InterceptorConfig> configs, Class<?> clazz, String ep) throws VenusConfigException {
         InterceptorStackConfig stackConfig = interceptorStatcks.get(id);
         if (stackConfig == null) {
             throw new VenusConfigException("filte stack not found with name=" + id);
         }
         for (Object s : stackConfig.getInterceptors()) {
             if (s instanceof InterceptorRef) {
-                InterceptorMapping mapping = interceptors.get(((InterceptorRef) s).getName());
+                InterceptorDef mapping = interceptors.get(((InterceptorRef) s).getName());
                 if (mapping == null) {
                     throw new VenusConfigException("filte not found with name=" + s);
                 }
@@ -528,6 +491,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
             }
         }
     }
+    */
 
     public VenusProtocol getVenusProtocol() {
         return venusProtocol;

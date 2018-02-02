@@ -3,6 +3,7 @@
  */
 package com.meidusa.venus.backend.services;
 
+import com.meidusa.venus.Destroyier;
 import com.meidusa.venus.exception.EndPointNotFoundException;
 import com.meidusa.venus.exception.ServiceNotFoundException;
 import com.meidusa.venus.exception.SystemParameterRequiredException;
@@ -13,7 +14,7 @@ import com.meidusa.venus.exception.SystemParameterRequiredException;
  * @author Sun Ning
  * @since 2010-3-4
  */
-public interface EndpointLocator {
+public interface EndpointLocator extends Destroyier {
 
     /**
      * 

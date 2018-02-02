@@ -2,10 +2,10 @@ package com.meidusa.venus.backend.support;
 
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.venus.ServerInvocation;
-import com.meidusa.venus.backend.services.RequestInfo;
 import com.meidusa.venus.backend.context.RequestContext;
-import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.serializer.MediaTypes;
+import com.meidusa.venus.backend.services.Endpoint;
+import com.meidusa.venus.backend.services.RequestInfo;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;

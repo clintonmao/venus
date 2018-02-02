@@ -1,13 +1,13 @@
 package com.meidusa.venus.backend.invoker;
 
+import com.meidusa.venus.backend.context.RequestContext;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.services.EndpointInvocation;
-import com.meidusa.venus.backend.services.InterceptorMapping;
-import com.meidusa.venus.backend.context.RequestContext;
-import com.meidusa.venus.backend.support.UtilTimerStack;
+import com.meidusa.venus.backend.services.Interceptor;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.util.VenusLoggerFactory;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 
 import java.lang.reflect.InvocationTargetException;
@@ -21,12 +21,10 @@ public class VenusServerInvocationEndpoint implements EndpointInvocation {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
-    private static String ENDPOINT_INVOKED = "handleRequest endpoint: ";
-    
     /**
      * 拦截器列表
      */
-    protected Iterator<InterceptorMapping> interceptors;
+    protected Iterator<Interceptor> interceptors;
 
     /**
      * 是否已经执行
@@ -55,10 +53,10 @@ public class VenusServerInvocationEndpoint implements EndpointInvocation {
 
     public VenusServerInvocationEndpoint(RequestContext context, Endpoint endpoint) {
         this.endpoint = endpoint;
-        if (endpoint.getInterceptorStack() != null) {
-            interceptors = endpoint.getInterceptorStack().getInterceptors().iterator();
-        }
         this.context = context;
+        if (CollectionUtils.isNotEmpty(endpoint.getInterceptorList())) {
+            this.interceptors = endpoint.getInterceptorList().iterator();
+        }
     }
 
     @Override
@@ -82,26 +80,14 @@ public class VenusServerInvocationEndpoint implements EndpointInvocation {
 
     @Override
     public Object invoke() {
-        if (executed) {
-            throw new IllegalStateException("Request has already executed");
-        }
-
-        Endpoint ep = this.getEndpoint();
-
         if (interceptors != null && interceptors.hasNext()) {
-            final InterceptorMapping interceptor = interceptors.next();
-            String interceptorMsg = "filte: " + interceptor.getName();
-            UtilTimerStack.push(interceptorMsg);
-            try {
-                result = interceptor.getInterceptor().intercept(VenusServerInvocationEndpoint.this);
-            } finally {
-                UtilTimerStack.pop(interceptorMsg);
-            }
+            Interceptor interceptor = interceptors.next();
+            result = interceptor.intercept(VenusServerInvocationEndpoint.this);
         } else {
             try {
-                UtilTimerStack.push(ENDPOINT_INVOKED);
                 Object[] parameters = getContext().getEndPointer().getParameterValues(getContext().getParameters());
 
+                Endpoint ep = this.getEndpoint();
                 if (ep.isAsync()) {
                     this.type = ResultType.NONE;
                 }
@@ -122,13 +108,7 @@ public class VenusServerInvocationEndpoint implements EndpointInvocation {
                 } else {
                     throw new RpcException(e);
                 }
-            } finally {
-                UtilTimerStack.pop(ENDPOINT_INVOKED);
             }
-        }
-
-        if (!executed) {
-            executed = true;
         }
         return result;
     }

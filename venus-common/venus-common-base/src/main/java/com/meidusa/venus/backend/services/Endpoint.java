@@ -33,9 +33,9 @@ public class Endpoint {
     // cache
     private volatile transient Map<String, Type> parameterTypeDict;
 
-    private InterceptorStack interceptorStack;
-
     private PerformanceLogger performanceLogger;
+
+    private List<Interceptor> interceptorList = new ArrayList<>();
 
     private boolean active = true;
 
@@ -231,19 +231,19 @@ public class Endpoint {
         this.hasCtxParam = hasCtxParam;
     }
 
-    public InterceptorStack getInterceptorStack() {
-        return interceptorStack;
-    }
-
-    public void setInterceptorStack(InterceptorStack interceptorStack) {
-        this.interceptorStack = interceptorStack;
-    }
-
     public PerformanceLogger getPerformanceLogger() {
         return performanceLogger;
     }
 
     public void setPerformanceLogger(PerformanceLogger performanceLogger) {
         this.performanceLogger = performanceLogger;
+    }
+
+    public List<Interceptor> getInterceptorList() {
+        return interceptorList;
+    }
+
+    public void setInterceptorList(List<Interceptor> interceptorList) {
+        this.interceptorList = interceptorList;
     }
 }
