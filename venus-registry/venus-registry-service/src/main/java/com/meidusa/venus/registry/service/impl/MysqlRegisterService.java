@@ -373,7 +373,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		String version = url.getVersion();
 		List<VenusServiceDO> services = null;
 		try {
-			services = venusServiceDAO.queryServices(interfaceName, serviceName, version);// servicePath interfaceName/serviceName?version=version
+			services = venusServiceDAO.queryServicesByName(interfaceName, serviceName, version);// servicePath interfaceName/serviceName?version=version
 		} catch (Exception e) {
 			LogUtils.ERROR_LOG.error("findServiceDefinitions queryServices 调用异常,interfaceName=>"+interfaceName+",serviceName=>"+serviceName+",version=>"+version,e);
 		}
