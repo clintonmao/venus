@@ -306,6 +306,53 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 				params.add(interfaceName);
 			}
 		}
+		
+		if (RegistryUtil.isNotBlank(version)) {
+			whereSql.append(" and version=? ");
+			params.add(version);
+		}
+		
+		String trimWhere = whereSql.toString().trim();
+		if (trimWhere.startsWith("and")) {
+			trimWhere = trimWhere.substring(trimWhere.indexOf("and") + 3);
+		}
+		sql = sql + " " + trimWhere +" order by version desc ";
+		
+		try {
+			return this.jdbcTemplate.query(sql, listToArray(params), new ResultSetExtractor<List<VenusServiceDO>>() {
+				@Override
+				public List<VenusServiceDO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<VenusServiceDO> returnList = new ArrayList<VenusServiceDO>();
+					while (rs.next()) {
+						VenusServiceDO resultToVenusServiceDO = ResultUtils.resultToVenusServiceDO(rs);
+						if (resultToVenusServiceDO.getIsDelete()) {
+							continue;
+						}
+						returnList.add(resultToVenusServiceDO);
+					}
+					return returnList;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据serviceName:" + serviceName + ",获取venusService异常", e);
+		}
+	}
+	
+	@Override
+	public List<VenusServiceDO> queryServicesByName(String interfaceName, String serviceName, String version)
+			throws DAOException {
+		if(StringUtils.isBlank(interfaceName) && StringUtils.isBlank(serviceName)){
+			throw new DAOException("serviceName与interfaceName不能同时为空");
+		}
+		
+		String sql = SELECT_FIELDS + " from t_venus_service where ";
+		StringBuilder whereSql = new StringBuilder();
+		List<Object> params = new ArrayList<Object>();
+		
+		if (RegistryUtil.isNotBlank(serviceName)) {
+			whereSql.append(" and name=? ");
+			params.add(serviceName);
+		}
 
 		if (RegistryUtil.isNotBlank(version)) {
 			whereSql.append(" and version=? ");
