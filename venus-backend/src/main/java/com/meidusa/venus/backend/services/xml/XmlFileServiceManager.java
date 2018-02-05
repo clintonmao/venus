@@ -205,7 +205,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                 Map<String,InterceptorDef> interceptorDefMap = new HashMap<>();
                 if(CollectionUtils.isNotEmpty(venusServerConfig.getInterceptorDefList())){
                     for(InterceptorDef interceptorDef:venusServerConfig.getInterceptorDefList()){
-                        String interceptorClassName = interceptorDef.getType();
+                        String interceptorClassName = interceptorDef.getClazz();
                         try {
                             Object obj = Class.forName(interceptorClassName).newInstance();
                             if(!(obj instanceof Interceptor)){
@@ -262,13 +262,18 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                     //interceptor引用
                     String interceptors = exportService.getInterceptors();
                     if(StringUtils.isNotEmpty(interceptors)){
-                        if(interceptorDefMap.get(interceptors) == null){
-                            throw new VenusConfigException("interceptor:" + interceptors + " not defined.");
+                        String[] inters = interceptors.trim().split(",");
+                        if(inters != null && inters.length > 0){
+                            List<Interceptor> interceptorList = new ArrayList<>();
+                            for(String inter:inters){
+                                if(interceptorDefMap.get(inter) == null){
+                                    throw new VenusConfigException("interceptor:" + inter + " not defined.");
+                                }
+                                InterceptorDef  interceptorDef = interceptorDefMap.get(inter);
+                                interceptorList.add(interceptorDef.getInterceptor());
+                            }
+                            exportService.setInterceptorList(interceptorList);
                         }
-                        List<Interceptor> interceptorList = new ArrayList<>();
-                        InterceptorDef  interceptorDef = interceptorDefMap.get(interceptors);
-                        interceptorList.add(interceptorDef.getInterceptor());
-                        exportService.setInterceptorList(interceptorList);
                     }
                 }
 

@@ -52,8 +52,6 @@ public class ExportService {
 
     private String description;
 
-    private Map<String, ExportServiceConfig> endpointConfigMap = new HashMap<String, ExportServiceConfig>();
-
     //venus协议默认线程数
     private int coreThreads;
 
@@ -138,14 +136,6 @@ public class ExportService {
         this.instance = instance;
     }
 
-    public ExportServiceConfig getEndpointConfig(String name) {
-        return endpointConfigMap.get(name);
-    }
-
-    public void addEndpointConfig(ExportServiceConfig config) {
-        endpointConfigMap.put(config.getName(), config);
-    }
-
     public int getCoreThreads() {
         return coreThreads;
     }
@@ -172,14 +162,6 @@ public class ExportService {
 
     public void setSupportVersionRange(Range supportVersionRange) {
         this.supportVersionRange = supportVersionRange;
-    }
-
-    public Map<String, ExportServiceConfig> getEndpointConfigMap() {
-        return endpointConfigMap;
-    }
-
-    public void setEndpointConfigMap(Map<String, ExportServiceConfig> endpointConfigMap) {
-        this.endpointConfigMap = endpointConfigMap;
     }
 
     public String getRef() {

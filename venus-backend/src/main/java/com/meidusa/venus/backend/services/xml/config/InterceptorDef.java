@@ -13,7 +13,7 @@ public class InterceptorDef {
 
     //interceptor classame
     @XStreamAsAttribute
-    private String type;
+    private String clazz;
 
     //interceptor实例
     private Interceptor interceptor;
@@ -34,12 +34,12 @@ public class InterceptorDef {
         return interceptor;
     }
 
-    public String getType() {
-        return type;
+    public String getClazz() {
+        return clazz;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setClazz(String clazz) {
+        this.clazz = clazz;
     }
 
     @Override

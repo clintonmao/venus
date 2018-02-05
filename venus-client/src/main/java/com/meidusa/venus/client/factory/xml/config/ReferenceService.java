@@ -18,9 +18,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 服务引用配置
@@ -74,8 +72,6 @@ public class ReferenceService {
     @XStreamImplicit
     private List<ReferenceMethod> methodList = new ArrayList<ReferenceMethod>();
 
-    private Map<String, ReferenceServiceConfig> endPointMap = new HashMap<String, ReferenceServiceConfig>();
-
     private int timeWait;
 
     private boolean enabled = true;
@@ -126,14 +122,6 @@ public class ReferenceService {
 
     public void setInstance(Object implement) {
         this.instance = implement;
-    }
-
-    public void addEndPointConfig(ReferenceServiceConfig config) {
-        endPointMap.put(config.getName(), config);
-    }
-
-    public ReferenceServiceConfig getEndpointConfig(String key) {
-        return endPointMap.get(key);
     }
 
     public String getName() {

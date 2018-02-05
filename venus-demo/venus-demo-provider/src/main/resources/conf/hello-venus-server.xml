@@ -2,8 +2,8 @@
 
 <venus-server>
 	<interceptors>
-		<interceptor name="acl-interceptor" type="com.meidusa.venus.backend.interceptor.AccessControlInterceptor" />
-		<interceptor name="validator-interceptor" type="com.meidusa.venus.backend.interceptor.ValidatorInterceptor" />
+		<interceptor name="acl-interceptor" clazz="com.meidusa.venus.backend.interceptor.AccessControlInterceptor" />
+		<interceptor name="validator-interceptor" clazz="com.meidusa.venus.backend.interceptor.ValidatorInterceptor" />
 	</interceptors>
 
 	<services>
@@ -11,8 +11,8 @@
 		ref:引用spring bean名称
 		-->
 		<!--interceptors="acl-interceptor,validator-interceptor"-->
-		<service type="com.chexiang.venus.demo.provider.HelloService" ref="helloService" supportVersion="{0,1,2,3,4,5,6}" interceptors="acl-interceptor"/>
+		<service type="com.chexiang.venus.demo.provider.HelloService" ref="helloService" supportVersion="{0,1,2,3,4,5,6}"/>
 		<service type="com.chexiang.venus.demo.provider.EchoService" ref="echoService" supportVersion="{1}"/>
-		<service type="com.saic.framework.message.UniMessageService" ref="uniMessageService"/>
+		<service type="com.saic.framework.message.UniMessageService" ref="uniMessageService" interceptors="acl-interceptor,validator-interceptor"/>
 	</services>
 </venus-server>
