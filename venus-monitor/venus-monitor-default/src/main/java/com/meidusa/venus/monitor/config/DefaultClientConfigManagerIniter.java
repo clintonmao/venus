@@ -1,9 +1,7 @@
 package com.meidusa.venus.monitor.config;
 
-import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.ServiceFactoryBean;
 import com.meidusa.venus.exception.VenusConfigException;
-import com.meidusa.venus.monitor.config.ClientConfigManagerIniter;
 import com.saic.framework.athena.configuration.ClientConfigManager;
 import com.saic.framework.athena.configuration.DefaultClientConfigManager;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,40 +17,22 @@ import org.springframework.beans.factory.support.GenericBeanDefinition;
  * athena配置信息管理代理，目的将athena-client依赖独立出来
  * Created by Zhangzhihua on 2017/10/9.
  */
-public class DefaultClientConfigManagerIniter implements ClientConfigManagerIniter {
+public class DefaultClientConfigManagerIniter {
 
-    @Override
     public Object initConfigManager(String appName, boolean enabled) {
         //初始化实例
-        ClientConfigManager clientConfigManager = initDefaultConfigManager(appName, enabled);
+        DefaultClientConfigManager clientConfigManager = new DefaultClientConfigManager();
+        clientConfigManager.setAppName(appName);
+        clientConfigManager.setMonitorEnabled(enabled);
+        clientConfigManager.init();
         if(clientConfigManager == null){
             throw new VenusConfigException("init clientConfigManager failed.");
         }
         return clientConfigManager;
     }
 
-    /**
-     * 初始化athena配置信息
-     */
-    ClientConfigManager initDefaultConfigManager(String appName, boolean enable){
-        DefaultClientConfigManager clientConfigManager = new DefaultClientConfigManager();
-        clientConfigManager.setAppName(appName);
-        clientConfigManager.setMonitorEnabled(enable);
-        clientConfigManager.init();
-        return clientConfigManager;
-    }
-
-    @Override
     public void registeConfigManager(ConfigurableListableBeanFactory beanFactory, Object clientConfigManager) {
         ClientConfigManager clientConfigMgr = (ClientConfigManager)clientConfigManager;
-        registeAthenaConfigManager(beanFactory,clientConfigMgr);
-    }
-
-    /**
-     * 注册configManager
-     * @param beanFactory
-     */
-    void registeAthenaConfigManager(ConfigurableListableBeanFactory beanFactory, ClientConfigManager clientConfigManager){
         String simpleClassName = clientConfigManager.getClass().getSimpleName();
         if(simpleClassName.contains(".")){
             simpleClassName=simpleClassName.substring(simpleClassName.lastIndexOf(".")+1);
@@ -70,4 +50,5 @@ public class DefaultClientConfigManagerIniter implements ClientConfigManagerInit
         beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_NAME);
         reg.registerBeanDefinition(simpleClassName, beanDefinition);
     }
+
 }

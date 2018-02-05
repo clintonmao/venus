@@ -6,7 +6,7 @@ import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.ServiceFactoryBean;
 import com.meidusa.venus.ServiceFactoryExtra;
 import com.meidusa.venus.exception.VenusConfigException;
-import com.meidusa.venus.monitor.config.ClientConfigManagerIniter;
+import com.meidusa.venus.monitor.config.DefaultClientConfigManagerIniter;
 import com.meidusa.venus.monitor.support.CustomScanAndRegisteUtil;
 import com.meidusa.venus.monitor.support.ApplicationContextHolder;
 import com.meidusa.venus.registry.VenusRegistryFactory;
@@ -57,7 +57,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
     /**
      * athena配置信息初始化
      */
-    private ClientConfigManagerIniter clientConfigManagerIniter;
+    private DefaultClientConfigManagerIniter clientConfigManagerIniter;
 
     /**
      * 直连服务实例化工厂
@@ -237,19 +237,14 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      */
     void initClientConfigManager(){
         //创建配置信息代理实例
-        String className = "com.meidusa.venus.monitor.config.DefaultClientConfigManagerIniter";
-        ClientConfigManagerIniter clientConfigManagerRegister = ReftorUtil.newInstance(className);
-        if(clientConfigManagerRegister == null){
-            throw new VenusConfigException("instance clientConfigManagerIniter failed.");
-        }
-        this.clientConfigManagerIniter = clientConfigManagerRegister;
+        this.clientConfigManagerIniter = new DefaultClientConfigManagerIniter();
 
         //初始化配置信息实例
         String appName = venusApplication.getName();
         if(StringUtils.isEmpty(appName)){
             throw new VenusConfigException("application not config.");
         }
-        Object clientConfigManager = clientConfigManagerRegister.initConfigManager(appName,true);
+        Object clientConfigManager = clientConfigManagerIniter.initConfigManager(appName,true);
         if(clientConfigManager == null){
             throw new VenusConfigException("init clientConfigManager failed.");
         }
