@@ -110,13 +110,6 @@
             <artifactId>venus-demo-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--
-        <dependency>
-            <groupId>com.meidusa.venus</groupId>
-            <artifactId>venus-http-filter</artifactId>
-            <version>4.0.11-SNAPSHOT</version>
-        </dependency>
-        -->
         <!--venus依赖-->
         <dependency>
             <groupId>com.meidusa.venus</groupId>

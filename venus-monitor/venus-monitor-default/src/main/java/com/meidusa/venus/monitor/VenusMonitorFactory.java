@@ -237,7 +237,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      */
     void initClientConfigManager(){
         //创建配置信息代理实例
-        String className = "com.meidusa.venus.monitor.athena.config.impl.DefaultClientConfigManagerIniter";
+        String className = "com.meidusa.venus.monitor.config.DefaultClientConfigManagerIniter";
         ClientConfigManagerIniter clientConfigManagerRegister = ReftorUtil.newInstance(className);
         if(clientConfigManagerRegister == null){
             throw new VenusConfigException("instance clientConfigManagerIniter failed.");

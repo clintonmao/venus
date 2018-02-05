@@ -159,6 +159,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!--
+        <dependency>
+            <groupId>com.saike.kafka</groupId>
+            <artifactId>kafka-client</artifactId>
+            <version>1.0.0.RELEASE</version>
+        </dependency>
+        -->
     </dependencies>
 
 	<build>
