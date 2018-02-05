@@ -1,4 +1,4 @@
-package com.meidusa.venus.monitor.athena.config.impl;
+package com.meidusa.venus.monitor.config;
 
 import com.athena.service.api.AthenaDataService;
 import com.meidusa.venus.ServiceFactoryBean;
