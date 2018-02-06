@@ -1,7 +1,7 @@
 package com.meidusa.venus.monitor.athena.reporter.impl;
 
-import com.meidusa.venus.monitor.athena.reporter.support.AthenaConstants;
-import com.meidusa.venus.monitor.athena.reporter.support.TransactionThreadLocal;
+import com.meidusa.venus.monitor.athena.support.AthenaConstants;
+import com.meidusa.venus.monitor.athena.support.TransactionThreadLocal;
 import com.meidusa.venus.monitor.athena.reporter.ClientTransactionReporter;
 import com.meidusa.venus.monitor.athena.AthenaTransactionId;
 import com.saic.framework.athena.configuration.client.entity.RemoteContext;

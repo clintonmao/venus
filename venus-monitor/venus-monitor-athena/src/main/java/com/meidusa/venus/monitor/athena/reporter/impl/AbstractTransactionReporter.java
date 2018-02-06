@@ -1,6 +1,6 @@
 package com.meidusa.venus.monitor.athena.reporter.impl;
 
-import com.meidusa.venus.monitor.athena.reporter.support.TransactionThreadLocal;
+import com.meidusa.venus.monitor.athena.support.TransactionThreadLocal;
 import com.meidusa.venus.monitor.athena.TransactionCommittable;
 import com.meidusa.venus.monitor.athena.TransactionStatistics;
 import com.saic.framework.athena.message.Transaction;

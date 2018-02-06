@@ -1,4 +1,4 @@
-package com.meidusa.venus.monitor.athena.reporter.support;
+package com.meidusa.venus.monitor.athena.support;
 
 /**
  * Created by GodzillaHua on 7/3/16.
