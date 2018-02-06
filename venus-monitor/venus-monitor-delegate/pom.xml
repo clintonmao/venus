@@ -20,11 +20,15 @@
             <exclusions>
                 <exclusion>
                     <groupId>com.meidusa.venus</groupId>
-                    <artifactId>venus-client</artifactId>
+                    <artifactId>venus-annotations</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>com.meidusa.venus.commons</groupId>
                     <artifactId>venus-common-exception</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.meidusa.venus</groupId>
+                    <artifactId>venus-client</artifactId>
                 </exclusion>
             </exclusions>
        </dependency>

@@ -77,19 +77,19 @@
         </rollingPolicy>
     </appender>
 
-    <appender name="athenaAppender" class="com.saic.framework.athena.log4j.AthenaAppender"></appender>
+    <!--<appender name="athenaAppender" class="com.saic.framework.athena.log4j.AthenaAppender"></appender>-->
 
-    <logger name="venus.default" additivity="false">
+    <logger name="venus.default" additivity="true">
         <level value="info"/>
         <appender-ref ref="venus.default"/>
     </logger>
 
-    <logger name="venus.tracer" additivity="false">
+    <logger name="venus.tracer" additivity="true">
         <level value="info"/>
         <appender-ref ref="venus.tracer"/>
     </logger>
 
-    <logger name="venus.exception" additivity="false">
+    <logger name="venus.exception" additivity="true">
         <level value="info"/>
         <appender-ref ref="venus.exception"/>
     </logger>
@@ -97,7 +97,7 @@
     <!--root-->
     <root level="info">
         <appender-ref ref="stdout" />
-        <appender-ref ref="athenaAppender"/>
+        <!--<appender-ref ref="athenaAppender"/>-->
     </root>
 
 </configuration>

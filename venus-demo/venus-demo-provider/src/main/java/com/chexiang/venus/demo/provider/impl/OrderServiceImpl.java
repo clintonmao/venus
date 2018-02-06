@@ -17,12 +17,10 @@ public class OrderServiceImpl implements OrderService,InitializingBean{
 
     @PostConstruct
     void init(){
-        System.out.println("init...");
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        System.out.println("afterPropertiesSet...");
     }
 
     @Override

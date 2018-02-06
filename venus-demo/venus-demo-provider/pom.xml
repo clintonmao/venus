@@ -120,16 +120,6 @@
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-monitor-delegate</artifactId>
             <version>${project.version}</version>
-            <exclusions>
-            	<exclusion>
-            		<groupId>com.meidusa.venus</groupId>
-            		<artifactId>venus-annotations</artifactId>
-            	</exclusion>
-            	<exclusion>
-            		<groupId>com.meidusa.venus.commons</groupId>
-            		<artifactId>venus-common-exception</artifactId>
-            	</exclusion>
-            </exclusions>
         </dependency>
 		<dependency>
 			<groupId>org.codehaus.plexus</groupId>
