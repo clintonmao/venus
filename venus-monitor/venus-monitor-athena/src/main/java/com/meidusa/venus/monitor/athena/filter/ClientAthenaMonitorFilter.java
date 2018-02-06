@@ -3,7 +3,12 @@ package com.meidusa.venus.monitor.athena.filter;
 import com.meidusa.venus.*;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.monitor.athena.AthenaTransactionId;
-import com.meidusa.venus.monitor.athena.reporter.AthenaReporterDelegate;
+import com.meidusa.venus.monitor.athena.reporter.ClientTransactionReporter;
+import com.meidusa.venus.monitor.athena.reporter.MetricReporter;
+import com.meidusa.venus.monitor.athena.reporter.ProblemReporter;
+import com.meidusa.venus.monitor.athena.reporter.impl.DefaultClientTransactionReporter;
+import com.meidusa.venus.monitor.athena.reporter.impl.DefaultMetricReporter;
+import com.meidusa.venus.monitor.athena.reporter.impl.DefaultProblemReporter;
 import com.meidusa.venus.support.EndpointWrapper;
 import com.meidusa.venus.support.ServiceWrapper;
 import com.meidusa.venus.support.VenusThreadContext;
@@ -23,20 +28,13 @@ public class ClientAthenaMonitorFilter implements Filter {
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
-    private boolean isInited = false;
+    private ClientTransactionReporter clientTransactionReporter = new DefaultClientTransactionReporter();
 
     public ClientAthenaMonitorFilter(){
     }
 
     @Override
     public void init() throws RpcException {
-        synchronized (ClientAthenaMonitorFilter.class){
-            if(!isInited){
-                //初始化athena
-                AthenaReporterDelegate.getInstance().init();
-                isInited = true;
-            }
-        }
     }
 
     @Override
@@ -52,7 +50,7 @@ public class ClientAthenaMonitorFilter implements Filter {
             Method method = clientInvocation.getMethod();
             //athena相关
             String apiName = VenusUtil.getApiName(method,service,endpoint);
-            AthenaTransactionId athenaTransactionId = AthenaReporterDelegate.getInstance().startClientTransaction(apiName);
+            AthenaTransactionId athenaTransactionId = clientTransactionReporter.startTransaction(apiName);
             VenusThreadContext.set(VenusThreadContext.ATHENA_TRANSACTION_ID,athenaTransactionId);
             if (athenaTransactionId != null) {
                 //保存athena信息到上下文
@@ -96,14 +94,14 @@ public class ClientAthenaMonitorFilter implements Filter {
             //从上下文设置请求、接收报文长度
             Integer clientOutputSize = (Integer) VenusThreadContext.get(VenusThreadContext.CLIENT_OUTPUT_SIZE);
             if(clientOutputSize != null){
-                AthenaReporterDelegate.getInstance().setClientOutputSize(clientOutputSize.intValue());
+                clientTransactionReporter.setOutputSize(clientOutputSize.intValue());
             }
             Integer clientInputSize = (Integer) VenusThreadContext.get(VenusThreadContext.CLIENT_INPUT_SIZE);
             if(clientInputSize != null){
-                AthenaReporterDelegate.getInstance().setClientInputSize(clientInputSize.intValue());
+                clientTransactionReporter.setInputSize(clientInputSize.intValue());
             }
             //提交事务
-            AthenaReporterDelegate.getInstance().completeClientTransaction();
+            clientTransactionReporter.commit();
             return null;
         }catch(Throwable e){
             //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用

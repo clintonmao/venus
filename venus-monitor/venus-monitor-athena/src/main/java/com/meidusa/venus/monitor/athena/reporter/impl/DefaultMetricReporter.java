@@ -46,6 +46,11 @@ public class DefaultMetricReporter implements MetricReporter {
         }, 60, 15, TimeUnit.SECONDS);
     }
 
+    @Override
+    public void metric(String key) {
+        metric(key, 1);
+    }
+
     public void metric(String key, int count) {
         try{
             AtomicLong value = maps.get(key);

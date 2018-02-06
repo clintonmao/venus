@@ -5,6 +5,8 @@ package com.meidusa.venus.monitor.athena.reporter;
  */
 public interface MetricReporter {
 
+    void metric(String key);
+
     void metric(String key, int count);
 
 }
