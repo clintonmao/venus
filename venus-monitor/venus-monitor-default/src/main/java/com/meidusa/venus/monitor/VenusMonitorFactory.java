@@ -137,7 +137,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
                 initClientConfigManager();
             } catch (Throwable e) {
                 if(exceptionLogger.isErrorEnabled()){
-                    exceptionLogger.error("init athena report failed,will disable athena report. fail reason:{}",e.getLocalizedMessage());
+                    exceptionLogger.error("init clientConfigManager failed,will disable athena report. fail reason:{}",e.getLocalizedMessage());
                 }
                 hasAthenaReportDepen = false;
             }

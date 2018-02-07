@@ -30,19 +30,23 @@ public class ServerAthenaMonitorFilter implements Filter {
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
-    private MetricReporter metricReporter = new DefaultMetricReporter();
+    private MetricReporter metricReporter = null;
 
-    private ProblemReporter problemReporter = new DefaultProblemReporter();
+    private ProblemReporter problemReporter = null;
 
-    private ClientTransactionReporter clientTransactionReporter = new DefaultClientTransactionReporter();
+    private ClientTransactionReporter clientTransactionReporter = null;
 
-    private ServerTransactionReporter serverTransactionReporter = new DefaultServerTransactionReporter();
+    private ServerTransactionReporter serverTransactionReporter = null;
 
     public ServerAthenaMonitorFilter(){
     }
 
     @Override
     public void init() throws RpcException {
+        metricReporter = new DefaultMetricReporter();
+        problemReporter = new DefaultProblemReporter();
+        clientTransactionReporter = new DefaultClientTransactionReporter();
+        serverTransactionReporter = new DefaultServerTransactionReporter();
     }
 
     @Override

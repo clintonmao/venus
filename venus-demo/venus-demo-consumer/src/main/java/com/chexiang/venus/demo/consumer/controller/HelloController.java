@@ -6,20 +6,12 @@ import com.chexiang.venus.demo.provider.InvalidParamException;
 import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.notify.InvocationListener;
-import com.saic.framework.message.Sms;
-import com.saic.framework.message.UniMessageService;
-import com.saic.framework.service.sms.exception.SMSValidateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * HelloController
@@ -34,8 +26,8 @@ public class HelloController {
     @Autowired
     HelloService helloService;
 
-    @Autowired
-    UniMessageService uniMessageService;
+    //@Autowired
+    //UniMessageService uniMessageService;
 
     @RequestMapping("/sayHello")
     public Result sayHello(){
@@ -99,22 +91,22 @@ public class HelloController {
 
     @RequestMapping("/sms/{param}")
     public Result sms(@PathVariable String param) throws HelloValidException,InvalidParamException {
-        Sms sms = new Sms("smsVenus","schemaId1");
-
-        List destPhoneList = new ArrayList();
-        destPhoneList.add("18588888888");
-        sms.setDestPhones(destPhoneList);
-
-        Map<String, String> paramMap = new HashMap<>();
-        paramMap.put("key1","value1");
-        paramMap.put("key2","value2");
-        sms.setParams(paramMap);
-
-        try {
-            uniMessageService.sendSms(sms);
-        } catch (SMSValidateException e) {
-            e.printStackTrace();
-        }
+//        Sms sms = new Sms("smsVenus","schemaId1");
+//
+//        List destPhoneList = new ArrayList();
+//        destPhoneList.add("18588888888");
+//        sms.setDestPhones(destPhoneList);
+//
+//        Map<String, String> paramMap = new HashMap<>();
+//        paramMap.put("key1","value1");
+//        paramMap.put("key2","value2");
+//        sms.setParams(paramMap);
+//
+//        try {
+//            uniMessageService.sendSms(sms);
+//        } catch (SMSValidateException e) {
+//            e.printStackTrace();
+//        }
         return new Result("ok");
     }
 

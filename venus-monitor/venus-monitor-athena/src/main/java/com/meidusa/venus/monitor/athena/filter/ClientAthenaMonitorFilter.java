@@ -28,13 +28,14 @@ public class ClientAthenaMonitorFilter implements Filter {
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
-    private ClientTransactionReporter clientTransactionReporter = new DefaultClientTransactionReporter();
+    private ClientTransactionReporter clientTransactionReporter = null;
 
     public ClientAthenaMonitorFilter(){
     }
 
     @Override
     public void init() throws RpcException {
+        clientTransactionReporter = new DefaultClientTransactionReporter();
     }
 
     @Override
