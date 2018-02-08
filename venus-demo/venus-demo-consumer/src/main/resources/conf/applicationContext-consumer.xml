@@ -23,7 +23,6 @@
 		</property>
 	</bean>
 
-
 	<!--应用配置-->
 	<bean id="venusApplication" class="com.meidusa.venus.VenusApplication">
 		<property name="name" value="${venus.application.name}"/>
@@ -36,6 +35,7 @@
 
 	<!--监控配置-->
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
+		<property name="address" value="10.32.221.6:9092,10.32.221.18:9092,10.32.221.23:9092"/>
 	</bean>
 
 	<!--服务引用配置-->

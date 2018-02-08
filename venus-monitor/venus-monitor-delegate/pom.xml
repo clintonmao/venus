@@ -13,25 +13,6 @@
     <artifactId>venus-monitor-delegate</artifactId>
 
     <dependencies>
-        <dependency>
-           <groupId>com.saike.athena</groupId>
-           <artifactId>athena-client</artifactId>
-           <version>2.0.6-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.meidusa.venus</groupId>
-                    <artifactId>venus-annotations</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.meidusa.venus.commons</groupId>
-                    <artifactId>venus-common-exception</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.meidusa.venus</groupId>
-                    <artifactId>venus-client</artifactId>
-                </exclusion>
-            </exclusions>
-       </dependency>
     </dependencies>
 
 </project>

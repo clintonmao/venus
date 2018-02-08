@@ -17,6 +17,11 @@
             <artifactId>commons-lang</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.46</version>
+        </dependency>
+        <dependency>
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-common-base</artifactId>
         </dependency>
@@ -34,47 +39,13 @@
         </dependency>
         <dependency>
             <groupId>com.saike.athena</groupId>
-            <artifactId>athena-api</artifactId>
-            <version>2.0.6-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-expression</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.meidusa.venus.commons</groupId>
-                    <artifactId>venus-common-exception</artifactId>
-                </exclusion>
-            </exclusions>
+            <artifactId>athena-venus-api</artifactId>
+            <version>2.2.6-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>com.saike.athena</groupId>
-            <artifactId>athena-models-spring</artifactId>
-            <version>2.0.6-SNAPSHOT</version>
-            <exclusions>
-            	<exclusion>
-            		<groupId>org.springframework.data</groupId>
-            		<artifactId>spring-data-gemfire</artifactId>
-            	</exclusion>
-            </exclusions>
-        </dependency>
-
-        <!--provider依赖-->
-        <dependency>
-            <groupId>com.saike.athena</groupId>
-            <artifactId>athena-client</artifactId>
-            <version>2.0.6-SNAPSHOT</version>
-            <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.meidusa.venus</groupId>
-                    <artifactId>venus-client</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.meidusa.venus.commons</groupId>
-                    <artifactId>venus-common-exception</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>0.11.0.0</version>
         </dependency>
     </dependencies>
 </project>

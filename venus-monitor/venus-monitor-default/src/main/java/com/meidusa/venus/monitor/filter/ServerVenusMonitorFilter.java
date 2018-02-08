@@ -1,7 +1,7 @@
 package com.meidusa.venus.monitor.filter;
 
-import com.athena.domain.MethodCallDetailDO;
-import com.athena.domain.MethodStaticDO;
+import com.athena.venus.domain.VenusMethodCallDetailDO;
+import com.athena.venus.domain.VenusMethodStaticDO;
 import com.meidusa.venus.*;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.monitor.MonitorDataConvert;
@@ -156,12 +156,12 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
      * @param detail
      * @return
      */
-    public MethodCallDetailDO convertDetail(InvocationDetail detail){
+    public VenusMethodCallDetailDO convertDetail(InvocationDetail detail){
         ServerInvocation serverInvocation = (ServerInvocation)detail.getInvocation();
         Result result = detail.getResult();
         Throwable exception = detail.getException();
 
-        MethodCallDetailDO detailDO = new MethodCallDetailDO();
+        VenusMethodCallDetailDO detailDO = new VenusMethodCallDetailDO();
         //基本信息
         detailDO.setId(UUIDUtil.create().toString());
         detailDO.setRpcId(serverInvocation.getRpcId());
@@ -216,7 +216,7 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
         return detailDO;
     }
 
-    public MethodStaticDO convertStatistic(InvocationStatistic statistic){
+    public VenusMethodStaticDO convertStatistic(InvocationStatistic statistic){
         return null;
     }
 

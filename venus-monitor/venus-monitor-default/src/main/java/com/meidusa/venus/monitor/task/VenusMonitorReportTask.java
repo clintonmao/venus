@@ -4,13 +4,13 @@ package com.meidusa.venus.monitor.task;
  * Created by Zhangzhihua on 2017/11/30.
  */
 
-import com.athena.domain.MethodCallDetailDO;
-import com.athena.domain.MethodStaticDO;
+import com.athena.venus.domain.VenusMethodCallDetailDO;
+import com.athena.venus.domain.VenusMethodStaticDO;
 import com.meidusa.venus.monitor.MonitorDataConvert;
+import com.meidusa.venus.monitor.reporter.VenusMonitorReporter;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.monitor.support.VenusMonitorConstants;
-import com.meidusa.venus.monitor.reporter.VenusMonitorReporter;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -87,8 +87,8 @@ public class VenusMonitorReportTask implements Runnable{
                 //3、上报统计及明细数据
                 if(CollectionUtils.isNotEmpty(reportDetailList) || CollectionUtils.isNotEmpty(reportStatisticList)){
                     try {
-                        List<MethodCallDetailDO> detailDOList = toDetailDOList(reportDetailList);
-                        List<MethodStaticDO> staticDOList = toStaticDOList(reportStatisticList);
+                        List<VenusMethodCallDetailDO> detailDOList = toDetailDOList(reportDetailList);
+                        List<VenusMethodStaticDO> staticDOList = toStaticDOList(reportStatisticList);
                         monitorReporter.reportDetailAndStatic(detailDOList,staticDOList);
                     } catch (Exception e) {
                         if(exceptionLogger.isErrorEnabled()){
@@ -124,13 +124,13 @@ public class VenusMonitorReportTask implements Runnable{
      * @param detailList
      * @return
      */
-    List<MethodCallDetailDO> toDetailDOList(Collection<InvocationDetail> detailList){
-        List<MethodCallDetailDO> detailDOList = new ArrayList<MethodCallDetailDO>();
+    List<VenusMethodCallDetailDO> toDetailDOList(Collection<InvocationDetail> detailList){
+        List<VenusMethodCallDetailDO> detailDOList = new ArrayList<VenusMethodCallDetailDO>();
         if(CollectionUtils.isEmpty(detailList)){
             return detailDOList;
         }
         for(InvocationDetail detail:detailList){
-            MethodCallDetailDO detailDO = monitorOperation.convertDetail(detail);
+            VenusMethodCallDetailDO detailDO = monitorOperation.convertDetail(detail);
             detailDOList.add(detailDO);
         }
         return detailDOList;
@@ -141,13 +141,13 @@ public class VenusMonitorReportTask implements Runnable{
      * @param statisticList
      * @return
      */
-    List<MethodStaticDO> toStaticDOList(Collection<InvocationStatistic> statisticList){
-        List<MethodStaticDO> staticDOList = new ArrayList<MethodStaticDO>();
+    List<VenusMethodStaticDO> toStaticDOList(Collection<InvocationStatistic> statisticList){
+        List<VenusMethodStaticDO> staticDOList = new ArrayList<VenusMethodStaticDO>();
         for(InvocationStatistic statistic:statisticList){
             if(statistic.getTotalNum().intValue() < 1){
                 continue;
             }
-            MethodStaticDO staticDO = monitorOperation.convertStatistic(statistic);
+            VenusMethodStaticDO staticDO = monitorOperation.convertStatistic(statistic);
             staticDOList.add(staticDO);
         }
         return staticDOList;

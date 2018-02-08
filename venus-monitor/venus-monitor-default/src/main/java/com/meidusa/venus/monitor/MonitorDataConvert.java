@@ -1,7 +1,7 @@
 package com.meidusa.venus.monitor;
 
-import com.athena.domain.MethodCallDetailDO;
-import com.athena.domain.MethodStaticDO;
+import com.athena.venus.domain.VenusMethodCallDetailDO;
+import com.athena.venus.domain.VenusMethodStaticDO;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 
@@ -22,12 +22,12 @@ public interface MonitorDataConvert {
      * @param detail
      * @return
      */
-    MethodCallDetailDO convertDetail(InvocationDetail detail);
+    VenusMethodCallDetailDO convertDetail(InvocationDetail detail);
 
     /**
      * 转化统计数据
      * @param statistic
      * @return
      */
-    MethodStaticDO convertStatistic(InvocationStatistic statistic);
+    VenusMethodStaticDO convertStatistic(InvocationStatistic statistic);
 }

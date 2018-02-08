@@ -57,7 +57,7 @@
 
 	<!--监控配置-->
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
-		<!--<property name="address" value="10.32.174.20:16800"/>-->
+		<property name="address" value="10.32.221.6:9092,10.32.221.18:9092,10.32.221.23:9092"/>
 	</bean>
 
 	<!--venus协议配置-->
