@@ -97,7 +97,7 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
                 this.kafkaProducer = kafkaProducer;
             } catch (Exception e) {
                 if(exceptionLogger.isErrorEnabled()){
-                    exceptionLogger.error("init kafka producer failed,will disable venus report. fail reason:{}",e.getLocalizedMessage());
+                    exceptionLogger.error("###########init kafka producer failed,will disable venus report. fail reason:{}",e.getLocalizedMessage());
                 }
                 hasVenusReportDepen = false;
             }
@@ -108,7 +108,7 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
                 validAthenaClient();
             } catch (Throwable e) {
                 if(exceptionLogger.isErrorEnabled()){
-                    exceptionLogger.error("init athena client failed,will disable athena report. fail reason:{}",e.getLocalizedMessage());
+                    exceptionLogger.error("###########init athena client failed,will disable athena report. fail reason:{}",e.getLocalizedMessage());
                 }
                 hasAthenaReportDepen = false;
             }
@@ -139,7 +139,11 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
      * 校验athena client配置
      */
     void validAthenaClient(){
-        //throw new VenusConfigException("athena client not config.");
+        try {
+            Class.forName("com.saic.framework.athena.configuration.ClientConfigManager");
+        } catch (ClassNotFoundException e) {
+            throw new VenusConfigException("athena client not config.");
+        }
     }
 
 

@@ -47,4 +47,6 @@
 		</property>
 	</bean>
 
+	<import resource="classpath:/conf/applicationContext-athena.xml"/>
+
 </beans>

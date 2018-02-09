@@ -193,7 +193,7 @@ public class ClientInvokerProxy implements Invoker {
                         clientVenusMonitorFilter = new ClientVenusMonitorFilter();
                         clientVenusMonitorFilter.init();
                     } catch (Exception e) {
-                        logger.warn("init venus monitor failed,will disabled venus report.",e);
+                        logger.warn("#########init venus monitor failed,will disabled venus report.",e);
                     }
                 }
             }else{
@@ -207,7 +207,7 @@ public class ClientInvokerProxy implements Invoker {
                     clientAthenaMonitorFilter = new ClientAthenaMonitorFilter();
                     clientAthenaMonitorFilter.init();
                 } catch (Throwable e) {
-                    logger.warn("init athena monitor failed,will disabled athena report.",e);
+                    logger.warn("##########init athena monitor failed,will disabled athena report.",e);
                 }
             }else{
                 if(logger.isWarnEnabled()){

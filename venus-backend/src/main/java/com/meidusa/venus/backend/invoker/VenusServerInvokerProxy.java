@@ -119,7 +119,7 @@ public class VenusServerInvokerProxy implements Invoker {
                         serverVenusMonitorFilter = new ServerVenusMonitorFilter();
                         serverVenusMonitorFilter.init();
                     } catch (Exception e) {
-                        logger.warn("init venus monitor failed,will disabled venus report.",e);
+                        logger.warn("###########init venus monitor failed,will disabled venus report.",e);
                     }
                 }
             }else{
@@ -132,7 +132,7 @@ public class VenusServerInvokerProxy implements Invoker {
                     serverAthenaMonitorFilter = new ServerAthenaMonitorFilter();
                     serverAthenaMonitorFilter.init();
                 } catch (Throwable e) {
-                    logger.warn("init venus monitor failed,will disabled venus report.",e);
+                    logger.warn("#############init athena monitor failed,will disabled athena report.",e);
                 }
             }else{
                 if(logger.isWarnEnabled()){
