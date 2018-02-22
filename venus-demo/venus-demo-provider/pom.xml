@@ -125,7 +125,7 @@
             <artifactId>venus-monitor-delegate</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--uc-->
+        <!--ucm-->
         <dependency>
             <groupId>com.saike.ucm</groupId>
             <artifactId>ucm-client</artifactId>
