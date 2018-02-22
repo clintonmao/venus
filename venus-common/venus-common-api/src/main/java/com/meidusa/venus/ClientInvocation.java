@@ -68,20 +68,20 @@ public class ClientInvocation implements Invocation {
     //寻址方式，默认本地，0:本地;1:注册中心
     private int lookupType = 0;
 
-    //集群容错策略，默认fastfail
-    private String cluster = VenusConstants.CLUSTER_DEFAULT;
+    //超时时间，默认30000ms
+    private int timeout = VenusConstants.TIMEOUT_DEFAULT;
 
     //重试次数，若retries不为空，则cluster默认开启failover
     private int retries = VenusConstants.RETRIES_DEFAULT;
 
-    //负载均衡策略,默认random
-    private String loadbalance = VenusConstants.LOADBALANCE_DEFAULT;
-
-    //超时时间，默认30000ms
-    private int timeout = VenusConstants.TIMEOUT_DEFAULT;
-
     //连接数，默认8（一个服务）
     private int coreConnections = VenusConstants.CONNECTION_DEFAULT_COUNT;
+
+    //集群容错策略，默认fastfail
+    private String cluster = VenusConstants.CLUSTER_DEFAULT;
+
+    //负载均衡策略,默认random
+    private String loadbalance = VenusConstants.LOADBALANCE_DEFAULT;
 
     //版本号
     private String version;

@@ -76,7 +76,7 @@ public class SimpleServiceFactory extends AbstractServiceFactory implements Serv
         }
 
         //转化及校验地址
-        ipAddressList = convertAndValidAddress(ipAddressList);
+        ipAddressList = parseAddress(ipAddressList);
         this.ipAddressList = ipAddressList;
     }
 

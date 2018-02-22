@@ -40,12 +40,12 @@ public class VenusClientConfig {
         remoteConfigMap.put(remoteConfig.getName(), remoteConfig);
     }
 
-    public List<ReferenceService> getReferenceServices() {
-        return referenceServices;
-    }
-
     public Map<String, ClientRemoteConfig> getRemoteConfigMap() {
         return remoteConfigMap;
+    }
+
+    public List<ReferenceService> getReferenceServices() {
+        return referenceServices;
     }
 
 }

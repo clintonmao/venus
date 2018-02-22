@@ -26,6 +26,7 @@ import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.factory.AbstractServiceFactory;
 import com.meidusa.venus.client.factory.InvokerInvocationHandler;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
+import com.meidusa.venus.client.factory.xml.config.ReferenceMethod;
 import com.meidusa.venus.client.factory.xml.config.ReferenceService;
 import com.meidusa.venus.client.factory.xml.config.VenusClientConfig;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanContext;
@@ -37,7 +38,6 @@ import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.VenusRegistryFactory;
-import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
@@ -201,15 +201,12 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
         VenusClientConfig venusClientConfig = parseClientConfig();
 
         if(CollectionUtils.isEmpty(venusClientConfig.getReferenceServices())){
-            if(logger.isWarnEnabled()){
-                logger.warn("not config reference services.");
-            }
             return;
         }
 
         //初始化service实例
-        for (ReferenceService serviceConfig : venusClientConfig.getReferenceServices()) {
-            initService(serviceConfig,venusClientConfig);
+        for (ReferenceService referenceService : venusClientConfig.getReferenceServices()) {
+            initService(referenceService);
         }
 
         //加载注册信息
@@ -223,16 +220,16 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
 
     /**
      * 初始化service
-     * @param serviceConfig
+     * @param referenceService
      */
-    void initService(ReferenceService serviceConfig, VenusClientConfig venusClientConfig) {
+    void initService(ReferenceService referenceService) {
         //初始化服务代理
-        initServiceProxy(serviceConfig,venusClientConfig);
+        initServiceProxy(referenceService);
 
         //若走注册中心，则订阅服务
-        if(isNeedSubscrible(serviceConfig)){
+        if(isNeedSubscrible(referenceService)){
             try {
-                subscribleService(serviceConfig);
+                subscribleService(referenceService);
             } catch (Exception e) {
                 if(exceptionLogger.isErrorEnabled()){
                     exceptionLogger.error("subscrible service failed,will retry.",e);
@@ -266,15 +263,15 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
     /**
      * 初始化服务代理
      * @param referenceService
-     * @param venusClientConfig
+     *
      */
-    void initServiceProxy(ReferenceService referenceService, VenusClientConfig venusClientConfig) {
+    void initServiceProxy(ReferenceService referenceService) {
         //创建服务代理invocation
         if(logger.isInfoEnabled()){
             logger.info("init service proxy:{}.",referenceService.getServiceInterface().getName());
         }
         //若地址或注册中心都未配置，则抛异常
-        if(StringUtils.isEmpty(referenceService.getRemote()) && StringUtils.isEmpty(referenceService.getIpAddressList())){
+        if(StringUtils.isEmpty(referenceService.getIpAddressList())){
             if(venusRegistryFactory == null || venusRegistryFactory.getRegister() == null){
                 throw new VenusConfigException("init serivce proxy failed,ipAddressList and venusRegistryFactory not config.");
             }
@@ -283,8 +280,8 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
         InvokerInvocationHandler invocationHandler = new InvokerInvocationHandler();
         invocationHandler.setServiceInterface(referenceService.getServiceInterface());
         //若配置静态地址，以静态为先
-        if(StringUtils.isNotEmpty(referenceService.getRemote()) || StringUtils.isNotEmpty(referenceService.getIpAddressList())){
-            ClientRemoteConfig remoteConfig = getRemoteConfig(referenceService,venusClientConfig);
+        if(StringUtils.isNotEmpty(referenceService.getIpAddressList())){
+            ClientRemoteConfig remoteConfig = newRemoteConfig(referenceService);
             invocationHandler.setRemoteConfig(remoteConfig);
         }else{
             invocationHandler.setRegister(venusRegistryFactory.getRegister());
@@ -339,20 +336,12 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
 
     /**
      * 获取静态地址配置信息
-     * @param serviceConfig
-     * @param venusClientConfig
+     * @param referenceService
      * @return
      */
-    ClientRemoteConfig getRemoteConfig(ReferenceService serviceConfig, VenusClientConfig venusClientConfig){
-        if(StringUtils.isNotEmpty(serviceConfig.getRemote())){
-            ClientRemoteConfig remoteConfig = venusClientConfig.getRemoteConfigMap().get(serviceConfig.getRemote());
-            if(remoteConfig == null){
-                throw new ConfigurationException(String.format("remoteConfig %  not found.",serviceConfig.getRemote()));
-            }
-            return remoteConfig;
-        }
-        if(StringUtils.isNotEmpty(serviceConfig.getIpAddressList())){
-            ClientRemoteConfig remoteConfig = ClientRemoteConfig.newInstace(serviceConfig.getIpAddressList());
+    ClientRemoteConfig newRemoteConfig(ReferenceService referenceService){
+        if(StringUtils.isNotEmpty(referenceService.getIpAddressList())){
+            ClientRemoteConfig remoteConfig = ClientRemoteConfig.newInstace(referenceService.getIpAddressList());
             return remoteConfig;
         }
         return null;
@@ -364,21 +353,26 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
      * @return
      */
     VenusClientConfig parseClientConfig(){
-        VenusClientConfig clientConfig = new VenusClientConfig();
+        VenusClientConfig allVenusClientConfig = new VenusClientConfig();
 
         XStream xStream = new XStream();
         xStream.autodetectAnnotations(true);
         xStream.processAnnotations(VenusClientConfig.class);
         xStream.processAnnotations(ReferenceService.class);
 
+        //解析、初始化服务配置
         for (Resource configFile : configFiles) {
             try {
                 VenusClientConfig venusClientConfig = (VenusClientConfig) xStream.fromXML(configFile.getURL());
+                if(CollectionUtils.isEmpty(venusClientConfig.getReferenceServices())){
+                    continue;
+                }
+
                 for (ReferenceService referenceService : venusClientConfig.getReferenceServices()) {
                     //初始化服务接口
                     String serviceInterfaceName = referenceService.getType();
                     if (serviceInterfaceName == null) {
-                        throw new VenusConfigException("Service type can not be null:" + configFile);
+                        throw new VenusConfigException("service type can not be null:" + configFile.getFilename());
                     }
                     Class<?> serviceInterface = null;
                     try {
@@ -400,7 +394,37 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
                     referenceService.setServiceName(serviceName);
                     referenceService.setVersion(serviceAnno.version());
 
-                    //初始化方法
+                    //初始化服务配置
+                    if(StringUtils.isNotEmpty(referenceService.getIpAddressList())){
+                        String ipAddressList = parseAddress(referenceService.getIpAddressList());
+                        referenceService.setIpAddressList(ipAddressList);
+                    }
+                    if(StringUtils.isNotEmpty(referenceService.getTimeout())){
+                        String timeout = parseProperty(referenceService.getTimeout());
+                        referenceService.setTimeoutCfg(Integer.parseInt(timeout));
+                    }
+                    if(StringUtils.isNotEmpty(referenceService.getRetries())){
+                        String retries = parseProperty(referenceService.getRetries());
+                        referenceService.setRetriesCfg(Integer.parseInt(retries));
+                    }
+
+                    //初始化方法配置
+                    if(CollectionUtils.isNotEmpty(referenceService.getMethodList())){
+                        for(ReferenceMethod referenceMethod:referenceService.getMethodList()){
+                            //初始化method.timeout
+                            if(StringUtils.isNotEmpty(referenceMethod.getTimeout())){
+                                String timeout = parseProperty(referenceMethod.getTimeout());
+                                referenceMethod.setTimeoutCfg(Integer.parseInt(timeout));
+                            }
+                            //初始化service.retries
+                            if(StringUtils.isNotEmpty(referenceMethod.getRetries())){
+                                String retries = parseProperty(referenceMethod.getRetries());
+                                referenceMethod.setRetriesCfg(Integer.parseInt(retries));
+                            }
+                        }
+                    }
+
+                    //初始化方法注解信息
                     VenusExceptionFactory venusExceptionFactory = XmlVenusExceptionFactory.getInstance();
                     for (Method method : serviceInterface.getMethods()) {
                         Endpoint endpoint = method.getAnnotation(Endpoint.class);
@@ -414,24 +438,17 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
                         }
                     }
 
-                    //设置服务地址
-                    if(StringUtils.isNotEmpty(referenceService.getIpAddressList())){
-                        //转化及校验地址
-                        String ipAddressList = convertAndValidAddress(referenceService.getIpAddressList());
-                        referenceService.setIpAddressList(ipAddressList);
-                    }
+                    //添加服务配置
+                    allVenusClientConfig.getReferenceServices().add(referenceService);
                 }
-                if(venusClientConfig.getReferenceServices() != null){
-                    clientConfig.getReferenceServices().addAll(venusClientConfig.getReferenceServices());
-                }
-                if(venusClientConfig.getRemoteConfigMap() != null){
-                    clientConfig.getRemoteConfigMap().putAll(venusClientConfig.getRemoteConfigMap());
-                }
+
             } catch (Exception e) {
                 throw new ConfigurationException("parse venus client config failed:" + configFile.getFilename(),e);
             }
         }
-        return clientConfig;
+
+
+        return allVenusClientConfig;
     }
 
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
