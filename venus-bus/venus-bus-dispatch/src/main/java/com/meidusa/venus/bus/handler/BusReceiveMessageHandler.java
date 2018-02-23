@@ -6,7 +6,7 @@ import com.meidusa.toolkit.common.bean.util.InitialisationException;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.venus.Result;
-import com.meidusa.venus.ServerInvocation;
+import com.meidusa.venus.backend.ServerInvocation;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.support.ServerResponseHandler;
 import com.meidusa.venus.backend.support.ServerResponseWrapper;

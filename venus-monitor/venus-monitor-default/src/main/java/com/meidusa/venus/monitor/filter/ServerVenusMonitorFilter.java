@@ -73,7 +73,7 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         try {
-            ServerInvocation serverInvocation = (ServerInvocation)invocation;
+            ServerInvocationOperation serverInvocation = (ServerInvocationOperation)invocation;
             //若不需要上报，则跳过
             if(!isNeedReport(serverInvocation)){
                 return null;
@@ -106,7 +106,7 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
      * @param invocation
      * @return
      */
-    boolean isNeedReport(ServerInvocation invocation){
+    boolean isNeedReport(ServerInvocationOperation invocation){
         //走注册中心才上报
         /*
         if(clientInvocation.getLookupType() == 0){
@@ -157,7 +157,7 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
      * @return
      */
     public VenusMethodCallDetailDO convertDetail(InvocationDetail detail){
-        ServerInvocation serverInvocation = (ServerInvocation)detail.getInvocation();
+        ServerInvocationOperation serverInvocation = (ServerInvocationOperation)detail.getInvocation();
         Result result = detail.getResult();
         Throwable exception = detail.getException();
 

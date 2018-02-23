@@ -10,6 +10,7 @@ import org.codehaus.jackson.map.ObjectMapper;
  * @author Sun Ning
  * @since 2010-3-9
  */
+@Deprecated
 public class JSONSerializer implements Serializer {
 
     private ObjectMapper objectMapper;

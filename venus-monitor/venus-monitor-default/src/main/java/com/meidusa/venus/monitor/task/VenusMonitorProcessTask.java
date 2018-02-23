@@ -4,13 +4,12 @@ package com.meidusa.venus.monitor.task;
  * Created by Zhangzhihua on 2017/11/30.
  */
 
-import com.meidusa.venus.ClientInvocation;
+import com.meidusa.venus.ClientInvocationOperation;
 import com.meidusa.venus.monitor.MonitorDataConvert;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.monitor.support.VenusMonitorConstants;
 import com.meidusa.venus.util.VenusLoggerFactory;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 
 import java.text.SimpleDateFormat;
@@ -118,7 +117,7 @@ public class VenusMonitorProcessTask implements Runnable{
      * @return
      */
     String getMethodAndEnvPath(InvocationDetail detail){
-        ClientInvocation clientInvocation = (ClientInvocation) detail.getInvocation();
+        ClientInvocationOperation clientInvocation = (ClientInvocationOperation) detail.getInvocation();
         //请求时间，精确为分钟
         String requestTimeOfMinutes = getTimeOfMinutes(clientInvocation.getRequestTime());
 

@@ -1,5 +1,6 @@
-package com.meidusa.venus;
+package com.meidusa.venus.client;
 
+import com.meidusa.venus.ClientInvocationOperation;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.support.EndpointWrapper;
@@ -15,7 +16,7 @@ import java.util.Date;
  * client请求对象
  * Created by Zhangzhihua on 2017/7/31.
  */
-public class ClientInvocation implements Invocation {
+public class ClientInvocation implements ClientInvocationOperation {
 
     private int clientId;
 

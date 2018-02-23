@@ -10,6 +10,7 @@ import java.util.Map;
  * @author Sun Ning
  * 
  */
+@Deprecated
 public final class Serializers {
 
     private final static Map<String, Serializer> typedSerializers = new HashMap<String, Serializer>();

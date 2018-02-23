@@ -1,7 +1,7 @@
 package com.meidusa.venus.backend.support;
 
 import com.meidusa.venus.Result;
-import com.meidusa.venus.ServerInvocation;
+import com.meidusa.venus.backend.ServerInvocation;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.ServiceAPIPacket;

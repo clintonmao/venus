@@ -1,6 +1,8 @@
-package com.meidusa.venus;
+package com.meidusa.venus.backend;
 
 import com.meidusa.toolkit.common.util.Tuple;
+import com.meidusa.venus.Invocation;
+import com.meidusa.venus.ServerInvocationOperation;
 import com.meidusa.venus.backend.services.Endpoint;
 import com.meidusa.venus.backend.services.EndpointInvocation;
 import com.meidusa.venus.backend.context.RequestContext;
@@ -24,7 +26,7 @@ import java.util.Date;
  * server调用对象，由于协议定义不一致，暂无法统一client/server/bus invocation
  * Created by Zhangzhihua on 2017/8/2.
  */
-public class ServerInvocation implements Invocation {
+public class ServerInvocation implements ServerInvocationOperation {
 
     private int clientId;
 

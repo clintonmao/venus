@@ -11,6 +11,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
  * @author Sun Ning
  * 
  */
+@Deprecated
 public class NullableObjectMapperFactory {
 
     public static ObjectMapper getNullableObjectMapper() {

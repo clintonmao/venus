@@ -1,6 +1,7 @@
 package com.meidusa.venus.client.invoker;
 
 import com.meidusa.venus.*;
+import com.meidusa.venus.client.ClientInvocation;
 import com.meidusa.venus.client.cluster.ClusterFailoverInvoker;
 import com.meidusa.venus.client.cluster.ClusterFastfailInvoker;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;

@@ -37,7 +37,7 @@ public class ClientAthenaMonitorFilter implements Filter {
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
         try {
-            ClientInvocation clientInvocation = (ClientInvocation)invocation;
+            ClientInvocationOperation clientInvocation = (ClientInvocationOperation)invocation;
             ServiceWrapper service = clientInvocation.getService();
             if (service == null || !service.isAthenaFlag()) {
                 return null;
@@ -82,7 +82,7 @@ public class ClientAthenaMonitorFilter implements Filter {
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         try {
-            ClientInvocation clientInvocation = (ClientInvocation)invocation;
+            ClientInvocationOperation clientInvocation = (ClientInvocationOperation)invocation;
             ServiceWrapper service = clientInvocation.getService();
             if (service == null || !service.isAthenaFlag()) {
                 return null;

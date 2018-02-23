@@ -3,7 +3,7 @@ package com.meidusa.venus.bus.dispatch;
 import com.meidusa.toolkit.net.*;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.Invocation;
-import com.meidusa.venus.ServerInvocation;
+import com.meidusa.venus.backend.ServerInvocation;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.bus.common.Dispatcher;
 import com.meidusa.venus.client.cluster.loadbalance.Loadbalance;

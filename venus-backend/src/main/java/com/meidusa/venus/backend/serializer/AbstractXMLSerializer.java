@@ -7,6 +7,7 @@ package com.meidusa.venus.backend.serializer;
  * @author sunning
  * 
  */
+@Deprecated
 public abstract class AbstractXMLSerializer implements Serializer {
 
     /*

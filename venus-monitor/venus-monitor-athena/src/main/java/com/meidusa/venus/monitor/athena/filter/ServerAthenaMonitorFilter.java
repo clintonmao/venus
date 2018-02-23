@@ -3,8 +3,6 @@ package com.meidusa.venus.monitor.athena.filter;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.*;
-import com.meidusa.venus.backend.services.Endpoint;
-import com.meidusa.venus.backend.services.Service;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.monitor.athena.AthenaTransactionId;
@@ -52,7 +50,8 @@ public class ServerAthenaMonitorFilter implements Filter {
     @Override
     public Result beforeInvoke(Invocation invocation, URL url) throws RpcException {
         try {
-            ServerInvocation serverInvocation = (ServerInvocation)invocation;
+            ServerInvocationOperation serverInvocation = (ServerInvocationOperation)invocation;
+            /*
             Endpoint endpoint = serverInvocation.getEndpointDef();
             if(endpoint == null){
                 return null;
@@ -61,6 +60,7 @@ public class ServerAthenaMonitorFilter implements Filter {
             if (service == null || !service.getAthenaFlag()) {
                 return null;
             }
+            */
 
             if(serverInvocation.getAthenaId() == null){
                 AthenaTransactionId transactionId = clientTransactionReporter.newTransaction();
@@ -104,7 +104,8 @@ public class ServerAthenaMonitorFilter implements Filter {
     @Override
     public Result throwInvoke(Invocation invocation, URL url, Throwable e) throws RpcException {
         try {
-            ServerInvocation serverInvocation = (ServerInvocation)invocation;
+            ServerInvocationOperation serverInvocation = (ServerInvocationOperation)invocation;
+            /*
             Endpoint endpoint = serverInvocation.getEndpointDef();
             if(endpoint == null){
                 return null;
@@ -113,6 +114,7 @@ public class ServerAthenaMonitorFilter implements Filter {
             if (service == null || !service.getAthenaFlag()) {
                 return null;
             }
+            */
 
             if(serverInvocation.getAthenaId() == null){
                 if(logger.isWarnEnabled()){
@@ -139,7 +141,8 @@ public class ServerAthenaMonitorFilter implements Filter {
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         try {
-            ServerInvocation serverInvocation = (ServerInvocation)invocation;
+            ServerInvocationOperation serverInvocation = (ServerInvocationOperation)invocation;
+            /*
             Endpoint endpoint = serverInvocation.getEndpointDef();
             if(endpoint == null){
                 return null;
@@ -148,6 +151,7 @@ public class ServerAthenaMonitorFilter implements Filter {
             if (service == null || !service.getAthenaFlag()) {
                 return null;
             }
+            */
 
             if(serverInvocation.getAthenaId() == null){
                 if(logger.isWarnEnabled()){
@@ -156,18 +160,20 @@ public class ServerAthenaMonitorFilter implements Filter {
                 }
             }
 
-            Tuple<Long, byte[]> data = serverInvocation.getData();
             SerializeServiceRequestPacket request = serverInvocation.getServiceRequestPacket();
             String apiName = request.apiName;
-            boolean athenaFlag = endpoint.getService().getAthenaFlag();
+            //boolean athenaFlag = endpoint.getService().getAthenaFlag();
             metricReporter.metric(apiName + ".complete");
             Long startTime = (Long) VenusThreadContext.get(VenusThreadContext.SERVER_BEGIN_TIME);
             long endRunTime = TimeUtil.currentTimeMillis();
+            Tuple<Long, byte[]> data = serverInvocation.getData();
             long queuedTime = startTime.longValue() - data.left;
             long executeTime = endRunTime - startTime.longValue();
-            if ((endpoint.getTimeWait() < (queuedTime + executeTime)) && athenaFlag) {
+            /* TODO
+            if ((endpoint.getTimeWait() < (queuedTime + executeTime))) {
                 metricReporter.metric(apiName + ".timeout");
             }
+            */
 
             //保存输出报文长度
             //VenusThreadContext.set(VenusThreadContext.SERVER_OUTPUT_SIZE,Integer.valueOf(byteBuffer.limit()));

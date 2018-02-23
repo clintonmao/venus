@@ -1,9 +1,8 @@
 package com.meidusa.venus.client.invoker.venus;
 
 import com.meidusa.toolkit.net.BackendConnection;
-import com.meidusa.venus.ClientInvocation;
+import com.meidusa.venus.client.ClientInvocation;
 import com.meidusa.venus.Result;
-import com.meidusa.venus.io.packet.AbstractServicePacket;
 
 import java.util.concurrent.CountDownLatch;
 

@@ -98,7 +98,7 @@ public class VenusApplication implements InitializingBean,DisposableBean {
                 //common-exception
                 "com.meidusa.venus.exception.CommonExceptionPackageValid",
                 //remote
-                "com.meidusa.venus.RemotePackageValid",
+                "com.meidusa.venus.io.RemotePackageValid",
                 //client
                 "com.meidusa.venus.client.ClientPackageValid"
         };
@@ -112,16 +112,16 @@ public class VenusApplication implements InitializingBean,DisposableBean {
                 PackageValid packageValid = (PackageValid)pkgClz.newInstance();
                 packageValid.valid();
             } catch (ClassNotFoundException e) {
-                String errorMsg = String.format("class %s not found,please check jar reference config.",pkgName);
+                String errorMsg = String.format("class %s not found,please check jar config.",pkgName);
                 throw new VenusConfigException(errorMsg);
             }catch (InstantiationException e) {
-                String errorMsg = String.format("class %s instance failed,please check jar reference config.",pkgName);
+                String errorMsg = String.format("class %s instance failed,please check jar config.",pkgName);
                 throw new VenusConfigException(errorMsg);
             } catch (IllegalAccessException e) {
-                String errorMsg = String.format("class %s access failed,please check jar reference config.",pkgName);
+                String errorMsg = String.format("class %s access failed,please check jar config.",pkgName);
                 throw new VenusConfigException(errorMsg);
             }catch (Exception e){
-                String errorMsg = String.format("class %s valid failed,please check jar reference config.",pkgName);
+                String errorMsg = String.format("class %s valid failed,please check jar config.",pkgName);
                 throw new VenusConfigException(errorMsg);
             }
         }

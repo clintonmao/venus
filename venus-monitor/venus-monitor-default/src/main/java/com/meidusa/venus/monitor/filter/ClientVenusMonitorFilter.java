@@ -45,7 +45,7 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
     }
 
     /**
-     * 起动数据计算及上报线程
+     * 启动数据计算及上报线程
      */
     void startProcessAndReporterTread(){
         if(!isRunning){
@@ -73,7 +73,7 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         try {
-            ClientInvocation clientInvocation = (ClientInvocation)invocation;
+            ClientInvocationOperation clientInvocation = (ClientInvocationOperation)invocation;
             //若不走注册中心，则跳过
             if(!isNeedReport(clientInvocation)){
                 return null;
@@ -115,7 +115,7 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
      * @param clientInvocation
      * @return
      */
-    boolean isNeedReport(ClientInvocation clientInvocation){
+    boolean isNeedReport(ClientInvocationOperation clientInvocation){
         //走注册中心才上报
         if(clientInvocation.getLookupType() == 0){
             return false;
@@ -134,7 +134,7 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
      * @return
      */
     public VenusMethodCallDetailDO convertDetail(InvocationDetail detail){
-        ClientInvocation clientInvocation = (ClientInvocation)detail.getInvocation();
+        ClientInvocationOperation clientInvocation = (ClientInvocationOperation)detail.getInvocation();
         URL url = detail.getUrl();
         Result result = detail.getResult();
         Throwable exception = detail.getException();

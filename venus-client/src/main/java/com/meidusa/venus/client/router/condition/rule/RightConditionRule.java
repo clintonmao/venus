@@ -1,6 +1,6 @@
 package com.meidusa.venus.client.router.condition.rule;
 
-import com.meidusa.venus.ClientInvocation;
+import com.meidusa.venus.client.ClientInvocation;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.client.router.condition.determin.AppRuleDetermin;
 import com.meidusa.venus.client.router.condition.determin.HostRuleDetermin;

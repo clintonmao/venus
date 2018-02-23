@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
  * @author Sun Ning
  * @since 2010-3-9
  */
+@Deprecated
 public class CastorXMLSerializer extends AbstractXMLSerializer {
 
     private static Logger logger = LoggerFactory.getLogger(CastorXMLSerializer.class);
