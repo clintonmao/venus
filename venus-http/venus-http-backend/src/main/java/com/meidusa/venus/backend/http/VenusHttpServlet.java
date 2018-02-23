@@ -283,7 +283,7 @@ public class VenusHttpServlet extends HttpServlet {
 
         VenusServerInvocationEndpoint invocation = new VenusServerInvocationEndpoint(context, endpoint);
 
-        VenusExceptionFactory venusExceptionFactory = XmlVenusExceptionFactory.getInstance();
+        VenusExceptionFactory venusExceptionFactory = XmlVenusExceptionFactoryEx.getInstance();
         try {
             UtilTimerStack.push(ENDPOINT_INVOKED_TIME);
             response.setResult(invocation.invoke());

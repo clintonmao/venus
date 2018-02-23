@@ -425,7 +425,7 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
                     }
 
                     //初始化方法注解信息
-                    VenusExceptionFactory venusExceptionFactory = XmlVenusExceptionFactory.getInstance();
+                    VenusExceptionFactory venusExceptionFactory = XmlVenusExceptionFactoryEx.getInstance();
                     for (Method method : serviceInterface.getMethods()) {
                         Endpoint endpoint = method.getAnnotation(Endpoint.class);
                         if (endpoint != null) {

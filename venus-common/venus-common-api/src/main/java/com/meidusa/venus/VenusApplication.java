@@ -2,7 +2,7 @@ package com.meidusa.venus;
 
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusConfigException;
-import com.meidusa.venus.exception.XmlVenusExceptionFactory;
+import com.meidusa.venus.exception.XmlVenusExceptionFactoryEx;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.support.MonitorResourceFacade;
 import com.meidusa.venus.support.VenusContext;
@@ -140,7 +140,7 @@ public class VenusApplication implements InitializingBean,DisposableBean {
         SerializerFactory.init();
 
         //初始化异常配置
-        XmlVenusExceptionFactory.getInstance().init();
+        XmlVenusExceptionFactoryEx.getInstance().init();
 
         MonitorResourceFacade.getInstance().init();
     }

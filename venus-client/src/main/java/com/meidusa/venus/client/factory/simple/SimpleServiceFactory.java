@@ -11,7 +11,7 @@ import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
-import com.meidusa.venus.exception.XmlVenusExceptionFactory;
+import com.meidusa.venus.exception.XmlVenusExceptionFactoryEx;
 import com.meidusa.venus.io.authenticate.Authenticator;
 import com.meidusa.venus.io.authenticate.DummyAuthenticator;
 import com.meidusa.venus.io.packet.DummyAuthenPacket;
@@ -179,7 +179,7 @@ public class SimpleServiceFactory extends AbstractServiceFactory implements Serv
 
         T object = (T) Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[] { t }, invocationHandler);
 
-        VenusExceptionFactory venusExceptionFactory = XmlVenusExceptionFactory.getInstance();
+        VenusExceptionFactory venusExceptionFactory = XmlVenusExceptionFactoryEx.getInstance();
         for (Method method : t.getMethods()) {
             Endpoint endpoint = method.getAnnotation(Endpoint.class);
             if (endpoint != null) {

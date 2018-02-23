@@ -13,7 +13,7 @@
  */
 package com.meidusa.venus.pool;
 
-import com.meidusa.venus.exception.XmlVenusExceptionFactory;
+import com.meidusa.venus.exception.XmlVenusExceptionFactoryEx;
 import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,7 @@ public class NioMessageHandler implements MessageHandler<VenusBackendConnection,
             case PacketConstant.PACKET_TYPE_ERROR:
                 ErrorPacket error = new ErrorPacket();
                 error.init(message);
-                Exception e = XmlVenusExceptionFactory.getInstance().getException(error.errorCode, error.message);
+                Exception e = XmlVenusExceptionFactoryEx.getInstance().getException(error.errorCode, error.message);
 
                 if (e == null) {
                     logger.error("receive error packet,errorCode=" + error.errorCode + ",message=" + error.message);

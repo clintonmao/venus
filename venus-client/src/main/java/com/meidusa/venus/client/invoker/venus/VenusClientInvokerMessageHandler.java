@@ -19,7 +19,7 @@ import com.meidusa.venus.Result;
 import com.meidusa.venus.exception.DefaultVenusException;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
-import com.meidusa.venus.exception.XmlVenusExceptionFactory;
+import com.meidusa.venus.exception.XmlVenusExceptionFactoryEx;
 import com.meidusa.venus.io.handler.VenusClientMessageHandler;
 import com.meidusa.venus.io.network.VenusBackendConnection;
 import com.meidusa.venus.io.packet.*;
@@ -126,7 +126,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             }
 
             //将errorPacket转化为exception
-            Throwable exception = buildExceptionFromErrorPacket(errorPacket,serializer, XmlVenusExceptionFactory.getInstance());
+            Throwable exception = buildExceptionFromErrorPacket(errorPacket,serializer, XmlVenusExceptionFactoryEx.getInstance());
             Result result = new Result();
             result.setException(exception);
             result.setErrorCode(errorPacket.errorCode);
@@ -268,7 +268,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
             nofityPacket.init(message);
 
             if (nofityPacket.errorCode != 0) {
-                Throwable t = buildExceptionFromNotifyPacket(nofityPacket,serializer,XmlVenusExceptionFactory.getInstance());
+                Throwable t = buildExceptionFromNotifyPacket(nofityPacket,serializer, XmlVenusExceptionFactoryEx.getInstance());
                 Exception exception = null;
                 if(t instanceof  Exception){
                     exception = (Exception)t;

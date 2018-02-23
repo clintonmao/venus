@@ -369,7 +369,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
             result.setErrorMessage(cex.getMessage());
             result.setException(ex);
         }else{
-            int errorCode = XmlVenusExceptionFactory.getInstance().getErrorCode(ex.getClass());
+            int errorCode = XmlVenusExceptionFactoryEx.getInstance().getErrorCode(ex.getClass());
             if(errorCode != 0){//自定义异常
                 result.setErrorCode(errorCode);
                 result.setErrorMessage(ex.getMessage());

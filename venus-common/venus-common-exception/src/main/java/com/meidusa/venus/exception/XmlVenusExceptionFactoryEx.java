@@ -32,9 +32,9 @@ import com.meidusa.venus.util.ClasspathAnnotationScanner;
 /**
  * 异常工厂类，errorCode与exception之间的转换
  */
-public class XmlVenusExceptionFactory implements VenusExceptionFactory {
+public class XmlVenusExceptionFactoryEx implements VenusExceptionFactory {
 
-    private static Logger logger = LoggerFactory.getLogger(XmlVenusExceptionFactory.class);
+    private static Logger logger = LoggerFactory.getLogger(XmlVenusExceptionFactoryEx.class);
 
     private static boolean SCANNED = false;
 
@@ -48,7 +48,7 @@ public class XmlVenusExceptionFactory implements VenusExceptionFactory {
 
     private static Map<Class, ExceptionConfig> classMap = new HashMap<Class, ExceptionConfig>();
 
-    private static XmlVenusExceptionFactory xmlVenusExceptionFactory;
+    private static XmlVenusExceptionFactoryEx xmlVenusExceptionFactory;
 
     static {
         scanAnnotitionException();
@@ -80,11 +80,11 @@ public class XmlVenusExceptionFactory implements VenusExceptionFactory {
 
     }
 
-    private XmlVenusExceptionFactory(){}
+    private XmlVenusExceptionFactoryEx(){}
 
-    public static XmlVenusExceptionFactory getInstance(){
+    public static XmlVenusExceptionFactoryEx getInstance(){
         if(xmlVenusExceptionFactory == null){
-            xmlVenusExceptionFactory = new XmlVenusExceptionFactory();
+            xmlVenusExceptionFactory = new XmlVenusExceptionFactoryEx();
             return xmlVenusExceptionFactory;
         }
         return xmlVenusExceptionFactory;
