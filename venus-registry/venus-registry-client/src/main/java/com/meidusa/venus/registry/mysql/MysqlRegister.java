@@ -6,9 +6,8 @@ import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.VenusRegisteException;
+import com.meidusa.venus.registry.domain.QueryServiceDefinitionResultDO;
 import com.meidusa.venus.registry.domain.RegisteConstant;
-import com.meidusa.venus.registry.domain.RouterRule;
-import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.registry.service.RegisterService;
 import com.meidusa.venus.registry.util.RegistryUtil;
@@ -96,7 +95,7 @@ public class MysqlRegister implements Register {
 			logger.info("venusCachePath:{}",fileCachePath);
 		}
 		if (!loadRunning) {
-			GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 10, VenusConstants.FAIL_RETRY_INTERVAL, TimeUnit.SECONDS);
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRetryRunnable(), 10, VenusConstants.FAIL_RETRY_INTERVAL, TimeUnit.SECONDS);
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefLoaderRunnable(), 10, VenusConstants.SERVER_DEFINE_LOAD_INTERVAL, TimeUnit.SECONDS);
 			loadRunning = true;
 		}
@@ -206,20 +205,25 @@ public class MysqlRegister implements Register {
 		if (CollectionUtils.isNotEmpty(subscribleUrls)) {
 			Map<String, List<VenusServiceDefinitionDO>> localDefinitionMap = new HashMap<String, List<VenusServiceDefinitionDO>>();
 			boolean hasException=false;
-			for (URL url : subscribleUrls) {
-				try {
-					List<VenusServiceDefinitionDO> serviceDefinitions = registerService.findServiceDefinitions(url);//查询成功写本地文件
+
+			//批量查询订阅的相关服务信息
+			try {
+				//TODO 过滤不必要的属性信息
+				Set<QueryServiceDefinitionResultDO> srvDefResultSet = batchQueryServiceDefinitions(subscribleUrls);
+				for (QueryServiceDefinitionResultDO srvDefResult:srvDefResultSet) {
+					URL url = srvDefResult.getUrl();
+					List<VenusServiceDefinitionDO> serviceDefinitionList = srvDefResult.getServiceDefinitionList();
 					String key = RegistryUtil.getKeyFromUrl(url);
-					if (CollectionUtils.isNotEmpty(serviceDefinitions)) {
-						subscribleServiceDefinitionMap.put(key, serviceDefinitions);
-						localDefinitionMap.put(key, serviceDefinitions);
+					if (CollectionUtils.isNotEmpty(serviceDefinitionList)) {
+						subscribleServiceDefinitionMap.put(key, serviceDefinitionList);
+						localDefinitionMap.put(key, serviceDefinitionList);
 					}else{
 						subscribleServiceDefinitionMap.remove(key);
 					}
-				} catch (Exception e) {
-					hasException = true;
-					exceptionLogger.error("load service Definition failed:"+getServiceName(url), e);
 				}
+			} catch (Exception e) {
+				hasException = true;
+				exceptionLogger.error("load service Definition failed.", e);
 			}
 
 			// 查询接口有异常 不写本地缓存
@@ -237,6 +241,23 @@ public class MysqlRegister implements Register {
 			}
 
 		}
+	}
+
+	/**
+	 * 批量查询服务订阅信息
+	 * @param subscribleUrls
+	 * @return
+	 */
+	Set<QueryServiceDefinitionResultDO> batchQueryServiceDefinitions (Set<URL> subscribleUrls){
+		Set<QueryServiceDefinitionResultDO> srvDefResultSet = new HashSet<>();
+		for (URL url : subscribleUrls) {
+			List<VenusServiceDefinitionDO> serviceDefinitionList = registerService.findServiceDefinitions(url);
+			QueryServiceDefinitionResultDO item = new QueryServiceDefinitionResultDO();
+			item.setUrl(url);
+			item.setServiceDefinitionList(serviceDefinitionList);
+			srvDefResultSet.add(item);
+		}
+		return srvDefResultSet;
 	}
 
 	/**
@@ -393,7 +414,7 @@ public class MysqlRegister implements Register {
 	/**
 	 * 注册订阅失败重试任务
 	 */
-	private class UrlFailRunnable implements Runnable {
+	private class UrlFailRetryRunnable implements Runnable {
 		@Override
 		public void run() {
 			if (CollectionUtils.isNotEmpty(registeFailUrls)) {
