@@ -14,9 +14,12 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Venus应用定义
@@ -84,14 +87,78 @@ public class VenusApplication implements InitializingBean,DisposableBean {
             }
         }
 
-        //验证jar包有效性
-        validJarPackages();
+        //校验是否包含不兼容的jar包
+        validFilteJars();
+
+        //检查venus模块是否包含必须的校验文件
+        validModulesVersion();
     }
 
     /**
-     * 验证venus jar包版本有效性
+     * 检查是否包含不兼容的jar包
+     * */
+    void validFilteJars(){
+        //获取class path jars
+        String clsPath = System.getProperty("java.class.path");
+        if(StringUtils.isEmpty(clsPath)){
+            return;
+        }
+        String[] clsPaths = clsPath.split(";");
+        if(clsPaths == null || clsPaths.length == 0){
+            return;
+        }
+        logger.info("######################class path list begin#####");
+        for(String item:clsPaths){
+            logger.info(item);
+        }
+        logger.info("######################class path list end#####");
+
+        //校验不兼容、过期的venus jar包(通过正则表达式匹配)
+        String[] filteJars = {
+                //venus annotation
+                "venus-annotations-3(.*?).jar",
+                //venus common
+                "venus-common-base-3(.*?).jar",
+                "venus-common-exception-3(.*?).jar",
+                "venus-common-io-3(.*?).jar",
+                "venus-common-service-3(.*?).jar",
+                "venus-common-validator-3(.*?).jar",
+                //venus client
+                "venus-client-3(.*?).jar",
+                //venus backend
+                "venus-backend-3(.*?).jar",
+                //venus athena相关
+                "venus-extension-athena-3(.*?).jar",
+                "venus-athena-impl-3(.*?).jar"
+        };
+        List<String> filteJarList = Arrays.asList(filteJars);
+        if(CollectionUtils.isEmpty(filteJarList)){
+            return;
+        }
+
+        String sepr = File.separator;
+        for(String item:clsPaths){
+            String clsPathName = item.substring(item.lastIndexOf(sepr)+1,item.length());
+            if(!clsPathName.endsWith(".jar")){
+                continue;
+            }
+            String jarName = clsPathName;
+            //logger.info("jarName:{}",jarName);
+            for(String filteJarName:filteJarList){
+                //判断是否要过滤
+                Pattern r = Pattern.compile(filteJarName);
+                Matcher m = r.matcher(jarName);
+                if (m.find( )) {
+                   throw new VenusConfigException("found incompatible jar:" + jarName + ",please exclude.detail to see http://cf.dds.com/pages/viewpage.action?pageId=12456812");
+                }
+            }
+        }
+    }
+
+    /**
+     * 检查venus模块是否包含必要的校验文件
      */
-    void validJarPackages(){
+    void validModulesVersion(){
         String[] packages = {
                 //common-base
                 "com.meidusa.venus.CommonBasePackageValid",
@@ -126,6 +193,8 @@ public class VenusApplication implements InitializingBean,DisposableBean {
             }
         }
     }
+
+
 
     /**
      * 初始化
