@@ -149,7 +149,7 @@ public class VenusApplication implements InitializingBean,DisposableBean {
                 Pattern r = Pattern.compile(filteJarName);
                 Matcher m = r.matcher(jarName);
                 if (m.find( )) {
-                   throw new VenusConfigException("found incompatible jar:" + jarName + ",please exclude.detail to see http://cf.dds.com/pages/viewpage.action?pageId=12456812");
+                   throw new VenusConfigException("found incompatible jar:" + jarName + ",please exclude.detail to see http://cf.dds.com/pages/viewpage.action?pageId=12456812 2.3.1 section.");
                 }
             }
         }
