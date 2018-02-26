@@ -32,7 +32,6 @@ import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.VenusRegisteException;
-import com.meidusa.venus.registry.domain.QueryServiceDefinitionResultDO;
 import com.meidusa.venus.registry.domain.RegisteConstant;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.registry.service.RegisterService;
@@ -76,7 +75,7 @@ public class MysqlRegister implements Register {
 	//是否开启本地文件缓存
 	private static boolean isEnableFileCache = true;
 	
-	private static final int PAGE_SIZE_20=20;
+	private static final int PAGE_SIZE = 50;
 
 	public MysqlRegister(RegisterService registerService) {
 		this.registerService = registerService;
@@ -213,23 +212,23 @@ public class MysqlRegister implements Register {
 		}
 	}
 	
-	private Map<String, List<VenusServiceDefinitionDO>> segmentQueryServiceDefines(List<URL> urlList) {
+	private Map<String, List<VenusServiceDefinitionDO>> batchQueryServiceDefines(List<URL> urlList) {
 		Map<String, List<VenusServiceDefinitionDO>> returnMap = new HashMap<String, List<VenusServiceDefinitionDO>>();
 		if (urlList.size() <= 0) {
 			return returnMap;
 		}
 		int totalCount = urlList.size();
-		int mod = totalCount % PAGE_SIZE_20;
-		int count = totalCount / PAGE_SIZE_20;
+		int mod = totalCount % PAGE_SIZE;
+		int count = totalCount / PAGE_SIZE;
 		if (mod > 0) {
 			count = count + 1;
 		}
 		for (int i = 0; i < count; i++) {// 分批查询，减少http请求次数
-			int end = (i + 1) * PAGE_SIZE_20;
-			if ((i + 1) * PAGE_SIZE_20 >= totalCount) {
+			int end = (i + 1) * PAGE_SIZE;
+			if ((i + 1) * PAGE_SIZE >= totalCount) {
 				end = totalCount;
 			}
-			int start = i * PAGE_SIZE_20;
+			int start = i * PAGE_SIZE;
 			List<URL> subList = urlList.subList(start, end);
 			Map<String, List<VenusServiceDefinitionDO>> queryServiceDefinitionsMap = registerService
 					.queryServiceDefinitions(subList);
@@ -244,42 +243,25 @@ public class MysqlRegister implements Register {
 		if (CollectionUtils.isNotEmpty(subscribleUrls)) {
 			Map<String, List<VenusServiceDefinitionDO>> localDefinitionMap = new HashMap<String, List<VenusServiceDefinitionDO>>();
 			boolean hasException=false;
-/*			for (URL url : subscribleUrls) {//TODO 请求合并 可以每次请求10个或20个URL 将URL中的methods去掉，减少不必要的网络开销
-				try {
-					List<VenusServiceDefinitionDO> serviceDefinitions = registerService.findServiceDefinitions(url);//查询成功写本地文件
-					String key = RegistryUtil.getKeyFromUrl(url);
-					if (CollectionUtils.isNotEmpty(serviceDefinitions)) {
-						subscribleServiceDefinitionMap.put(key, serviceDefinitions);
-						localDefinitionMap.put(key, serviceDefinitions);
-					}else{
-						subscribleServiceDefinitionMap.remove(key);
-					}
-				} catch (Exception e) {
-					hasException = true;
-					exceptionLogger.error("load service Definition failed:"+getServiceName(url), e);
-				}
-			}*/
-			
-			List<URL> copyUrlToList = this.copyUrlToList(subscribleUrls);
-			filteProperties(copyUrlToList);
+			List<URL> copySubscribleUrls = this.copyUrlToList(subscribleUrls);
+			filteProperties(copySubscribleUrls);
 			
 			try {
-				localDefinitionMap  = segmentQueryServiceDefines(copyUrlToList);
+				localDefinitionMap  = batchQueryServiceDefines(copySubscribleUrls);
+				for (URL url : subscribleUrls) {
+					String key = RegistryUtil.getKeyFromUrl(url);
+					List<VenusServiceDefinitionDO> serviceDefinitions = localDefinitionMap.get(key);
+					if (CollectionUtils.isNotEmpty(serviceDefinitions)) {
+						subscribleServiceDefinitionMap.put(key, serviceDefinitions);
+					} else {
+						subscribleServiceDefinitionMap.remove(key);
+					}
+				}
 			} catch (Exception e) {
 				hasException = true;
-				exceptionLogger.error("load service Definition failed:"+JSON.toJSONString(copyUrlToList), e);
+				exceptionLogger.error("load service Definition failed:"+JSON.toJSONString(copySubscribleUrls), e);
 			}
 			
-			for (URL url : subscribleUrls) {
-				String key = RegistryUtil.getKeyFromUrl(url);
-				List<VenusServiceDefinitionDO> serviceDefinitions = localDefinitionMap.get(key);
-				if (CollectionUtils.isNotEmpty(serviceDefinitions)) {
-					subscribleServiceDefinitionMap.put(key, serviceDefinitions);
-				} else {
-					subscribleServiceDefinitionMap.remove(key);
-				}
-			}
-
 			// 查询接口有异常 不写本地缓存
 			if (hasException) {
 				return;
@@ -295,23 +277,6 @@ public class MysqlRegister implements Register {
 			}
 
 		}
-	}
-
-	/**
-	 * 批量查询服务订阅信息
-	 * @param subscribleUrls
-	 * @return
-	 */
-	Set<QueryServiceDefinitionResultDO> batchQueryServiceDefinitions (Set<URL> subscribleUrls){
-		Set<QueryServiceDefinitionResultDO> srvDefResultSet = new HashSet<>();
-		for (URL url : subscribleUrls) {
-			List<VenusServiceDefinitionDO> serviceDefinitionList = registerService.findServiceDefinitions(url);
-			QueryServiceDefinitionResultDO item = new QueryServiceDefinitionResultDO();
-			item.setUrl(url);
-			item.setServiceDefinitionList(serviceDefinitionList);
-			srvDefResultSet.add(item);
-		}
-		return srvDefResultSet;
 	}
 
 	/**
@@ -345,16 +310,7 @@ public class MysqlRegister implements Register {
 	 * @return
 	 */
 	List<VenusServiceDefinitionDO> findSrvDefListFromFileCache(String key){
-//		List<String> readFileJsons = readFile(fileCachePath);
 		Map<String, List<VenusServiceDefinitionDO>> map = readFile(fileCachePath);//new HashMap<String, List<VenusServiceDefinitionDO>>();
-/*		if (MapUtils.isNotEmpty(map)) {
-			for (String str : readFileJsons) {
-				List<VenusServiceDefinitionDO> parseObject = JSON.parseArray(str, VenusServiceDefinitionDO.class);
-				if (CollectionUtils.isNotEmpty(parseObject)) {
-					map.put(RegistryUtil.getKey(parseObject.get(0)), parseObject);
-				}
-			}
-		}*/
 		List<VenusServiceDefinitionDO> serviceDefinitions = map.get(key);
 		return serviceDefinitions;
 	}
@@ -651,26 +607,29 @@ public class MysqlRegister implements Register {
 			}
 			return;
 		}
-//		Map<String, List<VenusServiceDefinitionDO>> needWriteMap = jsonMap;
 		if (MapUtils.isEmpty(jsonMap)) {
 			return;
 		}
 		RandomAccessFile randomAccessFile =null;
+		FileChannel fileChannel = null;
 		try {
 			File file = new File(filePath);
 			if (file.createNewFile()) {
-				// Runtime.getRuntime().exec("chmod 777 /home/test3.txt");
 				file.setExecutable(true);
 				file.setReadable(true);
 				file.setWritable(true);
 			}
 			if (file.isFile()) {
 				randomAccessFile = new RandomAccessFile(file, "rw");
+				fileChannel =  randomAccessFile.getChannel();
+				fileChannel.truncate(0);
 				randomAccessFile.write(JSON.toJSONString(jsonMap).getBytes("UTF-8"));
-				/*for (String json : needWriteList) {
+				/*
+				for (String json : needWriteList) {
 					randomAccessFile.write(json.getBytes("UTF-8"));
 					randomAccessFile.write("\n".getBytes("UTF-8"));
-				}*/
+				}
+				*/
 				randomAccessFile.close();
 			}
 		} catch (IOException e) {
@@ -682,7 +641,12 @@ public class MysqlRegister implements Register {
 				try {
 					randomAccessFile.close();
 				} catch (IOException e) {
-					// ingore
+				}
+			}
+			if(fileChannel != null){
+				try {
+					fileChannel.close();
+				} catch (IOException e) {
 				}
 			}
 		}

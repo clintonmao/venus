@@ -169,7 +169,7 @@ public class ServerAthenaMonitorFilter implements Filter {
             Tuple<Long, byte[]> data = serverInvocation.getData();
             long queuedTime = startTime.longValue() - data.left;
             long executeTime = endRunTime - startTime.longValue();
-            /* TODO
+            /* TODO 确认代码是否可废弃？
             if ((endpoint.getTimeWait() < (queuedTime + executeTime))) {
                 metricReporter.metric(apiName + ".timeout");
             }
@@ -186,7 +186,7 @@ public class ServerAthenaMonitorFilter implements Filter {
             serverTransactionReporter.commit();
             return null;
         }catch (Throwable e){
-            //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用
+            //filter内部执行异常，只记录异常，避免影响正常调用
             if(exceptionLogger.isErrorEnabled()){
                 exceptionLogger.error("ServerAthenaMonitorFilter.afterInvoke error.",e);
             }

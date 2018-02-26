@@ -19,10 +19,7 @@ import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
-import com.meidusa.venus.support.EndpointWrapper;
-import com.meidusa.venus.support.ServiceWrapper;
-import com.meidusa.venus.support.VenusThreadContext;
-import com.meidusa.venus.support.VenusUtil;
+import com.meidusa.venus.support.*;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
 
@@ -96,6 +93,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                 } catch (IOException e) {
                     throw new RpcException(e);
                 }
+
+                //设置连接池映射表到环境上下文
+                VenusContext.getInstance().setConnectionPoolMap(connectionPoolMap);
             }
 
         }
@@ -413,7 +413,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         if (poolConfig != null) {
             //BeanUtils.copyProperties(nioPool, poolConfig);
         }
+        //TODO 服务下线，连接释放问题
         nioPool.init();
+        //TODO 连接失败，心跳检查问题
         //若连接池初始化失败，则释放连接池（fix 此时心跳检测已启动）
         boolean isValid = nioPool.isValid();
         if(!isValid){

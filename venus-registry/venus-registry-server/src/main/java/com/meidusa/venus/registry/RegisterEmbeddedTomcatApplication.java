@@ -11,13 +11,11 @@ import org.springframework.context.annotation.ImportResource;
 /**
  * Created by Zhangzhihua on 2017/9/21.
  */
-/*
-@SpringBootApplication(exclude= {
-                DataSourceAutoConfiguration.class,
-                HibernateJpaAutoConfiguration.class
-        })
-@ImportResource("classpath:conf/application-venus-server.xml")
-*/
+//@SpringBootApplication(exclude= {
+//                DataSourceAutoConfiguration.class,
+//                HibernateJpaAutoConfiguration.class
+//        })
+//@ImportResource("classpath:conf/application-venus-server.xml")
 public class RegisterEmbeddedTomcatApplication {
 
     public static final Logger logger = LoggerFactory.getLogger(RegisterEmbeddedTomcatApplication.class);
