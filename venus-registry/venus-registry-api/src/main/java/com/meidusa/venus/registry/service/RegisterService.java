@@ -65,6 +65,10 @@ public interface RegisterService {
 	@Endpoint(name = "findServiceDefinition")
 	@PerformanceLevel(printParams=false,printResult = false)
 	List<VenusServiceDefinitionDO> findServiceDefinitions(@Param(name = "url")URL url);
+	
+	@Endpoint(name = "queryServiceDefinitions")
+	@PerformanceLevel(printParams=false,printResult = false)
+	Map<String,List<VenusServiceDefinitionDO>> queryServiceDefinitions(@Param(name = "urls")List<URL> urls);
     
     /**
      * 根据URL更新注册接口的心跳时间

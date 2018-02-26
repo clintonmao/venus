@@ -22,6 +22,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import com.meidusa.fastjson.JSON;
 import com.meidusa.venus.URL;
+import com.meidusa.venus.annotations.Param;
 import com.meidusa.venus.registry.LogUtils;
 import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.dao.CacheVenusServerDAO;
@@ -363,6 +364,16 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		}
 		}
 		return false;
+	}
+	
+	public Map<String,List<VenusServiceDefinitionDO>> queryServiceDefinitions(@Param(name = "urls")List<URL> urls){
+		Map<String,List<VenusServiceDefinitionDO>> returnMap=new HashMap<String,List<VenusServiceDefinitionDO>>();
+		for (URL url : urls) {
+			List<VenusServiceDefinitionDO> findServiceDefinitions = findServiceDefinitions(url);
+			String key= RegistryUtil.getKeyFromUrl(url);
+			returnMap.put(key, findServiceDefinitions);
+		}
+		return returnMap;
 	}
 
 	public List<VenusServiceDefinitionDO> findServiceDefinitions(URL url) {

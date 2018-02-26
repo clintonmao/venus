@@ -27,6 +27,7 @@ import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 
@@ -64,6 +65,8 @@ public class MysqlRegister implements Register {
 
 	//是否开启本地文件缓存
 	private static boolean isEnableFileCache = true;
+	
+	private static final int PAGE_SIZE_20=20;
 
 	public MysqlRegister(RegisterService registerService) {
 		this.registerService = registerService;
@@ -199,6 +202,31 @@ public class MysqlRegister implements Register {
 			return lookup(url);
 		}
 	}
+	
+	private Map<String, List<VenusServiceDefinitionDO>> segmentQueryServiceDefines(List<URL> urlList) {
+		Map<String, List<VenusServiceDefinitionDO>> returnMap = new HashMap<String, List<VenusServiceDefinitionDO>>();
+		if (urlList.size() <= 0) {
+			return returnMap;
+		}
+		int totalCount = urlList.size();
+		int mod = totalCount % PAGE_SIZE_20;
+		int count = totalCount / PAGE_SIZE_20;
+		if (mod > 0) {
+			count = count + 1;
+		}
+		for (int i = 0; i < count; i++) {// 分批查询，减少http请求次数
+			int end = (i + 1) * PAGE_SIZE_20;
+			if ((i + 1) * PAGE_SIZE_20 >= totalCount) {
+				end = totalCount;
+			}
+			int start = i * PAGE_SIZE_20;
+			List<URL> subList = urlList.subList(start, end);
+			Map<String, List<VenusServiceDefinitionDO>> queryServiceDefinitionsMap = registerService
+					.queryServiceDefinitions(subList);
+			returnMap.putAll(queryServiceDefinitionsMap);
+		}
+		return returnMap;
+	}
 
 
 	@Override
@@ -206,7 +234,7 @@ public class MysqlRegister implements Register {
 		if (CollectionUtils.isNotEmpty(subscribleUrls)) {
 			Map<String, List<VenusServiceDefinitionDO>> localDefinitionMap = new HashMap<String, List<VenusServiceDefinitionDO>>();
 			boolean hasException=false;
-			for (URL url : subscribleUrls) {
+/*			for (URL url : subscribleUrls) {//TODO 请求合并 可以每次请求10个或20个URL 将URL中的methods去掉，减少不必要的网络开销
 				try {
 					List<VenusServiceDefinitionDO> serviceDefinitions = registerService.findServiceDefinitions(url);//查询成功写本地文件
 					String key = RegistryUtil.getKeyFromUrl(url);
@@ -219,6 +247,26 @@ public class MysqlRegister implements Register {
 				} catch (Exception e) {
 					hasException = true;
 					exceptionLogger.error("load service Definition failed:"+getServiceName(url), e);
+				}
+			}*/
+			
+			List<URL> copyUrlToList = this.copyUrlToList(subscribleUrls);
+			filteProperties(copyUrlToList);
+			
+			try {
+				localDefinitionMap  = segmentQueryServiceDefines(copyUrlToList);
+			} catch (Exception e) {
+				hasException = true;
+				exceptionLogger.error("load service Definition failed:"+JSON.toJSONString(copyUrlToList), e);
+			}
+			
+			for (URL url : subscribleUrls) {
+				String key = RegistryUtil.getKeyFromUrl(url);
+				List<VenusServiceDefinitionDO> serviceDefinitions = localDefinitionMap.get(key);
+				if (CollectionUtils.isNotEmpty(serviceDefinitions)) {
+					subscribleServiceDefinitionMap.put(key, serviceDefinitions);
+				} else {
+					subscribleServiceDefinitionMap.remove(key);
 				}
 			}
 
@@ -305,6 +353,43 @@ public class MysqlRegister implements Register {
 		subscribleFailUrls.clear();
 		subscribleServiceDefinitionMap.clear();
 	}
+	
+	private List<URL> copyUrlToList(Set<URL> sourceUrls){
+		if(CollectionUtils.isEmpty(sourceUrls)){
+			return new ArrayList<URL>();
+		}
+
+		List<URL> targetUrls = new CopyOnWriteArrayList<URL>();
+		try {
+			for(URL sourceUrl:sourceUrls){
+                URL targetUrl = new URL();
+                BeanUtils.copyProperties(targetUrl,sourceUrl);
+                targetUrls.add(targetUrl);
+            }
+		} catch (IllegalAccessException e) {
+			return new ArrayList<URL>();
+		} catch (InvocationTargetException e) {
+			return new ArrayList<URL>();
+		}
+		return targetUrls;
+	}
+	
+	
+	/**
+	 * 过滤不需要的属性
+	 * @param urls
+	 */
+	void filteProperties(Collection<URL> urls){
+		if(CollectionUtils.isEmpty(urls)){
+			return;
+		}
+		for(URL url:urls){
+			url.setMethods(null);
+			url.setProperties(null);
+			url.setRemoteConfig(null);
+			url.setServiceDefinition(null);
+		}
+	}
 
 	/**
 	 * 服务定义加载任务
@@ -356,14 +441,14 @@ public class MysqlRegister implements Register {
 			if(CollectionUtils.isEmpty(sourceUrls)){
 				return sourceUrls;
 			}
-
+			
 			Set<URL> targetUrls = new CopyOnWriteArraySet<URL>();
 			try {
 				for(URL sourceUrl:sourceUrls){
-                    URL targetUrl = new URL();
-                    BeanUtils.copyProperties(targetUrl,sourceUrl);
-                    targetUrls.add(targetUrl);
-                }
+					URL targetUrl = new URL();
+					BeanUtils.copyProperties(targetUrl,sourceUrl);
+					targetUrls.add(targetUrl);
+				}
 			} catch (IllegalAccessException e) {
 				return sourceUrls;
 			} catch (InvocationTargetException e) {
@@ -372,21 +457,6 @@ public class MysqlRegister implements Register {
 			return targetUrls;
 		}
 
-		/**
-		 * 过滤心跳上报不需要的属性
-		 * @param urls
-		 */
-		void filteProperties(Set<URL> urls){
-			if(CollectionUtils.isEmpty(urls)){
-				return;
-			}
-			for(URL url:urls){
-				url.setMethods(null);
-				url.setProperties(null);
-				url.setRemoteConfig(null);
-				url.setServiceDefinition(null);
-			}
-		}
 	}
 
 
