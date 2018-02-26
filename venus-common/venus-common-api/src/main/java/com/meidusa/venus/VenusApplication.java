@@ -1,9 +1,8 @@
 package com.meidusa.venus;
 
-import com.meidusa.venus.backend.services.ServiceManager;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusConfigException;
-import com.meidusa.venus.exception.XmlVenusExceptionFactory;
+import com.meidusa.venus.exception.XmlVenusExceptionFactoryEx;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.support.MonitorResourceFacade;
 import com.meidusa.venus.support.VenusContext;
@@ -15,9 +14,12 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Venus应用定义
@@ -54,7 +56,7 @@ public class VenusApplication implements InitializingBean,DisposableBean {
     private static List<Protocol> protocolList = new ArrayList<Protocol>();
 
     //服务管理列表[backend]
-    private static List<ServiceManager> serviceManagerList = new ArrayList<ServiceManager>();
+    private static List<Destroyier> serviceManagerList = new ArrayList<Destroyier>();
 
     private VenusApplication(){
         venusApplication = this;
@@ -85,21 +87,85 @@ public class VenusApplication implements InitializingBean,DisposableBean {
             }
         }
 
-        //验证jar包有效性
-        validJarPackages();
+        //校验是否包含不兼容的jar包
+        validFilteJars();
+
+        //检查venus模块是否包含必须的校验文件
+        validModulesVersion();
     }
 
     /**
-     * 验证venus jar包版本有效性
+     * 检查是否包含不兼容的jar包
+     * */
+    void validFilteJars(){
+        //获取class path jars
+        String clsPath = System.getProperty("java.class.path");
+        if(StringUtils.isEmpty(clsPath)){
+            return;
+        }
+        String[] clsPaths = clsPath.split(";");
+        if(clsPaths == null || clsPaths.length == 0){
+            return;
+        }
+        logger.info("######################class path list begin#####");
+        for(String item:clsPaths){
+            logger.info(item);
+        }
+        logger.info("######################class path list end#####");
+
+        //校验不兼容、过期的venus jar包(通过正则表达式匹配)
+        String[] filteJars = {
+                //venus annotation
+                "venus-annotations-3(.*?).jar",
+                //venus common
+                "venus-common-base-3(.*?).jar",
+                "venus-common-exception-3(.*?).jar",
+                "venus-common-io-3(.*?).jar",
+                "venus-common-service-3(.*?).jar",
+                "venus-common-validator-3(.*?).jar",
+                //venus client
+                "venus-client-3(.*?).jar",
+                //venus backend
+                "venus-backend-3(.*?).jar",
+                //venus athena相关
+                "venus-extension-athena-3(.*?).jar",
+                "venus-athena-impl-3(.*?).jar"
+        };
+        List<String> filteJarList = Arrays.asList(filteJars);
+        if(CollectionUtils.isEmpty(filteJarList)){
+            return;
+        }
+
+        String sepr = File.separator;
+        for(String item:clsPaths){
+            String clsPathName = item.substring(item.lastIndexOf(sepr)+1,item.length());
+            if(!clsPathName.endsWith(".jar")){
+                continue;
+            }
+            String jarName = clsPathName;
+            //logger.info("jarName:{}",jarName);
+            for(String filteJarName:filteJarList){
+                //判断是否要过滤
+                Pattern r = Pattern.compile(filteJarName);
+                Matcher m = r.matcher(jarName);
+                if (m.find( )) {
+                   throw new VenusConfigException("found incompatible jar:" + jarName + ",please exclude.more detail info to see http://cf.dds.com/pages/viewpage.action?pageId=12456812 2.3.1 section.");
+                }
+            }
+        }
+    }
+
+    /**
+     * 检查venus模块是否包含必要的校验文件
      */
-    void validJarPackages(){
+    void validModulesVersion(){
         String[] packages = {
                 //common-base
                 "com.meidusa.venus.CommonBasePackageValid",
                 //common-exception
                 "com.meidusa.venus.exception.CommonExceptionPackageValid",
                 //remote
-                "com.meidusa.venus.RemotePackageValid",
+                "com.meidusa.venus.io.RemotePackageValid",
                 //client
                 "com.meidusa.venus.client.ClientPackageValid"
         };
@@ -113,20 +179,22 @@ public class VenusApplication implements InitializingBean,DisposableBean {
                 PackageValid packageValid = (PackageValid)pkgClz.newInstance();
                 packageValid.valid();
             } catch (ClassNotFoundException e) {
-                String errorMsg = String.format("class %s not found,please check jar reference config.",pkgName);
+                String errorMsg = String.format("class %s not found,please check jar config.",pkgName);
                 throw new VenusConfigException(errorMsg);
             }catch (InstantiationException e) {
-                String errorMsg = String.format("class %s instance failed,please check jar reference config.",pkgName);
+                String errorMsg = String.format("class %s instance failed,please check jar config.",pkgName);
                 throw new VenusConfigException(errorMsg);
             } catch (IllegalAccessException e) {
-                String errorMsg = String.format("class %s access failed,please check jar reference config.",pkgName);
+                String errorMsg = String.format("class %s access failed,please check jar config.",pkgName);
                 throw new VenusConfigException(errorMsg);
             }catch (Exception e){
-                String errorMsg = String.format("class %s valid failed,please check jar reference config.",pkgName);
+                String errorMsg = String.format("class %s valid failed,please check jar config.",pkgName);
                 throw new VenusConfigException(errorMsg);
             }
         }
     }
+
+
 
     /**
      * 初始化
@@ -141,7 +209,7 @@ public class VenusApplication implements InitializingBean,DisposableBean {
         SerializerFactory.init();
 
         //初始化异常配置
-        XmlVenusExceptionFactory.getInstance().init();
+        XmlVenusExceptionFactoryEx.getInstance().init();
 
         MonitorResourceFacade.getInstance().init();
     }
@@ -246,7 +314,7 @@ public class VenusApplication implements InitializingBean,DisposableBean {
         if(CollectionUtils.isEmpty(serviceManagerList)){
             return;
         }
-        for(ServiceManager serviceManager:serviceManagerList){
+        for(Destroyier serviceManager:serviceManagerList){
             if(serviceManager != null){
                 try {
                     serviceManager.destroy();
@@ -303,7 +371,7 @@ public class VenusApplication implements InitializingBean,DisposableBean {
         return serviceFactoryList;
     }
 
-    public static List<ServiceManager> getServiceManagerList() {
+    public static List<Destroyier> getServiceManagerList() {
         return serviceManagerList;
     }
 
@@ -319,7 +387,7 @@ public class VenusApplication implements InitializingBean,DisposableBean {
         serviceFactoryList.add(serviceFactory);
     }
 
-    public static void addServiceManager(ServiceManager serviceManager){
+    public static void addServiceManager(Destroyier serviceManager){
         serviceManagerList.add(serviceManager);
     }
 

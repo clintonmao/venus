@@ -1,7 +1,7 @@
 package com.meidusa.venus.monitor.filter;
 
-import com.athena.domain.MethodCallDetailDO;
-import com.athena.domain.MethodStaticDO;
+import com.athena.venus.domain.VenusMethodCallDetailDO;
+import com.athena.venus.domain.VenusMethodStaticDO;
 import com.meidusa.venus.*;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.monitor.MonitorDataConvert;
@@ -45,7 +45,7 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
     }
 
     /**
-     * 起动数据计算及上报线程
+     * 启动数据计算及上报线程
      */
     void startProcessAndReporterTread(){
         if(!isRunning){
@@ -73,7 +73,7 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         try {
-            ClientInvocation clientInvocation = (ClientInvocation)invocation;
+            ClientInvocationOperation clientInvocation = (ClientInvocationOperation)invocation;
             //若不走注册中心，则跳过
             if(!isNeedReport(clientInvocation)){
                 return null;
@@ -115,7 +115,7 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
      * @param clientInvocation
      * @return
      */
-    boolean isNeedReport(ClientInvocation clientInvocation){
+    boolean isNeedReport(ClientInvocationOperation clientInvocation){
         //走注册中心才上报
         if(clientInvocation.getLookupType() == 0){
             return false;
@@ -133,13 +133,13 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
      * @param detail
      * @return
      */
-    public MethodCallDetailDO convertDetail(InvocationDetail detail){
-        ClientInvocation clientInvocation = (ClientInvocation)detail.getInvocation();
+    public VenusMethodCallDetailDO convertDetail(InvocationDetail detail){
+        ClientInvocationOperation clientInvocation = (ClientInvocationOperation)detail.getInvocation();
         URL url = detail.getUrl();
         Result result = detail.getResult();
         Throwable exception = detail.getException();
 
-        MethodCallDetailDO detailDO = new MethodCallDetailDO();
+        VenusMethodCallDetailDO detailDO = new VenusMethodCallDetailDO();
         //基本信息
         detailDO.setId(UUIDUtil.create().toString());
         detailDO.setRpcId(clientInvocation.getRpcId());
@@ -201,8 +201,8 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
      * @param statistic
      * @return
      */
-    public MethodStaticDO convertStatistic(InvocationStatistic statistic){
-        MethodStaticDO staticDO = new MethodStaticDO();
+    public VenusMethodStaticDO convertStatistic(InvocationStatistic statistic){
+        VenusMethodStaticDO staticDO = new VenusMethodStaticDO();
         staticDO.setInterfaceName(statistic.getServiceInterfaceName());
         staticDO.setServiceName(statistic.getServiceName());
         staticDO.setVersion(statistic.getVersion());

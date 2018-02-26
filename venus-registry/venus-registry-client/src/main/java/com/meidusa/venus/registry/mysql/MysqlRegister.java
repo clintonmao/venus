@@ -1,35 +1,45 @@
 package com.meidusa.venus.registry.mysql;
 
-import com.meidusa.fastjson.JSON;
-import com.meidusa.fastjson.TypeReference;
-import com.meidusa.toolkit.common.runtime.GlobalScheduler;
-import com.meidusa.venus.URL;
-import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.registry.VenusRegisteException;
-import com.meidusa.venus.registry.domain.RegisteConstant;
-import com.meidusa.venus.registry.domain.RouterRule;
-import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
-import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
-import com.meidusa.venus.registry.service.RegisterService;
-import com.meidusa.venus.registry.util.RegistryUtil;
-import com.meidusa.venus.support.MonitorResourceFacade;
-import com.meidusa.venus.support.VenusConstants;
-import com.meidusa.venus.util.VenusLoggerFactory;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 
-import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.channels.FileChannel;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.TimeUnit;
+import com.meidusa.fastjson.JSON;
+import com.meidusa.fastjson.TypeReference;
+import com.meidusa.toolkit.common.runtime.GlobalScheduler;
+import com.meidusa.venus.URL;
+import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.registry.VenusRegisteException;
+import com.meidusa.venus.registry.domain.QueryServiceDefinitionResultDO;
+import com.meidusa.venus.registry.domain.RegisteConstant;
+import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
+import com.meidusa.venus.registry.service.RegisterService;
+import com.meidusa.venus.registry.util.RegistryUtil;
+import com.meidusa.venus.support.MonitorResourceFacade;
+import com.meidusa.venus.support.VenusConstants;
+import com.meidusa.venus.util.VenusLoggerFactory;
 
 /**
  * mysql服务注册中心类 Created by Zhangzhihua on 2017/7/27.
@@ -99,7 +109,7 @@ public class MysqlRegister implements Register {
 			logger.info("venusCachePath:{}",fileCachePath);
 		}
 		if (!loadRunning) {
-			GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRunnable(), 10, VenusConstants.FAIL_RETRY_INTERVAL, TimeUnit.SECONDS);
+			GlobalScheduler.getInstance().scheduleAtFixedRate(new UrlFailRetryRunnable(), 10, VenusConstants.FAIL_RETRY_INTERVAL, TimeUnit.SECONDS);
 			GlobalScheduler.getInstance().scheduleAtFixedRate(new ServiceDefLoaderRunnable(), 10, VenusConstants.SERVER_DEFINE_LOAD_INTERVAL, TimeUnit.SECONDS);
 			loadRunning = true;
 		}
@@ -288,6 +298,23 @@ public class MysqlRegister implements Register {
 	}
 
 	/**
+	 * 批量查询服务订阅信息
+	 * @param subscribleUrls
+	 * @return
+	 */
+	Set<QueryServiceDefinitionResultDO> batchQueryServiceDefinitions (Set<URL> subscribleUrls){
+		Set<QueryServiceDefinitionResultDO> srvDefResultSet = new HashSet<>();
+		for (URL url : subscribleUrls) {
+			List<VenusServiceDefinitionDO> serviceDefinitionList = registerService.findServiceDefinitions(url);
+			QueryServiceDefinitionResultDO item = new QueryServiceDefinitionResultDO();
+			item.setUrl(url);
+			item.setServiceDefinitionList(serviceDefinitionList);
+			srvDefResultSet.add(item);
+		}
+		return srvDefResultSet;
+	}
+
+	/**
 	 * 是否开启本地文件缓存
 	 * @return
 	 */
@@ -463,7 +490,7 @@ public class MysqlRegister implements Register {
 	/**
 	 * 注册订阅失败重试任务
 	 */
-	private class UrlFailRunnable implements Runnable {
+	private class UrlFailRetryRunnable implements Runnable {
 		@Override
 		public void run() {
 			if (CollectionUtils.isNotEmpty(registeFailUrls)) {

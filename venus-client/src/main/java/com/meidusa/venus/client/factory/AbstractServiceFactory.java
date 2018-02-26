@@ -19,9 +19,12 @@ public class AbstractServiceFactory {
      * @param ipAddressList
      * @return
      */
-    protected String convertAndValidAddress(String ipAddressList){
+    protected String parseAddress(String ipAddressList){
         //转换ucm属性地址
-        ipAddressList = parseUCMConfig(ipAddressList);
+        ipAddressList = parseProperty(ipAddressList);
+        if(StringUtils.isEmpty(ipAddressList)){
+            throw new VenusConfigException("ipAddressList is null.");
+        }
 
         //转换','分隔地址
         ipAddressList = ipAddressList.trim();
@@ -31,25 +34,6 @@ public class AbstractServiceFactory {
 
         //校验地址有效性
         validAddress(ipAddressList);
-        return ipAddressList;
-    }
-
-    /**
-     * 解析spring或ucm属性配置，如${x.x.x}
-     */
-    String parseUCMConfig(String ipAddressList){
-        if(StringUtils.isNotEmpty(ipAddressList)){
-            if(ipAddressList.startsWith("${") && ipAddressList.endsWith("}")){
-                String realAddress = (String) ConfigUtil.filter(ipAddressList);
-                if(StringUtils.isEmpty(realAddress)){
-                    throw new VenusConfigException("ucm parse empty,ipAddressList config invalid.");
-                }
-                if(logger.isInfoEnabled()){
-                    logger.info("##########realIpAddress:{}#############.",realAddress);
-                }
-                return realAddress;
-            }
-        }
         return ipAddressList;
     }
 
@@ -69,4 +53,23 @@ public class AbstractServiceFactory {
             }
         }
     }
+
+    /**
+     * 解析spring或ucm属性配置，如${x.x.x}
+     * @param propertyValue
+     */
+    protected String parseProperty(String propertyValue){
+        if(StringUtils.isNotEmpty(propertyValue)){
+            if(propertyValue.startsWith("${") && propertyValue.endsWith("}")){
+                String ucmPropertyValue = (String) ConfigUtil.filter(propertyValue);
+                if(logger.isInfoEnabled()){
+                    logger.info("##########parse ucm config item,placeholder:{},value:{}#############.",propertyValue,ucmPropertyValue);
+                }
+                return ucmPropertyValue;
+            }
+        }
+        return propertyValue;
+    }
+
+
 }

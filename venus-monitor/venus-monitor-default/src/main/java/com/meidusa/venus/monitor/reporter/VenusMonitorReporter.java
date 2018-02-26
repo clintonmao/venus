@@ -1,14 +1,17 @@
 package com.meidusa.venus.monitor.reporter;
 
-import com.athena.domain.MethodCallDetailDO;
-import com.athena.domain.MethodStaticDO;
-import com.athena.service.api.AthenaDataService;
-import com.meidusa.venus.exception.VenusConfigException;
+import com.alibaba.fastjson.JSON;
+import com.athena.venus.domain.VenusMethodCallDetailDO;
+import com.athena.venus.domain.VenusMethodStaticDO;
+import com.athena.venus.domain.VenusReportDO;
 import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -21,12 +24,14 @@ public class VenusMonitorReporter {
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
+
+
     /**
      * 上报明细及统计数据
      * @param detailDOList
      * @param staticDOList
      */
-    public void reportDetailAndStatic(List<MethodCallDetailDO> detailDOList,List<MethodStaticDO> staticDOList){
+    public void reportDetailAndStatic(List<VenusMethodCallDetailDO> detailDOList, List<VenusMethodStaticDO> staticDOList){
         if(CollectionUtils.isEmpty(detailDOList) && CollectionUtils.isEmpty(staticDOList)){
             return;
         }
@@ -41,18 +46,31 @@ public class VenusMonitorReporter {
             }
         }
 
-        AthenaDataService athenaDataService = getAthenaDataService();
-        if(athenaDataService != null){
-            athenaDataService.reportDetailAndStatic(detailDOList,staticDOList);
+        VenusReportDO reportDO = new VenusReportDO();
+        reportDO.setMethodCallDetailDOs(detailDOList);
+        reportDO.setMethodStaticDOs(staticDOList);
+        Producer<String,String> kafkaProducer = getKafkaProducer();
+        if(kafkaProducer != null){
+            logger.info("##########send message with MQ.");
+            kafkaProducer.send(new ProducerRecord<String, String>(
+                    getTopic(),
+                    String.valueOf(new Date().getTime()),
+                    JSON.toJSONString(reportDO))
+            );
+            kafkaProducer.flush();
         }
 
     }
 
-    public AthenaDataService getAthenaDataService() {
+    public Producer<String,String> getKafkaProducer() {
         if(VenusMonitorFactory.getInstance() == null){
             return null;
         }
-        return VenusMonitorFactory.getInstance().getAthenaDataService();
+        return VenusMonitorFactory.getInstance().getKafkaProducer();
+    }
+
+    String getTopic(){
+        return VenusMonitorFactory.getInstance().getTopic();
     }
 
 }

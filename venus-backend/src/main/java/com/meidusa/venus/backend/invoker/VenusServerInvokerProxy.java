@@ -115,8 +115,12 @@ public class VenusServerInvokerProxy implements Invoker {
         if(venusMonitorFactory != null){
             if(venusMonitorFactory.isEnableVenusReport()){
                 if(serverVenusMonitorFilter == null){
-                    serverVenusMonitorFilter = new ServerVenusMonitorFilter();
-                    serverVenusMonitorFilter.init();
+                    try {
+                        serverVenusMonitorFilter = new ServerVenusMonitorFilter();
+                        serverVenusMonitorFilter.init();
+                    } catch (Exception e) {
+                        logger.warn("###########init venus monitor failed,will disabled venus report.",e);
+                    }
                 }
             }else{
                 if(logger.isWarnEnabled()){
@@ -124,8 +128,12 @@ public class VenusServerInvokerProxy implements Invoker {
                 }
             }
             if(venusMonitorFactory.isEnableAthenaReport()){
-                serverAthenaMonitorFilter = new ServerAthenaMonitorFilter();
-                serverAthenaMonitorFilter.init();
+                try {
+                    serverAthenaMonitorFilter = new ServerAthenaMonitorFilter();
+                    serverAthenaMonitorFilter.init();
+                } catch (Throwable e) {
+                    logger.warn("#############init athena monitor failed,will disabled athena report.",e);
+                }
             }else{
                 if(logger.isWarnEnabled()){
                     logger.warn("############not enable athena report,athena monitor filter diabled##############");

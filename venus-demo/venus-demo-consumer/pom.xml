@@ -5,7 +5,7 @@
     <parent>
         <artifactId>venus-demo</artifactId>
         <groupId>com.meidusa.venus</groupId>
-        <version>4.0.11-SNAPSHOT</version>
+        <version>4.0.12-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -38,6 +38,10 @@
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>3.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-classworlds</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
@@ -110,13 +114,6 @@
             <artifactId>venus-demo-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--
-        <dependency>
-            <groupId>com.meidusa.venus</groupId>
-            <artifactId>venus-http-filter</artifactId>
-            <version>4.0.11-SNAPSHOT</version>
-        </dependency>
-        -->
         <!--venus依赖-->
         <dependency>
             <groupId>com.meidusa.venus</groupId>
@@ -127,21 +124,34 @@
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-monitor-delegate</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <!--ucm-->
+        <dependency>
+            <groupId>com.saike.ucm</groupId>
+            <artifactId>ucm-client</artifactId>
+            <version>1.1.9.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>com.saike.ucm</groupId>
+            <artifactId>ucm-client-spring</artifactId>
+            <version>1.1.9.RELEASE</version>
+            <!--依賴項目自己的spring-->
             <exclusions>
-            	<exclusion>
-            		<groupId>com.meidusa.venus</groupId>
-            		<artifactId>venus-annotations</artifactId>
-            	</exclusion>
-            	<exclusion>
-            		<groupId>com.meidusa.venus.commons</groupId>
-            		<artifactId>venus-common-exception</artifactId>
-            	</exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-beans</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
-       	<dependency>
-			<groupId>org.codehaus.plexus</groupId>
-			<artifactId>plexus-classworlds</artifactId>
-		</dependency>
+        <!--athena client-->
+        <dependency>
+            <groupId>com.saike.athena</groupId>
+            <artifactId>athena-client</artifactId>
+        </dependency>
     </dependencies>
     
     <build>

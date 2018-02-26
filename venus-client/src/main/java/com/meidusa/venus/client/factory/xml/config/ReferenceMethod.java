@@ -14,26 +14,30 @@ public class ReferenceMethod {
 
     //超时时间
     @XStreamAsAttribute
-    private int timeout;
+    private String timeout;
+
+    private int timeoutCfg;
 
     //重试次数
     @XStreamAsAttribute
-    private int retries;
+    private String retries;
 
-    public int getTimeout() {
-        return timeout;
+    private int retriesCfg;
+
+    public int getTimeoutCfg() {
+        return timeoutCfg;
     }
 
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
+    public void setTimeoutCfg(int timeoutCfg) {
+        this.timeoutCfg = timeoutCfg;
     }
 
-    public int getRetries() {
-        return retries;
+    public int getRetriesCfg() {
+        return retriesCfg;
     }
 
-    public void setRetries(int retries) {
-        this.retries = retries;
+    public void setRetriesCfg(int retriesCfg) {
+        this.retriesCfg = retriesCfg;
     }
 
     public String getName() {
@@ -42,5 +46,21 @@ public class ReferenceMethod {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(String timeout) {
+        this.timeout = timeout;
+    }
+
+    public String getRetries() {
+        return retries;
+    }
+
+    public void setRetries(String retries) {
+        this.retries = retries;
     }
 }

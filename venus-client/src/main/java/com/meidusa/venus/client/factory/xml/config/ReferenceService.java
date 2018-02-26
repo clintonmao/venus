@@ -18,9 +18,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 服务引用配置
@@ -51,17 +49,21 @@ public class ReferenceService {
     @XStreamAsAttribute
     private String ipAddressList;
 
-    //连接数
-    @XStreamAsAttribute
-    private int coreConnections;
-
     //超时时间
     @XStreamAsAttribute
-    private int timeout;
+    private String timeout;
+
+    private int timeoutCfg;
 
     //重试次数
     @XStreamAsAttribute
-    private int retries;
+    private String retries;
+
+    private int retriesCfg;
+
+    //默认连接数
+    @XStreamAsAttribute
+    private int coreConnections;
 
     //集群容错策略
     @XStreamAsAttribute
@@ -73,8 +75,6 @@ public class ReferenceService {
 
     @XStreamImplicit
     private List<ReferenceMethod> methodList = new ArrayList<ReferenceMethod>();
-
-    private Map<String, ReferenceServiceConfig> endPointMap = new HashMap<String, ReferenceServiceConfig>();
 
     private int timeWait;
 
@@ -128,14 +128,6 @@ public class ReferenceService {
         this.instance = implement;
     }
 
-    public void addEndPointConfig(ReferenceServiceConfig config) {
-        endPointMap.put(config.getName(), config);
-    }
-
-    public ReferenceServiceConfig getEndpointConfig(String key) {
-        return endPointMap.get(key);
-    }
-
     public String getName() {
         return name;
     }
@@ -168,20 +160,36 @@ public class ReferenceService {
         this.loadbalance = loadbalance;
     }
 
-    public int getRetries() {
-        return retries;
+    public int getRetriesCfg() {
+        return retriesCfg;
     }
 
-    public void setRetries(int retries) {
-        this.retries = retries;
+    public void setRetriesCfg(int retriesCfg) {
+        this.retriesCfg = retriesCfg;
     }
 
-    public int getTimeout() {
+    public int getTimeoutCfg() {
+        return timeoutCfg;
+    }
+
+    public void setTimeoutCfg(int timeoutCfg) {
+        this.timeoutCfg = timeoutCfg;
+    }
+
+    public String getTimeout() {
         return timeout;
     }
 
-    public void setTimeout(int timeout) {
+    public void setTimeout(String timeout) {
         this.timeout = timeout;
+    }
+
+    public String getRetries() {
+        return retries;
+    }
+
+    public void setRetries(String retries) {
+        this.retries = retries;
     }
 
     public int getCoreConnections() {
@@ -215,4 +223,5 @@ public class ReferenceService {
     public void setServiceName(String serviceName) {
         this.serviceName = serviceName;
     }
+
 }

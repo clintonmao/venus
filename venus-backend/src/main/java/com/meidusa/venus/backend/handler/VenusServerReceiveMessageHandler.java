@@ -6,7 +6,7 @@ import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.venus.Result;
-import com.meidusa.venus.ServerInvocation;
+import com.meidusa.venus.backend.ServerInvocation;
 import com.meidusa.venus.backend.context.RequestContext;
 import com.meidusa.venus.backend.invoker.VenusServerInvocationListener;
 import com.meidusa.venus.backend.invoker.VenusServerInvokerProxy;
@@ -369,7 +369,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
             result.setErrorMessage(cex.getMessage());
             result.setException(ex);
         }else{
-            int errorCode = XmlVenusExceptionFactory.getInstance().getErrorCode(ex.getClass());
+            int errorCode = XmlVenusExceptionFactoryEx.getInstance().getErrorCode(ex.getClass());
             if(errorCode != 0){//自定义异常
                 result.setErrorCode(errorCode);
                 result.setErrorMessage(ex.getMessage());

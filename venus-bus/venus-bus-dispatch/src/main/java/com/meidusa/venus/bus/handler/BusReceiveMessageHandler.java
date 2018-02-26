@@ -6,7 +6,7 @@ import com.meidusa.toolkit.common.bean.util.InitialisationException;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.venus.Result;
-import com.meidusa.venus.ServerInvocation;
+import com.meidusa.venus.backend.ServerInvocation;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.backend.support.ServerResponseHandler;
 import com.meidusa.venus.backend.support.ServerResponseWrapper;
@@ -296,7 +296,7 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
         //将rpcException包装异常转化为v3内置异常
         Throwable ex = restoreException(t);
 
-        int errorCode = XmlVenusExceptionFactory.getInstance().getErrorCode(ex.getClass());
+        int errorCode = XmlVenusExceptionFactoryEx.getInstance().getErrorCode(ex.getClass());
         if(errorCode != 0){//自定义异常
             result.setErrorCode(errorCode);
             result.setErrorMessage(ex.getMessage());

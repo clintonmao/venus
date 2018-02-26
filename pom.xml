@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.meidusa.venus</groupId>
 	<artifactId>venus</artifactId>
-	<version>4.0.11-SNAPSHOT</version>
+	<version>4.0.12-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	
 	<name>${project.artifactId}</name>
@@ -44,6 +44,7 @@
 		<fastbson.version>1.3.4</fastbson.version>
 		<fastmark.version>1.0.3</fastmark.version>
 		<saike-commons.version>1.0.2.RELEASE</saike-commons.version>
+		<athena-client.version>2.2.8-SNAPSHOT</athena-client.version>
 	</properties>
 
 	<modules>
@@ -333,6 +334,11 @@
 				<groupId>com.saike.commons</groupId>
 				<artifactId>saike-commons</artifactId>
 				<version>${saike-commons.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.saike.athena</groupId>
+				<artifactId>athena-client</artifactId>
+				<version>${athena-client.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

@@ -7,9 +7,9 @@ import com.meidusa.toolkit.common.poolable.ObjectPool;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.annotations.RemoteException;
+import com.meidusa.venus.backend.services.RequestInfo;
 import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.backend.serializer.MediaTypes;
-import com.meidusa.venus.backend.services.RequestInfo;
 import com.meidusa.venus.Response;
 import com.meidusa.venus.backend.support.UtilTimerStack;
 import com.meidusa.venus.exception.CodedException;
@@ -317,8 +317,6 @@ public class VenusHttpServlet extends HttpServlet {
     /**
      * extract request info from connection and packet
      * 
-     * @param conn
-     * @param packet
      * @return
      */
     private RequestInfo getRequestInfo(final HttpServletRequest req) {

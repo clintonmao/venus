@@ -143,7 +143,7 @@ public abstract class AbstractServiceManager implements ServiceManager {
      * @throws ServiceDefinitionException
      * @throws ConvertException
      */
-    protected Endpoint loadEndpoint(Method method) throws ServiceDefinitionException, ConvertException {
+    protected Endpoint initEndpoint(Method method) throws ServiceDefinitionException, ConvertException {
         Endpoint ep = new Endpoint();
         ep.setMethod(method);
 

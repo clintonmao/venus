@@ -146,11 +146,11 @@ public class InvocationStatistic {
      */
     long getCostTime(InvocationDetail detail){
         Date requestTime = null;
-        if(detail.getInvocation() instanceof ClientInvocation){
-            ClientInvocation clientInvocation = (ClientInvocation)detail.getInvocation();
+        if(detail.getInvocation() instanceof ClientInvocationOperation){
+            ClientInvocationOperation clientInvocation = (ClientInvocationOperation)detail.getInvocation();
             requestTime = clientInvocation.getRequestTime();
-        }else if(detail.getInvocation() instanceof ServerInvocation){
-            ServerInvocation serverInvocation = (ServerInvocation)detail.getInvocation();
+        }else if(detail.getInvocation() instanceof ServerInvocationOperation){
+            ServerInvocationOperation serverInvocation = (ServerInvocationOperation)detail.getInvocation();
             requestTime = serverInvocation.getRequestTime();
         }
         Date responseTime = detail.getResponseTime();

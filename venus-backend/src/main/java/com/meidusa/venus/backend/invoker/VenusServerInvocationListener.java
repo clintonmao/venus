@@ -3,7 +3,7 @@ package com.meidusa.venus.backend.invoker;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.backend.support.ServerResponseWrapper;
 import com.meidusa.venus.backend.support.ServerResponseHandler;
-import com.meidusa.venus.ServerInvocation;
+import com.meidusa.venus.backend.ServerInvocation;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
 

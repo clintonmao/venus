@@ -1,7 +1,7 @@
 package com.meidusa.venus.monitor.filter;
 
-import com.athena.domain.MethodCallDetailDO;
-import com.athena.domain.MethodStaticDO;
+import com.athena.venus.domain.VenusMethodCallDetailDO;
+import com.athena.venus.domain.VenusMethodStaticDO;
 import com.meidusa.venus.*;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.monitor.MonitorDataConvert;
@@ -73,7 +73,7 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
     @Override
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         try {
-            ServerInvocation serverInvocation = (ServerInvocation)invocation;
+            ServerInvocationOperation serverInvocation = (ServerInvocationOperation)invocation;
             //若不需要上报，则跳过
             if(!isNeedReport(serverInvocation)){
                 return null;
@@ -106,7 +106,7 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
      * @param invocation
      * @return
      */
-    boolean isNeedReport(ServerInvocation invocation){
+    boolean isNeedReport(ServerInvocationOperation invocation){
         //走注册中心才上报
         /*
         if(clientInvocation.getLookupType() == 0){
@@ -156,12 +156,12 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
      * @param detail
      * @return
      */
-    public MethodCallDetailDO convertDetail(InvocationDetail detail){
-        ServerInvocation serverInvocation = (ServerInvocation)detail.getInvocation();
+    public VenusMethodCallDetailDO convertDetail(InvocationDetail detail){
+        ServerInvocationOperation serverInvocation = (ServerInvocationOperation)detail.getInvocation();
         Result result = detail.getResult();
         Throwable exception = detail.getException();
 
-        MethodCallDetailDO detailDO = new MethodCallDetailDO();
+        VenusMethodCallDetailDO detailDO = new VenusMethodCallDetailDO();
         //基本信息
         detailDO.setId(UUIDUtil.create().toString());
         detailDO.setRpcId(serverInvocation.getRpcId());
@@ -216,7 +216,7 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
         return detailDO;
     }
 
-    public MethodStaticDO convertStatistic(InvocationStatistic statistic){
+    public VenusMethodStaticDO convertStatistic(InvocationStatistic statistic){
         return null;
     }
 

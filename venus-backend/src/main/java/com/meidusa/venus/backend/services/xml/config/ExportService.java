@@ -1,6 +1,7 @@
 package com.meidusa.venus.backend.services.xml.config;
 
 import com.meidusa.toolkit.common.util.StringUtil;
+import com.meidusa.venus.backend.services.Interceptor;
 import com.meidusa.venus.util.ArrayRange;
 import com.meidusa.venus.util.BetweenRange;
 import com.meidusa.venus.util.Range;
@@ -8,7 +9,9 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,15 +24,38 @@ public class ExportService {
     @XStreamAsAttribute
     private String type;
 
-    private Class<?> serviceInterface;
+    //引用spring实例名称
+    @XStreamAsAttribute
+    private String ref;
+
+    //兼容版本
+    @XStreamAsAttribute
+    private String supportVersion;
+
+    //拦截器名称
+    @XStreamAsAttribute
+    private String interceptors;
+
+    private List<Interceptor> interceptorList = new ArrayList<>();
 
     private String serviceName;
+
+    private Class<?> serviceInterface;
+
+    private Object instance;
+
+    private Range supportVersionRange;
 
     private int version;
 
     private boolean athenaFlag;
 
     private String description;
+
+    //venus协议默认线程数
+    private int coreThreads;
+
+    private boolean active = true;
 
     public String getServiceName() {
         return serviceName;
@@ -63,27 +89,6 @@ public class ExportService {
         this.description = description;
     }
 
-    //引用spring实例名称
-    @XStreamAsAttribute
-    private String ref;
-
-    private Object instance;
-
-    //兼容版本
-    @XStreamAsAttribute
-    private String supportVersion;
-
-    private Range supportVersionRange;
-
-    private Map<String, ExportServiceConfig> endpointConfigMap = new HashMap<String, ExportServiceConfig>();
-
-    private String interceptorStack;
-
-    //venus协议默认线程数
-    private int coreThreads;
-
-    private boolean active = true;
-
     public Range getSupportVersionRange() {
         if (supportVersionRange != null) {
             return supportVersionRange;
@@ -105,14 +110,6 @@ public class ExportService {
         } else {
             return null;
         }
-    }
-
-    public String getInterceptorStack() {
-        return interceptorStack;
-    }
-
-    public void setInterceptorStack(String interceptorStack) {
-        this.interceptorStack = interceptorStack;
     }
 
     public boolean isActive() {
@@ -137,14 +134,6 @@ public class ExportService {
 
     public void setInstance(Object instance) {
         this.instance = instance;
-    }
-
-    public ExportServiceConfig getEndpointConfig(String name) {
-        return endpointConfigMap.get(name);
-    }
-
-    public void addEndpointConfig(ExportServiceConfig config) {
-        endpointConfigMap.put(config.getName(), config);
     }
 
     public int getCoreThreads() {
@@ -175,19 +164,27 @@ public class ExportService {
         this.supportVersionRange = supportVersionRange;
     }
 
-    public Map<String, ExportServiceConfig> getEndpointConfigMap() {
-        return endpointConfigMap;
-    }
-
-    public void setEndpointConfigMap(Map<String, ExportServiceConfig> endpointConfigMap) {
-        this.endpointConfigMap = endpointConfigMap;
-    }
-
     public String getRef() {
         return ref;
     }
 
     public void setRef(String ref) {
         this.ref = ref;
+    }
+
+    public String getInterceptors() {
+        return interceptors;
+    }
+
+    public void setInterceptors(String interceptors) {
+        this.interceptors = interceptors;
+    }
+
+    public List<Interceptor> getInterceptorList() {
+        return interceptorList;
+    }
+
+    public void setInterceptorList(List<Interceptor> interceptorList) {
+        this.interceptorList = interceptorList;
     }
 }
