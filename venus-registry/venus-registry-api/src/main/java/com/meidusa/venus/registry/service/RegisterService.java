@@ -10,6 +10,7 @@ import com.meidusa.venus.annotations.Param;
 import com.meidusa.venus.annotations.PerformanceLevel;
 import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.registry.VenusRegisteException;
+import com.meidusa.venus.registry.domain.VenusServiceDO;
 import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 
 /**
@@ -134,4 +135,13 @@ public interface RegisterService {
 	@PerformanceLevel(printParams=false,printResult = false)
 	void addNewServiceMapping(@Param(name = "hostName")String hostName,@Param(name = "port")int port,@Param(name = "serviceName")String serviceName,@Param(name = "version")String version,@Param(name = "description")String description) ;
 	
+	/**
+	 * 根据服务名和版本号查找服务信息
+	 * @param serviceName
+	 * @param version
+	 * @return
+	 */
+	@Endpoint(name = "queryServiceMethods")
+	@PerformanceLevel(printParams=false,printResult = false)
+	List<VenusServiceDO> queryServiceMethods(@Param(name = "serviceName")String serviceName,@Param(name = "version")String version);
 }

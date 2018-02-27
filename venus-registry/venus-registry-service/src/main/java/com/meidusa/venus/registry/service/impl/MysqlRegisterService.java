@@ -1053,6 +1053,18 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		long end = System.currentTimeMillis() - start;
 		LogUtils.logSlow(end, "heartbeat maps=> " + JSON.toJSONString(maps));
 	}
+	
+	
+	public List<VenusServiceDO> queryServiceMethods(String serviceName,String version){
+		List<VenusServiceDO> services = null;
+		try {
+			services = venusServiceDAO.queryServicesByName("", serviceName, version);
+		} catch (Exception e) {
+			LogUtils.ERROR_LOG.error("findServiceDefinitions queryServices 调用异常,serviceName=>"+serviceName+",version=>"+version,e);
+		}
+		return services;
+	}
+	
 
 	private class UpdateHeartbeatTimeRunnable implements Runnable {
 
