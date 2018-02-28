@@ -144,4 +144,8 @@ public interface RegisterService {
 	@Endpoint(name = "queryServiceMethods")
 	@PerformanceLevel(printParams=false,printResult = false)
 	List<VenusServiceDO> queryServiceMethods(@Param(name = "serviceName")String serviceName,@Param(name = "version")String version);
+	
+	@Endpoint(name = "queryAllServiceNames")
+	@PerformanceLevel(printParams=false,printResult = false)
+	List<String> queryAllServiceNames();
 }

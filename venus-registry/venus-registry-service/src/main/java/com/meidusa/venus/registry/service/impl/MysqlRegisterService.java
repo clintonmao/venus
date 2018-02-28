@@ -78,6 +78,8 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 
 	private static final int QUEUE_SIZE_10000 = 10000;
 	
+	private static final int PAGE_SIZE_200 = 200;
+	
 	private int sampleMod = 10;
 	
 	private String enableLocalIp="on";//是否开启本机ip优先
@@ -1117,6 +1119,39 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	public void destroy() throws Exception {
 		needRun = false;
 		es.shutdown();
+	}
+
+	@Override
+	public List<String> queryAllServiceNames() {
+		List<String> queryAllServiceNames = cacheVenusServiceDAO.queryAllServiceNames();
+		if (CollectionUtils.isEmpty(queryAllServiceNames)) {// 缓存为空查数据库
+			List<String> returnList = new ArrayList<String>();
+			Integer totalCount = venusServiceDAO.getServiceCount();
+			if (null != totalCount && totalCount > 0) {
+				int mod = totalCount % PAGE_SIZE_200;
+				int count = totalCount / PAGE_SIZE_200;
+				if (mod > 0) {
+					count = count + 1;
+				}
+				int mapId = 0;
+				for (int i = 0; i < count; i++) {
+					List<VenusServiceDO> services = venusServiceDAO.queryServices(PAGE_SIZE_200, mapId);
+					if (CollectionUtils.isNotEmpty(services)) {
+						mapId = services.get(services.size() - 1).getId();
+						for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
+							VenusServiceDO vs = iterator.next();
+							String name = vs.getName();
+							if (RegistryUtil.isNotBlank(name) && !returnList.contains(name)) {
+								returnList.add(name);
+							}
+						}
+					}
+				}
+			}
+			return returnList;
+		} else {
+			return queryAllServiceNames;
+		}
 	}
 
 }
