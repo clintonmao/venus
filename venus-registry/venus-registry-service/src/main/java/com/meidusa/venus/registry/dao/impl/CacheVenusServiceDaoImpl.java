@@ -16,6 +16,7 @@ import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.LogUtils;
 import com.meidusa.venus.registry.dao.CacheVenusServiceDAO;
 import com.meidusa.venus.registry.dao.VenusServiceDAO;
+import com.meidusa.venus.registry.domain.VenusServerDO;
 import com.meidusa.venus.registry.domain.VenusServiceDO;
 import com.meidusa.venus.registry.util.RegistryUtil;
 
@@ -193,5 +194,19 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 			return null;
 		}
 		return cacheServiceMap.get(RegistryUtil.getKeyFromUrl(url));
+	}
+	
+	public List<String> queryAllServiceNames() throws DAOException {
+		if (loacCacheRunning) {// 缓存加载过程中，直接返回空，让从数据库中查询;
+			return new ArrayList<String>();
+		}
+		List<String> returnList = new ArrayList<String>();
+		for (VenusServiceDO vs : cacheServices) {
+			String name = vs.getName();
+			if (RegistryUtil.isNotBlank(name) && !returnList.contains(name)) {
+				returnList.add(name);
+			}
+		}
+		return returnList;
 	}
 }
