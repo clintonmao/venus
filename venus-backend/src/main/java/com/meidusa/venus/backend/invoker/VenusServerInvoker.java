@@ -1,6 +1,7 @@
 package com.meidusa.venus.backend.invoker;
 
 import com.meidusa.fastmark.feature.SerializerFeature;
+import com.meidusa.toolkit.net.Connection;
 import com.meidusa.venus.*;
 import com.meidusa.venus.backend.ServerInvocation;
 import com.meidusa.venus.backend.context.RequestContext;
@@ -63,6 +64,10 @@ public class VenusServerInvoker implements Invoker {
 
             UtilTimerStack.pop(ENDPOINT_INVOKED_TIME);
         }
+    }
+
+    @Override
+    public void releaseConnection(Connection conn) {
     }
 
     @Override

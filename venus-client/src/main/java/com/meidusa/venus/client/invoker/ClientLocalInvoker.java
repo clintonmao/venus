@@ -1,5 +1,6 @@
 package com.meidusa.venus.client.invoker;
 
+import com.meidusa.toolkit.net.Connection;
 import com.meidusa.venus.*;
 import com.meidusa.venus.client.ClientInvocation;
 import com.meidusa.venus.exception.RpcException;
@@ -60,6 +61,10 @@ public class ClientLocalInvoker implements Invoker {
         } catch (InvocationTargetException e) {
             throw new RpcException(e);
         }
+    }
+
+    @Override
+    public void releaseConnection(Connection conn) {
     }
 
     @Override

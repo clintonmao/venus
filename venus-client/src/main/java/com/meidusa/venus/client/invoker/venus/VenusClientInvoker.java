@@ -2,7 +2,10 @@ package com.meidusa.venus.client.invoker.venus;
 
 import com.meidusa.toolkit.net.*;
 import com.meidusa.toolkit.util.TimeUtil;
-import com.meidusa.venus.*;
+import com.meidusa.venus.Invoker;
+import com.meidusa.venus.Result;
+import com.meidusa.venus.URL;
+import com.meidusa.venus.VenusApplication;
 import com.meidusa.venus.client.ClientInvocation;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.factory.xml.config.FactoryConfig;
@@ -21,6 +24,7 @@ import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.support.*;
 import com.meidusa.venus.util.VenusLoggerFactory;
+import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -28,6 +32,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -67,9 +72,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
     public VenusClientInvoker(){
         synchronized (this){
-            //添加invoker资源
-            VenusApplication.addInvoker(this);
-
             //构造连接
             if(connector == null && connectionManagers == null){
                 try {
@@ -83,7 +85,6 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                         ConnectionManager connManager = new ConnectionManager("connection manager-" + i, -1);
                         //添加连接监听
                         VenusClientConnectionObserver connectionObserver = new VenusClientConnectionObserver();
-                        connectionObserver.setServiceReqRespMap(serviceReqRespMap);
                         connManager.addConnectionObserver(connectionObserver);
                         connectionManagers[i] = connManager;
                         connManager.start();
@@ -94,8 +95,10 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                     throw new RpcException(e);
                 }
 
-                //设置连接池映射表到环境上下文
-                VenusContext.getInstance().setConnectionPoolMap(connectionPoolMap);
+                //添加invoker资源
+                VenusApplication.addInvoker(this);
+                //设置invoker到上下文
+                VenusContext.getInstance().setInvoker(this);
             }
 
         }
@@ -275,11 +278,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         Throwable exception = null;
         try {
             //获取连接
-            nioConnPool = getNioConnPool(url,invocation,null);
-            conn = nioConnPool.borrowObject();
-            if(!conn.isActive()){
-                throw new RpcException(RpcException.NETWORK_EXCEPTION,"get connetion failed.");
-            }
+            BackendConnectionWrapper connectionWrapper = getConnection(url,invocation,remoteConfig);
+            nioConnPool = connectionWrapper.getBackendConnectionPool();
+            conn = connectionWrapper.getBackendConnection();
             borrowed = System.currentTimeMillis();
             if(reqRespWrapper != null){
                 reqRespWrapper.setBackendConnection(conn);
@@ -343,6 +344,41 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
     }
 
 
+    /**
+     * 获取connection
+     * @param url
+     * @param invocation
+     * @param remoteConfig
+     * @return
+     */
+    BackendConnectionWrapper getConnection(URL url,ClientInvocation invocation,ClientRemoteConfig remoteConfig){
+        //获取连接
+        BackendConnection conn = null;
+        BackendConnectionPool nioConnPool = getNioConnPool(url,invocation,null);
+        try {
+            conn = nioConnPool.borrowObject();
+        } catch (Exception e) {
+            String address = new StringBuilder()
+                    .append(url.getHost())
+                    .append(":")
+                    .append(url.getHost())
+                    .toString();
+            throw new RpcException(RpcException.NETWORK_EXCEPTION,String.format("borrow connection:[%s] failed",address));
+        }
+        return new BackendConnectionWrapper(conn,nioConnPool);
+    }
+
+    @Override
+    public void releaseConnection(Connection conn) {
+        if(conn != null && conn instanceof BackendConnection){
+            BackendConnection backendConnection = (BackendConnection)conn;
+            //释放latch信息
+            releaseCountDownLatch(conn);
+            //释放连接池资源
+            String address = new StringBuilder().append(backendConnection.getHost()).append(":").append(backendConnection.getPort()).toString();
+            releaseNioConnPool(address);
+        }
+    }
 
     /**
      * 根据远程配置获取nio连接池
@@ -366,7 +402,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             if(connectionPoolMap.get(address) != null){
                 backendConnectionPool = connectionPoolMap.get(address);
             }else{
-                backendConnectionPool = createNioPool(url,invocation,new ClientRemoteConfig());
+                backendConnectionPool = createNioConnPool(url,invocation,new ClientRemoteConfig());
                 connectionPoolMap.put(address,backendConnectionPool);
             }
             return backendConnectionPool;
@@ -380,9 +416,14 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @return
      * @throws Exception
      */
-    private BackendConnectionPool createNioPool(URL url,ClientInvocation invocation,ClientRemoteConfig remoteConfig){
+    private BackendConnectionPool createNioConnPool(URL url, ClientInvocation invocation, ClientRemoteConfig remoteConfig){
+        String address = new StringBuilder()
+                .append(url.getHost())
+                .append(":")
+                .append(url.getPort())
+                .toString();
         if(logger.isInfoEnabled()){
-            logger.info("#########create nio pool:[{}]#############",url.getHost() + ":" + url.getPort());
+            logger.info("#########create nio pool:[{}]#############",address);
         }
         //初始化连接工厂
         VenusBackendConnectionFactory nioFactory = new VenusBackendConnectionFactory();
@@ -413,29 +454,124 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         if (poolConfig != null) {
             //BeanUtils.copyProperties(nioPool, poolConfig);
         }
-        //TODO 服务下线，连接释放问题
-        nioPool.init();
-        //TODO 连接失败，心跳检查问题
-        //若连接池初始化失败，则释放连接池（fix 此时心跳检测已启动）
-        boolean isValid = nioPool.isValid();
-        if(!isValid){
-            boolean isClosed = nioPool.isClosed();
-            if(!isClosed){
-                if(logger.isWarnEnabled()){
-                    logger.warn("connection pool is invalid,close connection pool.");
-                }
+        try {
+            nioPool.init();
+        } catch (Exception e) {
+            if(!nioPool.isClosed()){
                 try {
-                    nioPool.close();
-                } catch (Exception e) {
-                    //捕获关闭异常，避免影响处理流程
-                    if(logger.isErrorEnabled()){
-                        logger.error("close invalid connection pool error.");
+                    //fix 无法正常关闭pool
+                    for(int i=0;i<20;i++){
+                        if(nioPool != null){
+                            nioPool.close();
+                        }
+                        Thread.sleep(10);
+                    }
+                } catch (Exception ex) {}
+            }
+            throw new RpcException(RpcException.NETWORK_EXCEPTION,"init connection pool failed:" + address);
+        }
+
+        //若连接池初始化失败，则释放连接池（fix 此时心跳检测已启动）
+        if(!nioPool.isValid()){
+            if(!nioPool.isClosed()){
+                try {
+                    //fix 无法正常关闭pool
+                    for(int i=0;i<20;i++){
+                        if(nioPool != null){
+                            nioPool.close();
+                        }
+                        Thread.sleep(10);
+                    }
+                } catch (Exception e) {}
+            }
+            throw new RpcException(RpcException.NETWORK_EXCEPTION,"create connection pool invalid:" + address);
+        }
+        return nioPool;
+    }
+
+
+    /**
+     * 释放连接池
+     * @param address
+     */
+    void releaseNioConnPool(String address){
+        BackendConnectionPool connectionPool = connectionPoolMap.get(address);
+        if(connectionPool == null || connectionPool.isClosed()){
+            return;
+        }
+
+        if(false){//连接池有效，存在可用连接
+           logger.info("connection pool:[{}] is valid.",address);
+        }else{//连接池无效，所有连接不可用
+            try {
+                logger.info("connection pool:[{}] is invalid,release connection pool.",address);
+                //循环关闭，解决并发冲突无法正常关闭问题
+                for(int i=0;i<20;i++){
+                    if(connectionPool != null){
+                        connectionPool.close();
+                        connectionPoolMap.remove(address);
+                    }
+                }
+            } catch (Exception e) {
+                exceptionLogger.error("close connection pool failed:" + address,e);
+            }
+        }
+    }
+
+    /**
+     * 判断连接池是否有效(因组件内部判断连接池有效性接口存在延时，不准确)
+     * @param connectionPool
+     * @return
+     */
+    boolean isValidConnPool(BackendConnectionPool connectionPool){
+        int size = VenusConstants.CONNECTION_DEFAULT_COUNT*2;
+        for(int i=0;i<size;i++){
+            BackendConnection connection = null;
+            try {
+                connection = connectionPool.borrowObject();
+            } catch (Exception e) {
+                //无法获取连接
+                if(logger.isDebugEnabled()){
+                    logger.debug("not borrow conn from conn pool:" + connectionPool.getName(),e);
+                }
+                return false;
+            }finally {
+                if(connectionPool != null && connection != null){
+                    try {
+                        connectionPool.returnObject(connection);
+                    } catch (Exception e) {}
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 释放latch wait
+     * @param conn
+     */
+    void releaseCountDownLatch(Connection conn){
+        try {
+            if(MapUtils.isEmpty(serviceReqRespMap)){
+                return;
+            }
+            //非正常关闭，释放所有使用此连接latch wait
+            Collection<VenusReqRespWrapper> reqRespWrapperCollection = serviceReqRespMap.values();
+            for(VenusReqRespWrapper reqRespWrapper:reqRespWrapperCollection){
+                if(conn == reqRespWrapper.getBackendConnection()){
+                    if(reqRespWrapper.getReqRespLatch() != null && reqRespWrapper.getReqRespLatch().getCount() > 0){
+                        if(logger.isWarnEnabled()){
+                            logger.warn("release latch:{}.",reqRespWrapper.getReqRespLatch());
+                        }
+                        reqRespWrapper.getReqRespLatch().countDown();
                     }
                 }
             }
-            throw new RpcException(RpcException.NETWORK_EXCEPTION,"create connection pool failed.");
+        } catch (Exception e) {
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("release countDown latch error.",e);
+            }
         }
-        return nioPool;
     }
 
 
@@ -498,6 +634,34 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
                     }
                 }
             }
+        }
+    }
+
+    //connection wraaper
+    class BackendConnectionWrapper{
+        private BackendConnection backendConnection;
+
+        private BackendConnectionPool backendConnectionPool;
+
+        public BackendConnectionWrapper(BackendConnection backendConnection,BackendConnectionPool backendConnectionPool){
+            this.backendConnection = backendConnection;
+            this.backendConnectionPool = backendConnectionPool;
+        }
+
+        public BackendConnection getBackendConnection() {
+            return backendConnection;
+        }
+
+        public void setBackendConnection(BackendConnection backendConnection) {
+            this.backendConnection = backendConnection;
+        }
+
+        public BackendConnectionPool getBackendConnectionPool() {
+            return backendConnectionPool;
+        }
+
+        public void setBackendConnectionPool(BackendConnectionPool backendConnectionPool) {
+            this.backendConnectionPool = backendConnectionPool;
         }
     }
 

@@ -52,8 +52,8 @@ public class VenusMonitorReportTask implements Runnable{
             try {
                 //1、构造明细上报数据
                 if(reportDetailQueue != null && reportDetailQueue.size() > 0){
-                    if(logger.isInfoEnabled()){
-                        logger.info("current detail report queue size:{}.", reportDetailQueue.size());
+                    if(logger.isDebugEnabled()){
+                        logger.debug("current detail report queue size:{}.", reportDetailQueue.size());
                     }
                 }
                 List<InvocationDetail> reportDetailList = new ArrayList<InvocationDetail>();
@@ -79,8 +79,8 @@ public class VenusMonitorReportTask implements Runnable{
                     }
                 }
                 if(reportStatisticList != null && reportStatisticList.size() > 0){
-                    if(logger.isInfoEnabled()){
-                        logger.info("current statistic report list size:{}.",reportStatisticList.size());
+                    if(logger.isDebugEnabled()){
+                        logger.debug("current statistic report list size:{}.",reportStatisticList.size());
                     }
                 }
 
@@ -90,7 +90,7 @@ public class VenusMonitorReportTask implements Runnable{
                         List<VenusMethodCallDetailDO> detailDOList = toDetailDOList(reportDetailList);
                         List<VenusMethodStaticDO> staticDOList = toStaticDOList(reportStatisticList);
                         monitorReporter.reportDetailAndStatic(detailDOList,staticDOList);
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         if(exceptionLogger.isErrorEnabled()){
                             exceptionLogger.error("report detail and static error.",e);
                         }

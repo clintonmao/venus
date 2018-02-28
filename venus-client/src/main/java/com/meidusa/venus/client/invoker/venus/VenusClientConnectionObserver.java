@@ -3,13 +3,10 @@ package com.meidusa.venus.client.invoker.venus;
 import com.meidusa.toolkit.net.BackendConnection;
 import com.meidusa.toolkit.net.Connection;
 import com.meidusa.toolkit.net.ConnectionObserver;
+import com.meidusa.venus.Invoker;
+import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.VenusLoggerFactory;
-import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
-
-import java.util.Collection;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * client连接监听处理
@@ -20,11 +17,6 @@ public class VenusClientConnectionObserver implements ConnectionObserver {
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
-
-    /**
-     * rpcId-请求&响应映射表
-     */
-    private Map<String, VenusReqRespWrapper> serviceReqRespMap;
 
     @Override
     public void connectionEstablished(Connection conn) {
@@ -52,15 +44,24 @@ public class VenusClientConnectionObserver implements ConnectionObserver {
     public void connectionClosed(Connection conn) {
         if(logger.isWarnEnabled()){
             if(conn != null && conn instanceof BackendConnection){
-                logger.warn("connection closed,target:[{}].",getTargetAddress((BackendConnection)conn));
+                String ipAddress = getTargetAddress((BackendConnection)conn);
+                logger.warn("connection closed,target:[{}].",ipAddress);
             }else{
                 logger.warn("connection closed,conn:{}.",conn);
             }
         }
 
-        //释放latch wait
-        if(conn != null){
-            releaseCountDownLatch(conn,null);
+        try {
+            if(conn != null){
+                VenusContext context = VenusContext.getInstance();
+                //释放连接相关资源
+                Invoker invoker = context.getInvoker();
+                if(invoker != null){
+                    invoker.releaseConnection(conn);
+                }
+            }
+        } catch (Exception e) {
+            exceptionLogger.error("#########release conn rela resource failed.",e);
         }
     }
 
@@ -77,40 +78,4 @@ public class VenusClientConnectionObserver implements ConnectionObserver {
         return builder.toString();
     }
 
-    /**
-     * 释放latch wait
-     * @param conn
-     * @param fault
-     */
-    void releaseCountDownLatch(Connection conn, Exception fault){
-        try {
-            if(MapUtils.isEmpty(serviceReqRespMap)){
-                return;
-            }
-            //非正常关闭，释放所有使用此连接latch wait
-            Collection<VenusReqRespWrapper> reqRespWrapperCollection = serviceReqRespMap.values();
-            for(VenusReqRespWrapper reqRespWrapper:reqRespWrapperCollection){
-                if(conn == reqRespWrapper.getBackendConnection()){
-                    if(reqRespWrapper.getReqRespLatch() != null && reqRespWrapper.getReqRespLatch().getCount() > 0){
-                        if(logger.isWarnEnabled()){
-                            logger.warn("release latch:{}.",reqRespWrapper.getReqRespLatch());
-                        }
-                        reqRespWrapper.getReqRespLatch().countDown();
-                    }
-                }
-            }
-        } catch (Exception e) {
-            if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error("release countDown latch error.",e);
-            }
-        }
-    }
-
-    public Map<String, VenusReqRespWrapper> getServiceReqRespMap() {
-        return serviceReqRespMap;
-    }
-
-    public void setServiceReqRespMap(Map<String, VenusReqRespWrapper> serviceReqRespMap) {
-        this.serviceReqRespMap = serviceReqRespMap;
-    }
 }

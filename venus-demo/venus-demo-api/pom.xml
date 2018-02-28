@@ -26,11 +26,6 @@
             <artifactId>venus-common-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.saike.framework</groupId>
-            <artifactId>framework-service-ums-api</artifactId>
-            <version>1.0.6-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 
 </project>

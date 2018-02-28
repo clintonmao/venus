@@ -35,15 +35,13 @@ public class VenusMonitorReporter {
         if(CollectionUtils.isEmpty(detailDOList) && CollectionUtils.isEmpty(staticDOList)){
             return;
         }
-        if(CollectionUtils.isEmpty(detailDOList)){
-            if(logger.isDebugEnabled()){
-                logger.debug("report detail size:{}.",detailDOList.size());
-            }
+        int detailNum = 0;
+        if(CollectionUtils.isNotEmpty(detailDOList)){
+            detailNum = detailDOList.size();
         }
-        if(CollectionUtils.isEmpty(staticDOList)){
-            if(logger.isDebugEnabled()){
-                logger.debug("report static size:{}.",staticDOList.size());
-            }
+        int staticNum = 0;
+        if(CollectionUtils.isNotEmpty(staticDOList)){
+            staticNum = staticDOList.size();
         }
 
         VenusReportDO reportDO = new VenusReportDO();
@@ -51,7 +49,7 @@ public class VenusMonitorReporter {
         reportDO.setMethodStaticDOs(staticDOList);
         Producer<String,String> kafkaProducer = getKafkaProducer();
         if(kafkaProducer != null){
-            logger.info("##########send message with MQ.");
+            logger.info("report venus monitor info,detail size:{},static size:{}.",detailNum,staticNum);
             kafkaProducer.send(new ProducerRecord<String, String>(
                     getTopic(),
                     String.valueOf(new Date().getTime()),

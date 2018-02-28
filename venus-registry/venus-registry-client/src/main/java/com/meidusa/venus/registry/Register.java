@@ -71,18 +71,6 @@ public interface Register {
     List<VenusServiceDefinitionDO> lookup(URL url,boolean isQueryFromRegister) throws VenusRegisteException;
 
     /**
-     * 获取注册Url列表
-     * @return
-     */
-    Set<URL> getRegisteUrls();
-
-    /**
-     * 获取订阅url列表
-     * @return
-     */
-    Set<URL> getSubscribleUrls();
-
-    /**
      * 销毁，清理、释放相关资源
      * @throws VenusRegisteException
      */

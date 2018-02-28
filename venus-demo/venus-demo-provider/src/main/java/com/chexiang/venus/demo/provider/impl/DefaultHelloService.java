@@ -62,9 +62,12 @@ public class DefaultHelloService implements HelloService {
     public Hello getHello(String name) {
         //logger.info("invoke getHello,param:" + name);
         try {
-            if(ThreadLocalRandom.current().nextInt(100) > 20){//构造异常操作
+            if(ThreadLocalRandom.current().nextInt(100) > 50){//构造异常操作
                 if("A".equals("B")){
                     throw new IllegalArgumentException("param invalid.");
+                }
+                if("A".equals("B")){
+                    logger.error("getHello error.");
                 }
             }
         } catch (Exception e) {

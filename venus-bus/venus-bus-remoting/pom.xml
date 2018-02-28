@@ -23,24 +23,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.meidusa.toolkit.net</groupId>
-            <artifactId>toolkit-net-nio</artifactId>
-        </dependency>
-        <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.meidusa.toolkit</groupId>
-            <artifactId>fastbson</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.ini4j</groupId>
             <artifactId>ini4j</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.meidusa.toolkit</groupId>
-            <artifactId>fastjson</artifactId>
         </dependency>
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
@@ -49,6 +37,14 @@
         <dependency>
             <groupId>org.codehaus.castor</groupId>
             <artifactId>castor-xml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.meidusa.toolkit</groupId>
+            <artifactId>fastbson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.meidusa.toolkit</groupId>
+            <artifactId>fastjson</artifactId>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus</groupId>

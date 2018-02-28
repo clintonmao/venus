@@ -2,6 +2,7 @@ package com.meidusa.venus.support;
 
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.net.BackendConnectionPool;
+import com.meidusa.venus.Invoker;
 import org.springframework.context.ApplicationContext;
 
 import java.util.Map;
@@ -23,8 +24,7 @@ public class VenusContext {
     //应用名称
     private String application;
 
-    //连接池映射表
-    private Map<String, BackendConnectionPool> connectionPoolMap;
+    private Invoker invoker;
 
     public static VenusContext getInstance(){
         if(venusContext == null){
@@ -57,11 +57,11 @@ public class VenusContext {
         this.application = application;
     }
 
-    public Map<String, BackendConnectionPool> getConnectionPoolMap() {
-        return connectionPoolMap;
+    public Invoker getInvoker() {
+        return invoker;
     }
 
-    public void setConnectionPoolMap(Map<String, BackendConnectionPool> connectionPoolMap) {
-        this.connectionPoolMap = connectionPoolMap;
+    public void setInvoker(Invoker invoker) {
+        this.invoker = invoker;
     }
 }

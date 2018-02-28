@@ -31,22 +31,14 @@ public class ClusterFailoverInvoker extends AbstractClusterInvoker implements Cl
         if(retries < 1){
             retries = 1;
         }
-        String lb = clientInvocation.getLoadbalance();
 
-        //调用相应协议服务
+        //服务调用，根据配置进行重试
         for(int i=0;i<retries;i++){
             try {
-                //选择地址
-                URL url = getLoadbanlance(lb,clientInvocation).select(urlList);
-                if(logger.isDebugEnabled()){
-                    logger.debug("select service provider:【{}】.",new StringBuilder().append(url.getHost()).append(":").append(url.getPort()));
-                }
-
-                // 调用
-                return  getInvoker().invoke(invocation, url);
+                return doInvokeForNetworkFailover(invocation, urlList);
             } catch (RpcException e) {
-                //对于网络异常、超时异常根据配置进行重试
-                if(e.isNetwork() || e.isTimeout()){
+                //对于timeout超时异常根据客户端配置进行重试
+                if(e.isTimeout()){
                     if(i < retries){
                     }else{
                         throw e;
@@ -54,13 +46,14 @@ public class ClusterFailoverInvoker extends AbstractClusterInvoker implements Cl
                 }else{
                     throw e;
                 }
-            }catch (Throwable t){
+            } catch (Throwable t){
                 throw t;
             }
         }
 
         throw new RpcException(String.format("invoke serivce %s,method %s failed with %d tries.",invocation.getServiceName(),invocation.getMethodName(),retries));
     }
+
 
     @Override
     public void destroy() throws RpcException {

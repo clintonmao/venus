@@ -1,6 +1,7 @@
 package com.meidusa.venus;
 
 
+import com.meidusa.toolkit.net.Connection;
 import com.meidusa.venus.exception.RpcException;
 
 /**
@@ -22,6 +23,12 @@ public interface Invoker {
      * @throws RpcException
      */
     Result invoke(Invocation invocation, URL url) throws RpcException;
+
+    /**
+     * 释放连接资源
+     * @param conn
+     */
+    void releaseConnection(Connection conn);
 
     /**
      * 销毁

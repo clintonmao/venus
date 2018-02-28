@@ -26,19 +26,11 @@ public class ClusterFastfailInvoker extends AbstractClusterInvoker implements Cl
 
     @Override
     public Result invoke(Invocation invocation, List<URL> urlList) throws RpcException {
-        ClientInvocation clientInvocation = (ClientInvocation)invocation;
-
-        URL url = getLoadbanlance(clientInvocation.getLoadbalance(),clientInvocation).select(urlList);
-        if(logger.isDebugEnabled()){
-            logger.debug("select service provider:【{}】.",new StringBuilder().append(url.getHost()).append(":").append(url.getPort()));
-        }
-
-        return  getInvoker().invoke(invocation,url);
+        return doInvokeForNetworkFailover(invocation, urlList);
     }
 
     @Override
     public void destroy() throws RpcException {
     }
-
 
 }

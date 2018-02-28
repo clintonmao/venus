@@ -159,6 +159,16 @@ public class VenusServiceDefinitionDO implements ServiceDefinitionExtra,java.io.
 		this.interfaceName = interfaceName;
 	}
 
+	public String getPath(){
+		String path = new StringBuilder()
+			.append(interfaceName)
+			.append("/")
+			.append(name)
+			.append("?version=")
+			.append(version).toString();
+		return path;
+	}
+
 	@Override
 	public String toString() {
 		return "VenusServiceDefinitionDO [name=" + name + ", interfaceName=" + interfaceName + ", versionRange=" + versionRange

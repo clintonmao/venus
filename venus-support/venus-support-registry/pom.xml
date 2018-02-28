@@ -13,24 +13,16 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.meidusa.toolkit.net</groupId>
-            <artifactId>toolkit-net-nio</artifactId>
-            <version>1.0.15</version>
-        </dependency>
-        <dependency>
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-common-base</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-common-annotation</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-registry-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

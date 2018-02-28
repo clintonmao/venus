@@ -20,6 +20,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 
+import com.meidusa.toolkit.net.BackendConnectionPool;
+import com.meidusa.venus.support.VenusContext;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -279,6 +281,57 @@ public class MysqlRegister implements Register {
 		}
 	}
 
+//	/**
+//	 * 处理服务定义变化事件，释放下线连接资源
+//	 * @param url
+//	 * @param oldSrvDefList
+//	 * @param newSrvDefList
+//	 */
+//	void processNodeChanged(URL url,List<VenusServiceDefinitionDO> oldSrvDefList,List<VenusServiceDefinitionDO> newSrvDefList){
+//		long bTime = System.currentTimeMillis();
+//		if(CollectionUtils.isEmpty(oldSrvDefList)){
+//			return;
+//		}
+//		//比较新旧服务节点数据，寻找下线节点并释放连接
+//		for(VenusServiceDefinitionDO odlSrvDef:oldSrvDefList){
+//			String servicePath = odlSrvDef.getPath();
+//			//logger.info("servicePath:{}",servicePath);
+//			if(CollectionUtils.isEmpty(newSrvDefList)){//未查找到任何版本号的服务定义
+//				releaseConnectionPools(odlSrvDef.getIpAddress());
+//			}else{
+//				VenusServiceDefinitionDO matchNewSrvDef = null;
+//				for(VenusServiceDefinitionDO newSrvDef:newSrvDefList){
+//					if(servicePath.equals(newSrvDef.getPath())){
+//						matchNewSrvDef = newSrvDef;
+//					}
+//				}
+//
+//				if(matchNewSrvDef == null){//未查找到相同版本的的服务定义，已下线
+//					releaseConnectionPools(odlSrvDef.getIpAddress());
+//				}else{//查找到相同版本号的服务定义，对比节点变化
+//					for(String ipAddress:odlSrvDef.getIpAddress()){
+//						boolean isFound = false;
+//						Set<String> newIpAddressSet = matchNewSrvDef.getIpAddress();
+//						if(CollectionUtils.isNotEmpty(newIpAddressSet)){
+//							for(String newIpAddress:newIpAddressSet){
+//								if(ipAddress.equals(newIpAddress)){
+//									isFound = true;
+//									break;
+//								}
+//							}
+//						}
+//						//若未找到同节点地址，则视为下线
+//						if(!isFound){
+//							releaseConnectionPool(ipAddress);
+//						}
+//					}
+//				}
+//			}
+//		}
+//
+//		//logger.info("####process node changed cost time:{}",System.currentTimeMillis()-bTime);
+//	}
+
 	/**
 	 * 是否开启本地文件缓存
 	 * @return
@@ -314,6 +367,33 @@ public class MysqlRegister implements Register {
 		List<VenusServiceDefinitionDO> serviceDefinitions = map.get(key);
 		return serviceDefinitions;
 	}
+
+//	@Override
+//	public void release(String address) {
+//		for(Map.Entry<String, List<VenusServiceDefinitionDO>> entry:subscribleServiceDefinitionMap.entrySet()){
+//			String key = entry.getKey();
+//			List<VenusServiceDefinitionDO> srvDefList = entry.getValue();
+//			if(CollectionUtils.isEmpty(srvDefList)){
+//				continue;
+//			}
+//			//遍历服务定义列表，若地址相同，则反订阅
+//			for(VenusServiceDefinitionDO srvDef:srvDefList){
+//				Set<String> ipAddressSet = srvDef.getIpAddress();
+//				if(CollectionUtils.isEmpty(ipAddressSet)){
+//					continue;
+//				}
+//				for(String ipAddress:ipAddressSet){
+//					//若地址相同，则调用反订阅接口
+//					if(address.equals(ipAddress)){
+//						//TODO 下线对应的服务节点？
+//						logger.info("before del,ipAddressSet:{}",JSON.toJSONString(ipAddressSet));
+//						ipAddressSet.remove(ipAddress);
+//						logger.info("after del,ipAddressSet:{}",JSON.toJSONString(ipAddressSet));
+//					}
+//				}
+//			}
+//		}
+//	}
 
 	@Override
 	public void destroy() throws VenusRegisteException {

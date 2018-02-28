@@ -1,5 +1,6 @@
 package com.meidusa.venus.backend.invoker;
 
+import com.meidusa.toolkit.net.Connection;
 import com.meidusa.venus.*;
 import com.meidusa.venus.backend.filter.valid.ServerValidFilter;
 import com.meidusa.venus.exception.RpcException;
@@ -196,6 +197,10 @@ public class VenusServerInvokerProxy implements Invoker {
 
     public List<Filter> getAfterFilters() {
         return afterFilters;
+    }
+
+    @Override
+    public void releaseConnection(Connection conn) {
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.meidusa.venus.client.invoker;
 
+import com.meidusa.toolkit.net.Connection;
 import com.meidusa.venus.*;
 import com.meidusa.venus.client.ClientInvocation;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
@@ -284,6 +285,9 @@ public class ClientInvokerProxy implements Invoker {
         return afterFilters;
     }
 
+    @Override
+    public void releaseConnection(Connection conn) {
+    }
 
     @Override
     public void destroy() throws RpcException {
