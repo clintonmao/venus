@@ -296,7 +296,7 @@ public class BusReceiveMessageHandler extends VenusServerMessageHandler implemen
         //将rpcException包装异常转化为v3内置异常
         Throwable ex = restoreException(t);
 
-        int errorCode = XmlVenusExceptionFactoryEx.getInstance().getErrorCode(ex.getClass());
+        int errorCode = XmlVenusExceptionFactory.getInstance().getErrorCode(ex.getClass());
         if(errorCode != 0){//自定义异常
             result.setErrorCode(errorCode);
             result.setErrorMessage(ex.getMessage());
