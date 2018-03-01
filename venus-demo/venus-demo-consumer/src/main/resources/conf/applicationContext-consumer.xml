@@ -43,9 +43,16 @@
 		<property name="ignoreResourceNotFound" value="true"/>
 	</bean>
 
+	<bean id="application" class="com.saike.commons.Application" init-method="init">
+		<!--appName 可选，若不配置则默认通过UCM从CMDB获取关联的应用名称-->
+		<!--
+        <property name="appName" value="${venus.application.name}"/>
+        -->
+	</bean>
+
 	<!--应用配置-->
 	<bean id="venusApplication" class="com.meidusa.venus.VenusApplication">
-		<property name="name" value="${venus.application.name}"/>
+		<property name="application" ref="application"/>
 	</bean>
 
 	<!--注册配置-->

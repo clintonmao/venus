@@ -13,8 +13,10 @@
 	<context:component-scan base-package="com.saic.framework.athena"/>
 
 	<bean name="configManager" class="com.saic.framework.athena.configuration.DefaultClientConfigManager">
-		<property name="appName" value="venus-demo-consumer"/>
-		<property name="brokers" value="10.32.221.6:9092,10.32.221.18:9092,10.32.221.23:9092"/>
+		<property name="application" ref="application"/>
+		<!--<property name="appName" value="venus-demo-provider"/>-->
+		<property name="brokers" value="${athena.kafka.bootstrap.servers}"/>
+		<!--<property name="brokers" value="10.32.221.6:9092,10.32.221.18:9092,10.32.221.23:9092"/>-->
 	</bean>
 
 	<!--<bean class="com.saic.framework.athena.module.base.AnnotationedAgentLogicScanner" init-method="init" autowire="byType"/>-->
