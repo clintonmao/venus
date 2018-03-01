@@ -1,5 +1,6 @@
 package com.meidusa.venus.monitor;
 
+import com.meidusa.toolkit.common.bean.config.ConfigUtil;
 import com.meidusa.venus.VenusApplication;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.util.VenusLoggerFactory;
@@ -29,6 +30,8 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
 
     //监控上报topic
     private static final String topic = "venus-report-topic";
+
+    private static final String KAFKA_PORT = "9092";
 
     //是否开启athena上报
     private boolean enableAthenaReport = true;
@@ -91,10 +94,15 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
      * @param address
      */
     void validAddress(String address){
+        //eg:10.32.221.6:9092,10.32.221.18:9092
+        if(StringUtils.isEmpty(address)){
+            String kafkaAddress = (String)ConfigUtil.filter("${venus.kafka.bootstrap.servers}");
+            address = kafkaAddress;
+            this.address = address;
+        }
         if(StringUtils.isEmpty(address)){
             throw new VenusConfigException("monitor address not allow empty.");
         }
-        //10.32.221.6:9092,10.32.221.18:9092
         String[] arr = address.split(",");
         if(arr == null || arr.length == 0){
             throw new VenusConfigException("monitor address is empty or invalid,valid address formt,eg:${venus.kafka.bootstrap.servers} or (10.32.221.6:9092,10.32.221.18:9092)");
@@ -102,11 +110,10 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
 
         String[] item = arr[0].split(":");
         String port = item[1];
-        if(!port.equals("9092")){
+        if(!port.equals(KAFKA_PORT)){
             throw new VenusConfigException("monitor address is invalid,valid address formt,eg:${venus.kafka.bootstrap.servers} or (10.32.221.6:9092,10.32.221.18:9092)");
         }
     }
-
 
     /**
      * 初始化

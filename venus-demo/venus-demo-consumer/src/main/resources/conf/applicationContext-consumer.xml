@@ -55,8 +55,7 @@
 
 	<!--监控配置-->
 	<bean id="venusMonitorFactory" class="com.meidusa.venus.monitor.VenusMonitorFactory">
-		<property name="address" value="10.32.221.6:9092,10.32.221.18:9092,10.32.221.23:9092"/>
-		<!--<property name="address" value="10.32.124.33:16800,10.32.124.162:16800"/>-->
+		<property name="address" value="${venus.kafka.bootstrap.servers}"/>
 	</bean>
 
 	<!--服务引用配置-->
