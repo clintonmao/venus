@@ -1053,7 +1053,47 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			heartbeatRegister(ent.getValue(), ent.getKey());
 		}
 		long end = System.currentTimeMillis() - start;
-		LogUtils.logSlow(end, "heartbeat maps=> " + JSON.toJSONString(maps));
+		
+		if (end > 200) {
+			String logMsg="";
+			for (Map.Entry<String, Set<URL>> ent : maps.entrySet()) {
+				String key = ent.getKey();
+				if (key.equals(RegisteConstant.PROVIDER) || key.equals(RegisteConstant.CONSUMER)) {
+					Set<URL> urls = ent.getValue();
+					if (CollectionUtils.isNotEmpty(urls) && StringUtils.isBlank(logMsg)) {
+						logMsg = getLogMsg(urls);
+					}
+					
+					if(start % sampleMod ==1){
+						for (URL u : urls) {
+							u.setPath(null);
+							u.setProtocol(null);
+						}
+					}
+					
+				}
+			}
+			if(start % sampleMod ==1){
+				LogUtils.logSlow(end,"heartbeat maps=> " + JSON.toJSONString(maps));
+			}
+			if(StringUtils.isNotBlank(logMsg)){
+				LogUtils.logSlow(end, "heartbeat maps msg=> " + logMsg);
+			}
+		}
+	}
+
+	private static String getLogMsg(Set<URL> urls) {
+		StringBuilder sb=new StringBuilder();
+		for (URL u : urls) {
+			sb.append("app=>");
+			sb.append(u.getApplication());
+			sb.append("host=>");
+			sb.append(u.getHost());
+			sb.append("port=>");
+			sb.append(u.getPort());
+			break;
+		}
+		return sb.toString();
 	}
 	
 	
