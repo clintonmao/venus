@@ -64,10 +64,6 @@ public class ClientLocalInvoker implements Invoker {
     }
 
     @Override
-    public void releaseConnection(Connection conn) {
-    }
-
-    @Override
     public void destroy() throws RpcException {
     }
 }

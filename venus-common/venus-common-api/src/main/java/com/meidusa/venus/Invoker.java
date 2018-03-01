@@ -25,12 +25,6 @@ public interface Invoker {
     Result invoke(Invocation invocation, URL url) throws RpcException;
 
     /**
-     * 释放连接资源
-     * @param conn
-     */
-    void releaseConnection(Connection conn);
-
-    /**
      * 销毁
      */
     void destroy() throws RpcException;

@@ -56,8 +56,8 @@ public abstract class AbstractClusterInvoker implements ClusterInvoker {
             try {
                 //选择地址
                 URL url = getLoadbanlance(clientInvocation.getLoadbalance(),clientInvocation).select(urlList);
-                if(logger.isInfoEnabled()){
-                    logger.info("select service provider:【{}】.",new StringBuilder().append(url.getHost()).append(":").append(url.getPort()));
+                if(logger.isDebugEnabled()){
+                    logger.debug("select service provider:【{}】.",new StringBuilder().append(url.getHost()).append(":").append(url.getPort()));
                 }
 
                 // 调用
@@ -77,7 +77,7 @@ public abstract class AbstractClusterInvoker implements ClusterInvoker {
             }
         }
 
-        throw new RpcException(String.format("invoke serivce %s,method %s failed,cannot create connection.",invocation.getServiceName(),invocation.getMethodName()));
+        throw new RpcException(String.format("invoke method:%s/%s failed,cannot get connection.",invocation.getServiceName(),invocation.getMethodName()));
     }
 
     /**

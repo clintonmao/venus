@@ -2,6 +2,7 @@ package com.meidusa.venus.support;
 
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.net.BackendConnectionPool;
+import com.meidusa.venus.ConnectionFactory;
 import com.meidusa.venus.Invoker;
 import org.springframework.context.ApplicationContext;
 
@@ -24,7 +25,7 @@ public class VenusContext {
     //应用名称
     private String application;
 
-    private Invoker invoker;
+    private ConnectionFactory connectionFactory;
 
     public static VenusContext getInstance(){
         if(venusContext == null){
@@ -57,11 +58,11 @@ public class VenusContext {
         this.application = application;
     }
 
-    public Invoker getInvoker() {
-        return invoker;
+    public ConnectionFactory getConnectionFactory() {
+        return connectionFactory;
     }
 
-    public void setInvoker(Invoker invoker) {
-        this.invoker = invoker;
+    public void setConnectionFactory(ConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory;
     }
 }

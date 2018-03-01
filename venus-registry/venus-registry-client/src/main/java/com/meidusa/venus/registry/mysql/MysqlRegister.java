@@ -1,36 +1,9 @@
 package com.meidusa.venus.registry.mysql;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.TimeUnit;
-
-import com.meidusa.toolkit.net.BackendConnectionPool;
-import com.meidusa.venus.support.VenusContext;
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-
 import com.meidusa.fastjson.JSON;
 import com.meidusa.fastjson.TypeReference;
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
+import com.meidusa.venus.ConnectionFactory;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.registry.Register;
 import com.meidusa.venus.registry.VenusRegisteException;
@@ -40,7 +13,22 @@ import com.meidusa.venus.registry.service.RegisterService;
 import com.meidusa.venus.registry.util.RegistryUtil;
 import com.meidusa.venus.support.MonitorResourceFacade;
 import com.meidusa.venus.support.VenusConstants;
+import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.VenusLoggerFactory;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.channels.FileChannel;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * mysql服务注册中心类 Created by Zhangzhihua on 2017/7/27.
@@ -254,8 +242,12 @@ public class MysqlRegister implements Register {
 					String key = RegistryUtil.getKeyFromUrl(url);
 					List<VenusServiceDefinitionDO> serviceDefinitions = localDefinitionMap.get(key);
 					if (CollectionUtils.isNotEmpty(serviceDefinitions)) {
+						//处理服务节点变化事件
+						processNodeChanged(url,subscribleServiceDefinitionMap.get(key),serviceDefinitions);
 						subscribleServiceDefinitionMap.put(key, serviceDefinitions);
 					} else {
+						//处理服务节点变化事件
+						processNodeChanged(url,subscribleServiceDefinitionMap.get(key),serviceDefinitions);
 						subscribleServiceDefinitionMap.remove(key);
 					}
 				}
@@ -281,56 +273,84 @@ public class MysqlRegister implements Register {
 		}
 	}
 
-//	/**
-//	 * 处理服务定义变化事件，释放下线连接资源
-//	 * @param url
-//	 * @param oldSrvDefList
-//	 * @param newSrvDefList
-//	 */
-//	void processNodeChanged(URL url,List<VenusServiceDefinitionDO> oldSrvDefList,List<VenusServiceDefinitionDO> newSrvDefList){
-//		long bTime = System.currentTimeMillis();
-//		if(CollectionUtils.isEmpty(oldSrvDefList)){
-//			return;
-//		}
-//		//比较新旧服务节点数据，寻找下线节点并释放连接
-//		for(VenusServiceDefinitionDO odlSrvDef:oldSrvDefList){
-//			String servicePath = odlSrvDef.getPath();
-//			//logger.info("servicePath:{}",servicePath);
-//			if(CollectionUtils.isEmpty(newSrvDefList)){//未查找到任何版本号的服务定义
-//				releaseConnectionPools(odlSrvDef.getIpAddress());
-//			}else{
-//				VenusServiceDefinitionDO matchNewSrvDef = null;
-//				for(VenusServiceDefinitionDO newSrvDef:newSrvDefList){
-//					if(servicePath.equals(newSrvDef.getPath())){
-//						matchNewSrvDef = newSrvDef;
-//					}
-//				}
-//
-//				if(matchNewSrvDef == null){//未查找到相同版本的的服务定义，已下线
-//					releaseConnectionPools(odlSrvDef.getIpAddress());
-//				}else{//查找到相同版本号的服务定义，对比节点变化
-//					for(String ipAddress:odlSrvDef.getIpAddress()){
-//						boolean isFound = false;
-//						Set<String> newIpAddressSet = matchNewSrvDef.getIpAddress();
-//						if(CollectionUtils.isNotEmpty(newIpAddressSet)){
-//							for(String newIpAddress:newIpAddressSet){
-//								if(ipAddress.equals(newIpAddress)){
-//									isFound = true;
-//									break;
-//								}
-//							}
-//						}
-//						//若未找到同节点地址，则视为下线
-//						if(!isFound){
-//							releaseConnectionPool(ipAddress);
-//						}
-//					}
-//				}
-//			}
-//		}
-//
-//		//logger.info("####process node changed cost time:{}",System.currentTimeMillis()-bTime);
-//	}
+	/**
+	 * 处理服务定义变化事件，释放下线连接资源
+	 * @param url
+	 * @param oldSrvDefList
+	 * @param newSrvDefList
+	 */
+	void processNodeChanged(URL url,List<VenusServiceDefinitionDO> oldSrvDefList,List<VenusServiceDefinitionDO> newSrvDefList){
+		long bTime = System.currentTimeMillis();
+		if(CollectionUtils.isEmpty(oldSrvDefList)){
+			return;
+		}
+		//比较新旧服务节点数据，寻找下线节点并释放连接
+		for(VenusServiceDefinitionDO odlSrvDef:oldSrvDefList){
+			String servicePath = odlSrvDef.getPath();
+			String version = odlSrvDef.getVersion();
+			if(CollectionUtils.isEmpty(newSrvDefList)){//未查找到任何版本号的服务定义
+				for(String address:odlSrvDef.getIpAddress()){
+					releaseConnection(url,version,address);
+				}
+			}else{
+				VenusServiceDefinitionDO matchNewSrvDef = null;
+				for(VenusServiceDefinitionDO newSrvDef:newSrvDefList){
+					if(servicePath.equals(newSrvDef.getPath())){
+						matchNewSrvDef = newSrvDef;
+					}
+				}
+
+				if(matchNewSrvDef == null){//未查找到相同版本的的服务定义，已下线
+					for(String address:odlSrvDef.getIpAddress()){
+						releaseConnection(url,version,address);
+					}
+				}else{//查找到相同版本号的服务定义，对比节点变化
+					for(String ipAddress:odlSrvDef.getIpAddress()){
+						boolean isFound = false;
+						Set<String> newIpAddressSet = matchNewSrvDef.getIpAddress();
+						if(CollectionUtils.isNotEmpty(newIpAddressSet)){
+							for(String newIpAddress:newIpAddressSet){
+								if(ipAddress.equals(newIpAddress)){
+									isFound = true;
+									break;
+								}
+							}
+						}
+						//若未找到同节点地址，则视为下线
+						if(!isFound){
+							releaseConnection(url,version,ipAddress);
+						}
+					}
+				}
+			}
+		}
+
+		//logger.info("####process node changed cost time:{}",System.currentTimeMillis()-bTime);
+	}
+
+	/**
+	 * 释放连接资源
+	 * @param address
+	 */
+	void releaseConnection(URL url,String version,String address){
+		if(logger.isWarnEnabled()){
+			String serviceUrl  = new StringBuilder()
+					.append("/")
+					.append(url.getInterfaceName())
+					.append("/")
+					.append(url.getServiceName())
+					.append("?version=")
+					.append(version)
+					.toString();
+			logger.warn("######service url:{},node:{} offline,release connection.",serviceUrl,address);
+		}
+		VenusContext context = VenusContext.getInstance();
+		//释放连接相关资源
+		ConnectionFactory connectionFactory = context.getConnectionFactory();
+		if(connectionFactory != null){
+			connectionFactory.releaseConnection(address);
+		}
+	}
 
 	/**
 	 * 是否开启本地文件缓存
@@ -367,33 +387,6 @@ public class MysqlRegister implements Register {
 		List<VenusServiceDefinitionDO> serviceDefinitions = map.get(key);
 		return serviceDefinitions;
 	}
-
-//	@Override
-//	public void release(String address) {
-//		for(Map.Entry<String, List<VenusServiceDefinitionDO>> entry:subscribleServiceDefinitionMap.entrySet()){
-//			String key = entry.getKey();
-//			List<VenusServiceDefinitionDO> srvDefList = entry.getValue();
-//			if(CollectionUtils.isEmpty(srvDefList)){
-//				continue;
-//			}
-//			//遍历服务定义列表，若地址相同，则反订阅
-//			for(VenusServiceDefinitionDO srvDef:srvDefList){
-//				Set<String> ipAddressSet = srvDef.getIpAddress();
-//				if(CollectionUtils.isEmpty(ipAddressSet)){
-//					continue;
-//				}
-//				for(String ipAddress:ipAddressSet){
-//					//若地址相同，则调用反订阅接口
-//					if(address.equals(ipAddress)){
-//						//TODO 下线对应的服务节点？
-//						logger.info("before del,ipAddressSet:{}",JSON.toJSONString(ipAddressSet));
-//						ipAddressSet.remove(ipAddress);
-//						logger.info("after del,ipAddressSet:{}",JSON.toJSONString(ipAddressSet));
-//					}
-//				}
-//			}
-//		}
-//	}
 
 	@Override
 	public void destroy() throws VenusRegisteException {

@@ -191,7 +191,7 @@ public class ClientRemoteInvoker implements Invoker{
         //查找服务定义
         List<VenusServiceDefinitionDO> srvDefList = getRegister().lookup(requestUrl);
         if(CollectionUtils.isEmpty(srvDefList)){
-            throw new RpcException(String.format("not found available service providers,service:%s",requestUrl.toString()));
+            throw new RpcException(String.format("not found available service providers,service:%s",requestUrl.getPath()));
         }
         for(VenusServiceDefinitionDO srvDef:srvDefList){
             //若提供者列表为空，则跳过
@@ -285,10 +285,6 @@ public class ClientRemoteInvoker implements Invoker{
         }else{
             throw new RpcException(String.format("invalid cluster policy:%s.",cluster));
         }
-    }
-
-    @Override
-    public void releaseConnection(Connection conn) {
     }
 
     @Override

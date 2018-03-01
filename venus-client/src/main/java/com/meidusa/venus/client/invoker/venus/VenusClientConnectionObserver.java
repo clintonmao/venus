@@ -3,6 +3,7 @@ package com.meidusa.venus.client.invoker.venus;
 import com.meidusa.toolkit.net.BackendConnection;
 import com.meidusa.toolkit.net.Connection;
 import com.meidusa.toolkit.net.ConnectionObserver;
+import com.meidusa.venus.ConnectionFactory;
 import com.meidusa.venus.Invoker;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.VenusLoggerFactory;
@@ -55,9 +56,9 @@ public class VenusClientConnectionObserver implements ConnectionObserver {
             if(conn != null){
                 VenusContext context = VenusContext.getInstance();
                 //释放连接相关资源
-                Invoker invoker = context.getInvoker();
-                if(invoker != null){
-                    invoker.releaseConnection(conn);
+                ConnectionFactory connectionFactory = context.getConnectionFactory();
+                if(connectionFactory != null){
+                    connectionFactory.releaseConnection(conn);
                 }
             }
         } catch (Exception e) {

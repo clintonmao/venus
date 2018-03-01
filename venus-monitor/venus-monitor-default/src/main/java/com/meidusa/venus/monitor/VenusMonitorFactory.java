@@ -28,7 +28,7 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
     private String address;
 
     //监控上报topic
-    private String topic = "venus-report-topic";
+    private static final String topic = "venus-report-topic";
 
     //是否开启athena上报
     private boolean enableAthenaReport = true;
@@ -81,8 +81,29 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
         if(venusApplication == null){
             throw new VenusConfigException("venusApplication not config.");
         }
+
+        //校验地址有效性
+        validAddress(address);
+    }
+
+    /**
+     * 校验地址有效性
+     * @param address
+     */
+    void validAddress(String address){
         if(StringUtils.isEmpty(address)){
             throw new VenusConfigException("monitor address not allow empty.");
+        }
+        //10.32.221.6:9092,10.32.221.18:9092
+        String[] arr = address.split(",");
+        if(arr == null || arr.length == 0){
+            throw new VenusConfigException("monitor address is empty or invalid,valid address formt,eg:${venus.kafka.bootstrap.servers} or (10.32.221.6:9092,10.32.221.18:9092)");
+        }
+
+        String[] item = arr[0].split(":");
+        String port = item[1];
+        if(!port.equals("9092")){
+            throw new VenusConfigException("monitor address is invalid,valid address formt,eg:${venus.kafka.bootstrap.servers} or (10.32.221.6:9092,10.32.221.18:9092)");
         }
     }
 
@@ -202,7 +223,4 @@ public class VenusMonitorFactory implements InitializingBean, BeanFactoryPostPro
         return topic;
     }
 
-    public void setTopic(String topic) {
-        this.topic = topic;
-    }
 }
