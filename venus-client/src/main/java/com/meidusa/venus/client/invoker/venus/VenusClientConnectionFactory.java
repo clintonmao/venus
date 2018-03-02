@@ -90,64 +90,24 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
      */
     BackendConnectionWrapper getConnection(URL url, ClientInvocation invocation, ClientRemoteConfig remoteConfig){
         //获取连接
+        BackendConnectionPool nioConnPool = null;
         BackendConnection conn = null;
-        BackendConnectionPool nioConnPool = getNioConnPool(url,invocation,null);
         try {
+            nioConnPool = getNioConnPool(url,invocation,null);
             conn = nioConnPool.borrowObject();
+            if(conn != null && conn.isClosed()){
+                String address = url.getHost()+":" + url.getPort();
+                throw new RpcException(RpcException.NETWORK_EXCEPTION,String.format("get connection:%s failed,conn is closed.",address));
+            }
+            return new BackendConnectionWrapper(conn,nioConnPool);
         } catch (Exception e) {
             String address = new StringBuilder()
                     .append(url.getHost())
                     .append(":")
                     .append(url.getHost())
                     .toString();
-            throw new RpcException(RpcException.NETWORK_EXCEPTION,String.format("borrow connection:[%s] failed",address));
+            throw new RpcException(RpcException.NETWORK_EXCEPTION,String.format("get connection:%s failed,exception:%s",address,e.getMessage()));
         }
-        return new BackendConnectionWrapper(conn,nioConnPool);
-    }
-
-    @Override
-    public void releaseConnection(Connection conn) {
-        if(conn != null && conn instanceof BackendConnection){
-            BackendConnection backendConnection = (BackendConnection)conn;
-            //释放latch信息
-            releaseCountDownLatch(conn);
-            //释放连接池资源
-            String address = new StringBuilder().append(backendConnection.getHost()).append(":").append(backendConnection.getPort()).toString();
-            releaseNioConnPool(address);
-        }
-    }
-
-    /**
-     * 释放latch wait
-     * @param conn
-     */
-    void releaseCountDownLatch(Connection conn){
-        try {
-            if(MapUtils.isEmpty(serviceReqRespMap)){
-                return;
-            }
-            //非正常关闭，释放所有使用此连接latch wait
-            Collection<VenusReqRespWrapper> reqRespWrapperCollection = serviceReqRespMap.values();
-            for(VenusReqRespWrapper reqRespWrapper:reqRespWrapperCollection){
-                if(conn == reqRespWrapper.getBackendConnection()){
-                    if(reqRespWrapper.getReqRespLatch() != null && reqRespWrapper.getReqRespLatch().getCount() > 0){
-                        if(logger.isWarnEnabled()){
-                            logger.warn("release latch:{}.",reqRespWrapper.getReqRespLatch());
-                        }
-                        reqRespWrapper.getReqRespLatch().countDown();
-                    }
-                }
-            }
-        } catch (Exception e) {
-            if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error("release countDown latch error.",e);
-            }
-        }
-    }
-
-    @Override
-    public void releaseConnection(String address) {
-        releaseNioConnPool(address);
     }
 
     /**
@@ -162,20 +122,44 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
                 .append(":")
                 .append(url.getPort())
                 .toString();
-        //若存在，则直接使用连接池
+        //若存在相应地址的连接池
         if(connectionPoolMap.get(address) != null){
-            return connectionPoolMap.get(address);
-        }
-        //若不存在，则创建连接池
-        synchronized (connectionPoolMap){
-            BackendConnectionPool backendConnectionPool = null;
-            if(connectionPoolMap.get(address) != null){
-                backendConnectionPool = connectionPoolMap.get(address);
+            BackendConnectionPool connectionPool = connectionPoolMap.get(address);
+            //若连接池有效，则使用
+            if(connectionPool.isValid() && !connectionPool.isClosed()){
+                return connectionPool;
             }else{
-                backendConnectionPool = createNioConnPool(url,invocation,new ClientRemoteConfig());
-                connectionPoolMap.put(address,backendConnectionPool);
+                //若连接池无效，则关闭
+                if(!connectionPool.isClosed()){
+                    try {
+                        //fix 由于并发无法正常关闭问题
+                        for(int i=0;i<20;i++){
+                            if(connectionPool != null){
+                                connectionPool.close();
+                                connectionPoolMap.remove(address);
+                            }
+                            Thread.sleep(10);
+                        }
+                    } catch (Exception e) {}
+                }
             }
-            return backendConnectionPool;
+        }
+
+        //若不存在可用连接池，则新建
+        synchronized (connectionPoolMap){
+            //高并发场景，double check
+            if(connectionPoolMap.get(address) != null){
+                BackendConnectionPool connectionPool = connectionPoolMap.get(address);
+                if(connectionPool.isValid() && !connectionPool.isClosed()){
+                    return connectionPool;
+                }else{
+                    throw new RpcException(RpcException.NETWORK_EXCEPTION,"connection pool invalid or closed.");
+                }
+            }else{
+                BackendConnectionPool connectionPool = createNioConnPool(url,invocation,new ClientRemoteConfig());
+                connectionPoolMap.put(address,connectionPool);
+                return connectionPool;
+            }
         }
     }
 
@@ -260,6 +244,23 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
     }
 
 
+    @Override
+    public void releaseConnection(Connection conn) {
+        if(conn != null && conn instanceof BackendConnection){
+            BackendConnection backendConnection = (BackendConnection)conn;
+            //释放latch信息
+            releaseCountDownLatch(conn);
+            //释放连接池资源
+            String address = new StringBuilder().append(backendConnection.getHost()).append(":").append(backendConnection.getPort()).toString();
+            releaseNioConnPool(address);
+        }
+    }
+
+    @Override
+    public void releaseConnection(String address) {
+        releaseNioConnPool(address);
+    }
+
     /**
      * 释放连接池
      * @param address
@@ -284,6 +285,34 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
                 }
             } catch (Exception e) {
                 exceptionLogger.error("close connection pool failed:" + address,e);
+            }
+        }
+    }
+
+    /**
+     * 释放latch wait
+     * @param conn
+     */
+    void releaseCountDownLatch(Connection conn){
+        try {
+            if(MapUtils.isEmpty(serviceReqRespMap)){
+                return;
+            }
+            //非正常关闭，释放所有使用此连接latch wait
+            Collection<VenusReqRespWrapper> reqRespWrapperCollection = serviceReqRespMap.values();
+            for(VenusReqRespWrapper reqRespWrapper:reqRespWrapperCollection){
+                if(conn == reqRespWrapper.getBackendConnection()){
+                    if(reqRespWrapper.getReqRespLatch() != null && reqRespWrapper.getReqRespLatch().getCount() > 0){
+                        if(logger.isWarnEnabled()){
+                            logger.warn("release latch:{}.",reqRespWrapper.getReqRespLatch());
+                        }
+                        reqRespWrapper.getReqRespLatch().countDown();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("release countDown latch error.",e);
             }
         }
     }
