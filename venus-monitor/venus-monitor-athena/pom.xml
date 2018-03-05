@@ -23,7 +23,6 @@
         <dependency>
             <groupId>com.saike.athena</groupId>
             <artifactId>athena-client</artifactId>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

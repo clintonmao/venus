@@ -22,6 +22,6 @@
 		<!--<property name="brokers" value="10.32.221.6:9092,10.32.221.18:9092,10.32.221.23:9092"/>-->
 	</bean>
 
-	<!--<bean class="com.saic.framework.athena.module.base.AnnotationedAgentLogicScanner" init-method="init" autowire="byType"/>-->
+	<bean class="com.saic.framework.athena.module.base.AnnotationedAgentLogicScanner" init-method="init" autowire="byType"/>
 
 </beans>
