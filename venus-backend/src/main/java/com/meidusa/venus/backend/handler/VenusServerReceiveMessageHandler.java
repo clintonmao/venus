@@ -1,8 +1,11 @@
 package com.meidusa.venus.backend.handler;
 
+import com.alibaba.fastjson.JSON;
 import com.meidusa.toolkit.common.bean.util.Initialisable;
 import com.meidusa.toolkit.common.bean.util.InitialisationException;
 import com.meidusa.toolkit.common.util.Tuple;
+import com.meidusa.toolkit.net.Connection;
+import com.meidusa.toolkit.net.FrontendConnection;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.venus.Result;
@@ -34,6 +37,7 @@ import org.slf4j.Logger;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * venus服务端服务调用消息处理
@@ -65,29 +69,84 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
 
    public void handle(VenusFrontendConnection conn, Tuple<Long, byte[]> data) {
         //解析请求报文
+       if(isNeedPrintLog(conn)){
+           if(new Random().nextInt(100) > 20){
+               logger.info("recv msg,from:" + JSON.toJSONString(conn));
+           }
+       }
        ServerInvocation invocation = parseInvocation(conn, data);
        int type = invocation.getMessageType();
 
        switch (type) {
            case PacketConstant.PACKET_TYPE_PING:
+               if(isNeedPrintLog(conn)){
+                   if(new Random().nextInt(100) > 50){
+                       logger.info("recv ping msg,from:" + JSON.toJSONString(conn));
+                   }
+               }
                super.handle(conn, data);
                break;
            case PacketConstant.PACKET_TYPE_PONG:
+               if(isNeedPrintLog(conn)){
+                   if(new Random().nextInt(100) > 50){
+                       logger.info("recv pong msg,from:" + JSON.toJSONString(conn));
+                   }
+               }
                super.handle(conn, data);
                break;
            case PacketConstant.PACKET_TYPE_VENUS_STATUS_REQUEST:
+               if(isNeedPrintLog(conn)){
+                   if(new Random().nextInt(100) > 50){
+                       logger.info("recv status msg,from:" + JSON.toJSONString(conn));
+                   }
+               }
                super.handle(conn, data);
                break;
            case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:
+               if(isNeedPrintLog(conn)){
+                   if(new Random().nextInt(100) > 0){
+                       logger.info("recv service request msg,from:" + JSON.toJSONString(conn));
+                   }
+               }
                //处理服务调用消息
                doHandle(invocation);
                break;
            default:
+               if(isNeedPrintLog(conn)){
+                   if(new Random().nextInt(100) > 50){
+                       logger.info("recv default msg,from:" + JSON.toJSONString(conn));
+                   }
+               }
                super.handle(conn, data);
        }
 
     }
 
+    private static final String ONE_IP = "10.47.16.2";
+
+    boolean isNeedPrintLog(Connection conn){
+        if(conn != null && conn instanceof FrontendConnection){
+            String targetIp = getTargetAddress((FrontendConnection)conn);
+            if(targetIp.contains(ONE_IP)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    /**
+     * 获取连接地址
+     * @param frontendConnection
+     * @return
+     */
+    String getTargetAddress(FrontendConnection frontendConnection){
+        StringBuilder builder = new StringBuilder();
+        builder.append(frontendConnection.getHost());
+        builder.append(":");
+        builder.append(frontendConnection.getPort());
+        return builder.toString();
+    }
     /**
      * 处理远程调用请求
      */
