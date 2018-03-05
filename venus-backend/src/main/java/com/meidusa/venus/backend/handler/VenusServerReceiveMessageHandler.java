@@ -79,6 +79,10 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
 
        switch (type) {
            case PacketConstant.PACKET_TYPE_PING:
+               String targetIp = getTargetAddress(conn);
+               if(new Random().nextInt(100) > 95){
+                   logger.info("recv ping msg,####from####:" + targetIp);
+               }
                if(isNeedPrintLog(conn)){
                    if(new Random().nextInt(100) > 50){
                        logger.info("recv ping msg:" + getTargetAddress(conn));
