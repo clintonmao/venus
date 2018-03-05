@@ -35,5 +35,9 @@
             <groupId>com.meidusa.venus</groupId>
             <artifactId>venus-common-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.saike.athena</groupId>
+            <artifactId>athena-client</artifactId>
+        </dependency>
     </dependencies>
 </project>
