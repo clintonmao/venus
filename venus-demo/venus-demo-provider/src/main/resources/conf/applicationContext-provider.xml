@@ -75,6 +75,6 @@
     </bean>
 
 	<!--athena配置-->
-	<import resource="classpath:/conf/applicationContext-athena.xml"/>
+	<!--<import resource="classpath:/conf/applicationContext-athena.xml"/>-->
 
 </beans>

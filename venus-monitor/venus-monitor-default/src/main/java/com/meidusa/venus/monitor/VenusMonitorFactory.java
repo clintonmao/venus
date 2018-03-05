@@ -7,6 +7,7 @@ import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.monitor.support.ApplicationContextHolder;
 import com.meidusa.venus.monitor.support.CustomScanAndRegisteUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
+import com.saic.framework.athena.client.AthenaImpl;
 import com.saic.framework.athena.configuration.ClientConfigManager;
 import com.saic.framework.athena.configuration.DefaultClientConfigManager;
 import com.saic.framework.athena.message.impl.DefaultMessageManager;
@@ -205,7 +206,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
         //若未定义athena扫描包，则手动扫描athena以注解定义的包
         boolean isAthenaScanConfig = false;
         try {
-            Object bean = beanFactory.getBean(DefaultMessageManager.class);
+            Object bean = beanFactory.getBean(AthenaImpl.class);
             if(bean != null){
                 isAthenaScanConfig = true;
             }

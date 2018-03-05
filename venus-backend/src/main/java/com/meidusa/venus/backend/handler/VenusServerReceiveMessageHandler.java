@@ -71,7 +71,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
         //解析请求报文
        if(isNeedPrintLog(conn)){
            if(new Random().nextInt(100) > 20){
-               logger.info("recv msg,from:" + JSON.toJSONString(conn));
+               logger.info("recv msg,from:" + getTargetAddress(conn));
            }
        }
        ServerInvocation invocation = parseInvocation(conn, data);
@@ -81,7 +81,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
            case PacketConstant.PACKET_TYPE_PING:
                if(isNeedPrintLog(conn)){
                    if(new Random().nextInt(100) > 50){
-                       logger.info("recv ping msg,from:" + JSON.toJSONString(conn));
+                       logger.info("recv ping msg:" + getTargetAddress(conn));
                    }
                }
                super.handle(conn, data);
@@ -89,7 +89,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
            case PacketConstant.PACKET_TYPE_PONG:
                if(isNeedPrintLog(conn)){
                    if(new Random().nextInt(100) > 50){
-                       logger.info("recv pong msg,from:" + JSON.toJSONString(conn));
+                       logger.info("recv pong msg:" + getTargetAddress(conn));
                    }
                }
                super.handle(conn, data);
@@ -97,7 +97,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
            case PacketConstant.PACKET_TYPE_VENUS_STATUS_REQUEST:
                if(isNeedPrintLog(conn)){
                    if(new Random().nextInt(100) > 50){
-                       logger.info("recv status msg,from:" + JSON.toJSONString(conn));
+                       logger.info("recv status msg:" + getTargetAddress(conn));
                    }
                }
                super.handle(conn, data);
@@ -105,7 +105,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
            case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:
                if(isNeedPrintLog(conn)){
                    if(new Random().nextInt(100) > 0){
-                       logger.info("recv service request msg,from:" + JSON.toJSONString(conn));
+                       logger.info("recv service request msg:" + getTargetAddress(conn));
                    }
                }
                //处理服务调用消息
@@ -114,7 +114,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
            default:
                if(isNeedPrintLog(conn)){
                    if(new Random().nextInt(100) > 50){
-                       logger.info("recv default msg,from:" + JSON.toJSONString(conn));
+                       logger.info("recv default msg:" + getTargetAddress(conn));
                    }
                }
                super.handle(conn, data);
@@ -125,8 +125,8 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
     private static final String ONE_IP = "10.47.16.2";
 
     boolean isNeedPrintLog(Connection conn){
-        if(conn != null && conn instanceof FrontendConnection){
-            String targetIp = getTargetAddress((FrontendConnection)conn);
+        if(conn != null && conn instanceof VenusFrontendConnection){
+            String targetIp = getTargetAddress((VenusFrontendConnection)conn);
             if(targetIp.contains(ONE_IP)){
                 return true;
             }
@@ -140,7 +140,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
      * @param frontendConnection
      * @return
      */
-    String getTargetAddress(FrontendConnection frontendConnection){
+    String getTargetAddress(VenusFrontendConnection frontendConnection){
         StringBuilder builder = new StringBuilder();
         builder.append(frontendConnection.getHost());
         builder.append(":");
