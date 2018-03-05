@@ -16,9 +16,24 @@ public class VenusServerConnectionObserver implements ConnectionObserver {
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
+    private static final String ONE_IP = "10.47.16.2";
+
+    boolean isNeedPrintLog(Connection conn){
+        if(conn != null && conn instanceof FrontendConnection){
+            String targetIp = getTargetAddress((FrontendConnection)conn);
+            if(targetIp.contains(ONE_IP)){
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public void connectionEstablished(Connection conn) {
-        if(logger.isDebugEnabled()){
+        if(!isNeedPrintLog(conn)){
+            return;
+        }
+        if(logger.isInfoEnabled()){
             if(conn != null && conn instanceof FrontendConnection){
                 logger.info("connection established,target:[{}].",getTargetAddress((FrontendConnection)conn));
             }else{
@@ -40,7 +55,10 @@ public class VenusServerConnectionObserver implements ConnectionObserver {
 
     @Override
     public void connectionClosed(Connection conn) {
-        if(logger.isDebugEnabled()){
+        if(!isNeedPrintLog(conn)){
+            return;
+        }
+        if(logger.isWarnEnabled()){
             if(conn != null && conn instanceof FrontendConnection){
                 logger.warn("connection closed,target:[{}].",getTargetAddress((FrontendConnection)conn));
             }else{

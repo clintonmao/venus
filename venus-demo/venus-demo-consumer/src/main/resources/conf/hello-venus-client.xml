@@ -14,6 +14,10 @@
 			<!--方法级配置，方法级若配置则会覆盖服务级配置-->
 			<method name="getHello" timeout="${venus.consumer.timeout}"/>
 		</service>
+		<!--
+		172.17.89.11:16800
+		10.47.16.2:16800
+		-->
 		<service type="com.chexiang.venus.demo.provider.EchoService"/>
 	</services>
 </venus-client>
