@@ -129,12 +129,12 @@
         <dependency>
             <groupId>com.saike.ucm</groupId>
             <artifactId>ucm-client</artifactId>
-            <version>1.1.9.RELEASE</version>
+            <version>1.2.0.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>com.saike.ucm</groupId>
             <artifactId>ucm-client-spring</artifactId>
-            <version>1.1.9.RELEASE</version>
+            <version>1.2.0.RELEASE</version>
             <!--依賴項目自己的spring-->
             <exclusions>
                 <exclusion>
