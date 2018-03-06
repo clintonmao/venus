@@ -148,4 +148,12 @@ public interface RegisterService {
 	@Endpoint(name = "queryAllServiceNames")
 	@PerformanceLevel(printParams=false,printResult = false)
 	List<String> queryAllServiceNames();
+	
+	@Endpoint(name = "queryServices")
+	@PerformanceLevel(printParams=false,printResult = false)
+	List<VenusServiceDO> queryServices(@Param(name = "start")int start,@Param(name = "size")int size);
+	
+	@Endpoint(name = "getServicesCount")
+	@PerformanceLevel(printParams=false,printResult = false)
+	int getServicesCount();
 }
