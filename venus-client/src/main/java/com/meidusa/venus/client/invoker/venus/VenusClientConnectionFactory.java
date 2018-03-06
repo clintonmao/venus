@@ -1,25 +1,32 @@
 package com.meidusa.venus.client.invoker.venus;
 
+import com.meidusa.toolkit.common.heartbeat.HeartbeatManager;
+import com.meidusa.toolkit.common.heartbeat.Status;
 import com.meidusa.toolkit.net.*;
+import com.meidusa.toolkit.net.factory.BackendConnectionFactory;
 import com.meidusa.venus.ConnectionFactory;
 import com.meidusa.venus.URL;
-import com.meidusa.venus.VenusApplication;
 import com.meidusa.venus.client.ClientInvocation;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.factory.xml.config.FactoryConfig;
 import com.meidusa.venus.client.factory.xml.config.PoolConfig;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.io.network.VenusBackendConnectionFactory;
-import com.meidusa.venus.io.packet.PacketConstant;
+import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InvalidObjectException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * venus连接工厂
@@ -44,25 +51,25 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
     //rpcId-请求映射表
     private Map<String, ClientInvocation> serviceReqCallbackMap;
 
-    public VenusClientConnectionFactory(){
+    public VenusClientConnectionFactory() {
         init();
     }
 
     /**
      * 初始化，初始化连接相关
      */
-    void init(){
-        synchronized (this){
+    void init() {
+        synchronized (this) {
             //构造连接
-            if(connector == null && connectionManagers == null){
+            if (connector == null && connectionManagers == null) {
                 try {
-                    if(logger.isInfoEnabled()){
+                    if (logger.isInfoEnabled()) {
                         logger.info("#########init connector#############");
                     }
                     connector = new ConnectionConnector("connection connector-0");
                     int ioThreads = Runtime.getRuntime().availableProcessors();
                     connectionManagers = new ConnectionManager[ioThreads];
-                    for(int i=0;i<ioThreads;i++){
+                    for (int i = 0; i < ioThreads; i++) {
                         ConnectionManager connManager = new ConnectionManager("connection manager-" + i, -1);
                         //添加连接监听
                         connManager.addConnectionObserver(new VenusClientConnectionObserver());
@@ -83,81 +90,84 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
 
     /**
      * 获取connection
+     *
      * @param url
      * @param invocation
      * @param remoteConfig
      * @return
      */
-    BackendConnectionWrapper getConnection(URL url, ClientInvocation invocation, ClientRemoteConfig remoteConfig){
+    BackendConnectionWrapper getConnection(URL url, ClientInvocation invocation, ClientRemoteConfig remoteConfig) {
         //获取连接
         BackendConnectionPool nioConnPool = null;
         BackendConnection conn = null;
         try {
-            nioConnPool = getNioConnPool(url,invocation,null);
+            nioConnPool = getNioConnPool(url, invocation, null);
             conn = nioConnPool.borrowObject();
-            if(conn != null && conn.isClosed()){
-                String address = url.getHost()+":" + url.getPort();
-                throw new RpcException(RpcException.NETWORK_EXCEPTION,String.format("get connection:%s failed,conn is closed.",address));
+            if (conn != null && conn.isClosed()) {
+                String address = url.getHost() + ":" + url.getPort();
+                throw new RpcException(RpcException.NETWORK_EXCEPTION, String.format("get connection:%s failed,conn is closed.", address));
             }
-            return new BackendConnectionWrapper(conn,nioConnPool);
+            return new BackendConnectionWrapper(conn, nioConnPool);
         } catch (Exception e) {
             String address = new StringBuilder()
                     .append(url.getHost())
                     .append(":")
                     .append(url.getHost())
                     .toString();
-            throw new RpcException(RpcException.NETWORK_EXCEPTION,String.format("get connection:%s failed,exception:%s",address,e.getMessage()));
+            throw new RpcException(RpcException.NETWORK_EXCEPTION, String.format("get connection:%s failed,exception:%s", address, e.getMessage()));
         }
     }
 
     /**
      * 根据远程配置获取nio连接池
+     *
+     * @param url
      * @return
      * @throws Exception
-     * @param url
      */
-    public BackendConnectionPool getNioConnPool(URL url,ClientInvocation invocation,ClientRemoteConfig remoteConfig){
+    public BackendConnectionPool getNioConnPool(URL url, ClientInvocation invocation, ClientRemoteConfig remoteConfig) {
         String address = new StringBuilder()
                 .append(url.getHost())
                 .append(":")
                 .append(url.getPort())
                 .toString();
         //若存在相应地址的连接池
-        if(connectionPoolMap.get(address) != null){
+        if (connectionPoolMap.get(address) != null) {
             BackendConnectionPool connectionPool = connectionPoolMap.get(address);
             //若连接池有效，则使用
-            if(connectionPool.isValid() && !connectionPool.isClosed()){
+            if (connectionPool.isValid() && !connectionPool.isClosed()) {
                 return connectionPool;
-            }else{
+            } else {
                 //若连接池无效，则关闭
-                if(!connectionPool.isClosed()){
+                if (!connectionPool.isClosed()) {
                     try {
                         //fix 由于并发无法正常关闭问题
-                        for(int i=0;i<20;i++){
-                            if(connectionPool != null){
+                        for (int i = 0; i < 20; i++) {
+                            if (connectionPool != null) {
                                 connectionPool.close();
                                 connectionPoolMap.remove(address);
                             }
                             Thread.sleep(10);
                         }
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                 }
             }
         }
 
         //若不存在可用连接池，则新建
-        synchronized (connectionPoolMap){
+        synchronized (connectionPoolMap) {
             //高并发场景，double check
-            if(connectionPoolMap.get(address) != null){
+            if (connectionPoolMap.get(address) != null) {
                 BackendConnectionPool connectionPool = connectionPoolMap.get(address);
-                if(connectionPool.isValid() && !connectionPool.isClosed()){
+                if (connectionPool.isValid() && !connectionPool.isClosed()) {
                     return connectionPool;
-                }else{
-                    throw new RpcException(RpcException.NETWORK_EXCEPTION,"connection pool invalid or closed.");
+                } else {
+                    throw new RpcException(RpcException.NETWORK_EXCEPTION, "connection pool invalid or closed.");
                 }
-            }else{
-                BackendConnectionPool connectionPool = createNioConnPool(url,invocation,new ClientRemoteConfig());
-                connectionPoolMap.put(address,connectionPool);
+            } else {
+                BackendConnectionPool connectionPool = createNioConnPool(url, invocation, new ClientRemoteConfig());
+                connectionPoolMap.put(address, connectionPool);
                 return connectionPool;
             }
         }
@@ -165,19 +175,20 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
 
     /**
      * 创建连接池
+     *
      * @param url
      * @param remoteConfig
      * @return
      * @throws Exception
      */
-    private BackendConnectionPool createNioConnPool(URL url, ClientInvocation invocation, ClientRemoteConfig remoteConfig){
+    private BackendConnectionPool createNioConnPool(URL url, ClientInvocation invocation, ClientRemoteConfig remoteConfig) {
         String address = new StringBuilder()
                 .append(url.getHost())
                 .append(":")
                 .append(url.getPort())
                 .toString();
-        if(logger.isInfoEnabled()){
-            logger.info("#########create nio pool:[{}]#############",address);
+        if (logger.isInfoEnabled()) {
+            logger.info("#########create nio pool:[{}]#############", address);
         }
         //初始化连接工厂
         VenusBackendConnectionFactory nioFactory = new VenusBackendConnectionFactory();
@@ -203,7 +214,7 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
 
         //初始化连接池
         int connectionCount = invocation.getCoreConnections();
-        BackendConnectionPool nioPool = new PollingBackendConnectionPool("N-" + url.getHost(), nioFactory, connectionCount);
+        BackendConnectionPool nioPool = new PollingBackendConnectionPoolEx("N-" + url.getHost(), nioFactory, connectionCount);
         PoolConfig poolConfig = remoteConfig.getPool();
         if (poolConfig != null) {
             //BeanUtils.copyProperties(nioPool, poolConfig);
@@ -211,34 +222,36 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
         try {
             nioPool.init();
         } catch (Exception e) {
-            if(!nioPool.isClosed()){
+            if (!nioPool.isClosed()) {
                 try {
                     //fix 无法正常关闭pool
-                    for(int i=0;i<20;i++){
-                        if(nioPool != null){
+                    for (int i = 0; i < 20; i++) {
+                        if (nioPool != null) {
                             nioPool.close();
                         }
                         Thread.sleep(10);
                     }
-                } catch (Exception ex) {}
+                } catch (Exception ex) {
+                }
             }
-            throw new RpcException(RpcException.NETWORK_EXCEPTION,"init connection pool failed:" + address);
+            throw new RpcException(RpcException.NETWORK_EXCEPTION, "init connection pool failed:" + address);
         }
 
         //若连接池初始化失败，则释放连接池（fix 此时心跳检测已启动）
-        if(!nioPool.isValid()){
-            if(!nioPool.isClosed()){
+        if (!nioPool.isValid()) {
+            if (!nioPool.isClosed()) {
                 try {
                     //fix 无法正常关闭pool
-                    for(int i=0;i<20;i++){
-                        if(nioPool != null){
+                    for (int i = 0; i < 20; i++) {
+                        if (nioPool != null) {
                             nioPool.close();
                         }
                         Thread.sleep(10);
                     }
-                } catch (Exception e) {}
+                } catch (Exception e) {
+                }
             }
-            throw new RpcException(RpcException.NETWORK_EXCEPTION,"create connection pool invalid:" + address);
+            throw new RpcException(RpcException.NETWORK_EXCEPTION, "create connection pool invalid:" + address);
         }
         return nioPool;
     }
@@ -246,131 +259,98 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
 
     @Override
     public void releaseConnection(Connection conn) {
-        if(conn != null && conn instanceof BackendConnection){
-            BackendConnection backendConnection = (BackendConnection)conn;
+        if (conn != null && conn instanceof BackendConnection) {
+            BackendConnection backendConnection = (BackendConnection) conn;
             //释放latch信息
             releaseCountDownLatch(conn);
-            //释放连接池资源
+
+            //判断连接池状态若无效，则关闭连接池
             String address = new StringBuilder().append(backendConnection.getHost()).append(":").append(backendConnection.getPort()).toString();
-            releaseNioConnPool(address);
+            BackendConnectionPool connectionPool = connectionPoolMap.get(address);
+            //循环判断，fix连接检查及时性问题
+            for (int i = 0; i < 20; i++) {
+                if (connectionPool != null && !connectionPool.isValid()) {
+                    releaseNioConnPool(address);
+                }
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                }
+            }
         }
     }
 
     @Override
     public void releaseConnection(String address) {
-        releaseNioConnPool(address);
+        //判断连接池状态若无效，则关闭连接池
+        BackendConnectionPool connectionPool = connectionPoolMap.get(address);
+        //循环判断，fix连接检查及时性问题
+        for (int i = 0; i < 20; i++) {
+            if (connectionPool != null && !connectionPool.isValid()) {
+                releaseNioConnPool(address);
+            }
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+            }
+        }
     }
 
     /**
      * 释放连接池
+     *
      * @param address
      */
-    void releaseNioConnPool(String address){
+    void releaseNioConnPool(String address) {
         BackendConnectionPool connectionPool = connectionPoolMap.get(address);
-        if(connectionPool == null || connectionPool.isClosed()){
+        if (connectionPool == null || connectionPool.isClosed()) {
             return;
         }
 
-        if(false){//连接池有效，存在可用连接
-            logger.info("connection pool:[{}] is valid.",address);
-        }else{//连接池无效，所有连接不可用
+        if (false) {//连接池有效，存在可用连接
+            logger.info("connection pool:[{}] is valid.", address);
+        } else {//连接池无效，所有连接不可用
             try {
-                logger.info("connection pool:[{}] is invalid,release connection pool.",address);
+                logger.info("connection pool:[{}] is invalid,release connection pool.", address);
                 //循环关闭，解决并发冲突无法正常关闭问题
-                for(int i=0;i<20;i++){
-                    if(connectionPool != null){
+                for (int i = 0; i < 20; i++) {
+                    if (connectionPool != null) {
                         connectionPool.close();
                         connectionPoolMap.remove(address);
                     }
                 }
             } catch (Exception e) {
-                exceptionLogger.error("close connection pool failed:" + address,e);
+                exceptionLogger.error("close connection pool failed:" + address, e);
             }
         }
     }
 
     /**
      * 释放latch wait
+     *
      * @param conn
      */
-    void releaseCountDownLatch(Connection conn){
+    void releaseCountDownLatch(Connection conn) {
         try {
-            if(MapUtils.isEmpty(serviceReqRespMap)){
+            if (MapUtils.isEmpty(serviceReqRespMap)) {
                 return;
             }
             //非正常关闭，释放所有使用此连接latch wait
             Collection<VenusReqRespWrapper> reqRespWrapperCollection = serviceReqRespMap.values();
-            for(VenusReqRespWrapper reqRespWrapper:reqRespWrapperCollection){
-                if(conn == reqRespWrapper.getBackendConnection()){
-                    if(reqRespWrapper.getReqRespLatch() != null && reqRespWrapper.getReqRespLatch().getCount() > 0){
-                        if(logger.isWarnEnabled()){
-                            logger.warn("release latch:{}.",reqRespWrapper.getReqRespLatch());
+            for (VenusReqRespWrapper reqRespWrapper : reqRespWrapperCollection) {
+                if (conn == reqRespWrapper.getBackendConnection()) {
+                    if (reqRespWrapper.getReqRespLatch() != null && reqRespWrapper.getReqRespLatch().getCount() > 0) {
+                        if (logger.isWarnEnabled()) {
+                            logger.warn("release latch:{}.", reqRespWrapper.getReqRespLatch());
                         }
                         reqRespWrapper.getReqRespLatch().countDown();
                     }
                 }
             }
         } catch (Exception e) {
-            if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error("release countDown latch error.",e);
+            if (exceptionLogger.isErrorEnabled()) {
+                exceptionLogger.error("release countDown latch error.", e);
             }
-        }
-    }
-
-    /**
-     * 判断连接池是否有效(因组件内部判断连接池有效性接口存在延时，不准确)
-     * @return
-     */
-    /*
-    boolean isValidConnPool(BackendConnectionPool connectionPool){
-        int size = VenusConstants.CONNECTION_DEFAULT_COUNT*2;
-        for(int i=0;i<size;i++){
-            BackendConnection connection = null;
-            try {
-                connection = connectionPool.borrowObject();
-            } catch (Exception e) {
-                //无法获取连接
-                if(logger.isDebugEnabled()){
-                    logger.debug("not borrow conn from conn pool:" + connectionPool.getName(),e);
-                }
-                return false;
-            }finally {
-                if(connectionPool != null && connection != null){
-                    try {
-                        connectionPool.returnObject(connection);
-                    } catch (Exception e) {}
-                }
-            }
-        }
-        return true;
-    }
-    */
-
-    //connection wraaper
-    class BackendConnectionWrapper{
-        private BackendConnection backendConnection;
-
-        private BackendConnectionPool backendConnectionPool;
-
-        public BackendConnectionWrapper(BackendConnection backendConnection,BackendConnectionPool backendConnectionPool){
-            this.backendConnection = backendConnection;
-            this.backendConnectionPool = backendConnectionPool;
-        }
-
-        public BackendConnection getBackendConnection() {
-            return backendConnection;
-        }
-
-        public void setBackendConnection(BackendConnection backendConnection) {
-            this.backendConnection = backendConnection;
-        }
-
-        public BackendConnectionPool getBackendConnectionPool() {
-            return backendConnectionPool;
-        }
-
-        public void setBackendConnectionPool(BackendConnectionPool backendConnectionPool) {
-            this.backendConnectionPool = backendConnectionPool;
         }
     }
 
@@ -399,8 +379,8 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
             }
         }
 
-        if(connectionManagers != null && connectionManagers.length > 0){
-            for(ConnectionManager connManager:connectionManagers){
+        if (connectionManagers != null && connectionManagers.length > 0) {
+            for (ConnectionManager connManager : connectionManagers) {
                 if (connManager != null) {
                     if (connManager.isAlive()) {
                         connManager.shutdown();
@@ -409,4 +389,312 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
             }
         }
     }
+
+    //connection wraaper
+    class BackendConnectionWrapper {
+        private BackendConnection backendConnection;
+
+        private BackendConnectionPool backendConnectionPool;
+
+        public BackendConnectionWrapper(BackendConnection backendConnection, BackendConnectionPool backendConnectionPool) {
+            this.backendConnection = backendConnection;
+            this.backendConnectionPool = backendConnectionPool;
+        }
+
+        public BackendConnection getBackendConnection() {
+            return backendConnection;
+        }
+
+        public void setBackendConnection(BackendConnection backendConnection) {
+            this.backendConnection = backendConnection;
+        }
+
+        public BackendConnectionPool getBackendConnectionPool() {
+            return backendConnectionPool;
+        }
+
+        public void setBackendConnectionPool(BackendConnectionPool backendConnectionPool) {
+            this.backendConnectionPool = backendConnectionPool;
+        }
+    }
+
+    /**
+     * 扩展覆写状态检查功能
+     * @param <F>
+     * @param <V>
+     */
+    class PollingBackendConnectionPoolEx<F extends BackendConnectionFactory, V extends BackendConnection> implements BackendConnectionPool {
+
+        private final Logger LOGGER = LoggerFactory.getLogger(PollingBackendConnectionPoolEx.class);
+
+        private int HEATBEAT_INTERVAL = Integer.getInteger("heartbeat.interval", HeartbeatManager.DEFAULT_HEATBEAT_INTERVAL);
+        /**
+         * 非严格的计数器
+         */
+        private volatile long currentCounter = 0L;
+        private final F factory;
+        private final int size;
+        private final BackendConnection[] items;
+        private String name;
+        private boolean valid = true;
+        private boolean closed = false;
+        private ObjectPoolHeartbeatChecker heartbeatChecker;
+        private final Map<Integer, Object> lockMap = new HashMap<Integer, Object>();
+
+        public PollingBackendConnectionPoolEx(String name, F factory, int size) {
+            this.size = size;
+            this.items = new BackendConnection[size];
+            this.factory = factory;
+            this.name = name;
+        }
+
+        @Override
+        public void init() {
+            for (int i = 0; i < items.length; i++) {
+                this.lockMap.put(i, new Object());
+            }
+            for (int i = 0; i < items.length; i++) {
+                try {
+                    items[i] = factory.make();
+                } catch (IOException e) {
+                    LOGGER.error("init pool error ,name=" + this.name, e);
+                    this.setValid(false);
+                    break;
+                }
+            }
+
+            //连接池检查
+            heartbeatChecker = new ObjectPoolHeartbeatChecker(HEATBEAT_INTERVAL, TimeUnit.SECONDS, this, this.factory, this.size);
+            HeartbeatManager.addHeartbeat(heartbeatChecker);
+        }
+
+        @Override
+        public BackendConnection borrowObject() throws Exception {
+            BackendConnection conn = null;
+
+            /**
+             * 循环次数为 size+1，主要目的是避免目标服务重启以后，当前的所有连接已经处于closed状态，
+             * 必须要再进行创建一次连接，如果该连接有效则说明pool有效，否则视为无效
+             *
+             */
+            for (int j = 0; j < size + 1; j++) {
+                int i = (int) ((currentCounter++) % size);
+                conn = items[i];
+                if (conn == null) {
+                    Object lockObject = lockMap.get(i);
+                    synchronized (lockObject) {
+                        conn = items[i];
+                        if (conn == null) {
+                            conn = items[i] = factory.make();
+                            conn.setPool(this);
+                        }
+                    }
+                }
+
+                if (!conn.isClosed()) {
+                    conn.setActive(true);
+                    return conn;
+                } else {
+                    items[i] = null;
+                }
+            }
+
+            this.setValid(false);
+            throw new InvalidObjectException("invalid pool=" + this.name);
+        }
+
+        @Override
+        public void returnObject(BackendConnection c) {
+            c.setActive(false);
+        }
+
+        @Override
+        public synchronized void close() {
+            if (closed) {
+                return;
+            }
+            closed = true;
+            if (heartbeatChecker != null) {
+                HeartbeatManager.removeHeartbeat(heartbeatChecker);
+            }
+            for (BackendConnection conn : items) {
+                if (conn != null && !conn.isClosed()) {
+                    conn.close();
+                }
+            }
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public int getActive() {
+            return items.length;
+        }
+
+        @Override
+        public void deActive(BackendConnection c) {
+            //polling属于循环，该pool中连接可以重用，因此无所谓是否被使用
+            c.setActive(false);
+        }
+
+        @Override
+        public boolean isValid() {
+            return this.valid;
+        }
+
+        @Override
+        public void setValid(boolean b) {
+            this.valid = b;
+        }
+
+        public boolean isClosed() {
+            return closed;
+        }
+
+    }
+
+
+    /**
+     * 覆写状态检查checker
+     */
+    class ObjectPoolHeartbeatChecker extends BackendConnectionPool.ObjectPoolHeartbeatDelayed {
+        Status last = Status.VALID;
+        private BackendConnectionFactory factory;
+        private BackendConnection idleConn;
+        private ObjectPoolHeartbeatHandler idleHandler;
+        private int size;
+
+        public ObjectPoolHeartbeatChecker(long nsTime, TimeUnit timeUnit, BackendConnectionPool pool, BackendConnectionFactory factory, int size) {
+            super(nsTime, timeUnit, pool);
+            this.factory = factory;
+            this.size = size;
+        }
+
+        public Status doCheck() {
+            Status status = null;
+            try {
+                status = doCheckEx();
+                if (last == Status.INVALID && status == Status.VALID) {
+                    //do init pool
+                    for (int i = 0; i < size; i++) {
+                        status = doCheckEx();
+                        if (status == Status.INVALID) {
+                            return status;
+                        }
+                    }
+                    return status;
+                }
+                return status;
+            } catch (Exception ex){
+                return Status.INVALID;
+            }finally {
+                last = status;
+            }
+        }
+
+        private Status doCheckEx() {
+            BackendConnection conn = null;
+            try {
+                conn = pool.borrowObject();
+                if (conn != null) {
+                    if (conn.isClosed()) {
+                        pool.setValid(false);
+                        return Status.INVALID;
+                    } else {
+                        return doHeartbeatCheck();
+                    }
+                } else {
+                    return Status.INVALID;
+                }
+            } catch (Exception e) {
+                logger.warn(e.getMessage(), e);
+                pool.setValid(false);
+                return Status.INVALID;
+            } finally {
+                if (conn != null) {
+                    pool.returnObject(conn);
+                }
+            }
+        }
+
+        /**
+         * 通过发送状态消息包检查
+         * @return
+         * @throws Exception
+         */
+        Status doHeartbeatCheck() throws Exception{
+            if(idleConn == null || idleConn.isClosed()){
+                idleConn = factory.make();
+                idleHandler = new ObjectPoolHeartbeatHandler();
+                idleConn.setHandler(idleHandler);
+            }
+            idleHandler.sendMsg(idleConn);
+            Status status = idleHandler.getResult(idleConn);
+            if (status == Status.VALID) {
+                pool.setValid(true);
+                return Status.VALID;
+            } else {
+                pool.setValid(false);
+                return status;
+            }
+        }
+
+        public boolean isCycle() {
+            return true;
+        }
+
+    }
+
+    /**
+     * 扩展状态检查handler
+     *
+     * @param <T>
+     */
+    class ObjectPoolHeartbeatHandler<T> implements MessageHandler<BackendConnection, T> {
+
+        private CountDownLatch latch = new CountDownLatch(1);
+        private Status status;
+
+        protected void setStatus(Status status) {
+            this.status = status;
+            latch.countDown();
+        }
+
+        public void sendMsg(BackendConnection conn) {
+            VenusStatusRequestPacket packet = new VenusStatusRequestPacket();
+            conn.write(packet.toByteBuffer());
+        }
+
+        protected Status getResult(BackendConnection conn) {
+            try {
+                latch.await(2, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+            }
+            return status;
+        }
+
+        @Override
+        public void handle(BackendConnection conn, T data) {
+            byte[] message = (byte[]) data;
+            int type = AbstractServicePacket.getType(message);
+            if (type == AbstractVenusPacket.PACKET_TYPE_PONG) {
+                this.setStatus(Status.VALID);
+            } else if (type == AbstractVenusPacket.PACKET_TYPE_VENUS_STATUS_RESPONSE) {
+                VenusStatusResponsePacket packet = new VenusStatusResponsePacket();
+                packet.init(message);
+                if ((packet.status & PacketConstant.VENUS_STATUS_OUT_OF_MEMORY) > 0) {
+                    this.setStatus(Status.OUT_OF_MEMORY);
+                } else if ((packet.status & PacketConstant.VENUS_STATUS_SHUTDOWN) > 0) {
+                    this.setStatus(Status.INVALID);
+                } else {
+                    this.setStatus(Status.VALID);
+                }
+            }
+        }
+
+    }
+
 }
