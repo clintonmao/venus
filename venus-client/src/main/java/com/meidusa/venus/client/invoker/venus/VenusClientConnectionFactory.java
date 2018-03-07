@@ -1,5 +1,6 @@
 package com.meidusa.venus.client.invoker.venus;
 
+import com.alibaba.fastjson.JSON;
 import com.meidusa.toolkit.common.heartbeat.HeartbeatManager;
 import com.meidusa.toolkit.common.heartbeat.Status;
 import com.meidusa.toolkit.net.*;
@@ -11,7 +12,7 @@ import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.factory.xml.config.FactoryConfig;
 import com.meidusa.venus.client.factory.xml.config.PoolConfig;
 import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.io.network.VenusBackendConnectionFactory;
+import com.meidusa.venus.io.network.Venus4BackendConnectionFactory;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.util.VenusLoggerFactory;
@@ -134,23 +135,15 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
         //若存在相应地址的连接池
         if (connectionPoolMap.get(address) != null) {
             BackendConnectionPool connectionPool = connectionPoolMap.get(address);
-            //若连接池有效，则使用
-            if (connectionPool.isValid() && !connectionPool.isClosed()) {
-                return connectionPool;
+            if (connectionPool.isValid()) {//若连接池有效
+                if(!connectionPool.isClosed()){
+                    return connectionPool;
+                }
             } else {
-                //若连接池无效，则关闭
+                //若连接池无效
                 if (!connectionPool.isClosed()) {
-                    try {
-                        //fix 由于并发无法正常关闭问题
-                        for (int i = 0; i < 20; i++) {
-                            if (connectionPool != null) {
-                                connectionPool.close();
-                                connectionPoolMap.remove(address);
-                            }
-                            Thread.sleep(10);
-                        }
-                    } catch (Exception e) {
-                    }
+                    connectionPool.close();
+                    connectionPoolMap.remove(address);
                 }
             }
         }
@@ -191,7 +184,7 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
             logger.info("#########create nio pool:[{}]#############", address);
         }
         //初始化连接工厂
-        VenusBackendConnectionFactory nioFactory = new VenusBackendConnectionFactory();
+        Venus4BackendConnectionFactory nioFactory = new Venus4BackendConnectionFactory();
         nioFactory.setHost(url.getHost());
         nioFactory.setPort(Integer.valueOf(url.getPort()));
         if (remoteConfig.getAuthenticator() != null) {
@@ -214,7 +207,7 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
 
         //初始化连接池
         int connectionCount = invocation.getCoreConnections();
-        BackendConnectionPool nioPool = new PollingBackendConnectionPoolEx("N-" + url.getHost(), nioFactory, connectionCount);
+        BackendConnectionPool nioPool = new Venus4BackendConnectionPool("N-" + url.getHost(), nioFactory, connectionCount);
         PoolConfig poolConfig = remoteConfig.getPool();
         if (poolConfig != null) {
             //BeanUtils.copyProperties(nioPool, poolConfig);
@@ -222,17 +215,8 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
         try {
             nioPool.init();
         } catch (Exception e) {
-            if (!nioPool.isClosed()) {
-                try {
-                    //fix 无法正常关闭pool
-                    for (int i = 0; i < 20; i++) {
-                        if (nioPool != null) {
-                            nioPool.close();
-                        }
-                        Thread.sleep(10);
-                    }
-                } catch (Exception ex) {
-                }
+            if (nioPool != null && !nioPool.isClosed()) {
+                nioPool.close();
             }
             throw new RpcException(RpcException.NETWORK_EXCEPTION, "init connection pool failed:" + address);
         }
@@ -240,16 +224,7 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
         //若连接池初始化失败，则释放连接池（fix 此时心跳检测已启动）
         if (!nioPool.isValid()) {
             if (!nioPool.isClosed()) {
-                try {
-                    //fix 无法正常关闭pool
-                    for (int i = 0; i < 20; i++) {
-                        if (nioPool != null) {
-                            nioPool.close();
-                        }
-                        Thread.sleep(10);
-                    }
-                } catch (Exception e) {
-                }
+                nioPool.close();
             }
             throw new RpcException(RpcException.NETWORK_EXCEPTION, "create connection pool invalid:" + address);
         }
@@ -267,15 +242,8 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
             //判断连接池状态若无效，则关闭连接池
             String address = new StringBuilder().append(backendConnection.getHost()).append(":").append(backendConnection.getPort()).toString();
             BackendConnectionPool connectionPool = connectionPoolMap.get(address);
-            //循环判断，fix连接检查及时性问题
-            for (int i = 0; i < 20; i++) {
-                if (connectionPool != null && !connectionPool.isValid()) {
-                    releaseNioConnPool(address);
-                }
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException e) {
-                }
+            if (connectionPool != null && !connectionPool.isValid()) {
+                releaseNioConnPool(address);
             }
         }
     }
@@ -284,15 +252,8 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
     public void releaseConnection(String address) {
         //判断连接池状态若无效，则关闭连接池
         BackendConnectionPool connectionPool = connectionPoolMap.get(address);
-        //循环判断，fix连接检查及时性问题
-        for (int i = 0; i < 20; i++) {
-            if (connectionPool != null && !connectionPool.isValid()) {
-                releaseNioConnPool(address);
-            }
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-            }
+        if (connectionPool != null && !connectionPool.isValid()) {
+            releaseNioConnPool(address);
         }
     }
 
@@ -307,21 +268,12 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
             return;
         }
 
-        if (false) {//连接池有效，存在可用连接
-            logger.info("connection pool:[{}] is valid.", address);
-        } else {//连接池无效，所有连接不可用
-            try {
-                logger.info("connection pool:[{}] is invalid,release connection pool.", address);
-                //循环关闭，解决并发冲突无法正常关闭问题
-                for (int i = 0; i < 20; i++) {
-                    if (connectionPool != null) {
-                        connectionPool.close();
-                        connectionPoolMap.remove(address);
-                    }
-                }
-            } catch (Exception e) {
-                exceptionLogger.error("close connection pool failed:" + address, e);
-            }
+        try {
+            logger.info("connection pool:[{}] is invalid,release connection pool.", address);
+            connectionPool.close();
+            connectionPoolMap.remove(address);
+        } catch (Exception e) {
+            exceptionLogger.error("close connection pool failed:" + address, e);
         }
     }
 
@@ -419,13 +371,13 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
     }
 
     /**
-     * 扩展覆写状态检查功能
+     * venus4实现，扩展pool状态检查功能
      * @param <F>
      * @param <V>
      */
-    class PollingBackendConnectionPoolEx<F extends BackendConnectionFactory, V extends BackendConnection> implements BackendConnectionPool {
+    class Venus4BackendConnectionPool<F extends BackendConnectionFactory, V extends BackendConnection> implements BackendConnectionPool {
 
-        private final Logger LOGGER = LoggerFactory.getLogger(PollingBackendConnectionPoolEx.class);
+        private final Logger LOGGER = LoggerFactory.getLogger(Venus4BackendConnectionPool.class);
 
         private int HEATBEAT_INTERVAL = Integer.getInteger("heartbeat.interval", HeartbeatManager.DEFAULT_HEATBEAT_INTERVAL);
         /**
@@ -441,7 +393,7 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
         private ObjectPoolHeartbeatChecker heartbeatChecker;
         private final Map<Integer, Object> lockMap = new HashMap<Integer, Object>();
 
-        public PollingBackendConnectionPoolEx(String name, F factory, int size) {
+        public Venus4BackendConnectionPool(String name, F factory, int size) {
             this.size = size;
             this.items = new BackendConnection[size];
             this.factory = factory;
@@ -541,8 +493,20 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
         }
 
         @Override
+        //扩展判断，改为实时判断
         public boolean isValid() {
-            return this.valid;
+            if(this.items == null || this.items.length == 0){
+                return false;
+            }
+
+            //若有未关闭的，则连接池为可用
+            for(BackendConnection item:items){
+                if(item != null && !item.isClosed()){
+                    return true;
+                }
+            }
+            return false;
+            //return this.valid;
         }
 
         @Override
@@ -604,13 +568,14 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
                         pool.setValid(false);
                         return Status.INVALID;
                     } else {
-                        return doHeartbeatCheck();
+                        pool.setValid(true);
+                        return Status.VALID;
                     }
                 } else {
                     return Status.INVALID;
                 }
             } catch (Exception e) {
-                logger.warn(e.getMessage(), e);
+                logger.warn("connection pool check error.", e);
                 pool.setValid(false);
                 return Status.INVALID;
             } finally {
@@ -696,5 +661,6 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
         }
 
     }
+
 
 }

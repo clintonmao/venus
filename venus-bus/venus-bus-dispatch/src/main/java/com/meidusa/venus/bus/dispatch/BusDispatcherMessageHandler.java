@@ -14,7 +14,8 @@
 package com.meidusa.venus.bus.dispatch;
 
 import com.meidusa.toolkit.net.MessageHandler;
-import com.meidusa.venus.io.handler.VenusClientMessageHandler;
+import com.meidusa.venus.io.handler.Venus4BackendMessageHandler;
+import com.meidusa.venus.io.network.Venus4BackendConnection;
 import com.meidusa.venus.io.network.VenusBackendConnection;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.AbstractServicePacket;
@@ -33,7 +34,7 @@ import java.util.Map;
 /**
  * 服务调用NIO消息响应处理
  */
-public class BusDispatcherMessageHandler extends VenusClientMessageHandler implements MessageHandler<VenusBackendConnection, byte[]> {
+public class BusDispatcherMessageHandler extends Venus4BackendMessageHandler implements MessageHandler<Venus4BackendConnection, byte[]> {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -46,7 +47,7 @@ public class BusDispatcherMessageHandler extends VenusClientMessageHandler imple
      */
     private Map<String, VenusFrontendConnection> reqFrontConnMap;
 
-    public void handle(final VenusBackendConnection conn, final byte[] message) {
+    public void handle(final Venus4BackendConnection conn, final byte[] message) {
         doHandle(conn, message);
     }
 
@@ -55,7 +56,7 @@ public class BusDispatcherMessageHandler extends VenusClientMessageHandler imple
      * @param conn
      * @param message
      */
-    void doHandle(VenusBackendConnection conn, byte[] message) {
+    void doHandle(Venus4BackendConnection conn, byte[] message) {
         //获取序列化
         Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
         int type = AbstractServicePacket.getType(message);

@@ -5,9 +5,7 @@ import com.meidusa.toolkit.common.bean.util.InitialisationException;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.Connection;
 import com.meidusa.toolkit.net.MessageHandler;
-import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.StringUtil;
-import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.*;
@@ -21,9 +19,9 @@ import org.slf4j.LoggerFactory;
  *
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
-public class VenusServerMessageHandler implements MessageHandler<VenusFrontendConnection, Tuple<Long, byte[]>>, Initialisable {
+public class Venus4FrontendMessageHandler implements MessageHandler<VenusFrontendConnection, Tuple<Long, byte[]>>, Initialisable {
 
-    private static Logger logger = LoggerFactory.getLogger(VenusServerMessageHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(Venus4FrontendMessageHandler.class);
 
     @Override
     public void init() throws InitialisationException {
@@ -51,7 +49,6 @@ public class VenusServerMessageHandler implements MessageHandler<VenusFrontendCo
                 AbstractServicePacket.copyHead(ping, pong);
                 postMessageBack(conn, null, ping, pong);
                 break;
-
             // ignore this packet
             case PacketConstant.PACKET_TYPE_PONG:
                 break;

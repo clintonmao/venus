@@ -12,7 +12,7 @@ import com.meidusa.venus.backend.support.ServerResponseHandler;
 import com.meidusa.venus.backend.support.ServerResponseWrapper;
 import com.meidusa.venus.bus.dispatch.BusDispatcher;
 import com.meidusa.venus.exception.*;
-import com.meidusa.venus.io.handler.VenusServerMessageHandler;
+import com.meidusa.venus.io.handler.Venus4FrontendMessageHandler;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.utils.RpcIdUtil;
@@ -33,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * bus消息接收处理
  * @author structchen
  */
-public class BusReceiveMessageHandler extends VenusServerMessageHandler implements MessageHandler<VenusFrontendConnection, Tuple<Long, byte[]>>, Initialisable,InitializingBean{
+public class BusReceiveMessageHandler extends Venus4FrontendMessageHandler implements MessageHandler<VenusFrontendConnection, Tuple<Long, byte[]>>, Initialisable,InitializingBean{
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
