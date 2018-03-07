@@ -1,7 +1,7 @@
 package com.chexiang.venus.demo.provider.impl;
 
 import com.chexiang.venus.demo.provider.EchoService;
-import com.meidusa.venus.support.Echo;
+import com.chexiang.venus.demo.provider.model.Echo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

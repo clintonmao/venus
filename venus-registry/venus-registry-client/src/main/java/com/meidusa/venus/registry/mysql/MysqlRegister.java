@@ -342,7 +342,7 @@ public class MysqlRegister implements Register {
 					.append("?version=")
 					.append(version)
 					.toString();
-			logger.warn("######service url:{},node:{} offline,release connection.",serviceUrl,address);
+			logger.warn("######service:{},node:{} offline,release connection.",serviceUrl,address);
 		}
 		VenusContext context = VenusContext.getInstance();
 		//释放连接相关资源

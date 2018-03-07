@@ -1,11 +1,9 @@
 package com.meidusa.venus.backend.handler;
 
-import com.alibaba.fastjson.JSON;
 import com.meidusa.toolkit.common.bean.util.Initialisable;
 import com.meidusa.toolkit.common.bean.util.InitialisationException;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.Connection;
-import com.meidusa.toolkit.net.FrontendConnection;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.venus.Result;
@@ -18,7 +16,7 @@ import com.meidusa.venus.backend.support.ServerResponseHandler;
 import com.meidusa.venus.backend.support.ServerResponseWrapper;
 import com.meidusa.venus.backend.services.*;
 import com.meidusa.venus.exception.*;
-import com.meidusa.venus.io.handler.VenusServerMessageHandler;
+import com.meidusa.venus.io.handler.Venus4FrontendMessageHandler;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
@@ -45,7 +43,7 @@ import java.util.Random;
  *
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
-public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler implements MessageHandler<VenusFrontendConnection, Tuple<Long, byte[]>>, Initialisable {
+public class VenusServerReceiveMessageHandler extends Venus4FrontendMessageHandler implements MessageHandler<VenusFrontendConnection, Tuple<Long, byte[]>>, Initialisable {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -74,27 +72,12 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
 
        switch (type) {
            case PacketConstant.PACKET_TYPE_PING:
-               if(isNeedPrintLog(conn)){
-                   if(new Random().nextInt(100) > 95){
-                       logger.info("recv ping msg:" + getTargetAddress(conn));
-                   }
-               }
                super.handle(conn, data);
                break;
            case PacketConstant.PACKET_TYPE_PONG:
-               if(isNeedPrintLog(conn)){
-                   if(new Random().nextInt(100) > 95){
-                       logger.info("recv pong msg:" + getTargetAddress(conn));
-                   }
-               }
                super.handle(conn, data);
                break;
            case PacketConstant.PACKET_TYPE_VENUS_STATUS_REQUEST:
-               if(isNeedPrintLog(conn)){
-                   if(new Random().nextInt(100) > 95){
-                       logger.info("recv status msg:" + getTargetAddress(conn));
-                   }
-               }
                super.handle(conn, data);
                break;
            case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:
@@ -102,11 +85,6 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
                doHandle(invocation);
                break;
            default:
-               if(isNeedPrintLog(conn)){
-                   if(new Random().nextInt(100) > 95){
-                       logger.info("recv default msg:" + getTargetAddress(conn));
-                   }
-               }
                super.handle(conn, data);
        }
 
@@ -115,7 +93,7 @@ public class VenusServerReceiveMessageHandler extends VenusServerMessageHandler 
     boolean isNeedPrintLog(Connection conn){
         if(conn != null && conn instanceof VenusFrontendConnection){
             String targetIp = getTargetAddress((VenusFrontendConnection)conn);
-            if("A".equals("A")){
+            if(targetIp.contains("10.47.16.8")){
                 return true;
             }
         }

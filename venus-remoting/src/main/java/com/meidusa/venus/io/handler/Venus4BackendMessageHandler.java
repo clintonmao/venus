@@ -14,6 +14,8 @@
 package com.meidusa.venus.io.handler;
 
 import com.meidusa.toolkit.net.MessageHandler;
+import com.meidusa.toolkit.util.TimeUtil;
+import com.meidusa.venus.io.network.Venus4BackendConnection;
 import com.meidusa.venus.io.network.VenusBackendConnection;
 import com.meidusa.venus.io.packet.AbstractServicePacket;
 import com.meidusa.venus.io.packet.PacketConstant;
@@ -24,18 +26,19 @@ import org.slf4j.LoggerFactory;
 /**
  * venuw客户端消息处理类
  */
-public class VenusClientMessageHandler implements MessageHandler<VenusBackendConnection, byte[]> {
+public class Venus4BackendMessageHandler implements MessageHandler<Venus4BackendConnection, byte[]> {
 
-    private static Logger logger = LoggerFactory.getLogger(VenusClientMessageHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(Venus4BackendMessageHandler.class);
 
-    public void handle(VenusBackendConnection conn, byte[] message) {
+    public void handle(Venus4BackendConnection conn, byte[] message) {
         int type = AbstractServicePacket.getType(message);
         switch (type) {
-            case PacketConstant.PACKET_TYPE_PONG:
-                break;
             case PacketConstant.PACKET_TYPE_PING:
                 PongPacket pong = new PongPacket();
                 conn.write(pong.toByteBuffer());
+                break;
+            case PacketConstant.PACKET_TYPE_PONG:
+                conn.setLastPong(TimeUtil.currentTimeMillis());
                 break;
             default:
         }

@@ -20,7 +20,8 @@ import com.meidusa.venus.exception.DefaultVenusException;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.exception.XmlVenusExceptionFactory;
-import com.meidusa.venus.io.handler.VenusClientMessageHandler;
+import com.meidusa.venus.io.handler.Venus4BackendMessageHandler;
+import com.meidusa.venus.io.network.Venus4BackendConnection;
 import com.meidusa.venus.io.network.VenusBackendConnection;
 import com.meidusa.venus.io.packet.*;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceNofityPacket;
@@ -39,7 +40,7 @@ import java.util.Map;
 /**
  * 服务调用NIO消息响应处理
  */
-public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler implements MessageHandler<VenusBackendConnection, byte[]> {
+public class VenusClientInvokerMessageHandler extends Venus4BackendMessageHandler implements MessageHandler<Venus4BackendConnection, byte[]> {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -53,7 +54,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
     //rpcId-请求&回调映射表
     private Map<String, ClientInvocation> serviceReqCallbackMap;
 
-    public void handle(final VenusBackendConnection conn, final byte[] message) {
+    public void handle(final Venus4BackendConnection conn, final byte[] message) {
         doHandle(conn, message);
     }
 
@@ -62,7 +63,7 @@ public class VenusClientInvokerMessageHandler extends VenusClientMessageHandler 
      * @param conn
      * @param message
      */
-    void doHandle(VenusBackendConnection conn, byte[] message) {
+    void doHandle(Venus4BackendConnection conn, byte[] message) {
         //获取序列化
         Serializer serializer = SerializerFactory.getSerializer(conn.getSerializeType());
         int type = AbstractServicePacket.getType(message);

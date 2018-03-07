@@ -204,16 +204,15 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
      */
     void initAthenaClient(ConfigurableListableBeanFactory beanFactory){
         //若未定义athena扫描包，则手动扫描athena以注解定义的包
-        boolean isAthenaScanConfig = false;
+        boolean hasAthenaScanConfig = false;
         try {
-            Object bean = beanFactory.getBean(AthenaImpl.class);
-            if(bean != null){
-                isAthenaScanConfig = true;
+            if(beanFactory.containsBean("athenaImpl")){
+                hasAthenaScanConfig = true;
             }
         } catch (BeansException e) {
-            logger.warn("get DefaultMessageManager failed:" + e.getClass());
+            logger.warn("get athenaImpl failed:" + e.getClass());
         }
-        if(!isAthenaScanConfig){
+        if(!hasAthenaScanConfig){
             if(logger.isWarnEnabled()){
                 logger.warn("########athena scan package not config,will scan athena package.");
             }
@@ -222,16 +221,15 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
 
 
         //若未配置clientConfigManager，则初始化配置
-        boolean isAthenaConfigManager = false;
+        boolean hasAthenaConfigManager = false;
         try {
-            Object bean = beanFactory.getBean(DefaultClientConfigManager.class);
-            if(bean != null){
-                isAthenaConfigManager = true;
+            if(beanFactory.containsBean("configManager")){
+                hasAthenaConfigManager = true;
             }
         } catch (BeansException e) {
-            logger.warn("get DefaultClientConfigManager failed:" + e.getClass());
+            logger.warn("get configManager failed:" + e.getClass());
         }
-        if(!isAthenaConfigManager){
+        if(!hasAthenaConfigManager){
             if(logger.isWarnEnabled()){
                 logger.warn("########athena ClientConfigManager not config,will init athena client config manager.");
             }
