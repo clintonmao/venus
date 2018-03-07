@@ -157,7 +157,7 @@ public interface RegisterService {
 	@PerformanceLevel(printParams=false,printResult = false)
 	int getServicesCount();
 	
-	@Endpoint(name = "queryServicesByKeyWord")
+	@Endpoint(name = "searchServices")
 	@PerformanceLevel(printParams=false,printResult = false)
 	List<VenusServiceDO> searchServices(@Param(name = "keyword")String keyword,@Param(name = "version")String version);
 }
