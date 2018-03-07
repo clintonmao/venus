@@ -1203,7 +1203,10 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	public int getServicesCount() {
 		return venusServiceDAO.getServiceCount();
 	}
-	
-	
+
+	@Override
+	public List<VenusServiceDO> searchServices(String keyword,String version) {
+		return venusServiceDAO.queryServicesByKeyWord(keyword, version, 50);
+	}
 
 }
