@@ -1,4 +1,4 @@
-package com.meidusa.venus.support;
+package com.chexiang.venus.demo.provider.model;
 
 /**
  * 性能测试临时用

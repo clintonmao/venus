@@ -1,10 +1,9 @@
 package com.chexiang.venus.demo.provider;
 
-import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Param;
 import com.meidusa.venus.annotations.Service;
-import com.meidusa.venus.support.Echo;
+import com.chexiang.venus.demo.provider.model.Echo;
 
 /**
  * Created by Zhangzhihua on 2017/10/29.

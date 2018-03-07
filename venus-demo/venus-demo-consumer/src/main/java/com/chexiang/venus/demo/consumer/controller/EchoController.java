@@ -1,11 +1,8 @@
 package com.chexiang.venus.demo.consumer.controller;
 
 import com.chexiang.venus.demo.provider.EchoService;
-import com.chexiang.venus.demo.provider.HelloService;
-import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.venus.Result;
-import com.meidusa.venus.notify.InvocationListener;
-import com.meidusa.venus.support.Echo;
+import com.chexiang.venus.demo.provider.model.Echo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
