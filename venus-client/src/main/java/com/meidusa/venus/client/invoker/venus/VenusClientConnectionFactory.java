@@ -1,6 +1,5 @@
 package com.meidusa.venus.client.invoker.venus;
 
-import com.alibaba.fastjson.JSON;
 import com.meidusa.toolkit.common.heartbeat.HeartbeatManager;
 import com.meidusa.toolkit.common.heartbeat.Status;
 import com.meidusa.toolkit.net.*;
