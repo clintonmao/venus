@@ -478,6 +478,28 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		}
 	}
 	
+	@Override
+	public List<VenusServiceDO> queryPageServices(int start, int size) throws DAOException {
+		String sql = SELECT_FIELDS + " from t_venus_service ";
+
+		sql = sql + " order by id asc limit " + start+","+size;
+
+		try {
+			return this.jdbcTemplate.query(sql, new Object[] {}, new ResultSetExtractor<List<VenusServiceDO>>() {
+				@Override
+				public List<VenusServiceDO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<VenusServiceDO> returnList = new ArrayList<VenusServiceDO>();
+					while (rs.next()) {
+						returnList.add(ResultUtils.resultToVenusServiceDO(rs));
+					}
+					return returnList;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据sql=>" + sql + ";获取服务列表异常", e);
+		}
+	}
+	
 	@Deprecated
 	public boolean updateServiceVersionRange(int id, String versionRange) throws DAOException {
 		String sql = "update t_venus_service set version_range=?,update_time=now() where id=?";

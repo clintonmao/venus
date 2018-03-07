@@ -1194,4 +1194,16 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		}
 	}
 
+	@Override
+	public List<VenusServiceDO> queryServices(int start, int size) {
+		return venusServiceDAO.queryPageServices(start, size);
+	}
+	
+	@Override
+	public int getServicesCount() {
+		return venusServiceDAO.getServiceCount();
+	}
+	
+	
+
 }

@@ -138,6 +138,8 @@ public class VenusHttpServlet extends HttpServlet {
             if (req.getContentLength() > 0) {
     			ByteArrayOutputStream bao = new ByteArrayOutputStream();
     			IOUtils.copyLarge(req.getInputStream(),bao);
+//    			String str=new String(bao.toByteArray());
+//    			System.out.println("^^^^^^^^^^^^^^^"+str);
                 parameterMap = serializer.decode(bao.toByteArray(), endpoint.getParameterTypeDict());
             } else {
                 parameterMap = new HashMap<String, Object>();
