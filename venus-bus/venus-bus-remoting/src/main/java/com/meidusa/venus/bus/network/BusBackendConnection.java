@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.bus.handler.BusBackendMessageHandler;
-import com.meidusa.venus.bus.handler.ClientConnectionObserver;
+import com.meidusa.venus.bus.handler.BusClientConnectionObserver;
 import com.meidusa.venus.io.network.VenusBackendConnection;
 import com.meidusa.venus.io.packet.PingPacket;
 import com.meidusa.venus.io.utils.Bits;
@@ -105,7 +105,7 @@ public class BusBackendConnection extends VenusBackendConnection {
         boolean closed = super.close();
         if (closed) {
             if (this.getHandler() instanceof BusBackendMessageHandler) {
-                ClientConnectionObserver os = ((BusBackendMessageHandler) this.getHandler()).getClientConnectionObserver();
+                BusClientConnectionObserver os = ((BusBackendMessageHandler) this.getHandler()).getClientConnectionObserver();
 
                 Iterator<Entry<Long, byte[]>> it = unCompeleted.entrySet().iterator();
                 while (it.hasNext()) {

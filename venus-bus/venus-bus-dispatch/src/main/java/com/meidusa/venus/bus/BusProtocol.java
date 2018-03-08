@@ -7,9 +7,8 @@ import com.meidusa.toolkit.net.authenticate.server.AuthenticateProvider;
 import com.meidusa.toolkit.net.factory.FrontendConnectionFactory;
 import com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider;
 import com.meidusa.venus.exception.VenusConfigException;
-import com.meidusa.venus.io.network.VenusBackendFrontendConnectionFactory;
+import com.meidusa.venus.io.network.Venus4FrontendConnectionFactory;
 import com.meidusa.venus.support.VenusConstants;
-import com.meidusa.venus.support.VenusContext;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -86,7 +85,7 @@ public class BusProtocol implements InitializingBean,DisposableBean {
      * @return
      */
     FrontendConnectionFactory createConnectionFactory() throws InitialisationException {
-        VenusBackendFrontendConnectionFactory connectionFactory = new VenusBackendFrontendConnectionFactory();
+        Venus4FrontendConnectionFactory connectionFactory = new Venus4FrontendConnectionFactory();
         //connectionFactory.setSendBufferSize(16);
         //connectionFactory.setReceiveBufferSize(8);
         //MessageHandler messageHandler = createMessageHandler();

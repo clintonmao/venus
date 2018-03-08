@@ -6,9 +6,9 @@ import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.config.ExceptionCodeConstant;
 import com.meidusa.toolkit.util.TimeUtil;
 
-public class VenusBackendFrontendConnection extends VenusFrontendConnection {
+public class Venus4FrontendConnection extends VenusFrontendConnection {
 
-    public VenusBackendFrontendConnection(SocketChannel channel) {
+    public Venus4FrontendConnection(SocketChannel channel) {
         super(channel);
     }
 
@@ -21,7 +21,7 @@ public class VenusBackendFrontendConnection extends VenusFrontendConnection {
                 @Override
                 public void run() {
                     try {
-                        handler.handle(VenusBackendFrontendConnection.this, tuple);
+                        handler.handle(Venus4FrontendConnection.this, tuple);
                     } catch (Throwable t) {
                         handleError(ExceptionCodeConstant.ERR_HANDLE_DATA, t);
                     }
@@ -30,7 +30,7 @@ public class VenusBackendFrontendConnection extends VenusFrontendConnection {
             processor.getExecutor().execute(runnable);
         } else {
             try {
-                handler.handle(VenusBackendFrontendConnection.this, tuple);
+                handler.handle(Venus4FrontendConnection.this, tuple);
             } catch (Throwable t) {
                 handleError(ExceptionCodeConstant.ERR_HANDLE_DATA, t);
             }

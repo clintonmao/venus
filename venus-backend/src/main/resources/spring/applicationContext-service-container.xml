@@ -19,7 +19,7 @@
     	<property name="connectionFactory" ref="serviceConnectionFactory"/>
     </bean>
     
-    <bean id="serviceConnectionFactory" class="com.meidusa.venus.io.network.VenusBackendFrontendConnectionFactory">
+    <bean id="serviceConnectionFactory" class="com.meidusa.venus.io.network.Venus4FrontendConnectionFactory">
 		<!--
 		<property name="messageHandler">
 			<bean id="messageHandler" class="com.meidusa.venus.backmessageHandlerdVenusServerReceiveMessageHandlerdler" init-method="init">

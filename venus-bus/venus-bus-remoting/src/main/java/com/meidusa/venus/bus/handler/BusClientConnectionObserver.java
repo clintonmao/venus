@@ -13,7 +13,7 @@ import com.meidusa.venus.io.network.VenusFrontendConnection;
  * @author structchen
  * 
  */
-public class ClientConnectionObserver implements ConnectionObserver {
+public class BusClientConnectionObserver implements ConnectionObserver {
     private Map<Long, Connection> clientMap = new ConcurrentHashMap<Long, Connection>();
 
     @Override

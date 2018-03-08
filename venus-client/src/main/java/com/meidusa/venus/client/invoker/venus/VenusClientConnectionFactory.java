@@ -389,7 +389,7 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
         private String name;
         private boolean valid = true;
         private boolean closed = false;
-        private ObjectPoolHeartbeatChecker heartbeatChecker;
+        private ConnectionPoolHeartbeatChecker heartbeatChecker;
         private final Map<Integer, Object> lockMap = new HashMap<Integer, Object>();
 
         public Venus4BackendConnectionPool(String name, F factory, int size) {
@@ -415,7 +415,7 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
             }
 
             //连接池检查
-            heartbeatChecker = new ObjectPoolHeartbeatChecker(HEATBEAT_INTERVAL, TimeUnit.SECONDS, this, this.factory, this.size);
+            heartbeatChecker = new ConnectionPoolHeartbeatChecker(HEATBEAT_INTERVAL, TimeUnit.SECONDS, this, this.factory, this.size);
             HeartbeatManager.addHeartbeat(heartbeatChecker);
         }
 
@@ -523,14 +523,14 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
     /**
      * 覆写状态检查checker
      */
-    class ObjectPoolHeartbeatChecker extends BackendConnectionPool.ObjectPoolHeartbeatDelayed {
+    class ConnectionPoolHeartbeatChecker extends BackendConnectionPool.ObjectPoolHeartbeatDelayed {
         Status last = Status.VALID;
         private BackendConnectionFactory factory;
         private BackendConnection idleConn;
-        private ObjectPoolHeartbeatHandler idleHandler;
+        private ConnectionPoolHeartbeatHandler idleHandler;
         private int size;
 
-        public ObjectPoolHeartbeatChecker(long nsTime, TimeUnit timeUnit, BackendConnectionPool pool, BackendConnectionFactory factory, int size) {
+        public ConnectionPoolHeartbeatChecker(long nsTime, TimeUnit timeUnit, BackendConnectionPool pool, BackendConnectionFactory factory, int size) {
             super(nsTime, timeUnit, pool);
             this.factory = factory;
             this.size = size;
@@ -592,7 +592,7 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
         Status doHeartbeatCheck() throws Exception{
             if(idleConn == null || idleConn.isClosed()){
                 idleConn = factory.make();
-                idleHandler = new ObjectPoolHeartbeatHandler();
+                idleHandler = new ConnectionPoolHeartbeatHandler();
                 idleConn.setHandler(idleHandler);
             }
             idleHandler.sendMsg(idleConn);
@@ -617,7 +617,7 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
      *
      * @param <T>
      */
-    class ObjectPoolHeartbeatHandler<T> implements MessageHandler<BackendConnection, T> {
+    class ConnectionPoolHeartbeatHandler<T> implements MessageHandler<BackendConnection, T> {
 
         private CountDownLatch latch = new CountDownLatch(1);
         private Status status;

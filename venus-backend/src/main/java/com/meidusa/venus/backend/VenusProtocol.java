@@ -13,7 +13,7 @@ import com.meidusa.venus.backend.handler.VenusServerConnectionObserver;
 import com.meidusa.venus.backend.handler.VenusServerReceiveMessageHandler;
 import com.meidusa.venus.backend.services.ServiceManager;
 import com.meidusa.venus.exception.VenusConfigException;
-import com.meidusa.venus.io.network.VenusBackendFrontendConnectionFactory;
+import com.meidusa.venus.io.network.Venus4FrontendConnectionFactory;
 import com.meidusa.venus.support.VenusConstants;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
@@ -124,7 +124,7 @@ public class VenusProtocol implements Protocol,InitializingBean{
      * @return
      */
     FrontendConnectionFactory createConnectionFactory() throws InitialisationException {
-        VenusBackendFrontendConnectionFactory connectionFactory = new VenusBackendFrontendConnectionFactory();
+        Venus4FrontendConnectionFactory connectionFactory = new Venus4FrontendConnectionFactory();
         //connectionFactory.setSendBufferSize(16);
         //connectionFactory.setReceiveBufferSize(8);
         MessageHandler messageHandler = createMessageHandler();

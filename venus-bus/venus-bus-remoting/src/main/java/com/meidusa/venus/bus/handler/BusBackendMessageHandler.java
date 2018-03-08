@@ -24,13 +24,13 @@ public class BusBackendMessageHandler implements MessageHandler<BusBackendConnec
 
 	final static Logger logger = LoggerFactory.getLogger("venus.backend.performance");
 
-    private ClientConnectionObserver clientConnectionObserver;
+    private BusClientConnectionObserver clientConnectionObserver;
 
-    public ClientConnectionObserver getClientConnectionObserver() {
+    public BusClientConnectionObserver getClientConnectionObserver() {
         return clientConnectionObserver;
     }
 
-    public void setClientConnectionObserver(ClientConnectionObserver clientConnectionObserver) {
+    public void setClientConnectionObserver(BusClientConnectionObserver clientConnectionObserver) {
         this.clientConnectionObserver = clientConnectionObserver;
     }
 
