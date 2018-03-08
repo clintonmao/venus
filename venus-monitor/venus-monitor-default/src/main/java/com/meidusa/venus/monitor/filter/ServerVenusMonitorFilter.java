@@ -4,7 +4,6 @@ import com.athena.venus.domain.VenusMethodCallDetailDO;
 import com.athena.venus.domain.VenusMethodStaticDO;
 import com.meidusa.venus.*;
 import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.monitor.MonitorDataConvert;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.monitor.support.VenusMonitorConstants;
@@ -22,7 +21,7 @@ import java.util.Date;
  * server监控filter
  * Created by Zhangzhihua on 2017/8/28.
  */
-public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements Filter,MonitorDataConvert {
+public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements Filter,MonitorOperation {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -37,26 +36,16 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
     public void init() throws RpcException {
         synchronized (this){
             if(!isInited){
-                //启动上报线程
-                startProcessAndReporterTread();
+                //启动计算、上报线程
+                Thread processThread = new Thread(new VenusMonitorProcessTask(detailQueue, reportDetailQueue, statisticMap, this));
+                processThread.setName("provider monitor process");
+                processThread.start();
+
+                Thread reporterThread = new Thread(new VenusMonitorReportTask(detailQueue, reportDetailQueue, statisticMap, this));
+                reporterThread.setName("provider monitor report");
+                reporterThread.start();
                 isInited = true;
             }
-        }
-    }
-
-    /**
-     * 起动数据计算及上报线程
-     */
-    void startProcessAndReporterTread(){
-        if(!isRunning){
-            Thread processThread = new Thread(new VenusMonitorProcessTask(detailQueue, reportDetailQueue, statisticMap, this));
-            processThread.setName("provider monitor process");
-            processThread.start();
-
-            Thread reporterThread = new Thread(new VenusMonitorReportTask(detailQueue, reportDetailQueue, statisticMap, this));
-            reporterThread.setName("provider monitor report");
-            reporterThread.start();
-            isRunning = true;
         }
     }
 
@@ -74,7 +63,7 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         try {
             ServerInvocationOperation serverInvocation = (ServerInvocationOperation)invocation;
-            //若不需要上报，则跳过
+            //athena不上报
             if(!isNeedReport(serverInvocation)){
                 return null;
             }
@@ -90,7 +79,7 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
             invocationDetail.setException(e);
 
             //添加到明细队列
-            putInvocationDetailQueue(invocationDetail);
+            putDetail2Queue(invocationDetail);
             return null;
         }catch(Throwable e){
             //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用
@@ -107,44 +96,8 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
      * @return
      */
     boolean isNeedReport(ServerInvocationOperation invocation){
-        //走注册中心才上报
-        /*
-        if(clientInvocation.getLookupType() == 0){
-            return false;
-        }
-        */
         return !VenusUtil.isAthenaInterface(invocation);
     }
-
-    /**
-     * 获取调用方法及调用环境标识路径
-     * @return
-     */
-    String getMethodAndEnvPath(InvocationDetail detail){
-        /*
-        Invocation invocation = detail.getInvocation();
-        //请求时间，精确为分钟
-        ServerInvocation serverInvocation = (ServerInvocation)invocation;
-        String requestTimeOfMinutes = getTimeOfMinutes(serverInvocation.getRequestTime());
-
-        //方法路径信息
-        String methodAndEnvPath = String.format(
-                "%s/%s?version=%s&method=%s&startTime=%s",
-                invocation.getServiceInterfaceName(),
-                invocation.getServiceName(),
-                invocation.getVersion(),
-                invocation.getMethodName(),
-                requestTimeOfMinutes
-        );
-        if(logger.isDebugEnabled()){
-            logger.debug("methodAndEnvPath:{}.", methodAndEnvPath);
-        }
-        return methodAndEnvPath;
-        */
-        //服务端不做统计上报
-        return null;
-    }
-
 
     @Override
     public int getRole() {
@@ -214,6 +167,14 @@ public class ServerVenusMonitorFilter extends AbstractMonitorFilter implements F
         detailDO.setDurationMillisecond(Integer.parseInt(String.valueOf(costTime)));
         //状态相关
         return detailDO;
+    }
+
+    /**
+     * 获取调用方法及调用环境标识路径
+     * @return
+     */
+    public String getMethodAndEnvPath(InvocationDetail detail){
+        return null;
     }
 
     public VenusMethodStaticDO convertStatistic(InvocationStatistic statistic){

@@ -1,5 +1,6 @@
 package com.meidusa.venus.monitor.filter;
 
+import com.meidusa.venus.Filter;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.monitor.support.VenusMonitorConstants;
@@ -7,6 +8,7 @@ import com.meidusa.venus.util.JSONUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -15,7 +17,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * monitor基类
  * Created by Zhangzhihua on 2017/9/4.
  */
-public abstract class AbstractMonitorFilter {
+public abstract class AbstractMonitorFilter{
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -28,12 +30,10 @@ public abstract class AbstractMonitorFilter {
     //方法调用汇总映射表
     protected Map<String,InvocationStatistic> statisticMap = Collections.synchronizedMap(new HashMap<String,InvocationStatistic>());
 
-    protected boolean isRunning = false;
-
     /**
      * 添加到明细队列
      */
-    public void putInvocationDetailQueue(InvocationDetail detailDO){
+    public void putDetail2Queue(InvocationDetail detailDO){
         try {
             if(detailQueue.size() > VenusMonitorConstants.QUEU_MAX_SIZE){
                 return;
@@ -47,16 +47,22 @@ public abstract class AbstractMonitorFilter {
         }
     }
 
-    public boolean isRunning() {
-        return isRunning;
-    }
-
-    public void setRunning(boolean running) {
-        isRunning = running;
-    }
-
     String serialize(Object object){
         return JSONUtil.toJSONString(object);
+    }
+
+    /**
+     * 获取时间，精确到分钟
+     * @param date
+     * @return
+     */
+    String getTimeOfMinutes(Date date){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.set(Calendar.SECOND,0);
+        SimpleDateFormat format = new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss");
+        String sTime = format.format(calendar.getTime());
+        return sTime;
     }
 
 }

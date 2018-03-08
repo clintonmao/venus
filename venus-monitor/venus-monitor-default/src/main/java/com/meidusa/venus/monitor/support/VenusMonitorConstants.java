@@ -15,7 +15,7 @@ public class VenusMonitorConstants {
     //一次上报记录条数
     public static int perDetailReportNum = 100;
     //慢操作耗时
-    public static int SLOW_COST_TIME = 200;
+    public static int SLOW_COST_TIME = 500;
     //支持最大队列长度
     public static int QUEU_MAX_SIZE = 50000;
 }

@@ -1,4 +1,4 @@
-package com.meidusa.venus.monitor;
+package com.meidusa.venus.monitor.filter;
 
 import com.athena.venus.domain.VenusMethodCallDetailDO;
 import com.athena.venus.domain.VenusMethodStaticDO;
@@ -9,13 +9,15 @@ import com.meidusa.venus.monitor.support.InvocationStatistic;
  * venus监控数据转换接口
  * Created by Zhangzhihua on 2017/11/30.
  */
-public interface MonitorDataConvert {
+public interface MonitorOperation {
 
     /**
      * 获取角色
      * @return
      */
     int getRole();
+
+    String getMethodAndEnvPath(InvocationDetail detail);
 
     /**
      * 转换明细数据

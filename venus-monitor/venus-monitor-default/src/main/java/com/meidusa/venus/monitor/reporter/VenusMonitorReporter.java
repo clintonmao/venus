@@ -49,11 +49,12 @@ public class VenusMonitorReporter {
         reportDO.setMethodStaticDOs(staticDOList);
         Producer<String,String> kafkaProducer = getKafkaProducer();
         if(kafkaProducer != null){
-            logger.info("report venus monitor info,detail size:{},static size:{}.",detailNum,staticNum);
+            String reportMsg = JSON.toJSONString(reportDO);
+            logger.info("report venus monitor info,static size:{},detail size:{}.",staticNum,detailNum);
             kafkaProducer.send(new ProducerRecord<String, String>(
                     getTopic(),
                     String.valueOf(new Date().getTime()),
-                    JSON.toJSONString(reportDO))
+                    reportMsg)
             );
             kafkaProducer.flush();
         }

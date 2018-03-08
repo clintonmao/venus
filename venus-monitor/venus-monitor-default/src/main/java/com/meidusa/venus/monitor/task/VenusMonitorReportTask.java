@@ -6,7 +6,7 @@ package com.meidusa.venus.monitor.task;
 
 import com.athena.venus.domain.VenusMethodCallDetailDO;
 import com.athena.venus.domain.VenusMethodStaticDO;
-import com.meidusa.venus.monitor.MonitorDataConvert;
+import com.meidusa.venus.monitor.filter.MonitorOperation;
 import com.meidusa.venus.monitor.reporter.VenusMonitorReporter;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
@@ -34,12 +34,12 @@ public class VenusMonitorReportTask implements Runnable{
     //方法调用汇总映射表
     private Map<String,InvocationStatistic> statisticMap = null;
     //监控上报操作对象
-    private MonitorDataConvert monitorOperation = null;
+    private MonitorOperation monitorOperation = null;
 
     //venus上报reporter
     private VenusMonitorReporter monitorReporter = new VenusMonitorReporter();
 
-    public VenusMonitorReportTask(Queue<InvocationDetail> detailQueue, Queue<InvocationDetail> reportDetailQueue, Map<String,InvocationStatistic> statisticMap, MonitorDataConvert monitorOperation){
+    public VenusMonitorReportTask(Queue<InvocationDetail> detailQueue, Queue<InvocationDetail> reportDetailQueue, Map<String,InvocationStatistic> statisticMap, MonitorOperation monitorOperation){
         this.detailQueue = detailQueue;
         this.reportDetailQueue = reportDetailQueue;
         this.statisticMap = statisticMap;
@@ -51,11 +51,6 @@ public class VenusMonitorReportTask implements Runnable{
         while(true){
             try {
                 //1、构造明细上报数据
-                if(reportDetailQueue != null && reportDetailQueue.size() > 0){
-                    if(logger.isDebugEnabled()){
-                        logger.debug("current detail report queue size:{}.", reportDetailQueue.size());
-                    }
-                }
                 List<InvocationDetail> reportDetailList = new ArrayList<InvocationDetail>();
                 int fetchNum = VenusMonitorConstants.perDetailReportNum;
                 if(reportDetailQueue.size() < fetchNum){
@@ -76,11 +71,6 @@ public class VenusMonitorReportTask implements Runnable{
                     if(new Date().after(statistic.getEndTime())){
                         reportStatisticList.add(statistic);
                         deleteKeys.add(key);
-                    }
-                }
-                if(reportStatisticList != null && reportStatisticList.size() > 0){
-                    if(logger.isDebugEnabled()){
-                        logger.debug("current statistic report list size:{}.",reportStatisticList.size());
                     }
                 }
 

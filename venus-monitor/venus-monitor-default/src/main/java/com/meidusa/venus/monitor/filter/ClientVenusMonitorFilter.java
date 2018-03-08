@@ -4,7 +4,6 @@ import com.athena.venus.domain.VenusMethodCallDetailDO;
 import com.athena.venus.domain.VenusMethodStaticDO;
 import com.meidusa.venus.*;
 import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.monitor.MonitorDataConvert;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.monitor.support.VenusMonitorConstants;
@@ -22,7 +21,7 @@ import java.util.Date;
  * client监控filter
  * Created by Zhangzhihua on 2017/8/28.
  */
-public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements Filter,MonitorDataConvert {
+public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements Filter,MonitorOperation {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -37,26 +36,16 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
     public void init() throws RpcException {
         synchronized (this){
             if(!isInited){
-                //启动上报线程
-                startProcessAndReporterTread();
+                //启动计算、上报线程
+                Thread processThread = new Thread(new VenusMonitorProcessTask(detailQueue, reportDetailQueue, statisticMap, this));
+                processThread.setName("consumer monitor process");
+                processThread.start();
+
+                Thread reporterThread = new Thread(new VenusMonitorReportTask(detailQueue, reportDetailQueue, statisticMap, this));
+                reporterThread.setName("consumer monitor report");
+                reporterThread.start();
                 isInited = true;
             }
-        }
-    }
-
-    /**
-     * 启动数据计算及上报线程
-     */
-    void startProcessAndReporterTread(){
-        if(!isRunning){
-            Thread processThread = new Thread(new VenusMonitorProcessTask(detailQueue, reportDetailQueue, statisticMap, this));
-            processThread.setName("consumer monitor process");
-            processThread.start();
-
-            Thread reporterThread = new Thread(new VenusMonitorReportTask(detailQueue, reportDetailQueue, statisticMap, this));
-            reporterThread.setName("consumer monitor report");
-            reporterThread.start();
-            isRunning = true;
         }
     }
 
@@ -74,7 +63,7 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
     public Result afterInvoke(Invocation invocation, URL url) throws RpcException {
         try {
             ClientInvocationOperation clientInvocation = (ClientInvocationOperation)invocation;
-            //若不走注册中心，则跳过
+            //athena不上报
             if(!isNeedReport(clientInvocation)){
                 return null;
             }
@@ -99,7 +88,7 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
             invocationDetail.setException(e);
 
             //添加到明细队列
-            putInvocationDetailQueue(invocationDetail);
+            putDetail2Queue(invocationDetail);
             return null;
         }catch(Throwable e){
             //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用
@@ -116,16 +105,37 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
      * @return
      */
     boolean isNeedReport(ClientInvocationOperation clientInvocation){
-        //走注册中心才上报
-        if(clientInvocation.getLookupType() == 0){
-            return false;
-        }
         return !VenusUtil.isAthenaInterface(clientInvocation);
     }
 
     @Override
     public int getRole() {
         return VenusMonitorConstants.ROLE_CONSUMER;
+    }
+
+    /**
+     * 获取调用方法及调用环境标识路径
+     * @return
+     */
+    public String getMethodAndEnvPath(InvocationDetail detail){
+        ClientInvocationOperation clientInvocation = (ClientInvocationOperation) detail.getInvocation();
+        //请求时间，精确为分钟
+        String requestTimeOfMinutes = getTimeOfMinutes(clientInvocation.getRequestTime());
+
+        //方法路径信息
+        String methodAndEnvPath = String.format(
+                "%s/%s?version=%s&method=%s&target=%s&startTime=%s",
+                clientInvocation.getServiceInterfaceName(),
+                clientInvocation.getServiceName(),
+                clientInvocation.getVersion(),
+                clientInvocation.getMethodName(),
+                detail.getUrl().getHost(),
+                requestTimeOfMinutes
+        );
+        if(logger.isDebugEnabled()){
+            logger.debug("methodAndEnvPath:{}.", methodAndEnvPath);
+        }
+        return methodAndEnvPath;
     }
 
     /**

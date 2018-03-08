@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.meidusa.venus</groupId>
 	<artifactId>venus</artifactId>
-	<version>4.0.12-SNAPSHOT</version>
+	<version>4.0.12</version>
 	<packaging>pom</packaging>
 	
 	<name>${project.artifactId}</name>
@@ -44,7 +44,7 @@
 		<fastbson.version>1.3.4</fastbson.version>
 		<fastmark.version>1.0.3</fastmark.version>
 		<saike-commons.version>1.0.2.RELEASE</saike-commons.version>
-		<athena-client.version>2.2.8-SNAPSHOT</athena-client.version>
+		<athena-client.version>2.2.8</athena-client.version>
 	</properties>
 
 	<modules>
