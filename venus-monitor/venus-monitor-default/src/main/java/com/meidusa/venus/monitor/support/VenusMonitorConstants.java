@@ -11,9 +11,9 @@ public class VenusMonitorConstants {
     //provider
     public static int ROLE_PROVIDER = 2;
     //一次处理记录条数
-    public static int perDetailProcessNum = 100;
+    public static int perDetailProcessNum = 200;
     //一次上报记录条数
-    public static int perDetailReportNum = 100;
+    public static int perDetailReportNum = 500;
     //慢操作耗时
     public static int SLOW_COST_TIME = 500;
     //支持最大队列长度
