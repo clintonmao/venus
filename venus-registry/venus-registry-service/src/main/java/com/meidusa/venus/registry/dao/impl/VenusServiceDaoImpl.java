@@ -143,7 +143,7 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 	@Override
 	public boolean updateService(String methods, boolean isDelete, int id, Integer appId,String supportVersion,String endpoints) throws DAOException {
 		String sql = "update t_venus_service set methods=?,is_delete=?,version_range=?,update_time=now(),endpoints=? ";
-		if(RegistryUtil.isNotBlank(endpoints)){
+		if(StringUtils.isBlank(endpoints) || "null".equals(endpoints)){
 			endpoints="";
 		}
 		if (null != appId && appId > 0) {
