@@ -29,6 +29,8 @@ public class VenusServiceDO implements Serializable {
 	private Integer registeType;
 
 	private String methods;
+	
+	private String endpoints;
 
 	private boolean isDelete;
 	
@@ -130,7 +132,13 @@ public class VenusServiceDO implements Serializable {
 		this.versionRange = versionRange;
 	}
 	
-	
+	public String getEndpoints() {
+		return endpoints;
+	}
+
+	public void setEndpoints(String endpoints) {
+		this.endpoints = endpoints;
+	}
 
 	@Override
 	public int hashCode() {

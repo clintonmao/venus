@@ -38,6 +38,8 @@ public class URL implements Serializable {
 	private String versionRange;
 
 	private String methods;
+	
+	private String endpoints;
 
 	/** 应用名 */
 	private String application;
@@ -157,6 +159,9 @@ public class URL implements Serializable {
 						}
 						if (split[0].equals("methods")) {
 							u.setMethods(split[1]);
+						}
+						if (split[0].equals("endpoints")) {
+							u.setEndpoints(split[1]);
 						}
 					}
 				}
@@ -367,6 +372,14 @@ public class URL implements Serializable {
 
 	public void setVersionRange(String versionRange) {
 		this.versionRange = versionRange;
+	}
+	
+	public String getEndpoints() {
+		return endpoints;
+	}
+
+	public void setEndpoints(String endpoints) {
+		this.endpoints = endpoints;
 	}
 
 	@Override
