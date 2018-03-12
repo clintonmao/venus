@@ -8,6 +8,7 @@ import com.meidusa.venus.monitor.filter.MonitorOperation;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.monitor.support.VenusMonitorConstants;
+import com.meidusa.venus.monitor.support.VenusMonitorUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
 
@@ -50,7 +51,7 @@ public class VenusMonitorProcessTask implements Runnable{
                 for(int i=0;i<fetchNum;i++){
                     InvocationDetail detail = detailQueue.poll();
                     //1、过滤明细，异常或慢操作
-                    if(isExceptionOperation(detail) || isSlowOperation(detail)){
+                    if(VenusMonitorUtil.isExceptionOperation(detail) || VenusMonitorUtil.isSlowOperation(detail)){
                         if(reportDetailQueue.size() < VenusMonitorConstants.QUEU_MAX_SIZE){
                             reportDetailQueue.add(detail);
                         }
@@ -83,29 +84,6 @@ public class VenusMonitorProcessTask implements Runnable{
         }
     }
 
-    /**
-     * 判断是否操作异常
-     * @param detail
-     * @return
-     */
-    boolean isExceptionOperation(InvocationDetail detail){
-        if(detail.getException() != null){
-            return true;
-        }
-        return detail.getResult() != null && detail.getResult().getErrorCode() != 0;
-    }
 
-    /**
-     * 判断是否为慢操作
-     * @param detail
-     * @return
-     */
-    boolean isSlowOperation(InvocationDetail detail){
-        if(detail.getResponseTime() == null){
-            return true;
-        }
-        long costTime = detail.getResponseTime().getTime() - detail.getInvocation().getRequestTime().getTime();
-        return costTime > VenusMonitorConstants.SLOW_COST_TIME;
-    }
 
 }
