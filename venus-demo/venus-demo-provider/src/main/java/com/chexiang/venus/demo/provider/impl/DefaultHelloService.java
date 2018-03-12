@@ -61,18 +61,18 @@ public class DefaultHelloService implements HelloService {
     @Override
     public Hello getHello(String name) {
         //logger.info("invoke getHello,param:" + name);
-        try {
-            if(ThreadLocalRandom.current().nextInt(100) > 50){//构造异常操作
-                if("A".equals("B")){
-                    throw new IllegalArgumentException("param invalid.");
-                }
-                if("A".equals("B")){
-                    logger.error("getHello error.");
-                }
-            }
-        } catch (Exception e) {
-            logger.error("getHello failed.",e);
+        int ran = ThreadLocalRandom.current().nextInt(100);
+        if( ran > 80){
+            throw new IllegalArgumentException("param invalid.");
+        }else if(ran > 50){
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {}
         }
+//        try {
+//        } catch (Exception e) {
+//            logger.error("getHello failed.",e);
+//        }
         return new Hello(name,name);
     }
 

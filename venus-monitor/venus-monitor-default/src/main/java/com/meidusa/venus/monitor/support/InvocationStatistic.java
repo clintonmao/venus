@@ -111,9 +111,9 @@ public class InvocationStatistic {
      */
     public void append(InvocationDetail detail){
         totalNum.incrementAndGet();
-        if(isFailedOperation(detail)){
+        if(VenusMonitorUtil.isExceptionOperation(detail)){
             failNum.incrementAndGet();
-        }else{
+        }else if(VenusMonitorUtil.isSlowOperation(detail)){
             slowNum.incrementAndGet();
         }
         //若超过，更新最大耗时
@@ -126,18 +126,7 @@ public class InvocationStatistic {
         avgCostTime.set(newAvgCostTime);
     }
 
-    /**
-     * 判断是否为失败操作
-     * @param detail
-     * @return
-     */
-    boolean isFailedOperation(InvocationDetail detail){
-        Result result = detail.getResult();
-        if(result != null && result.getErrorCode() != 0){
-            return true;
-        }
-        return detail.getException() != null;
-    }
+
 
     /**
      * 获取耗时
