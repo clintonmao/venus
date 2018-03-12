@@ -11,7 +11,8 @@ public class HelloDirectInvoke {
 
     void invoke(){
         SimpleServiceFactory serviceFactory = new SimpleServiceFactory();
-        serviceFactory.setAddressList("127.0.0.1:16800;127.0.0.2:16800");
+        //serviceFactory.setAddressList("127.0.0.1:16800;127.0.0.2:16800");
+        serviceFactory.setAddressList("127.0.0.1:16800");
         HelloService helloService = serviceFactory.getService(HelloService.class);
         Hello hello = helloService.getHello("jack");
         System.out.println("result:" + hello);

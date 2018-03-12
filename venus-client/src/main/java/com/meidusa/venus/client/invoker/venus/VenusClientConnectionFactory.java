@@ -109,6 +109,9 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
             }
             return new BackendConnectionWrapper(conn, nioConnPool);
         } catch (Exception e) {
+            if(e instanceof RpcException){
+                throw (RpcException)e;
+            }
             String address = new StringBuilder()
                     .append(url.getHost())
                     .append(":")
@@ -221,6 +224,9 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
                 throw new RpcException(RpcException.NETWORK_EXCEPTION, "create connection pool invalid:" + address);
             }
         } catch (Exception e) {
+            if(e instanceof RpcException){
+                throw (RpcException)e;
+            }
             if (nioPool != null && !nioPool.isClosed()) {
                 nioPool.close();
             }
