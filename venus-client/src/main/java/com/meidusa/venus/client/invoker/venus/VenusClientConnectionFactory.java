@@ -213,6 +213,13 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
         }
         try {
             nioPool.init();
+            //若连接池初始化失败，则释放连接池（fix 此时心跳检测已启动）
+            if (!nioPool.isValid()) {
+                if (!nioPool.isClosed()) {
+                    nioPool.close();
+                }
+                throw new RpcException(RpcException.NETWORK_EXCEPTION, "create connection pool invalid:" + address);
+            }
         } catch (Exception e) {
             if (nioPool != null && !nioPool.isClosed()) {
                 nioPool.close();
@@ -220,13 +227,6 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
             throw new RpcException(RpcException.NETWORK_EXCEPTION, "init connection pool failed:" + address);
         }
 
-        //若连接池初始化失败，则释放连接池（fix 此时心跳检测已启动）
-        if (!nioPool.isValid()) {
-            if (!nioPool.isClosed()) {
-                nioPool.close();
-            }
-            throw new RpcException(RpcException.NETWORK_EXCEPTION, "create connection pool invalid:" + address);
-        }
         return nioPool;
     }
 
