@@ -361,8 +361,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         int version = exportService.getVersion();
         String host = NetUtil.getLocalIp();
         String port = String.valueOf(venusProtocol.getPort());
-        //获取方法定义列表
-        String methodsDef = getMethodsDefOfService(service);
+
         StringBuffer buf = new StringBuffer();
         buf.append("/").append(serviceInterfaceName);
         buf.append("/").append(serviceName);
@@ -370,8 +369,15 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         buf.append("&application=").append(appName);
         buf.append("&host=").append(host);
         buf.append("&port=").append(port);
+        //获取方法定义列表
+        String methodsDef = getMethodsDefOfService(service);
         if(StringUtils.isNotEmpty(methodsDef)){
             buf.append("&methods=").append(methodsDef);
+        }
+        //获取endpoint定义列表
+        String endpointNames = getEndpointMethodsDefOfService(service);
+        if(StringUtils.isNotEmpty(endpointNames)){
+            buf.append("&endpoints=").append(endpointNames);
         }
         if(exportService.getSupportVersionRange() != null){
             buf.append("&versionRange=").append(exportService.getSupportVersionRange().toString());
@@ -440,6 +446,30 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         }
         buf.append("]");
         return buf.toString();
+    }
+
+    /**
+     * 获取endpoinit names
+     * @param service
+     * @return
+     */
+    String getEndpointMethodsDefOfService(Service service){
+        StringBuffer buf = new StringBuffer();
+        Multimap<String, Endpoint> endpointMultimap = service.getEndpoints();
+        Collection<Endpoint> endpoints = endpointMultimap.values();
+        if(CollectionUtils.isNotEmpty(endpoints)){
+            int i = 0;
+            for(Endpoint endpoint:endpoints){
+                String endpointName = endpoint.getName();
+                buf.append(endpointName);
+                if(i < (endpoints.size()-1)){
+                    buf.append(";");
+                }
+                i++;
+            }
+        }
+        String methodsDef = buf.toString();
+        return methodsDef;
     }
 
     /**
