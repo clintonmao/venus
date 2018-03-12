@@ -10,7 +10,7 @@ public interface VenusServiceDAO {
 
 	int addService(VenusServiceDO venusServiceDO) throws DAOException;
 
-	boolean updateService(String methods, boolean isDelete, int id, Integer appId,String supportVersion) throws DAOException;
+	boolean updateService(String methods, boolean isDelete, int id, Integer appId,String supportVersion,String endpoints) throws DAOException;
 	
 	@Deprecated
 	boolean updateService(int id, boolean isDelete) throws DAOException;

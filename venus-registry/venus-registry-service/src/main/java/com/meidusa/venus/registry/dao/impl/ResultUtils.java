@@ -63,6 +63,7 @@ public class ResultUtils {
 		venusService.setRegisteType(rs.getInt("registe_type"));
 
 		venusService.setMethods(rs.getString("methods"));
+		venusService.setEndpoints(rs.getString("endpoints"));
 		venusService.setDelete(rs.getBoolean("is_delete"));
 
 		venusService.setCreateTime(rs.getTimestamp("create_time"));

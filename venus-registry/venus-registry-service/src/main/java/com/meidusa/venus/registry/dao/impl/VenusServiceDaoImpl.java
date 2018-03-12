@@ -25,7 +25,7 @@ import com.meidusa.venus.registry.util.RegistryUtil;
 
 public class VenusServiceDaoImpl implements VenusServiceDAO {
 
-	private static final String SELECT_FIELDS = "select id, name,interface_name,version,version_range, description, app_id,registe_type,methods,is_delete,create_time, update_time ";
+	private static final String SELECT_FIELDS = "select id, name,interface_name,version,version_range, description, app_id,registe_type,methods,endpoints,is_delete,create_time, update_time ";
 	
 	private JdbcTemplate jdbcTemplate;
 
@@ -92,6 +92,10 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 			columns.append("methods,");
 			values.append("'" + vs.getMethods() + "',");
 		}
+		if (RegistryUtil.isNotBlank(vs.getEndpoints())) {
+			columns.append("endpoints,");
+			values.append("'" + vs.getEndpoints() + "',");
+		}
 		
 		columns.append("is_delete,");
 		values.append(vs.getIsDelete() + ",");
@@ -137,8 +141,11 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 	}
 
 	@Override
-	public boolean updateService(String methods, boolean isDelete, int id, Integer appId,String supportVersion) throws DAOException {
-		String sql = "update t_venus_service set methods=?,is_delete=?,version_range=?,update_time=now()";
+	public boolean updateService(String methods, boolean isDelete, int id, Integer appId,String supportVersion,String endpoints) throws DAOException {
+		String sql = "update t_venus_service set methods=?,is_delete=?,version_range=?,update_time=now(),endpoints=? ";
+		if(RegistryUtil.isNotBlank(endpoints)){
+			endpoints="";
+		}
 		if (null != appId && appId > 0) {
 			sql = sql + ",app_id=? ";
 		}
@@ -146,9 +153,9 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		int update = 0;
 		try {
 			if (null != appId && appId > 0) {
-				update = this.jdbcTemplate.update(sql, methods, isDelete,supportVersion, appId, id);
+				update = this.jdbcTemplate.update(sql, methods, isDelete,supportVersion,endpoints, appId, id);
 			} else {
-				update = this.jdbcTemplate.update(sql, methods, isDelete,supportVersion, id);
+				update = this.jdbcTemplate.update(sql, methods, isDelete,supportVersion,endpoints, id);
 			}
 		} catch (Exception e) {
 			throw new DAOException("更新venusService异常", e);

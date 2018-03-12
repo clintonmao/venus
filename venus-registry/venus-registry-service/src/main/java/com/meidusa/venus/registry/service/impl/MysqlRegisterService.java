@@ -151,6 +151,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			venusServiceDO.setVersion(url.getVersion());
 			venusServiceDO.setRegisteType(RegisteConstant.AUTO_REGISTE);
 			venusServiceDO.setMethods(url.getMethods());
+			venusServiceDO.setEndpoints(url.getEndpoints());
 			venusServiceDO.setVersionRange(url.getVersionRange());
 			venusServiceDO.setDelete(false);
 			serviceId = venusServiceDAO.addService(venusServiceDO);
@@ -159,7 +160,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			if (StringUtils.isBlank(url.getMethods())) {
 				url.setMethods("");
 			}
-			venusServiceDAO.updateService(url.getMethods(), false, serviceId, appId,url.getVersionRange());
+			venusServiceDAO.updateService(url.getMethods(), false, serviceId, appId,url.getVersionRange(),url.getEndpoints());
 		}
 
 		VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(serverId, serviceId,
