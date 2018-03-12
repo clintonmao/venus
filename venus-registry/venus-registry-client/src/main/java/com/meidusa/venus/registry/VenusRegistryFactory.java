@@ -50,6 +50,7 @@ public class VenusRegistryFactory implements InitializingBean {
         if(StringUtils.isEmpty(address)){
             throw new VenusConfigException("address property not config.");
         }
+        logger.info("#######register address:{}",address);
     }
 
     /**

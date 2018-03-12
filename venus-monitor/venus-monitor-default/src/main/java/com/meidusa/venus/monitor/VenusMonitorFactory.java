@@ -112,6 +112,7 @@ public class VenusMonitorFactory implements InitializingBean, ApplicationContext
 
         //校验地址有效性
         validAddress(address);
+        logger.info("#######monitor address:{}",address);
     }
 
     /**

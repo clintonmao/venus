@@ -203,6 +203,7 @@ public class VenusApplication implements InitializingBean,DisposableBean {
         if(StringUtils.isEmpty(name)){
             name = application.getAppName();
         }
+        logger.info("#######application name:[}",name);
         VenusContext.getInstance().setApplication(name);
 
         //初始化序列化配置
