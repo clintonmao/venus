@@ -253,7 +253,7 @@ public class MysqlRegister implements Register {
 				}
 			} catch (Exception e) {
 				hasException = true;
-				exceptionLogger.error("load service Definition failed:"+JSON.toJSONString(copySubscribleUrls), e);
+				exceptionLogger.error("load service definition failed.", e);
 			}
 			
 			// 查询接口有异常 不写本地缓存
