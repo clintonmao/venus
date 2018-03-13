@@ -13,11 +13,14 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import sun.misc.URLClassPath;
 
-import java.io.File;
+import java.lang.reflect.Field;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -98,20 +101,13 @@ public class VenusApplication implements InitializingBean,DisposableBean {
      * 检查是否包含不兼容的jar包
      * */
     void validFilteJars(){
-        //获取class path jars
-        String clsPath = System.getProperty("java.class.path");
-        if(StringUtils.isEmpty(clsPath)){
-            return;
-        }
-        String[] clsPaths = clsPath.split(";");
-        if(clsPaths == null || clsPaths.length == 0){
-            return;
-        }
-        logger.info("######################class path list begin#####");
+        //List<String> clsPaths = getJarsFromSystemVal();
+        List<String> clsPaths = getJarsFromClassLoader();
+        logger.info("#########class path list begin#####");
         for(String item:clsPaths){
             logger.info(item);
         }
-        logger.info("######################class path list end#####");
+        logger.info("#########class path list end#####");
 
         //校验不兼容、过期的venus jar包(通过正则表达式匹配)
         String[] filteJars = {
@@ -136,14 +132,25 @@ public class VenusApplication implements InitializingBean,DisposableBean {
             return;
         }
 
-        String sepr = File.separator;
+        String wsepr = "\\";//windows
+        String lsepr = "/";//linux
         for(String item:clsPaths){
-            String clsPathName = item.substring(item.lastIndexOf(sepr)+1,item.length());
+            int indexof = -1;
+            if(item.lastIndexOf(wsepr) != -1){
+                indexof = item.lastIndexOf(wsepr);
+            }else if(item.lastIndexOf(lsepr) != -1){
+                indexof = item.lastIndexOf(lsepr);
+            }
+            //格式不符
+            if(indexof == -1){
+                continue;
+            }
+            //后续不符
+            String clsPathName = item.substring(indexof+1,item.length());
             if(!clsPathName.endsWith(".jar")){
                 continue;
             }
             String jarName = clsPathName;
-            //logger.info("jarName:{}",jarName);
             for(String filteJarName:filteJarList){
                 //判断是否要过滤
                 Pattern r = Pattern.compile(filteJarName);
@@ -153,6 +160,84 @@ public class VenusApplication implements InitializingBean,DisposableBean {
                 }
             }
         }
+    }
+
+    /**
+     * 获取clazzloader加载jars
+     * @return
+     */
+    List<String> getJarsFromClassLoader(){
+        List<String> jars = new ArrayList<>();
+        List<String> clazzLoaderJars = new ArrayList<>();
+        ClassLoader clazzLoader = Thread.currentThread().getContextClassLoader();
+        logger.info("#######clazzLoader:{}",clazzLoader);
+
+        try {
+            if(clazzLoader != null && clazzLoader instanceof URLClassLoader){
+                URLClassLoader urlClassLoader = (URLClassLoader)clazzLoader;
+                //getURLS方式获取jars
+                java.net.URL[] urls = urlClassLoader.getURLs();
+                for(java.net.URL url:urls){
+                    jars.add(url.getPath());
+                }
+
+                //修改clazzLoader属性作用域，获取获取jars
+                Field field = urlClassLoader.getClass().getDeclaredField("ucp");
+                field.setAccessible(true);
+                Object ucpValue = field.get(urlClassLoader);
+                if(ucpValue != null && ucpValue instanceof URLClassPath){
+                    URLClassPath urlClassPath = (URLClassPath)ucpValue;
+                    //loaders lmap
+                    Field loadersField = urlClassPath.getClass().getDeclaredField("lmap");
+                    loadersField.setAccessible(true);
+                    Object lmapValue = loadersField.get(urlClassPath);
+                    if(lmapValue != null && lmapValue instanceof Map){
+                        Map<?,?> mm = (Map)lmapValue;
+                        for(Map.Entry<?,?> entry:mm.entrySet()){
+                            String clsPath = entry.getKey().toString();
+                            clazzLoaderJars.add(clsPath);
+                        }
+                    }
+                }
+
+            }
+        }catch (Exception ex){
+            //若clazzLoader方式获取异常，则返回普通方式-getURLS获取的jars，在不同环境下不准
+            return jars;
+        }
+        return clazzLoaderJars;
+    }
+
+    /**
+     * 获取classloader加载Jars
+     * @return
+     */
+    List<String> getJarsFromSystemVal(){
+        List<String> jars = new ArrayList<>();
+        //get properties
+        /*
+        Properties properties = System.getProperties();
+        Enumeration enums = properties.keys();
+        while(enums.hasMoreElements()){
+            String item = enums.nextElement().toString();
+            if(item.contains("path") || item.contains("url") || item.contains("PATH") || item.contains("URL")){
+                logger.info("{}:{}",item,properties.get(item));
+            }
+        }
+        */
+        //获取class path jars
+        String clsPath = System.getProperty("java.class.path");
+        if(StringUtils.isEmpty(clsPath)){
+            return jars;
+        }
+        String[] clsPaths = clsPath.split(";");
+        if(clsPaths == null || clsPaths.length == 0){
+            return jars;
+        }
+        for(int i=0;i<clsPaths.length;i++){
+            jars.add(clsPaths[i]);
+        }
+        return jars;
     }
 
     /**
@@ -203,7 +288,7 @@ public class VenusApplication implements InitializingBean,DisposableBean {
         if(StringUtils.isEmpty(name)){
             name = application.getAppName();
         }
-        logger.info("#######application name:[}",name);
+        logger.info("#######application name:{}",name);
         VenusContext.getInstance().setApplication(name);
 
         //初始化序列化配置
