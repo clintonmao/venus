@@ -130,6 +130,9 @@
 	<bean id="cacheServiceConfigDAO" class="com.meidusa.venus.registry.dao.impl.CacheVenusServiceConfigDaoImpl" init-method="init">  
 	    <property name="venusServiceConfigDAO" ref="venusServiceConfigDAO"></property>  
 	</bean> 
+	<bean id="cacheVenusServiceMappingDAO" class="com.meidusa.venus.registry.dao.impl.CacheVenusServiceMappingDaoImpl" init-method="init">  
+	    <property name="venusServiceMappingDAO" ref="venusServiceMappingDAO"></property>  
+	</bean> 
 
 	<!--注册服务-->
 	<bean id="mysqlRegisterService" class="com.meidusa.venus.registry.service.impl.MysqlRegisterService" init-method="init">
@@ -142,6 +145,7 @@
 		<property name="cacheVenusServiceDAO" ref="cacheVenusServiceDAO"></property>
 		<property name="cacheApplicationDAO" ref="cacheApplicationDAO"></property>
 		<property name="cacheServiceConfigDAO" ref="cacheServiceConfigDAO"></property>
+		<property name="cacheVenusServiceMappingDAO" ref="cacheVenusServiceMappingDAO"></property>
 		<property name="transactionTemplate" ref="transactionTemplate"></property>
 		<property name="sampleMod" value="${venus4.sample.mod}"></property>
 		<property name="enableLocalIp" value="${venus4.loaddef.enable.local.ip}"></property>

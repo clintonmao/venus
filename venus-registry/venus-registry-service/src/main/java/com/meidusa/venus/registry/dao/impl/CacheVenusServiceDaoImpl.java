@@ -25,6 +25,8 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 	private VenusServiceDAO venusServiceDAO;
 
 	private Map<String, List<VenusServiceDO>> cacheServiceMap = new HashMap<String, List<VenusServiceDO>>();
+	
+	private Map<String, List<VenusServiceDO>> nameServiceMap = new HashMap<String, List<VenusServiceDO>>();
 
 	private List<VenusServiceDO> cacheServices = new ArrayList<VenusServiceDO>();
 
@@ -49,6 +51,7 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 		if (loacCacheRunning) {
 			cacheServices.clear();
 			cacheServiceMap.clear();
+			nameServiceMap.clear();
 		}
 		Integer totalCount = venusServiceDAO.getServiceCount();
 		if (null != totalCount && totalCount > 0) {
@@ -64,9 +67,6 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 					mapId = services.get(services.size() - 1).getId();
 					for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
 						VenusServiceDO vs = iterator.next();
-//						if (!cacheServices.contains(vs)) {
-//							cacheServices.add(vs);
-//						}
 						if (RegistryUtil.isNotBlank(vs.getInterfaceName())) {
 							String interfaceNamekey = RegistryUtil.getCacheKey(vs.getInterfaceName(), vs.getVersion());
 							putToMap(interfaceNamekey, vs);
@@ -74,6 +74,7 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 						if (RegistryUtil.isNotBlank(vs.getName())) {
 							String namekey = RegistryUtil.getCacheKey(vs.getName(), vs.getVersion());
 							putToMap(namekey, vs);
+							putToNameMap(vs.getName(),vs);
 						}
 						String key = RegistryUtil.getCacheKey(vs);
 						putToMap(key,vs);
@@ -90,6 +91,19 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 			list = new ArrayList<VenusServiceDO>();
 			list.add(vs);
 			cacheServiceMap.put(key, list);
+		} else {
+			if (!list.contains(vs)) {
+				list.add(vs);
+			}
+		}
+	}
+	
+	private void putToNameMap(String key,VenusServiceDO vs) {
+		List<VenusServiceDO> list = nameServiceMap.get(key);
+		if (null == list) {
+			list = new ArrayList<VenusServiceDO>();
+			list.add(vs);
+			nameServiceMap.put(key, list);
 		} else {
 			if (!list.contains(vs)) {
 				list.add(vs);
@@ -193,7 +207,17 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 		if (loacCacheRunning) {
 			return null;
 		}
-		return cacheServiceMap.get(RegistryUtil.getKeyFromUrl(url));
+		
+		String serviceName = url.getServiceName();
+		if(RegistryUtil.isNotBlank(serviceName)) {
+			String version = url.getVersion();
+			if (RegistryUtil.isNotBlank(version)) {
+				return cacheServiceMap.get(RegistryUtil.getCacheKey(serviceName, version));
+			}else{
+				return nameServiceMap.get(serviceName);
+			}
+		}
+		return null;
 	}
 	
 	public List<String> queryAllServiceNames() throws DAOException {

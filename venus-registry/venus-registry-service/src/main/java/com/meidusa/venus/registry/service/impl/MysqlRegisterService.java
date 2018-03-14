@@ -27,6 +27,7 @@ import com.meidusa.venus.registry.LogUtils;
 import com.meidusa.venus.registry.VenusRegisteException;
 import com.meidusa.venus.registry.dao.CacheVenusServerDAO;
 import com.meidusa.venus.registry.dao.CacheVenusServiceDAO;
+import com.meidusa.venus.registry.dao.CacheVenusServiceMappingDAO;
 import com.meidusa.venus.registry.dao.VenusApplicationDAO;
 import com.meidusa.venus.registry.dao.VenusServerDAO;
 import com.meidusa.venus.registry.dao.VenusServiceConfigDAO;
@@ -67,6 +68,8 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	private CacheVenusServiceDAO cacheVenusServiceDAO;
 	
 	private CacheServiceConfigDAO cacheServiceConfigDAO;
+	
+	private CacheVenusServiceMappingDAO cacheVenusServiceMappingDAO;
 
 	private VenusServiceMappingDAO venusServiceMappingDAO;
 
@@ -387,7 +390,10 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		String version = url.getVersion();
 		List<VenusServiceDO> services = null;
 		try {
-			services = venusServiceDAO.queryServicesByName(interfaceName, serviceName, version);// servicePath interfaceName/serviceName?version=version
+			services = cacheVenusServiceDAO.queryServices(url);
+			if(CollectionUtils.isEmpty(services)){
+				services = venusServiceDAO.queryServicesByName(interfaceName, serviceName, version);// servicePath interfaceName/serviceName?version=version
+			}
 		} catch (Exception e) {
 			LogUtils.ERROR_LOG.error("findServiceDefinitions queryServices 调用异常,interfaceName=>"+interfaceName+",serviceName=>"+serviceName+",version=>"+version,e);
 		}
@@ -397,8 +403,11 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				List<Integer> serverIds = new ArrayList<Integer>();
 				VenusServiceDO service = ite.next();
 				Integer serviceId = service.getId();
-				List<VenusServiceMappingDO> serviceMappings = venusServiceMappingDAO.getServiceMapping(serviceId,
-						RegisteConstant.PROVIDER, false);
+				List<VenusServiceMappingDO> serviceMappings = cacheVenusServiceMappingDAO.queryServiceMappings(serviceId);
+				if (CollectionUtils.isEmpty(serviceMappings)) {
+					serviceMappings = venusServiceMappingDAO.getServiceMapping(serviceId, RegisteConstant.PROVIDER,
+							false);
+				}
 				if (CollectionUtils.isNotEmpty(serviceMappings)) {
 					for (VenusServiceMappingDO venusServiceMappingDO : serviceMappings) {
 						if (venusServiceMappingDO.isActive()) {// 只取active的
@@ -934,6 +943,14 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 
 	public void setCacheServiceConfigDAO(CacheServiceConfigDAO cacheServiceConfigDAO) {
 		this.cacheServiceConfigDAO = cacheServiceConfigDAO;
+	}
+	
+	public CacheVenusServiceMappingDAO getCacheVenusServiceMappingDAO() {
+		return cacheVenusServiceMappingDAO;
+	}
+
+	public void setCacheVenusServiceMappingDAO(CacheVenusServiceMappingDAO cacheVenusServiceMappingDAO) {
+		this.cacheVenusServiceMappingDAO = cacheVenusServiceMappingDAO;
 	}
 
 	public TransactionTemplate getTransactionTemplate() {

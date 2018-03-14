@@ -16,6 +16,7 @@ import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.dao.VenusServiceMappingDAO;
 import com.meidusa.venus.registry.data.move.ServiceMappingDTO;
 import com.meidusa.venus.registry.domain.RegisteConstant;
+import com.meidusa.venus.registry.domain.VenusServiceDO;
 import com.meidusa.venus.registry.domain.VenusServiceMappingDO;
 
 public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
@@ -448,6 +449,35 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 			});
 		} catch (Exception e) {
 			throw new DAOException("根据sql=>" + sql + ",serviceName=>"+serviceName+";获取服务映射关系异常", e);
+		}
+	}
+	
+	public int getMappingCount() throws DAOException {
+		String sql = "SELECT count(id) as records FROM t_venus_service_mapping as map where role='"+RegisteConstant.PROVIDER+"' and is_delete=0";
+		try {
+			return this.jdbcTemplate.queryForObject(sql, Integer.class);
+		} catch (Exception e) {
+			throw new DAOException("查询mappint count出错,获取服务映射关系个数异常", e);
+		}
+	}
+	
+	public List<VenusServiceMappingDO> queryServiceMappings(Integer pageSize, Integer id) throws DAOException {
+		String sql = SELECT_FIELDS_TABLE + " where id>" + id + " and role='" + RegisteConstant.PROVIDER
+				+ "' and is_delete=0" + " order by id asc limit " + pageSize;
+		try {
+			return this.jdbcTemplate.query(sql,new ResultSetExtractor<List<VenusServiceMappingDO>>() {
+						@Override
+						public List<VenusServiceMappingDO> extractData(ResultSet rs)
+								throws SQLException, DataAccessException {
+							List<VenusServiceMappingDO> returnList = new ArrayList<VenusServiceMappingDO>();
+							while (rs.next()) {
+								returnList.add(ResultUtils.resultToVenusServiceMappingDO(rs));
+							}
+							return returnList;
+						}
+					});
+		} catch (Exception e) {
+			throw new DAOException("根据id=>" + id + "获取服务映射关系异常", e);
 		}
 	}
 	

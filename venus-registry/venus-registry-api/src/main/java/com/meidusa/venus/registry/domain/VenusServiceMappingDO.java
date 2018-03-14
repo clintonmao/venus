@@ -182,6 +182,115 @@ public class VenusServiceMappingDO implements Serializable {
 	}
 
 	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (active ? 1231 : 1237);
+		result = prime * result + ((consumerAppId == null) ? 0 : consumerAppId.hashCode());
+		result = prime * result + ((createTime == null) ? 0 : createTime.hashCode());
+		result = prime * result + ((heartbeatTime == null) ? 0 : heartbeatTime.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		result = prime * result + ((isDelete == null) ? 0 : isDelete.hashCode());
+		result = prime * result + ((providerAppId == null) ? 0 : providerAppId.hashCode());
+		result = prime * result + ((registeTime == null) ? 0 : registeTime.hashCode());
+		result = prime * result + ((role == null) ? 0 : role.hashCode());
+		result = prime * result + ((server == null) ? 0 : server.hashCode());
+		result = prime * result + ((serverId == null) ? 0 : serverId.hashCode());
+		result = prime * result + ((service == null) ? 0 : service.hashCode());
+		result = prime * result + ((serviceId == null) ? 0 : serviceId.hashCode());
+		result = prime * result + (sync ? 1231 : 1237);
+		result = prime * result + ((updateTime == null) ? 0 : updateTime.hashCode());
+		result = prime * result + ((version == null) ? 0 : version.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		VenusServiceMappingDO other = (VenusServiceMappingDO) obj;
+		if (active != other.active)
+			return false;
+		if (consumerAppId == null) {
+			if (other.consumerAppId != null)
+				return false;
+		} else if (!consumerAppId.equals(other.consumerAppId))
+			return false;
+		if (createTime == null) {
+			if (other.createTime != null)
+				return false;
+		} else if (!createTime.equals(other.createTime))
+			return false;
+		if (heartbeatTime == null) {
+			if (other.heartbeatTime != null)
+				return false;
+		} else if (!heartbeatTime.equals(other.heartbeatTime))
+			return false;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		if (isDelete == null) {
+			if (other.isDelete != null)
+				return false;
+		} else if (!isDelete.equals(other.isDelete))
+			return false;
+		if (providerAppId == null) {
+			if (other.providerAppId != null)
+				return false;
+		} else if (!providerAppId.equals(other.providerAppId))
+			return false;
+		if (registeTime == null) {
+			if (other.registeTime != null)
+				return false;
+		} else if (!registeTime.equals(other.registeTime))
+			return false;
+		if (role == null) {
+			if (other.role != null)
+				return false;
+		} else if (!role.equals(other.role))
+			return false;
+		if (server == null) {
+			if (other.server != null)
+				return false;
+		} else if (!server.equals(other.server))
+			return false;
+		if (serverId == null) {
+			if (other.serverId != null)
+				return false;
+		} else if (!serverId.equals(other.serverId))
+			return false;
+		if (service == null) {
+			if (other.service != null)
+				return false;
+		} else if (!service.equals(other.service))
+			return false;
+		if (serviceId == null) {
+			if (other.serviceId != null)
+				return false;
+		} else if (!serviceId.equals(other.serviceId))
+			return false;
+		if (sync != other.sync)
+			return false;
+		if (updateTime == null) {
+			if (other.updateTime != null)
+				return false;
+		} else if (!updateTime.equals(other.updateTime))
+			return false;
+		if (version == null) {
+			if (other.version != null)
+				return false;
+		} else if (!version.equals(other.version))
+			return false;
+		return true;
+	}
+
+	@Override
 	public String toString() {
 		return ToStringBuilder.reflectionToString(this);
 	}
