@@ -8,7 +8,7 @@ import com.meidusa.venus.registry.domain.VenusServiceDO;
 
 public interface CacheVenusServiceDAO {
 
-	List<VenusServiceDO> queryServices(String interfaceName, String serviceName, String version) throws DAOException;
+	List<VenusServiceDO> queryServices(String interfaceName, String serviceName, String version,String role) throws DAOException;
 	
 	List<VenusServiceDO> queryServices(URL url) throws DAOException;
 	

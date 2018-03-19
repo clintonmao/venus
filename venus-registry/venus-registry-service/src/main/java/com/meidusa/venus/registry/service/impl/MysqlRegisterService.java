@@ -743,10 +743,10 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		Map<Integer, List<Integer>> maps = new HashMap<Integer, List<Integer>>();
 		try {
 			VenusServerDO server = getServer(urls);
-			for (URL url : urls) {
+			for (URL url : urls) {//订阅时不传version,注册时有version
 				if (null != server) {
 					List<VenusServiceDO> services = cacheVenusServiceDAO.queryServices(url.getInterfaceName(),
-							url.getServiceName(), url.getVersion());
+							url.getServiceName(), url.getVersion(),role);
 					if (CollectionUtils.isEmpty(services)) {
 						services = venusServiceDAO.queryServices(url.getInterfaceName(), url.getServiceName(),
 								url.getVersion());

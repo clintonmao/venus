@@ -16,7 +16,7 @@ import com.meidusa.venus.registry.DAOException;
 import com.meidusa.venus.registry.LogUtils;
 import com.meidusa.venus.registry.dao.CacheVenusServiceDAO;
 import com.meidusa.venus.registry.dao.VenusServiceDAO;
-import com.meidusa.venus.registry.domain.VenusServerDO;
+import com.meidusa.venus.registry.domain.RegisteConstant;
 import com.meidusa.venus.registry.domain.VenusServiceDO;
 import com.meidusa.venus.registry.util.RegistryUtil;
 
@@ -70,6 +70,7 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 						if (RegistryUtil.isNotBlank(vs.getInterfaceName())) {
 							String interfaceNamekey = RegistryUtil.getCacheKey(vs.getInterfaceName(), vs.getVersion());
 							putToMap(interfaceNamekey, vs);
+							putToNameMap(vs.getName(),vs);
 						}
 						if (RegistryUtil.isNotBlank(vs.getName())) {
 							String namekey = RegistryUtil.getCacheKey(vs.getName(), vs.getVersion());
@@ -112,7 +113,7 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 	}
 
 	@Override
-	public List<VenusServiceDO> queryServices(String interfaceName, String serviceName, String version)
+	public List<VenusServiceDO> queryServices(String interfaceName, String serviceName, String version,String role)
 			throws DAOException {
 		if (StringUtils.isBlank(interfaceName) && StringUtils.isBlank(serviceName)) {
 			throw new DAOException("serviceName与interfaceName不能同时为空");
@@ -121,63 +122,40 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 			return new ArrayList<VenusServiceDO>();
 		}
 		
-		if (RegistryUtil.isNotBlank(serviceName) && RegistryUtil.isNotBlank(interfaceName)) {
-			String key1=RegistryUtil.getCacheKey(interfaceName, version);
-			String key2=RegistryUtil.getCacheKey(serviceName, version);
-			List<VenusServiceDO> list = cacheServiceMap.get(key1);
-			List<VenusServiceDO> list2 = cacheServiceMap.get(key2);
+		if(role.equals(RegisteConstant.CONSUMER)){
 			List<VenusServiceDO> returnList=new ArrayList<VenusServiceDO>();
-			if(CollectionUtils.isNotEmpty(list)){
-				returnList.addAll(list);
+			if (RegistryUtil.isNotBlank(serviceName)){
+				List<VenusServiceDO> list= nameServiceMap.get(serviceName);
+				if(CollectionUtils.isNotEmpty(list)){
+					returnList.addAll(list);
+				}
 			}
-			if(CollectionUtils.isNotEmpty(list2)){
-				returnList.addAll(list2);
+			if (RegistryUtil.isNotBlank(interfaceName)){
+				List<VenusServiceDO> list2= nameServiceMap.get(interfaceName);
+				if(CollectionUtils.isNotEmpty(list2)){
+					returnList.addAll(list2);
+				}
 			}
 			return returnList;
 		}else{
-			String key=RegistryUtil.getCacheKey(interfaceName,serviceName,version);
-			return cacheServiceMap.get(key);
-		}
-		
-		
-/*		List<VenusServiceDO> returnList = new ArrayList<VenusServiceDO>();
-
-		for (Iterator<VenusServiceDO> iterator = cacheServices.iterator(); iterator.hasNext();) {
-			VenusServiceDO vs = iterator.next();
-			boolean nameFind = false;
-			if (isNotBlank(serviceName) && isNotBlank(interfaceName)) {
-				if (serviceName.equals(vs.getName()) || interfaceName.equals(vs.getInterfaceName())) {
-					nameFind = true;
+			if (RegistryUtil.isNotBlank(serviceName) && RegistryUtil.isNotBlank(interfaceName)) {
+				String key1=RegistryUtil.getCacheKey(interfaceName, version);
+				String key2=RegistryUtil.getCacheKey(serviceName, version);
+				List<VenusServiceDO> list = cacheServiceMap.get(key1);
+				List<VenusServiceDO> list2 = cacheServiceMap.get(key2);
+				List<VenusServiceDO> returnList=new ArrayList<VenusServiceDO>();
+				if(CollectionUtils.isNotEmpty(list)){
+					returnList.addAll(list);
 				}
-			} else {
-				if (isNotBlank(serviceName)) {
-					if (serviceName.equals(vs.getName())) {
-						nameFind = true;
-					}
+				if(CollectionUtils.isNotEmpty(list2)){
+					returnList.addAll(list2);
 				}
-				if (isNotBlank(interfaceName)) {
-					if (interfaceName.equals(vs.getInterfaceName())) {
-						nameFind = true;
-					}
-				}
-			}
-
-			if (nameFind) {// 名称匹配再看版本匹配
-				if (isNotBlank(version)) {
-					if (version.equals(vs.getVersion())) {
-						nameFind = true;
-					} else {
-						nameFind = false;
-					}
-				}
-			}
-
-			if (nameFind) {
-				returnList.add(vs);
+				return returnList;
+			}else{
+				String key=RegistryUtil.getCacheKey(interfaceName,serviceName,version);
+				return cacheServiceMap.get(key);
 			}
 		}
-		return returnList;*/
-
 	}
 
 	private class LoadCacheServicesRunnable implements Runnable {
