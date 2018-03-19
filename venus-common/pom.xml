@@ -5,7 +5,7 @@
 	<parent>
 		<artifactId>venus</artifactId>
 		<groupId>com.meidusa.venus</groupId>
-		<version>4.0.13-SNAPSHOT</version>
+		<version>4.0.14-SNAPSHOT</version>
 	</parent>
 	<artifactId>venus-common</artifactId>
 	<packaging>pom</packaging>
