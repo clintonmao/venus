@@ -86,7 +86,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	
 	public boolean deleteOldMappings(int serverId,int providerAppId,String role) throws DAOException {
 		String sql = "update t_venus_service_mapping set active = 0,is_delete=1,update_time=now() ";
-		sql = sql + " where serverId = ? and provider_app_id!=? and role=?";
+		sql = sql + " where server_id = ? and provider_app_id!=? and role=?";
 		int update = 0;
 		try {
 			update = this.jdbcTemplate.update(sql, serverId, providerAppId, role);
