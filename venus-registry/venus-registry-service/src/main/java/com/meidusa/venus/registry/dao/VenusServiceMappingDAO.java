@@ -67,8 +67,10 @@ public interface VenusServiceMappingDAO {
 	
 	List<ServiceMappingDTO> queryServiceMappings(String serviceName) throws DAOException ;
 	
-	public int getMappingCount() throws DAOException;
+	int getMappingCount() throws DAOException;
 	
 	List<VenusServiceMappingDO> queryServiceMappings(Integer pageSize, Integer id) throws DAOException;
+	
+	boolean deleteOldMappings(int serverId,int providerAppId,String role) throws DAOException;
 
 }

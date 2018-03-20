@@ -83,6 +83,23 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 		}
 		return update > 0;
 	}
+	
+	public boolean deleteOldMappings(int serverId,int providerAppId,String role) throws DAOException {
+		String sql = "update t_venus_service_mapping set active = 0,is_delete=1,update_time=now() ";
+		sql = sql + " where serverId = ? and provider_app_id!=? and role=?";
+		int update = 0;
+		try {
+			update = this.jdbcTemplate.update(sql, serverId, providerAppId, role);
+		} catch (Exception e) {
+			throw new DAOException("更新映射关系异常", e);
+		}
+		System.out.println("@@@@@@@@@@=>"+update);
+		return update > 0;
+	}
+	
+	
+	
+	
 
 	@Override
 	public boolean updateHeartBeatTime(int serverId, String role)
