@@ -404,9 +404,9 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			
 			if(CollectionUtils.isEmpty(services)){
 				services = venusServiceDAO.queryServicesByName(interfaceName, serviceName, version);// servicePath interfaceName/serviceName?version=version
-			}else{
+			}/*else{
 				LogUtils.DEFAULT_LOG.info("cacheVenusServiceDAO.queryServices");
-			}
+			}*/
 		} catch (Exception e) {
 			LogUtils.ERROR_LOG.error("findServiceDefinitions queryServices 调用异常,interfaceName=>"+interfaceName+",serviceName=>"+serviceName+",version=>"+version,e);
 		}
@@ -420,9 +420,9 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				if (CollectionUtils.isEmpty(serviceMappings)) {
 					serviceMappings = venusServiceMappingDAO.getServiceMapping(serviceId, RegisteConstant.PROVIDER,
 							false);
-				}else{
+				}/*else{
 					LogUtils.DEFAULT_LOG.info("cacheVenusServiceMappingDAO.queryServiceMappings");
-				}
+				}*/
 				if (CollectionUtils.isNotEmpty(serviceMappings)) {
 					for (VenusServiceMappingDO venusServiceMappingDO : serviceMappings) {
 						if (venusServiceMappingDO.isActive()) {// 只取active的
