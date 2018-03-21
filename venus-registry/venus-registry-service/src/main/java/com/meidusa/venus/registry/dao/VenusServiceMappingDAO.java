@@ -71,6 +71,6 @@ public interface VenusServiceMappingDAO {
 	
 	List<VenusServiceMappingDO> queryServiceMappings(Integer pageSize, Integer id) throws DAOException;
 	
-	boolean deleteOldMappings(int serverId,int providerAppId,String role) throws DAOException;
+	boolean logicDeleteOldMappings(int serverId,int providerAppId,String role) throws DAOException;
 
 }

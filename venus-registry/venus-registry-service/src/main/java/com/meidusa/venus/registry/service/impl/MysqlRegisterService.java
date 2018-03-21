@@ -185,9 +185,9 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		}
 		if (StringUtils.isNotBlank(appCode)) {
 			try{
-				boolean deleteOldMappings = venusServiceMappingDAO.deleteOldMappings(serviceId, appId, RegisteConstant.PROVIDER);
-				LogUtils.DEFAULT_LOG.info("deleteOldMappings 服务异常,appCode=>{},serviceId=>{},appId=>{},result=>{}",
-						appCode, serviceId, appId, deleteOldMappings);
+				boolean deleteOldMappings = venusServiceMappingDAO.logicDeleteOldMappings(serverId, appId, RegisteConstant.PROVIDER);
+				LogUtils.DEFAULT_LOG.info("deleteOldMappings 服务异常,appCode=>{},serverId=>{},appId=>{},result=>{}",
+						appCode, serverId, appId, deleteOldMappings);
 			}catch(Exception e){
 				LogUtils.ERROR_LOG.error("deleteOldMappings 服务异常,serviceId=>{},appId=>{}", serviceId,appId);
 			}
@@ -401,8 +401,11 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		List<VenusServiceDO> services = null;
 		try {
 			services = cacheVenusServiceDAO.queryServices(url);
+			
 			if(CollectionUtils.isEmpty(services)){
 				services = venusServiceDAO.queryServicesByName(interfaceName, serviceName, version);// servicePath interfaceName/serviceName?version=version
+			}else{
+				LogUtils.DEFAULT_LOG.info("cacheVenusServiceDAO.queryServices");
 			}
 		} catch (Exception e) {
 			LogUtils.ERROR_LOG.error("findServiceDefinitions queryServices 调用异常,interfaceName=>"+interfaceName+",serviceName=>"+serviceName+",version=>"+version,e);
@@ -417,6 +420,8 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				if (CollectionUtils.isEmpty(serviceMappings)) {
 					serviceMappings = venusServiceMappingDAO.getServiceMapping(serviceId, RegisteConstant.PROVIDER,
 							false);
+				}else{
+					LogUtils.DEFAULT_LOG.info("cacheVenusServiceMappingDAO.queryServiceMappings");
 				}
 				if (CollectionUtils.isNotEmpty(serviceMappings)) {
 					for (VenusServiceMappingDO venusServiceMappingDO : serviceMappings) {
