@@ -448,6 +448,54 @@ public class MysqlRegister implements Register {
 	}
 
 	/**
+	 * 注册订阅失败重试任务
+	 */
+	private class UrlFailRetryRunnable implements Runnable {
+		@Override
+		public void run() {
+			if (CollectionUtils.isNotEmpty(registeFailUrls)) {
+				for (Iterator<URL> iterator = registeFailUrls.iterator(); iterator.hasNext();) {
+					URL url = iterator.next();
+					try {
+						registe(url);
+						iterator.remove();
+					} catch (Exception e) {
+						String name = getServiceName(url);
+						String version = "";
+						if (StringUtils.isNotBlank(url.getVersion()) && !"null".equals(url.getVersion())) {
+							version = url.getVersion();
+						}
+						String errorMsg = String.format("registe retry failed,service:%s,version:%s.",name,version);
+						exceptionLogger.error(errorMsg,e);
+					}
+				}
+			}
+			if (CollectionUtils.isNotEmpty(subscribleFailUrls)) {
+				for (Iterator<URL> iterator = subscribleFailUrls.iterator(); iterator.hasNext();) {
+					URL url = iterator.next();
+					try {
+						boolean subscrible = subscrible(url);
+						if (subscrible) {
+							iterator.remove();
+						}
+					} catch (Exception e) {
+						String name = getServiceName(url);
+						String version = "";
+						if (StringUtils.isNotBlank(url.getVersion()) && !"null".equals(url.getVersion())) {
+							version = url.getVersion();
+						}
+						String errorMsg = String.format("subscrible retry failed,service:%s,version:%s.",name,version);
+						exceptionLogger.error(errorMsg,e);
+					}
+				}
+			}
+
+		}
+
+
+	}
+
+	/**
 	 * 服务定义加载任务
 	 */
 	private class ServiceDefLoaderRunnable implements Runnable {
@@ -516,54 +564,6 @@ public class MysqlRegister implements Register {
 	}
 
 
-	/**
-	 * 注册订阅失败重试任务
-	 */
-	private class UrlFailRetryRunnable implements Runnable {
-		@Override
-		public void run() {
-			if (CollectionUtils.isNotEmpty(registeFailUrls)) {
-				for (Iterator<URL> iterator = registeFailUrls.iterator(); iterator.hasNext();) {
-					URL url = iterator.next();
-					try {
-						registe(url);
-						iterator.remove();
-					} catch (Exception e) {
-						String name = getServiceName(url);
-						String version = "";
-						if (StringUtils.isNotBlank(url.getVersion()) && !"null".equals(url.getVersion())) {
-							version = url.getVersion();
-						}
-						String errorMsg = String.format("registe retry failed,service:%s,version:%s.",name,version);
-						exceptionLogger.error(errorMsg,e);
-					}
-				}
-			}
-			if (CollectionUtils.isNotEmpty(subscribleFailUrls)) {
-				for (Iterator<URL> iterator = subscribleFailUrls.iterator(); iterator.hasNext();) {
-					URL url = iterator.next();
-					try {
-						boolean subscrible = subscrible(url);
-						if (subscrible) {
-							iterator.remove();
-						}
-					} catch (Exception e) {
-						String name = getServiceName(url);
-						String version = "";
-						if (StringUtils.isNotBlank(url.getVersion()) && !"null".equals(url.getVersion())) {
-							version = url.getVersion();
-						}
-						String errorMsg = String.format("subscrible retry failed,service:%s,version:%s.",name,version);
-						exceptionLogger.error(errorMsg,e);
-					}
-				}
-			}
-
-		}
-
-
-	}
-	
 	private static String getServiceName(URL url) {
 		String name = "";
 		if (StringUtils.isNotBlank(url.getServiceName()) && !"null".equals(url.getServiceName())) {
