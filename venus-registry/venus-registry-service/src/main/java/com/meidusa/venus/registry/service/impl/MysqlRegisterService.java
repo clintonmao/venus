@@ -145,6 +145,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		int serverId = addServer(url.getHost(), url.getPort());
 		int countByServiceNameAndAppId = venusServiceDAO.getCountByServiceNameAndAppId(url.getServiceName(), appId);
 		if(countByServiceNameAndAppId>0){
+			LogUtils.ERROR_LOG.info("appName=>"+appCode+",serviceName=>"+url.getServiceName()+",appId=>"+appId+",other app has registe service,this registe fail.");
 			throw new VenusRegisteException("ServiceName=>"+url.getServiceName()+",appId=>"+appId+",other app has registe service,this registe fail.");
 		}
 		VenusServiceDO service = venusServiceDAO.getService(url.getInterfaceName(), url.getServiceName(),
