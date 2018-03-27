@@ -460,6 +460,16 @@ public class VenusServiceDaoImpl implements VenusServiceDAO {
 		}
 	}
 	
+	public int getCountByServiceNameAndAppId(String serviceName, int appId) throws DAOException{
+		String sql = "SELECT count(id) as records FROM t_venus_service where name='" + serviceName + "' and app_id!="
+				+ appId+" and registe_type=1 ";
+		try {
+			return this.jdbcTemplate.queryForObject(sql, Integer.class);
+		} catch (Exception e) {
+			throw new DAOException("根据sql=>" + sql + ";获取服务记录数异常", e);
+		}
+	}
+	
 	@Override
 	public List<VenusServiceDO> queryServices(Integer pageSize, Integer id) throws DAOException {
 		String sql = SELECT_FIELDS + " from t_venus_service ";

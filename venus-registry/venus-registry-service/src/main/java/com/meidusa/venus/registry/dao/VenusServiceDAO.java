@@ -27,6 +27,8 @@ public interface VenusServiceDAO {
 	 */
 	VenusServiceDO getService(String interfaceName, String serviceName, String version) throws DAOException;
 	
+	int getCountByServiceNameAndAppId(String serviceName, int appId) throws DAOException;
+	
 	List<VenusServiceDO> queryServices(String interfaceName, String serviceName, String version) throws DAOException;
 	
 	List<VenusServiceDO> queryServicesByName(String interfaceName, String serviceName, String version) throws DAOException;

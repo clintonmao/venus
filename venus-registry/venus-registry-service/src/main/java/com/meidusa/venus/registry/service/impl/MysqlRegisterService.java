@@ -143,6 +143,10 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			}
 		}
 		int serverId = addServer(url.getHost(), url.getPort());
+		int countByServiceNameAndAppId = venusServiceDAO.getCountByServiceNameAndAppId(url.getServiceName(), appId);
+		if(countByServiceNameAndAppId>0){
+			throw new VenusRegisteException("ServiceName=>"+url.getServiceName()+",appId=>"+appId+",other app has registe service,this registe fail.");
+		}
 		VenusServiceDO service = venusServiceDAO.getService(url.getInterfaceName(), url.getServiceName(),
 				url.getVersion());
 		int serviceId = 0;
@@ -186,7 +190,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		if (StringUtils.isNotBlank(appCode)) {
 			try{
 				boolean deleteOldMappings = venusServiceMappingDAO.logicDeleteOldMappings(serverId, appId, RegisteConstant.PROVIDER);
-				LogUtils.DEFAULT_LOG.info("deleteOldMappings 服务异常,appCode=>{},serverId=>{},appId=>{},result=>{}",
+				LogUtils.DEFAULT_LOG.info("logicDeleteOldMappings 服务,appCode=>{},serverId=>{},appId=>{},result=>{}",
 						appCode, serverId, appId, deleteOldMappings);
 			}catch(Exception e){
 				LogUtils.ERROR_LOG.error("deleteOldMappings 服务异常,serviceId=>{},appId=>{}", serviceId,appId);

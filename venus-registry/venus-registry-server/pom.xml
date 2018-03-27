@@ -14,7 +14,7 @@
 	<properties>
 		<project.home>${basedir}</project.home>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-		<gagu.ucm.version>0.0.1-SNAPSHOT</gagu.ucm.version>
+		<gagu.ucm.version>1.2.0.RELEASE</gagu.ucm.version>
         <spring.version>4.3.3.RELEASE</spring.version>
         <spring.boot.version>1.4.1.RELEASE</spring.boot.version>
 	</properties>
@@ -130,12 +130,12 @@
 		<dependency>
 			<groupId>com.saike.ucm</groupId>
 			<artifactId>ucm-client</artifactId>
-			<version>1.1.9.RELEASE</version>
+			<version>${gagu.ucm.version}</version>
 		</dependency>
         <dependency>
             <groupId>com.saike.ucm</groupId>
             <artifactId>ucm-client-spring</artifactId>
-            <version>1.1.9.RELEASE</version>
+            <version>${gagu.ucm.version}</version>
             <!--依賴項目自己的spring -->
             <exclusions>
                 <exclusion>
@@ -152,7 +152,7 @@
         <dependency>
             <groupId>com.saike.ucm</groupId>
             <artifactId>ucm-client-web</artifactId>
-            <version>1.1.9.RELEASE</version>
+            <version>${gagu.ucm.version}</version>
         </dependency>
     </dependencies>
 
