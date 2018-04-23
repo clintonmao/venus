@@ -6,11 +6,14 @@ package com.meidusa.venus.monitor.task;
 
 import com.athena.venus.domain.VenusMethodCallDetailDO;
 import com.athena.venus.domain.VenusMethodStaticDO;
-import com.meidusa.venus.monitor.filter.MonitorOperation;
+import com.meidusa.venus.Result;
+import com.meidusa.venus.ServerInvocationOperation;
 import com.meidusa.venus.monitor.reporter.VenusMonitorReporter;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.monitor.support.VenusMonitorConstants;
+import com.meidusa.venus.util.JSONUtil;
+import com.meidusa.venus.util.UUIDUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -21,7 +24,7 @@ import java.util.*;
 /**
  * 1分钟数据上报任务
  */
-public class VenusMonitorReportTask implements Runnable{
+public class ServerMonitorReportTask implements Runnable{
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -33,17 +36,14 @@ public class VenusMonitorReportTask implements Runnable{
     private Queue<InvocationDetail> reportDetailQueue = null;
     //方法调用汇总映射表
     private Map<String,InvocationStatistic> statisticMap = null;
-    //监控上报操作对象
-    private MonitorOperation monitorOperation = null;
 
     //venus上报reporter
     private VenusMonitorReporter monitorReporter = new VenusMonitorReporter();
 
-    public VenusMonitorReportTask(Queue<InvocationDetail> detailQueue, Queue<InvocationDetail> reportDetailQueue, Map<String,InvocationStatistic> statisticMap, MonitorOperation monitorOperation){
+    public ServerMonitorReportTask(Queue<InvocationDetail> detailQueue, Queue<InvocationDetail> reportDetailQueue, Map<String,InvocationStatistic> statisticMap){
         this.detailQueue = detailQueue;
         this.reportDetailQueue = reportDetailQueue;
         this.statisticMap = statisticMap;
-        this.monitorOperation = monitorOperation;
     }
 
     @Override
@@ -120,10 +120,75 @@ public class VenusMonitorReportTask implements Runnable{
             return detailDOList;
         }
         for(InvocationDetail detail:detailList){
-            VenusMethodCallDetailDO detailDO = monitorOperation.convertDetail(detail);
+            VenusMethodCallDetailDO detailDO = convertDetail(detail);
             detailDOList.add(detailDO);
         }
         return detailDOList;
+    }
+
+    /**
+     * 转化为detailDo
+     * @param detail
+     * @return
+     */
+    VenusMethodCallDetailDO convertDetail(InvocationDetail detail){
+        ServerInvocationOperation serverInvocation = (ServerInvocationOperation)detail.getInvocation();
+        Result result = detail.getResult();
+        Throwable exception = detail.getException();
+
+        VenusMethodCallDetailDO detailDO = new VenusMethodCallDetailDO();
+        //基本信息
+        detailDO.setId(UUIDUtil.create().toString());
+        detailDO.setRpcId(serverInvocation.getRpcId());
+        if(serverInvocation.getAthenaId() != null){
+            detailDO.setTraceId(new String(serverInvocation.getAthenaId()));
+        }
+        if(serverInvocation.getMessageId() != null){
+            detailDO.setMessageId(new String(serverInvocation.getMessageId()));
+        }
+        detailDO.setSourceType(detail.getFrom());
+        //请求信息
+        detailDO.setServiceName(serverInvocation.getServiceName());
+        if(serverInvocation.getServiceInterface() != null){
+            detailDO.setInterfaceName(serverInvocation.getServiceInterface().getName());
+        }
+        if(serverInvocation.getEndpoint() != null){
+            detailDO.setMethodName(serverInvocation.getEndpoint().getName());
+        }else if(serverInvocation.getMethod() != null){
+            detailDO.setMethodName(serverInvocation.getMethod().getName());
+        }
+        if(serverInvocation.getArgs() != null){
+            String requestJson = serialize(serverInvocation.getArgs());
+            detailDO.setRequestJson(requestJson);
+        }
+        detailDO.setRequestTime(serverInvocation.getRequestTime());
+        detailDO.setProviderDomain(serverInvocation.getProviderApp());
+        detailDO.setProviderIp(serverInvocation.getProviderIp());
+        detailDO.setConsumerDomain(serverInvocation.getConsumerApp());
+        detailDO.setConsumerIp(serverInvocation.getConsumerIp());
+        //响应信息
+        detailDO.setResponseTime(detail.getResponseTime());
+
+        if(result != null){//响应结果
+            if(result.getErrorCode() == 0){
+                String responseJson = serialize(result.getResult());
+                detailDO.setReponseJson(responseJson);
+                detailDO.setStatus(1);
+            }else{
+                String responseJson = String.format("%s-%s",result.getErrorCode(),result.getErrorMessage());
+                detailDO.setReponseJson(responseJson);
+                detailDO.setStatus(0);
+            }
+        } else if(exception != null){//响应异常
+            String responseJsonForException = serialize(exception);
+            detailDO.setErrorInfo(responseJsonForException);
+            detailDO.setStatus(0);
+        }
+        //耗时
+        long costTime = detail.getResponseTime().getTime()-serverInvocation.getRequestTime().getTime();
+        detailDO.setDurationMillisecond(Integer.parseInt(String.valueOf(costTime)));
+        //状态相关
+        return detailDO;
     }
 
     /**
@@ -137,13 +202,17 @@ public class VenusMonitorReportTask implements Runnable{
             if(statistic.getTotalNum().intValue() < 1){
                 continue;
             }
-            VenusMethodStaticDO staticDO = monitorOperation.convertStatistic(statistic);
+            VenusMethodStaticDO staticDO = convertStatistic(statistic);
             staticDOList.add(staticDO);
         }
         return staticDOList;
     }
 
+    VenusMethodStaticDO convertStatistic(InvocationStatistic statistic){
+        return null;
+    }
 
-
-
+    String serialize(Object object){
+        return JSONUtil.toJSONString(object);
+    }
 }
