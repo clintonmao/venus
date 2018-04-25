@@ -74,9 +74,7 @@ public class CacheVenusServerDaoImpl implements CacheVenusServerDAO {
 			cacheIdServerMap.clear();
 		}*/
 		
-		Map<String, VenusServerDO> localServerMap = new HashMap<String, VenusServerDO>();
-		
-		Map<Integer, VenusServerDO> localIdServerMap = new HashMap<Integer, VenusServerDO>();
+		List<VenusServerDO> allQueryServers=new ArrayList<VenusServerDO>();
 		Integer totalCount = venusServerDAO.getServerCount();
 		if (null != totalCount && totalCount > 0) {
 			int mod = totalCount % PAGE_SIZE_200;
@@ -89,21 +87,19 @@ public class CacheVenusServerDaoImpl implements CacheVenusServerDAO {
 				List<VenusServerDO> queryServers = venusServerDAO.queryServers(PAGE_SIZE_200, id);
 				if (CollectionUtils.isNotEmpty(queryServers)) {
 					id = queryServers.get(queryServers.size() - 1).getId();
-					for (VenusServerDO serverDO : queryServers) {
-						String key = getKey(serverDO.getHostname(), serverDO.getPort());
-						localServerMap.put(key, serverDO);
-						localIdServerMap.put(serverDO.getId(), serverDO);
-					}
+					allQueryServers.addAll(queryServers);
 				}
 			}
 		}
-		if (MapUtils.isNotEmpty(localServerMap)) {
+		if (CollectionUtils.isNotEmpty(allQueryServers)) {
 			loacCacheRunning = true;
 			cacheServerMap.clear();
 			cacheIdServerMap.clear();
-			
-			cacheServerMap.putAll(localServerMap);
-			cacheIdServerMap.putAll(localIdServerMap);
+			for (VenusServerDO serverDO : allQueryServers) {
+				String key = getKey(serverDO.getHostname(), serverDO.getPort());
+				cacheServerMap.put(key, serverDO);
+				cacheIdServerMap.put(serverDO.getId(), serverDO);
+			}
 			loacCacheRunning = false;
 		}
 	}

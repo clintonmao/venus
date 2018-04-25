@@ -1,5 +1,6 @@
 package com.meidusa.venus.registry.dao.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,9 +63,7 @@ public class CacheVenusApplicationDaoImpl implements CacheApplicationDAO {
 			cacheIdApplicationMap.clear();
 		}*/
 		
-		Map<Integer, VenusApplicationDO> localIdApplicationMap = new HashMap<Integer, VenusApplicationDO>();
-
-		Map<String, VenusApplicationDO> localCodeApplicationMap = new HashMap<String, VenusApplicationDO>();
+		List<VenusApplicationDO> allQueryApplications = new ArrayList<VenusApplicationDO>();
 		
 		Integer totalCount = venusApplicationDAO.getApplicationCount();
 		if (null != totalCount && totalCount > 0) {
@@ -78,20 +77,20 @@ public class CacheVenusApplicationDaoImpl implements CacheApplicationDAO {
 				List<VenusApplicationDO> queryApplications = venusApplicationDAO.queryApplications(PAGE_SIZE_200, id);
 				if (CollectionUtils.isNotEmpty(queryApplications)) {
 					id = queryApplications.get(queryApplications.size() - 1).getId();
-					for (VenusApplicationDO applicationDO : queryApplications) {
-						localIdApplicationMap.put(applicationDO.getId(), applicationDO);
-						localCodeApplicationMap.put(applicationDO.getAppCode(), applicationDO);
-					}
+					allQueryApplications.addAll(queryApplications);
 				}
 			}
 		}
-		if (MapUtils.isNotEmpty(localIdApplicationMap)) {
+		if (CollectionUtils.isNotEmpty(allQueryApplications)) {
 			loacCacheRunning = true;
 			cacheIdApplicationMap.clear();
 			cacheCodeApplicationMap.clear();
 
-			cacheIdApplicationMap.putAll(localIdApplicationMap);
-			cacheCodeApplicationMap.putAll(localCodeApplicationMap);
+			for (VenusApplicationDO applicationDO : allQueryApplications) {
+				cacheIdApplicationMap.put(applicationDO.getId(), applicationDO);
+				cacheCodeApplicationMap.put(applicationDO.getAppCode(), applicationDO);
+			}
+
 			loacCacheRunning = false;
 		}
 	}
