@@ -40,10 +40,11 @@ public class CacheVenusServiceMappingDaoImpl implements CacheVenusServiceMapping
 	}
 
 	public void load() {
-		loacCacheRunning = true;
+/*		loacCacheRunning = true;
 		if (loacCacheRunning) {
 			cacheServiceMappingMap.clear();
-		}
+		}*/
+		List<VenusServiceMappingDO> allServices=new ArrayList<VenusServiceMappingDO>();
 		Integer totalCount = venusServiceMappingDAO.getMappingCount();
 		if (null != totalCount && totalCount > 0) {
 			int mod = totalCount % PAGE_SIZE_200;
@@ -56,14 +57,20 @@ public class CacheVenusServiceMappingDaoImpl implements CacheVenusServiceMapping
 				List<VenusServiceMappingDO> services = venusServiceMappingDAO.queryServiceMappings(PAGE_SIZE_200, id);
 				if (CollectionUtils.isNotEmpty(services)) {
 					id = services.get(services.size() - 1).getId();
-					for (Iterator<VenusServiceMappingDO> iterator = services.iterator(); iterator.hasNext();) {
-						VenusServiceMappingDO vs = iterator.next();
-						putToMap(vs.getServiceId(), vs);
-					}
+					allServices.addAll(services);
 				}
 			}
 		}
-		loacCacheRunning = false;
+		
+		if (CollectionUtils.isNotEmpty(allServices)) {
+			loacCacheRunning = true;
+			cacheServiceMappingMap.clear();
+			for (Iterator<VenusServiceMappingDO> iterator = allServices.iterator(); iterator.hasNext();) {
+				VenusServiceMappingDO vs = iterator.next();
+				putToMap(vs.getServiceId(), vs);
+			}
+			loacCacheRunning = false;
+		}
 	}
 
 	private void putToMap(Integer key, VenusServiceMappingDO vs) {
