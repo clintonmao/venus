@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.registry.DAOException;
@@ -67,11 +68,13 @@ public class CacheVenusServerDaoImpl implements CacheVenusServerDAO {
 	}
 
 	void load() {
-		loacCacheRunning = true;
+/*		loacCacheRunning = true;
 		if (loacCacheRunning) {
 			cacheServerMap.clear();
 			cacheIdServerMap.clear();
-		}
+		}*/
+		
+		List<VenusServerDO> allQueryServers=new ArrayList<VenusServerDO>();
 		Integer totalCount = venusServerDAO.getServerCount();
 		if (null != totalCount && totalCount > 0) {
 			int mod = totalCount % PAGE_SIZE_200;
@@ -84,15 +87,21 @@ public class CacheVenusServerDaoImpl implements CacheVenusServerDAO {
 				List<VenusServerDO> queryServers = venusServerDAO.queryServers(PAGE_SIZE_200, id);
 				if (CollectionUtils.isNotEmpty(queryServers)) {
 					id = queryServers.get(queryServers.size() - 1).getId();
-					for (VenusServerDO serverDO : queryServers) {
-						String key = getKey(serverDO.getHostname(), serverDO.getPort());
-						cacheServerMap.put(key, serverDO);
-						cacheIdServerMap.put(serverDO.getId(), serverDO);
-					}
+					allQueryServers.addAll(queryServers);
 				}
 			}
 		}
-		loacCacheRunning = false;
+		if (CollectionUtils.isNotEmpty(allQueryServers)) {
+			loacCacheRunning = true;
+			cacheServerMap.clear();
+			cacheIdServerMap.clear();
+			for (VenusServerDO serverDO : allQueryServers) {
+				String key = getKey(serverDO.getHostname(), serverDO.getPort());
+				cacheServerMap.put(key, serverDO);
+				cacheIdServerMap.put(serverDO.getId(), serverDO);
+			}
+			loacCacheRunning = false;
+		}
 	}
 
 	private boolean contains(VenusServerDO serverDO) {

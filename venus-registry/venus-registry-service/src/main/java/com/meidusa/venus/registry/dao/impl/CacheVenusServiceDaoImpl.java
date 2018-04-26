@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
@@ -47,12 +48,14 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 	}
 
 	public void load() {
-		loacCacheRunning = true;
+/*		loacCacheRunning = true;
 		if (loacCacheRunning) {
 			cacheServices.clear();
 			cacheServiceMap.clear();
 			nameServiceMap.clear();
-		}
+		}*/
+		List<VenusServiceDO> allServices=new ArrayList<VenusServiceDO>();
+		
 		Integer totalCount = venusServiceDAO.getServiceCount();
 		if (null != totalCount && totalCount > 0) {
 			int mod = totalCount % PAGE_SIZE_200;
@@ -65,25 +68,37 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 				List<VenusServiceDO> services = venusServiceDAO.queryServices(PAGE_SIZE_200, mapId);
 				if (CollectionUtils.isNotEmpty(services)) {
 					mapId = services.get(services.size() - 1).getId();
-					for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
-						VenusServiceDO vs = iterator.next();
-						if (RegistryUtil.isNotBlank(vs.getInterfaceName())) {
-							String interfaceNamekey = RegistryUtil.getCacheKey(vs.getInterfaceName(), vs.getVersion());
-							putToMap(interfaceNamekey, vs);
-							putToNameMap(vs.getName(),vs);
-						}
-						if (RegistryUtil.isNotBlank(vs.getName())) {
-							String namekey = RegistryUtil.getCacheKey(vs.getName(), vs.getVersion());
-							putToMap(namekey, vs);
-							putToNameMap(vs.getName(),vs);
-						}
-						String key = RegistryUtil.getCacheKey(vs);
-						putToMap(key,vs);
-					}
+					allServices.addAll(services);
 				}
 			}
 		}
-		loacCacheRunning = false;
+		if(CollectionUtils.isNotEmpty(allServices)){
+			loacCacheRunning = true;
+			cacheServices.clear();
+			cacheServiceMap.clear();
+			nameServiceMap.clear();
+			putToCacheMap(allServices);
+			loacCacheRunning = false;
+		}
+		
+	}
+
+	private void putToCacheMap(List<VenusServiceDO> services) {
+		for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
+			VenusServiceDO vs = iterator.next();
+			if (RegistryUtil.isNotBlank(vs.getInterfaceName())) {
+				String interfaceNamekey = RegistryUtil.getCacheKey(vs.getInterfaceName(), vs.getVersion());
+				putToMap(interfaceNamekey, vs);
+				putToNameMap(vs.getName(),vs);
+			}
+			if (RegistryUtil.isNotBlank(vs.getName())) {
+				String namekey = RegistryUtil.getCacheKey(vs.getName(), vs.getVersion());
+				putToMap(namekey, vs);
+				putToNameMap(vs.getName(),vs);
+			}
+			String key = RegistryUtil.getCacheKey(vs);
+			putToMap(key,vs);
+		}
 	}
 
 	private void putToMap(String key,VenusServiceDO vs) {

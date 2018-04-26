@@ -29,7 +29,7 @@ public class LogUtils {
 	
 	public static void logCacheSlow(long consumerTime, String msg) {
 		if (consumerTime > 3000) {
-			CACHE_LOG.info(msg + " consumerTime=>{}", consumerTime);
+			SLOW_LOG.info(msg + " consumerTime=>{}", consumerTime);
 		}
 	}
 	

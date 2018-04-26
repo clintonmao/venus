@@ -1,11 +1,13 @@
 package com.meidusa.venus.registry.dao.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
 import com.meidusa.venus.registry.DAOException;
@@ -55,11 +57,14 @@ public class CacheVenusApplicationDaoImpl implements CacheApplicationDAO {
 	}
 
 	void load() {
-		loacCacheRunning = true;
+		/*loacCacheRunning = true;
 		if (loacCacheRunning) {
 			cacheCodeApplicationMap.clear();
 			cacheIdApplicationMap.clear();
-		}
+		}*/
+		
+		List<VenusApplicationDO> allQueryApplications = new ArrayList<VenusApplicationDO>();
+		
 		Integer totalCount = venusApplicationDAO.getApplicationCount();
 		if (null != totalCount && totalCount > 0) {
 			int mod = totalCount % PAGE_SIZE_200;
@@ -72,14 +77,22 @@ public class CacheVenusApplicationDaoImpl implements CacheApplicationDAO {
 				List<VenusApplicationDO> queryApplications = venusApplicationDAO.queryApplications(PAGE_SIZE_200, id);
 				if (CollectionUtils.isNotEmpty(queryApplications)) {
 					id = queryApplications.get(queryApplications.size() - 1).getId();
-					for (VenusApplicationDO applicationDO : queryApplications) {
-						cacheIdApplicationMap.put(applicationDO.getId(), applicationDO);
-						cacheCodeApplicationMap.put(applicationDO.getAppCode(), applicationDO);
-					}
+					allQueryApplications.addAll(queryApplications);
 				}
 			}
 		}
-		loacCacheRunning = false;
+		if (CollectionUtils.isNotEmpty(allQueryApplications)) {
+			loacCacheRunning = true;
+			cacheIdApplicationMap.clear();
+			cacheCodeApplicationMap.clear();
+
+			for (VenusApplicationDO applicationDO : allQueryApplications) {
+				cacheIdApplicationMap.put(applicationDO.getId(), applicationDO);
+				cacheCodeApplicationMap.put(applicationDO.getAppCode(), applicationDO);
+			}
+
+			loacCacheRunning = false;
+		}
 	}
 
 	private class LoadCacheApplicationsRunnable implements Runnable {

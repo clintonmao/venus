@@ -870,7 +870,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		}
 
 		List<VenusServiceMappingDO> needDeleteServiceMappings = venusServiceMappingDAO
-				.queryServiceMappings(VenusConstants.DELELE_INVALID_SERVICE_HOUR);
+				.queryServiceMappings(VenusConstants.DELELE_INVALID_SERVICE_HOUR * 3);
 		if (CollectionUtils.isNotEmpty(needDeleteServiceMappings)) {
 			List<Integer> delete_mapping_ids = new ArrayList<Integer>();
 			List<Integer> server_ids = new ArrayList<Integer>();
