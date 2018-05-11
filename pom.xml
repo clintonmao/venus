@@ -426,6 +426,7 @@
 			</plugin>
 		</plugins>
 	</build>
+
 	<!--
  	<repositories>
 		<repository>
@@ -442,7 +443,7 @@
 		</repository>
 	</repositories>
 
-	
+
 	<distributionManagement>
 		<repository>
 			<id>release-open</id>
@@ -474,8 +475,8 @@
 	
 	 <repositories>
 		<repository>
-			<id>release-open</id>
-			<url>http://maven.dds.com/nexus/content/repositories/saic_framework_snapshot</url>
+			<id>saike-framework-release</id>
+			<url>http://maven.dds.com/nexus/content/repositories/saic_framework</url>
 			<releases>
 				<enabled>true</enabled>
 				<updatePolicy>never</updatePolicy>
@@ -485,6 +486,30 @@
 				<updatePolicy>always</updatePolicy>
 			</snapshots>
 		</repository>
+		 <repository>
+			 <id>saike-framework-snapshot</id>
+			 <url>http://maven.dds.com/nexus/content/repositories/saic_framework_snapshot</url>
+			 <releases>
+				 <enabled>true</enabled>
+				 <updatePolicy>never</updatePolicy>
+			 </releases>
+			 <snapshots>
+				 <enabled>true</enabled>
+				 <updatePolicy>always</updatePolicy>
+			 </snapshots>
+		 </repository>
+		 <repository>
+			 <id>saike-release</id>
+			 <url>http://maven.dds.com/nexus/content/groups/public/</url>
+			 <releases>
+				 <enabled>true</enabled>
+				 <updatePolicy>never</updatePolicy>
+			 </releases>
+			 <snapshots>
+				 <enabled>true</enabled>
+				 <updatePolicy>always</updatePolicy>
+			 </snapshots>
+		 </repository>
 	</repositories>
 	
 	<distributionManagement>

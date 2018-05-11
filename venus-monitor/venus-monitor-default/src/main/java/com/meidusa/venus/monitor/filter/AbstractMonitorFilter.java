@@ -51,18 +51,4 @@ public abstract class AbstractMonitorFilter{
         return JSONUtil.toJSONString(object);
     }
 
-    /**
-     * 获取时间，精确到分钟
-     * @param date
-     * @return
-     */
-    String getTimeOfMinutes(Date date){
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-        calendar.set(Calendar.SECOND,0);
-        SimpleDateFormat format = new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss");
-        String sTime = format.format(calendar.getTime());
-        return sTime;
-    }
-
 }

@@ -7,8 +7,8 @@ import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.monitor.support.VenusMonitorConstants;
-import com.meidusa.venus.monitor.task.VenusMonitorProcessTask;
-import com.meidusa.venus.monitor.task.VenusMonitorReportTask;
+import com.meidusa.venus.monitor.task.ClientMonitorProcessTask;
+import com.meidusa.venus.monitor.task.ClientMonitorReportTask;
 import com.meidusa.venus.support.VenusThreadContext;
 import com.meidusa.venus.support.VenusUtil;
 import com.meidusa.venus.util.UUIDUtil;
@@ -21,7 +21,7 @@ import java.util.Date;
  * client监控filter
  * Created by Zhangzhihua on 2017/8/28.
  */
-public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements Filter,MonitorOperation {
+public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements Filter {
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
@@ -37,11 +37,11 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
         synchronized (this){
             if(!isInited){
                 //启动计算、上报线程
-                Thread processThread = new Thread(new VenusMonitorProcessTask(detailQueue, reportDetailQueue, statisticMap, this));
+                Thread processThread = new Thread(new ClientMonitorProcessTask(detailQueue, reportDetailQueue, statisticMap));
                 processThread.setName("consumer monitor process");
                 processThread.start();
 
-                Thread reporterThread = new Thread(new VenusMonitorReportTask(detailQueue, reportDetailQueue, statisticMap, this));
+                Thread reporterThread = new Thread(new ClientMonitorReportTask(detailQueue, reportDetailQueue, statisticMap));
                 reporterThread.setName("consumer monitor report");
                 reporterThread.start();
                 isInited = true;
@@ -106,128 +106,6 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
      */
     boolean isNeedReport(ClientInvocationOperation clientInvocation){
         return !VenusUtil.isAthenaInterface(clientInvocation);
-    }
-
-    @Override
-    public int getRole() {
-        return VenusMonitorConstants.ROLE_CONSUMER;
-    }
-
-    /**
-     * 获取调用方法及调用环境标识路径
-     * @return
-     */
-    public String getMethodAndEnvPath(InvocationDetail detail){
-        ClientInvocationOperation clientInvocation = (ClientInvocationOperation) detail.getInvocation();
-        //请求时间，精确为分钟
-        String requestTimeOfMinutes = getTimeOfMinutes(clientInvocation.getRequestTime());
-
-        //方法路径信息
-        String methodAndEnvPath = String.format(
-                "%s/%s?version=%s&method=%s&target=%s&startTime=%s",
-                clientInvocation.getServiceInterfaceName(),
-                clientInvocation.getServiceName(),
-                clientInvocation.getVersion(),
-                clientInvocation.getMethodName(),
-                detail.getUrl().getHost(),
-                requestTimeOfMinutes
-        );
-        if(logger.isDebugEnabled()){
-            logger.debug("methodAndEnvPath:{}.", methodAndEnvPath);
-        }
-        return methodAndEnvPath;
-    }
-
-    /**
-     * 转化为detailDo
-     * @param detail
-     * @return
-     */
-    public VenusMethodCallDetailDO convertDetail(InvocationDetail detail){
-        ClientInvocationOperation clientInvocation = (ClientInvocationOperation)detail.getInvocation();
-        URL url = detail.getUrl();
-        Result result = detail.getResult();
-        Throwable exception = detail.getException();
-
-        VenusMethodCallDetailDO detailDO = new VenusMethodCallDetailDO();
-        //基本信息
-        detailDO.setId(UUIDUtil.create().toString());
-        detailDO.setRpcId(clientInvocation.getRpcId());
-        if(clientInvocation.getAthenaId() != null){
-            detailDO.setTraceId(new String(clientInvocation.getAthenaId()));
-        }
-        if(clientInvocation.getMessageId() != null){
-            detailDO.setMessageId(new String(clientInvocation.getMessageId()));
-        }
-        detailDO.setSourceType(detail.getFrom());
-
-        //请求信息
-        if(clientInvocation.getServiceInterface() != null){
-            detailDO.setInterfaceName(clientInvocation.getServiceInterface().getName());
-        }
-        detailDO.setServiceName(clientInvocation.getServiceName());
-        if(clientInvocation.getEndpoint() != null){
-            detailDO.setMethodName(clientInvocation.getEndpoint().getName());
-        }else if(clientInvocation.getMethod() != null){
-            detailDO.setMethodName(clientInvocation.getMethod().getName());
-        }
-        if(clientInvocation.getArgs() != null){
-            String requestJson = serialize(clientInvocation.getArgs());
-            detailDO.setRequestJson(requestJson);
-        }
-        detailDO.setRequestTime(clientInvocation.getRequestTime());
-        detailDO.setProviderDomain(url.getApplication());
-        detailDO.setProviderIp(url.getHost());
-        detailDO.setConsumerDomain(clientInvocation.getConsumerApp());
-        detailDO.setConsumerIp(clientInvocation.getConsumerIp());
-
-        //响应信息
-        detailDO.setResponseTime(detail.getResponseTime());
-        if(result != null){ //响应结果
-            if(result.getErrorCode() == 0){//成功
-                String responseJson = serialize(result.getResult());
-                detailDO.setReponseJson(responseJson);
-                detailDO.setStatus(1);
-            }else{//失败
-                String responseJson = String.format("%s-%s",result.getErrorCode(),result.getErrorMessage());
-                detailDO.setReponseJson(responseJson);
-                detailDO.setStatus(0);
-            }
-        } else if(exception != null){//响应异常
-            String responseJsonForException = serialize(exception);
-            detailDO.setErrorInfo(responseJsonForException);
-            detailDO.setStatus(0);
-        }
-        //耗时
-        long costTime = detail.getResponseTime().getTime()-clientInvocation.getRequestTime().getTime();
-        detailDO.setDurationMillisecond(Integer.parseInt(String.valueOf(costTime)));
-        //状态相关
-
-        return detailDO;
-    }
-
-    /**
-     * 转换为statisticDo
-     * @param statistic
-     * @return
-     */
-    public VenusMethodStaticDO convertStatistic(InvocationStatistic statistic){
-        VenusMethodStaticDO staticDO = new VenusMethodStaticDO();
-        staticDO.setInterfaceName(statistic.getServiceInterfaceName());
-        staticDO.setServiceName(statistic.getServiceName());
-        staticDO.setVersion(statistic.getVersion());
-        staticDO.setMethodName(statistic.getMethod());
-        staticDO.setTotalCount((statistic.getTotalNum().intValue()));
-        staticDO.setFailCount(statistic.getFailNum().intValue());
-        staticDO.setSlowCount(statistic.getSlowNum().intValue());
-        staticDO.setAvgDuration(statistic.getAvgCostTime().intValue());
-        staticDO.setMaxDuration(statistic.getMaxCostTime().intValue());
-
-        staticDO.setDomain(statistic.getProviderApp());
-        staticDO.setSourceIp(statistic.getProviderIp());
-        staticDO.setStartTime(statistic.getBeginTime());
-        staticDO.setEndTime(statistic.getEndTime());
-        return staticDO;
     }
 
     @Override
