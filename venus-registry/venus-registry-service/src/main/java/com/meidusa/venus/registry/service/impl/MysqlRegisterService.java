@@ -410,7 +410,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			if(CollectionUtils.isEmpty(services)){
 				services = venusServiceDAO.queryServicesByName(interfaceName, serviceName, version);// servicePath interfaceName/serviceName?version=version
 			}/*else{
-				LogUtils.DEFAULT_LOG.info("cacheVenusServiceDAO.queryServices");
+				LogUtils.DEFAULT_LOG.info("find def cacheVenusServiceDAO.queryServicesByName");
 			}*/
 		} catch (Exception e) {
 			LogUtils.ERROR_LOG.error("findServiceDefinitions queryServices 调用异常,interfaceName=>"+interfaceName+",serviceName=>"+serviceName+",version=>"+version,e);
@@ -426,7 +426,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					serviceMappings = venusServiceMappingDAO.getServiceMapping(serviceId, RegisteConstant.PROVIDER,
 							false);
 				}/*else{
-					LogUtils.DEFAULT_LOG.info("cacheVenusServiceMappingDAO.queryServiceMappings");
+					LogUtils.DEFAULT_LOG.info("find def cacheVenusServiceMappingDAO.queryServiceMappings");
 				}*/
 				if (CollectionUtils.isNotEmpty(serviceMappings)) {
 					for (VenusServiceMappingDO venusServiceMappingDO : serviceMappings) {
@@ -442,7 +442,9 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					List<VenusServerDO> servers = cacheVenusServerDAO.getServers(serverIds);
 					if (CollectionUtils.isEmpty(servers)) {
 						servers = venusServerDAO.getServers(serverIds);
-					}
+					}/*else{
+						LogUtils.DEFAULT_LOG.info("find def cachevenusServerDAO.getServerIds");
+					}*/
 					if (CollectionUtils.isNotEmpty(servers)) {
 						for (Iterator<VenusServerDO> iterator = servers.iterator(); iterator.hasNext();) {
 							VenusServerDO venusServerDO = iterator.next();
@@ -482,7 +484,9 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					VenusApplicationDO application = cacheApplicationDAO.getApplication(service.getAppId());
 					if (null == application) {
 						application = venusApplicationDAO.getApplication(service.getAppId());
-					}
+					}/*else{
+						LogUtils.DEFAULT_LOG.info("find def cachevenusApplicationDAO.getApplicationId");
+					}*/
 					VenusServiceDefinitionDO def = new VenusServiceDefinitionDO();
 					def.setInterfaceName(interfaceName);
 					def.setName(serviceName);
@@ -720,7 +724,10 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	public void heartbeatSubcribe(URL url) {
 		try {
 			String host = url.getHost();
-			VenusServerDO server = venusServerDAO.getServer(host, 0);
+			VenusServerDO server = cacheVenusServerDAO.getServer(host, 0);
+			if (null == server) {
+				server = venusServerDAO.getServer(host, 0);
+			}
 			if (null != server) {
 				int serverID = server.getId();
 				boolean update = venusServiceMappingDAO.updateHeartBeatTime(serverID, RegisteConstant.CONSUMER);
@@ -741,7 +748,10 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		try {
 			String host = url.getHost();
 			int port = url.getPort();
-			VenusServerDO server = venusServerDAO.getServer(host, port);
+			VenusServerDO server = cacheVenusServerDAO.getServer(host, port);
+			if (null == server) {
+				server = venusServerDAO.getServer(host, port);
+			}
 			if (null != server) {
 				int serverID = server.getId();
 				boolean update = venusServiceMappingDAO.updateHeartBeatTime(serverID, RegisteConstant.PROVIDER);
@@ -770,7 +780,9 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					if (CollectionUtils.isEmpty(services)) {
 						services = venusServiceDAO.queryServices(url.getInterfaceName(), url.getServiceName(),
 								url.getVersion());
-					}
+					}/*else{
+						LogUtils.DEFAULT_LOG.info("heartbeat cacheVenusServiceDAO.queryServices "+role);
+					}*/
 					if (CollectionUtils.isNotEmpty(services)) {
 						for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
 							VenusServiceDO venusServiceDO = iterator.next();
@@ -827,7 +839,9 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				} catch (Exception e) {
 					LogUtils.ERROR_LOG.error("根据host=>{},port=>{}查询server服务异常 ",host,port);
 				}
-			}
+			}/*else{
+				LogUtils.DEFAULT_LOG.info("heartbeat cachecacheVenusServerDAO.getServer");
+			}*/
 			if (null != server) {
 				break;
 			}
