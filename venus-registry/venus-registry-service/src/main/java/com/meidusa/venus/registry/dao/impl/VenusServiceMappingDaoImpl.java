@@ -432,7 +432,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 			sb.append(",");
 		}
 		String str = sb.substring(0, sb.length() - 1);
-		String sql = "select id from where server_id = ? and role=? and service_id in(" + str + ")";
+		String sql = "select id  from t_venus_service_mapping where server_id = ? and role=? and service_id in(" + str + ")";
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] { serverId, role },
 					new ResultSetExtractor<List<Integer>>() {
@@ -527,8 +527,8 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	}
 	
 	public List<VenusServiceMappingDO> queryServiceMappings(Integer pageSize, Integer id) throws DAOException {
-		String sql = SELECT_FIELDS_TABLE + " where id>" + id + " and role='" + RegisteConstant.PROVIDER
-				+ "' and is_delete=0" + " order by id asc limit " + pageSize;
+		String sql = SELECT_FIELDS_TABLE + " where id>" + id + " order by id asc limit " + pageSize;
+		//and role='" + RegisteConstant.PROVIDER + "' and is_delete=0" + "
 		try {
 			return this.jdbcTemplate.query(sql,new ResultSetExtractor<List<VenusServiceMappingDO>>() {
 						@Override

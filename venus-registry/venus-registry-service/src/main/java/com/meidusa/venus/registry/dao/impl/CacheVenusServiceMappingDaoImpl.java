@@ -15,12 +15,15 @@ import com.meidusa.venus.registry.LogUtils;
 import com.meidusa.venus.registry.dao.CacheVenusServiceMappingDAO;
 import com.meidusa.venus.registry.dao.VenusServiceMappingDAO;
 import com.meidusa.venus.registry.domain.VenusServiceMappingDO;
+import com.meidusa.venus.registry.domain.RegisteConstant;
 
 public class CacheVenusServiceMappingDaoImpl implements CacheVenusServiceMappingDAO {
 
 	private VenusServiceMappingDAO venusServiceMappingDAO;
 
 	private Map<Integer, List<VenusServiceMappingDO>> cacheServiceMappingMap = new HashMap<Integer, List<VenusServiceMappingDO>>();
+	
+	private Map<Integer, List<VenusServiceMappingDO>> cacheServerMappingMap = new HashMap<Integer, List<VenusServiceMappingDO>>();
 
 	private static final int PAGE_SIZE_200 = 200;
 
@@ -65,9 +68,14 @@ public class CacheVenusServiceMappingDaoImpl implements CacheVenusServiceMapping
 		if (CollectionUtils.isNotEmpty(allServices)) {
 			loacCacheRunning = true;
 			cacheServiceMappingMap.clear();
+			cacheServerMappingMap.clear();
 			for (Iterator<VenusServiceMappingDO> iterator = allServices.iterator(); iterator.hasNext();) {
 				VenusServiceMappingDO vs = iterator.next();
-				putToMap(vs.getServiceId(), vs);
+				if (null != vs.getIsDelete() && vs.getIsDelete() == false
+						&& vs.getRole().equals(RegisteConstant.PROVIDER)) {
+					putToMap(vs.getServiceId(), vs);
+				}
+				putToServerMap(vs.getServerId(),vs);
 			}
 			loacCacheRunning = false;
 		}
@@ -79,6 +87,19 @@ public class CacheVenusServiceMappingDaoImpl implements CacheVenusServiceMapping
 			list = new ArrayList<VenusServiceMappingDO>();
 			list.add(vs);
 			cacheServiceMappingMap.put(key, list);
+		} else {
+			if (!list.contains(vs)) {
+				list.add(vs);
+			}
+		}
+	}
+	
+	private void putToServerMap(Integer serverId, VenusServiceMappingDO vs) {
+		List<VenusServiceMappingDO> list = cacheServerMappingMap.get(serverId);
+		if (null == list) {
+			list = new ArrayList<VenusServiceMappingDO>();
+			list.add(vs);
+			cacheServerMappingMap.put(serverId, list);
 		} else {
 			if (!list.contains(vs)) {
 				list.add(vs);
@@ -116,6 +137,30 @@ public class CacheVenusServiceMappingDaoImpl implements CacheVenusServiceMapping
 			return cacheServiceMappingMap.get(serviceId);
 		}
 		return null;
+	}
+	
+	public List<Integer> queryServiceMappingIds(int serverId, List<Integer> serviceIds, String role)
+			throws DAOException {
+		if (loacCacheRunning) {
+			return null;
+		}
+		List<Integer> returnList = new ArrayList<Integer>();
+		if (serverId > 0) {
+			List<VenusServiceMappingDO> list = cacheServerMappingMap.get(serverId);
+			if (CollectionUtils.isNotEmpty(list)) {
+				for (Iterator<VenusServiceMappingDO> iterator = list.iterator(); iterator.hasNext();) {
+					VenusServiceMappingDO vs = iterator.next();
+					for (Iterator<Integer> it = serviceIds.iterator(); it.hasNext();) {
+						Integer serviceId = it.next();
+						if (null != vs.getServiceId() && vs.getServiceId().intValue() == serviceId.intValue()
+								&& vs.getRole().equals(role)) {
+							returnList.add(vs.getId());
+						}
+					}
+				}
+			}
+		}
+		return returnList;
 	}
 
 }
