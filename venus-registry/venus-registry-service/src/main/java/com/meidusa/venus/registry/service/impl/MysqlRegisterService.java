@@ -1185,15 +1185,18 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					if (null != heartbeatDto) {
 						int endSize = HEARTBEAT_QUEUE.size();
 						long start = System.currentTimeMillis();
-						boolean update = venusServiceMappingDAO.updateHeartBeatTime(heartbeatDto.getServerId(),
+//						boolean update = venusServiceMappingDAO.updateHeartBeatTime(heartbeatDto.getServerId(),
+//								heartbeatDto.getServiceIds(), heartbeatDto.getRole());
+						List<Integer> ids = venusServiceMappingDAO.queryMappingIds(heartbeatDto.getServerId(),
 								heartbeatDto.getServiceIds(), heartbeatDto.getRole());
+						boolean update = venusServiceMappingDAO.updateHeartBeatTime(ids);
 						long consumerTime = System.currentTimeMillis() - start;
 						LogUtils.logSlow(consumerTime, "UpdateHeartbeatTimeRunnable run() ");
 						if(!update){
 							LogUtils.HEARTBEAT_LOG.info("UpdateHeartbeatTimeRunnable.poll startSize=>{},endSize=>{},update=>{},heartbeatDto=>{}", startSize, endSize,update,JSON.toJSONString(heartbeatDto));
 						}
 						if(start % sampleMod ==1){
-							LogUtils.HEARTBEAT_LOG.info("UpdateHeartbeatTimeRunnable.sampling startSize=>{},endSize=>{},update=>{},consumerTime=>{},heartbeatDto=>{}", startSize, endSize,update,consumerTime,JSON.toJSONString(heartbeatDto));
+							LogUtils.HEARTBEAT_LOG.info("UpdateHeartbeatTimeRunnable.sampling startSize=>{},endSize=>{},update=>{},consumerTime=>{},ids=>{},heartbeatDto=>{}", startSize, endSize,update,consumerTime,ids,JSON.toJSONString(heartbeatDto));
 						}
 					}
 				} catch (Throwable e) {
