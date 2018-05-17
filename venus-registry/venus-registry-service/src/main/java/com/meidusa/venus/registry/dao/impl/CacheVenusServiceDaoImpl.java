@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
@@ -31,9 +30,7 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 
 	private List<VenusServiceDO> cacheServices = new ArrayList<VenusServiceDO>();
 
-	private static final int PAGE_SIZE_200 = 200;
-
-	private volatile boolean loacCacheRunning = false;
+	private static final int PAGE_SIZE_1000 = 1000;
 
 	public VenusServiceDAO getVenusServiceDAO() {
 		return venusServiceDAO;
@@ -48,65 +45,59 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 	}
 
 	public void load() {
-/*		loacCacheRunning = true;
-		if (loacCacheRunning) {
-			cacheServices.clear();
-			cacheServiceMap.clear();
-			nameServiceMap.clear();
-		}*/
 		List<VenusServiceDO> allServices=new ArrayList<VenusServiceDO>();
 		
 		Integer totalCount = venusServiceDAO.getServiceCount();
 		if (null != totalCount && totalCount > 0) {
-			int mod = totalCount % PAGE_SIZE_200;
-			int count = totalCount / PAGE_SIZE_200;
+			int mod = totalCount % PAGE_SIZE_1000;
+			int count = totalCount / PAGE_SIZE_1000;
 			if (mod > 0) {
 				count = count + 1;
 			}
 			int mapId = 0;
 			for (int i = 0; i < count; i++) {
-				List<VenusServiceDO> services = venusServiceDAO.queryServices(PAGE_SIZE_200, mapId);
+				List<VenusServiceDO> services = venusServiceDAO.queryServices(PAGE_SIZE_1000, mapId);
 				if (CollectionUtils.isNotEmpty(services)) {
 					mapId = services.get(services.size() - 1).getId();
 					allServices.addAll(services);
 				}
 			}
 		}
-		if(CollectionUtils.isNotEmpty(allServices)){
-			loacCacheRunning = true;
-			cacheServices.clear();
-			cacheServiceMap.clear();
-			nameServiceMap.clear();
-			putToCacheMap(allServices);
-			loacCacheRunning = false;
+		if (CollectionUtils.isNotEmpty(allServices)) {
+			Map<String, List<VenusServiceDO>> localCacheServiceMap = new HashMap<String, List<VenusServiceDO>>();
+			Map<String, List<VenusServiceDO>> localNameServiceMap = new HashMap<String, List<VenusServiceDO>>();
+			putToCacheMap(allServices, localCacheServiceMap, localNameServiceMap);//先放本地变量再赋值
+			cacheServiceMap = localCacheServiceMap;
+			nameServiceMap = localNameServiceMap;
+			cacheServices = allServices;
 		}
 		
 	}
 
-	private void putToCacheMap(List<VenusServiceDO> services) {
+	private void putToCacheMap(List<VenusServiceDO> services,Map<String, List<VenusServiceDO>> localCacheServiceMap,Map<String, List<VenusServiceDO>> localNameServiceMap) {
 		for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
 			VenusServiceDO vs = iterator.next();
 			if (RegistryUtil.isNotBlank(vs.getInterfaceName())) {
 				String interfaceNamekey = RegistryUtil.getCacheKey(vs.getInterfaceName(), vs.getVersion());
-				putToMap(interfaceNamekey, vs);
-				putToNameMap(vs.getName(),vs);
+				putToMap(interfaceNamekey, vs,localCacheServiceMap);
+				putToNameMap(vs.getName(),vs,localNameServiceMap);
 			}
 			if (RegistryUtil.isNotBlank(vs.getName())) {
 				String namekey = RegistryUtil.getCacheKey(vs.getName(), vs.getVersion());
-				putToMap(namekey, vs);
-				putToNameMap(vs.getName(),vs);
+				putToMap(namekey, vs,localCacheServiceMap);
+				putToNameMap(vs.getName(),vs,localNameServiceMap);
 			}
 			String key = RegistryUtil.getCacheKey(vs);
-			putToMap(key,vs);
+			putToMap(key,vs,localCacheServiceMap);
 		}
 	}
 
-	private void putToMap(String key,VenusServiceDO vs) {
-		List<VenusServiceDO> list = cacheServiceMap.get(key);
+	private void putToMap(String key,VenusServiceDO vs,Map<String, List<VenusServiceDO>> localCacheServiceMap) {
+		List<VenusServiceDO> list = localCacheServiceMap.get(key);
 		if (null == list) {
 			list = new ArrayList<VenusServiceDO>();
 			list.add(vs);
-			cacheServiceMap.put(key, list);
+			localCacheServiceMap.put(key, list);
 		} else {
 			if (!list.contains(vs)) {
 				list.add(vs);
@@ -114,12 +105,12 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 		}
 	}
 	
-	private void putToNameMap(String key,VenusServiceDO vs) {
-		List<VenusServiceDO> list = nameServiceMap.get(key);
+	private void putToNameMap(String key,VenusServiceDO vs,Map<String, List<VenusServiceDO>> localNameServiceMap) {
+		List<VenusServiceDO> list = localNameServiceMap.get(key);
 		if (null == list) {
 			list = new ArrayList<VenusServiceDO>();
 			list.add(vs);
-			nameServiceMap.put(key, list);
+			localNameServiceMap.put(key, list);
 		} else {
 			if (!list.contains(vs)) {
 				list.add(vs);
@@ -132,9 +123,6 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 			throws DAOException {
 		if (StringUtils.isBlank(interfaceName) && StringUtils.isBlank(serviceName)) {
 			throw new DAOException("serviceName与interfaceName不能同时为空");
-		}
-		if (loacCacheRunning) {// 缓存加载过程中，直接返回空，让从数据库中查询;
-			return new ArrayList<VenusServiceDO>();
 		}
 		
 		if(role.equals(RegisteConstant.CONSUMER)){
@@ -188,19 +176,13 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 						start, end, consumerTime, cacheServices.size(), cacheServiceMap.size());
 			} catch (Exception e) {
 				LogUtils.ERROR_LOG.error("load service cache data error", e);
-			} finally {
-				loacCacheRunning = false;
-			}
+			} 
 		}
 
 	}
 
 	@Override
 	public List<VenusServiceDO> queryServices(URL url) throws DAOException {
-		if (loacCacheRunning) {
-			return null;
-		}
-		
 		String serviceName = url.getServiceName();
 		if(RegistryUtil.isNotBlank(serviceName)) {
 			String version = url.getVersion();
@@ -214,9 +196,6 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 	}
 	
 	public List<String> queryAllServiceNames() throws DAOException {
-		if (loacCacheRunning) {// 缓存加载过程中，直接返回空，让从数据库中查询;
-			return new ArrayList<String>();
-		}
 		List<String> returnList = new ArrayList<String>();
 		for (VenusServiceDO vs : cacheServices) {
 			String name = vs.getName();

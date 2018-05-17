@@ -25,9 +25,7 @@ public class CacheVenusServiceMappingDaoImpl implements CacheVenusServiceMapping
 	
 	private Map<Integer, List<VenusServiceMappingDO>> cacheServerMappingMap = new HashMap<Integer, List<VenusServiceMappingDO>>();
 
-	private static final int PAGE_SIZE_200 = 200;
-
-	private volatile boolean loacCacheRunning = false;
+	private static final int PAGE_SIZE_1000 = 1000;
 
 	public VenusServiceMappingDAO getVenusServiceMappingDAO() {
 		return venusServiceMappingDAO;
@@ -43,21 +41,17 @@ public class CacheVenusServiceMappingDaoImpl implements CacheVenusServiceMapping
 	}
 
 	public void load() {
-/*		loacCacheRunning = true;
-		if (loacCacheRunning) {
-			cacheServiceMappingMap.clear();
-		}*/
 		List<VenusServiceMappingDO> allServices=new ArrayList<VenusServiceMappingDO>();
 		Integer totalCount = venusServiceMappingDAO.getMappingCount();
 		if (null != totalCount && totalCount > 0) {
-			int mod = totalCount % PAGE_SIZE_200;
-			int count = totalCount / PAGE_SIZE_200;
+			int mod = totalCount % PAGE_SIZE_1000;
+			int count = totalCount / PAGE_SIZE_1000;
 			if (mod > 0) {
 				count = count + 1;
 			}
 			int id = 0;
 			for (int i = 0; i < count; i++) {
-				List<VenusServiceMappingDO> services = venusServiceMappingDAO.queryServiceMappings(PAGE_SIZE_200, id);
+				List<VenusServiceMappingDO> services = venusServiceMappingDAO.queryServiceMappings(PAGE_SIZE_1000, id);
 				if (CollectionUtils.isNotEmpty(services)) {
 					id = services.get(services.size() - 1).getId();
 					allServices.addAll(services);
@@ -66,27 +60,30 @@ public class CacheVenusServiceMappingDaoImpl implements CacheVenusServiceMapping
 		}
 		
 		if (CollectionUtils.isNotEmpty(allServices)) {
-			loacCacheRunning = true;
-			cacheServiceMappingMap.clear();
-			cacheServerMappingMap.clear();
+			
+			Map<Integer, List<VenusServiceMappingDO>> localCacheServiceMappingMap = new HashMap<Integer, List<VenusServiceMappingDO>>();
+			Map<Integer, List<VenusServiceMappingDO>> localCacheServerMappingMap = new HashMap<Integer, List<VenusServiceMappingDO>>();
+
 			for (Iterator<VenusServiceMappingDO> iterator = allServices.iterator(); iterator.hasNext();) {
 				VenusServiceMappingDO vs = iterator.next();
 				if (null != vs.getIsDelete() && vs.getIsDelete() == false
 						&& vs.getRole().equals(RegisteConstant.PROVIDER)) {
-					putToMap(vs.getServiceId(), vs);
+					putToMap(vs.getServiceId(), vs,localCacheServiceMappingMap);
 				}
-				putToServerMap(vs.getServerId(),vs);
+				putToServerMap(vs.getServerId(),vs,localCacheServerMappingMap);
 			}
-			loacCacheRunning = false;
+			
+			cacheServiceMappingMap=localCacheServiceMappingMap;
+			cacheServerMappingMap=localCacheServerMappingMap;
 		}
 	}
 
-	private void putToMap(Integer key, VenusServiceMappingDO vs) {
-		List<VenusServiceMappingDO> list = cacheServiceMappingMap.get(key);
+	private void putToMap(Integer key, VenusServiceMappingDO vs,Map<Integer, List<VenusServiceMappingDO>> localCacheServiceMappingMap) {
+		List<VenusServiceMappingDO> list = localCacheServiceMappingMap.get(key);
 		if (null == list) {
 			list = new ArrayList<VenusServiceMappingDO>();
 			list.add(vs);
-			cacheServiceMappingMap.put(key, list);
+			localCacheServiceMappingMap.put(key, list);
 		} else {
 			if (!list.contains(vs)) {
 				list.add(vs);
@@ -94,12 +91,12 @@ public class CacheVenusServiceMappingDaoImpl implements CacheVenusServiceMapping
 		}
 	}
 	
-	private void putToServerMap(Integer serverId, VenusServiceMappingDO vs) {
-		List<VenusServiceMappingDO> list = cacheServerMappingMap.get(serverId);
+	private void putToServerMap(Integer serverId, VenusServiceMappingDO vs,Map<Integer, List<VenusServiceMappingDO>> localCacheServerMappingMap) {
+		List<VenusServiceMappingDO> list = localCacheServerMappingMap.get(serverId);
 		if (null == list) {
 			list = new ArrayList<VenusServiceMappingDO>();
 			list.add(vs);
-			cacheServerMappingMap.put(serverId, list);
+			localCacheServerMappingMap.put(serverId, list);
 		} else {
 			if (!list.contains(vs)) {
 				list.add(vs);
@@ -122,17 +119,12 @@ public class CacheVenusServiceMappingDaoImpl implements CacheVenusServiceMapping
 						start, end, consumerTime, cacheServiceMappingMap.size());
 			} catch (Exception e) {
 				LogUtils.ERROR_LOG.error("load service mapping cache data error", e);
-			} finally {
-				loacCacheRunning = false;
-			}
+			} 
 		}
 
 	}
 
 	public List<VenusServiceMappingDO> queryServiceMappings(int serviceId) throws DAOException {
-		if (loacCacheRunning) {
-			return null;
-		}
 		if (serviceId > 0) {
 			return cacheServiceMappingMap.get(serviceId);
 		}
@@ -141,9 +133,6 @@ public class CacheVenusServiceMappingDaoImpl implements CacheVenusServiceMapping
 	
 	public List<Integer> queryServiceMappingIds(int serverId, List<Integer> serviceIds, String role)
 			throws DAOException {
-		if (loacCacheRunning) {
-			return null;
-		}
 		List<Integer> returnList = new ArrayList<Integer>();
 		if (serverId > 0) {
 			List<VenusServiceMappingDO> list = cacheServerMappingMap.get(serverId);

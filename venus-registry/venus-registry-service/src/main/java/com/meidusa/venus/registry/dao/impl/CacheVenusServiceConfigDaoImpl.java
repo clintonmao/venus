@@ -18,15 +18,13 @@ import com.meidusa.venus.registry.domain.VenusServiceConfigDO;
 
 public class CacheVenusServiceConfigDaoImpl implements CacheServiceConfigDAO {
 
-	private static final int PAGE_SIZE_200 = 200;
+	private static final int PAGE_SIZE_1000 = 1000;
 
 	private VenusServiceConfigDAO venusServiceConfigDAO;
 
 	private Map<Integer, List<VenusServiceConfigDO>> cacheVenusServiceConfigMap = new HashMap<Integer, List<VenusServiceConfigDO>>();
 
 	private AtomicInteger cacheTotalCount = new AtomicInteger(0);
-
-	private volatile boolean loacCacheRunning = false;
 
 	public VenusServiceConfigDAO getVenusServiceConfigDAO() {
 		return venusServiceConfigDAO;
@@ -43,55 +41,45 @@ public class CacheVenusServiceConfigDaoImpl implements CacheServiceConfigDAO {
 
 	@Override
 	public List<VenusServiceConfigDO> getVenusServiceConfig(Integer serviceId) throws DAOException {
-		if (loacCacheRunning) {// 缓存加载过程中，直接返回空，让从数据库中查询;
-			return null;
-		}
 		return cacheVenusServiceConfigMap.get(serviceId);
 	}
 
 	void load() {
-		loacCacheRunning = true;
-		if (loacCacheRunning) {
-			cacheVenusServiceConfigMap.clear();
-		}
+		Map<Integer, List<VenusServiceConfigDO>> localCacheVenusServiceConfigMap = new HashMap<Integer, List<VenusServiceConfigDO>>();
 		Integer totalCount = venusServiceConfigDAO.getServiceConfigCount();
-		cacheTotalCount.set(totalCount);
 		if (null != totalCount && totalCount > 0) {
-			int mod = totalCount % PAGE_SIZE_200;
-			int count = totalCount / PAGE_SIZE_200;
+			int mod = totalCount % PAGE_SIZE_1000;
+			int count = totalCount / PAGE_SIZE_1000;
 			if (mod > 0) {
 				count = count + 1;
 			}
 			int id = 0;
 			for (int i = 0; i < count; i++) {
 				List<VenusServiceConfigDO> queryVenusServiceConfigs = venusServiceConfigDAO
-						.queryServiceConfigs(PAGE_SIZE_200, id);
+						.queryServiceConfigs(PAGE_SIZE_1000, id);
 				if (CollectionUtils.isNotEmpty(queryVenusServiceConfigs)) {
 					id = queryVenusServiceConfigs.get(queryVenusServiceConfigs.size() - 1).getId();
 					for (VenusServiceConfigDO serviceConfigDO : queryVenusServiceConfigs) {
-						putToMap(serviceConfigDO.getServiceId(), serviceConfigDO);
+						putToMap(serviceConfigDO.getServiceId(), serviceConfigDO,localCacheVenusServiceConfigMap);
 					}
 				}
 			}
 		}
-		loacCacheRunning = false;
+		cacheTotalCount.set(totalCount);
+		cacheVenusServiceConfigMap=localCacheVenusServiceConfigMap;
 	}
 
-	private void putToMap(Integer key, VenusServiceConfigDO vs) {
-		List<VenusServiceConfigDO> list = cacheVenusServiceConfigMap.get(key);
+	private void putToMap(Integer key, VenusServiceConfigDO vs,Map<Integer, List<VenusServiceConfigDO>> localCacheVenusServiceConfigMap) {
+		List<VenusServiceConfigDO> list = localCacheVenusServiceConfigMap.get(key);
 		if (null == list) {
 			list = new ArrayList<VenusServiceConfigDO>();
 			list.add(vs);
-			cacheVenusServiceConfigMap.put(key, list);
+			localCacheVenusServiceConfigMap.put(key, list);
 		} else {
 			if (!list.contains(vs)) {
 				list.add(vs);
 			}
 		}
-	}
-
-	public boolean isLoacCacheRunning() {
-		return loacCacheRunning;
 	}
 
 	private class LoadCacheVenusServiceConfigRunnable implements Runnable {
@@ -108,9 +96,7 @@ public class CacheVenusServiceConfigDaoImpl implements CacheServiceConfigDAO {
 						start, System.currentTimeMillis(), consumerTime, cacheVenusServiceConfigMap.size());
 			} catch (Throwable e) {
 				LogUtils.ERROR_LOG.error("load serviceConfigs cache data error", e);
-			} finally {
-				loacCacheRunning = false;
-			}
+			} 
 		}
 
 	}

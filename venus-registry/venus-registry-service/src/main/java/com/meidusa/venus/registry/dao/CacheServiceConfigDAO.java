@@ -10,7 +10,5 @@ public interface CacheServiceConfigDAO {
 	List<VenusServiceConfigDO> getVenusServiceConfig(Integer serviceId) throws DAOException;
 	
 	int getVenusServiceConfigCount() throws DAOException;
-	
-	 boolean isLoacCacheRunning();
 
 }

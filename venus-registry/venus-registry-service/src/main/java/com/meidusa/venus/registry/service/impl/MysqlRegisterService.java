@@ -500,12 +500,10 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 						def.setProvider(application.getAppCode());
 					}
 						if (cacheServiceConfigDAO.getVenusServiceConfigCount() > 0) {
-							List<VenusServiceConfigDO> serviceConfigs = null;
-							if (cacheServiceConfigDAO.isLoacCacheRunning()) {//缓存加载中，从数据库中查找,否则从当前缓存中查找
+							List<VenusServiceConfigDO> serviceConfigs = cacheServiceConfigDAO
+									.getVenusServiceConfig(serviceId);
+							if (CollectionUtils.isEmpty(serviceConfigs)) {
 								serviceConfigs = venusServiceConfigDAO.getServiceConfigs(serviceId);
-							}else{
-								serviceConfigs = cacheServiceConfigDAO.getVenusServiceConfig(serviceId);
-								//serviceConfigs = venusServiceConfigDAO.getServiceConfigs(serviceId);
 							}
 							ResultUtils.setServiceConfigs(serviceConfigs);
 							def.setServiceConfigs(serviceConfigs);
