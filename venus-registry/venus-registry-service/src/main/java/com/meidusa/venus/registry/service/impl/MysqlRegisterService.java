@@ -502,11 +502,11 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 						if (cacheServiceConfigDAO.getVenusServiceConfigCount() > 0) {
 							List<VenusServiceConfigDO> serviceConfigs = cacheServiceConfigDAO
 									.getVenusServiceConfig(serviceId);
-							if (CollectionUtils.isEmpty(serviceConfigs)) {
-								serviceConfigs = venusServiceConfigDAO.getServiceConfigs(serviceId);
+							if (CollectionUtils.isNotEmpty(serviceConfigs)) {
+								ResultUtils.setServiceConfigs(serviceConfigs);
+								def.setServiceConfigs(serviceConfigs);
+								//serviceConfigs = venusServiceConfigDAO.getServiceConfigs(serviceId);
 							}
-							ResultUtils.setServiceConfigs(serviceConfigs);
-							def.setServiceConfigs(serviceConfigs);
 						}
 					returnList.add(def);
 				}
