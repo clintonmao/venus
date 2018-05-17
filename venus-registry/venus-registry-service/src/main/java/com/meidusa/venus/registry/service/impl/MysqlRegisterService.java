@@ -404,14 +404,17 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		String serviceName = url.getServiceName();
 		String version = url.getVersion();
 		List<VenusServiceDO> services = null;
+		StringBuilder sb=new StringBuilder("");
 		try {
 			services = cacheVenusServiceDAO.queryServices(url);
 			
 			if(CollectionUtils.isEmpty(services)){
+				long started = System.currentTimeMillis();
 				services = venusServiceDAO.queryServicesByName(interfaceName, serviceName, version);// servicePath interfaceName/serviceName?version=version
-			}/*else{
-				LogUtils.DEFAULT_LOG.info("find def cacheVenusServiceDAO.queryServicesByName");
-			}*/
+				long duration = System.currentTimeMillis()-started;
+				sb.append(
+						"queryServicesByName,interfaceName=>" + interfaceName + ", serviceName=>" + serviceName + ", version=>+" + version+ ",duration=>" + duration);
+			}
 		} catch (Exception e) {
 			LogUtils.ERROR_LOG.error("findServiceDefinitions queryServices 调用异常,interfaceName=>"+interfaceName+",serviceName=>"+serviceName+",version=>"+version,e);
 		}
@@ -423,11 +426,12 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				Integer serviceId = service.getId();
 				List<VenusServiceMappingDO> serviceMappings = cacheVenusServiceMappingDAO.queryServiceMappings(serviceId);
 				if (CollectionUtils.isEmpty(serviceMappings)) {
+					long started = System.currentTimeMillis();
 					serviceMappings = venusServiceMappingDAO.getServiceMapping(serviceId, RegisteConstant.PROVIDER,
 							false);
-				}/*else{
-					LogUtils.DEFAULT_LOG.info("find def cacheVenusServiceMappingDAO.queryServiceMappings");
-				}*/
+					long duration = System.currentTimeMillis()-started;
+					sb.append(";getServiceMapping,serviceId=>" + serviceId + ",duration=>" + duration);
+				}
 				if (CollectionUtils.isNotEmpty(serviceMappings)) {
 					for (VenusServiceMappingDO venusServiceMappingDO : serviceMappings) {
 						if (venusServiceMappingDO.isActive()) {// 只取active的
@@ -441,10 +445,11 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				if (CollectionUtils.isNotEmpty(serverIds)) {
 					List<VenusServerDO> servers = cacheVenusServerDAO.getServers(serverIds);
 					if (CollectionUtils.isEmpty(servers)) {
+						long started = System.currentTimeMillis();
 						servers = venusServerDAO.getServers(serverIds);
-					}/*else{
-						LogUtils.DEFAULT_LOG.info("find def cachevenusServerDAO.getServerIds");
-					}*/
+						long duration = System.currentTimeMillis()-started;
+						sb.append(";getServers,serverIds=>" + serverIds+", duration=>" + duration);
+					}
 					if (CollectionUtils.isNotEmpty(servers)) {
 						for (Iterator<VenusServerDO> iterator = servers.iterator(); iterator.hasNext();) {
 							VenusServerDO venusServerDO = iterator.next();
@@ -483,10 +488,12 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				if (CollectionUtils.isNotEmpty(needHostPorts)) {
 					VenusApplicationDO application = cacheApplicationDAO.getApplication(service.getAppId());
 					if (null == application) {
+						long started = System.currentTimeMillis();
 						application = venusApplicationDAO.getApplication(service.getAppId());
-					}/*else{
-						LogUtils.DEFAULT_LOG.info("find def cachevenusApplicationDAO.getApplicationId");
-					}*/
+						long duration = System.currentTimeMillis()-started;
+						sb.append(
+								";getApplication,appId=>" + service.getAppId()+",duration=>"+duration);
+					}
 					VenusServiceDefinitionDO def = new VenusServiceDefinitionDO();
 					def.setInterfaceName(interfaceName);
 					def.setName(serviceName);
@@ -499,15 +506,15 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					if (null != application) {
 						def.setProvider(application.getAppCode());
 					}
-						if (cacheServiceConfigDAO.getVenusServiceConfigCount() > 0) {
-							List<VenusServiceConfigDO> serviceConfigs = cacheServiceConfigDAO
-									.getVenusServiceConfig(serviceId);
-							if (CollectionUtils.isNotEmpty(serviceConfigs)) {
-								ResultUtils.setServiceConfigs(serviceConfigs);
-								def.setServiceConfigs(serviceConfigs);
-								//serviceConfigs = venusServiceConfigDAO.getServiceConfigs(serviceId);
-							}
+					if (cacheServiceConfigDAO.getVenusServiceConfigCount() > 0) {
+						List<VenusServiceConfigDO> serviceConfigs = cacheServiceConfigDAO
+								.getVenusServiceConfig(serviceId);
+						if (CollectionUtils.isNotEmpty(serviceConfigs)) {
+							ResultUtils.setServiceConfigs(serviceConfigs);
+							def.setServiceConfigs(serviceConfigs);
+							//serviceConfigs = venusServiceConfigDAO.getServiceConfigs(serviceId);
 						}
+					}
 					returnList.add(def);
 				}
 			}
@@ -518,7 +525,8 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		}
 		long end = System.currentTimeMillis();
 		long consumerTime = end - start;
-		LogUtils.logSlow(consumerTime, "findServiceDefs is slow,url=>"+JSON.toJSONString(url));
+		LogUtils.logSlow(consumerTime,
+				"findServiceDefs is slow,url=>" + JSON.toJSONString(url) + ",sb=>" + sb.toString());
 		if(end % sampleMod ==1){
 		LogUtils.LOAD_SERVICE_DEF_LOG.info("findServiceDefs sampling consumerTime=>{},url=>{}", consumerTime,
 				JSON.toJSONString(url));
