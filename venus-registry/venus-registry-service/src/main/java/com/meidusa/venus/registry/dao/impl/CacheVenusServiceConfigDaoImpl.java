@@ -92,8 +92,8 @@ public class CacheVenusServiceConfigDaoImpl implements CacheServiceConfigDAO {
 				long consumerTime = System.currentTimeMillis() - start;
 				LogUtils.logCacheSlow(consumerTime, "LoadCacheVenusServiceConfigRunnable load() ");
 				LogUtils.DEFAULT_LOG.info(
-						"LoadCacheVenusServiceConfigRunnable start=>{}, end=>{},consumerTime=>{},cacheVenusServiceConfigMap size=>{}",
-						start, System.currentTimeMillis(), consumerTime, cacheVenusServiceConfigMap.size());
+						"LoadCacheVenusServiceConfigRunnable consumerTime=>{},cacheVenusServiceConfigMap size=>{}",
+						consumerTime, cacheVenusServiceConfigMap.size());
 			} catch (Throwable e) {
 				LogUtils.ERROR_LOG.error("load serviceConfigs cache data error", e);
 			} 

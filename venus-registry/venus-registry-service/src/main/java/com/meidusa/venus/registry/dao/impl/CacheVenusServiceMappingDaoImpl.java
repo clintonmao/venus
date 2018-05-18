@@ -115,8 +115,8 @@ public class CacheVenusServiceMappingDaoImpl implements CacheVenusServiceMapping
 				long consumerTime = end - start;
 				LogUtils.logCacheSlow(consumerTime, "LoadCacheServicesMappingRunnable load() ");
 				LogUtils.DEFAULT_LOG.info(
-						"LoadCacheServicesMappingRunnable start=>{}, end=>{},consumerTime=>{},cacheServiceMappingMap size=>{}",
-						start, end, consumerTime, cacheServiceMappingMap.size());
+						"LoadCacheServicesMappingRunnable consumerTime=>{},cacheServiceMappingMap size=>{}",
+						consumerTime, cacheServiceMappingMap.size());
 			} catch (Exception e) {
 				LogUtils.ERROR_LOG.error("load service mapping cache data error", e);
 			} 

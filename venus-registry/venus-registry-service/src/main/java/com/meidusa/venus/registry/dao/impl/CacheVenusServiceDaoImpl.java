@@ -172,8 +172,8 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 				long consumerTime = end - start;
 				LogUtils.logCacheSlow(consumerTime, "LoadCacheServicesRunnable load() ");
 				LogUtils.DEFAULT_LOG.info(
-						"LoadCacheServicesRunnable start=>{}, end=>{},consumerTime=>{},cacheServices size=>{},cacheServiceMap size=>{}",
-						start, end, consumerTime, cacheServices.size(), cacheServiceMap.size());
+						"LoadCacheServicesRunnable consumerTime=>{},cacheServices size=>{},cacheServiceMap size=>{}",
+						consumerTime, cacheServices.size(), cacheServiceMap.size());
 			} catch (Exception e) {
 				LogUtils.ERROR_LOG.error("load service cache data error", e);
 			} 
