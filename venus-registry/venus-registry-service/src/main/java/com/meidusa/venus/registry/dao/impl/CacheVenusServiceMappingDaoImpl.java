@@ -36,7 +36,7 @@ public class CacheVenusServiceMappingDaoImpl implements CacheVenusServiceMapping
 	}
 
 	public void init() {
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new LoadCacheServicesMappingRunnable(), 1, 20,
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new LoadCacheServicesMappingRunnable(), 1, 1,
 				TimeUnit.SECONDS);
 	}
 

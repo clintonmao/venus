@@ -41,7 +41,7 @@ public class CacheVenusServiceDaoImpl implements CacheVenusServiceDAO {
 	}
 
 	public void init() {
-		GlobalScheduler.getInstance().scheduleAtFixedRate(new LoadCacheServicesRunnable(), 1, 10, TimeUnit.SECONDS);
+		GlobalScheduler.getInstance().scheduleAtFixedRate(new LoadCacheServicesRunnable(), 1, 1, TimeUnit.SECONDS);
 	}
 
 	public void load() {

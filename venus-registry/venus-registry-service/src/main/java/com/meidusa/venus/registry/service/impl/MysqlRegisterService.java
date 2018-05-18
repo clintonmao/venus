@@ -404,6 +404,112 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		String serviceName = url.getServiceName();
 		String version = url.getVersion();
 		List<VenusServiceDO> services = null;
+		try {
+			services = cacheVenusServiceDAO.queryServices(url);
+		} catch (Exception e) {
+			LogUtils.ERROR_LOG.error("findServiceDefinitions queryServices 调用异常,interfaceName=>"+interfaceName+",serviceName=>"+serviceName+",version=>"+version,e);
+		}
+		try{
+			if(CollectionUtils.isNotEmpty(services)){
+				for (Iterator<VenusServiceDO> ite = services.iterator(); ite.hasNext();) {
+					List<Integer> serverIds = new ArrayList<Integer>();
+					VenusServiceDO service = ite.next();
+					Integer serviceId = service.getId();
+					List<VenusServiceMappingDO> serviceMappings = cacheVenusServiceMappingDAO.queryServiceMappings(serviceId);
+					if (CollectionUtils.isNotEmpty(serviceMappings)) {
+						for (VenusServiceMappingDO venusServiceMappingDO : serviceMappings) {
+							if (venusServiceMappingDO.isActive()) {// 只取active的
+								Integer serverId = venusServiceMappingDO.getServerId();
+								serverIds.add(serverId);
+							}
+						}
+					}
+					
+					Set<String> hostPortSet = new HashSet<String>();
+					if (CollectionUtils.isNotEmpty(serverIds)) {
+						List<VenusServerDO> servers = cacheVenusServerDAO.getServers(serverIds);
+						if (CollectionUtils.isNotEmpty(servers)) {
+							for (Iterator<VenusServerDO> iterator = servers.iterator(); iterator.hasNext();) {
+								VenusServerDO venusServerDO = iterator.next();
+								String hostPort = venusServerDO.getHostname() + ":" + venusServerDO.getPort();
+								hostPortSet.add(hostPort);
+							}
+						}
+					}
+					// 本机->sit->其他;如果本机server ip发现 同subcribe ip相同，只返回本机ip
+					Set<String> needHostPorts = new HashSet<String>();
+					//String msg="before=>"+JSON.toJSONString(hostPortSet);
+					
+					if(getEnableLocalIp().equals("on")){// 是否开启本地优先
+						boolean filterIP = findLocalIP(hostPortSet,url.getHost());
+						if(filterIP){//找到的是本机的
+							needHostPorts = hostPortSet;
+						}
+					}
+					
+					if(getEnableFilterIp().equals("on")){// 是否开启同网络环境优先
+						if (CollectionUtils.isEmpty(needHostPorts)){
+							List<String> sitIpSegments = getSitIpSegments();//sit ip 网段列表
+							//LogUtils.DEFAULT_LOG.info("sitIpSegments=>{}",JSON.toJSONString(sitIpSegments));
+							Set<String> afterFilterIps = filterSitIps(hostPortSet, sitIpSegments);//符合sit网段的IPs,从ucm读取网段，不在该网段中，排除 
+							if(CollectionUtils.isNotEmpty(afterFilterIps)) {
+								needHostPorts=afterFilterIps;
+								//LogUtils.DEFAULT_LOG.info(msg+",afterFilterIps=>{}",JSON.toJSONString(afterFilterIps));
+							}
+						}
+					}
+					
+					if (CollectionUtils.isEmpty(needHostPorts)){
+						needHostPorts=hostPortSet;
+					}
+					
+					if (CollectionUtils.isNotEmpty(needHostPorts)) {
+						VenusApplicationDO application = cacheApplicationDAO.getApplication(service.getAppId());
+						VenusServiceDefinitionDO def = new VenusServiceDefinitionDO();
+						def.setInterfaceName(interfaceName);
+						def.setName(serviceName);
+						def.setIpAddress(needHostPorts);
+						//LogUtils.DEFAULT_LOG.info("serviceName=>{},ipAddress=>{}",serviceName,JSON.toJSONString(needHostPorts));
+						def.setActive(true);
+						def.setDescription(service.getDescription());
+						def.setVersion(service.getVersion());
+						def.setVersionRange(service.getVersionRange());
+						if (null != application) {
+							def.setProvider(application.getAppCode());
+						}
+						if (cacheServiceConfigDAO.getVenusServiceConfigCount() > 0) {
+							List<VenusServiceConfigDO> serviceConfigs = cacheServiceConfigDAO
+									.getVenusServiceConfig(serviceId);
+							if (CollectionUtils.isNotEmpty(serviceConfigs)) {
+								ResultUtils.setServiceConfigs(serviceConfigs);
+								def.setServiceConfigs(serviceConfigs);
+							}
+						}
+						returnList.add(def);
+					}
+				}
+			}
+		} catch (Exception e) {
+			LogUtils.ERROR_LOG.error("findServiceDefinitions调用异常,url=>{},异常原因：{}", url, e);
+			throw new VenusRegisteException("findServiceDefinitions调用异常,服务名：" + log_service_name(url), e);
+		}
+		long end = System.currentTimeMillis();
+		long consumerTime = end - start;
+		LogUtils.logSlow(consumerTime,
+				"findServiceDefs is slow,url=>" + JSON.toJSONString(url));
+		if(end % sampleMod ==1){
+			LogUtils.LOAD_SERVICE_DEF_LOG.info("findServiceDefs sampling consumerTime=>{},url=>{}", consumerTime,
+					JSON.toJSONString(url));
+		}
+		return returnList;
+	}
+	public List<VenusServiceDefinitionDO> findServiceDefinitionsOld(URL url) {
+		long start=System.currentTimeMillis();
+		List<VenusServiceDefinitionDO> returnList = new ArrayList<VenusServiceDefinitionDO>();
+		String interfaceName = url.getInterfaceName();
+		String serviceName = url.getServiceName();
+		String version = url.getVersion();
+		List<VenusServiceDO> services = null;
 		StringBuilder sb=new StringBuilder("");
 		try {
 			services = cacheVenusServiceDAO.queryServices(url);
@@ -787,11 +893,11 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				if (null != server) {
 					List<VenusServiceDO> services = cacheVenusServiceDAO.queryServices(url.getInterfaceName(),
 							url.getServiceName(), url.getVersion(),role);
-					if (CollectionUtils.isEmpty(services)) {
+					/*if (CollectionUtils.isEmpty(services)) {
 						LogUtils.ERROR_LOG.info("heartbeat queryServices InterfaceName=>"+url.getInterfaceName()+",ServiceName=>"+url.getServiceName()+",Version=>"+url.getVersion());
 						services = venusServiceDAO.queryServices(url.getInterfaceName(), url.getServiceName(),
 								url.getVersion());
-					}/*else{
+					}*//*else{
 						LogUtils.DEFAULT_LOG.info("heartbeat cacheVenusServiceDAO.queryServices "+role);
 					}*/
 					if (CollectionUtils.isNotEmpty(services)) {
@@ -844,16 +950,14 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			int port = url.getPort();
 
 			server = cacheVenusServerDAO.getServer(host, port);
-			if (null == server) {
-				LogUtils.ERROR_LOG.info("heartbeat getServer host=>" + host + ",port=>" + port);
-				try{
-					server = venusServerDAO.getServer(host, port);
-				} catch (Exception e) {
-					LogUtils.ERROR_LOG.error("根据host=>{},port=>{}查询server服务异常 ",host,port);
-				}
-			}/*else{
-				LogUtils.DEFAULT_LOG.info("heartbeat cachecacheVenusServerDAO.getServer");
-			}*/
+//			if (null == server) {
+//				LogUtils.ERROR_LOG.info("heartbeat getServer host=>" + host + ",port=>" + port);
+//				try{
+//					server = venusServerDAO.getServer(host, port);
+//				} catch (Exception e) {
+//					LogUtils.ERROR_LOG.error("根据host=>{},port=>{}查询server服务异常 ",host,port);
+//				}
+//			}
 			if (null != server) {
 				break;
 			}
