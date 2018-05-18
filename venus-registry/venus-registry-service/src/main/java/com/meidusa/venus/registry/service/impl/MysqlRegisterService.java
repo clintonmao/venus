@@ -1304,9 +1304,12 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 						List<Integer> ids = cacheVenusServiceMappingDAO.queryServiceMappingIds(
 								heartbeatDto.getServerId(), heartbeatDto.getServiceIds(), heartbeatDto.getRole());
 						if (CollectionUtils.isEmpty(ids)) {
-							LogUtils.ERROR_LOG.info("heartbeat queryServiceMappingIds ids=>"+ids);
 							ids = venusServiceMappingDAO.queryMappingIds(heartbeatDto.getServerId(),
 									heartbeatDto.getServiceIds(), heartbeatDto.getRole());
+							if (CollectionUtils.isEmpty(ids)) {
+								LogUtils.DEFAULT_LOG.warn("heartbeat queryServiceMappingIds ids=>"+ids);
+								continue;
+							}
 						}
 						boolean update = false;
 						if (CollectionUtils.isNotEmpty(ids)) {
