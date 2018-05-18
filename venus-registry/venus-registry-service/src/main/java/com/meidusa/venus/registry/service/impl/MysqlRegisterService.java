@@ -409,6 +409,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			services = cacheVenusServiceDAO.queryServices(url);
 			
 			if(CollectionUtils.isEmpty(services)){
+				LogUtils.ERROR_LOG.info("find def queryServices not found url=>" + JSON.toJSONString(url));
 				long started = System.currentTimeMillis();
 				services = venusServiceDAO.queryServicesByName(interfaceName, serviceName, version);// servicePath interfaceName/serviceName?version=version
 				long duration = System.currentTimeMillis()-started;
@@ -426,7 +427,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				Integer serviceId = service.getId();
 				List<VenusServiceMappingDO> serviceMappings = cacheVenusServiceMappingDAO.queryServiceMappings(serviceId);
 				if (CollectionUtils.isEmpty(serviceMappings)) {
-					LogUtils.ERROR_LOG.info("queryServiceMappings not found=>" + serviceId);
+					LogUtils.ERROR_LOG.info("find def queryServiceMappings not found serviceId=>" + serviceId);
 					long started = System.currentTimeMillis();
 					serviceMappings = venusServiceMappingDAO.getServiceMapping(serviceId, RegisteConstant.PROVIDER,
 							false);
@@ -446,6 +447,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				if (CollectionUtils.isNotEmpty(serverIds)) {
 					List<VenusServerDO> servers = cacheVenusServerDAO.getServers(serverIds);
 					if (CollectionUtils.isEmpty(servers)) {
+						LogUtils.ERROR_LOG.info("find def getServers not found serverIds=>" + JSON.toJSONString(serverIds));
 						long started = System.currentTimeMillis();
 						servers = venusServerDAO.getServers(serverIds);
 						long duration = System.currentTimeMillis()-started;
@@ -489,6 +491,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				if (CollectionUtils.isNotEmpty(needHostPorts)) {
 					VenusApplicationDO application = cacheApplicationDAO.getApplication(service.getAppId());
 					if (null == application) {
+						LogUtils.ERROR_LOG.info("find def getApplication not found AppId=>" + service.getAppId());
 						long started = System.currentTimeMillis();
 						application = venusApplicationDAO.getApplication(service.getAppId());
 						long duration = System.currentTimeMillis()-started;
@@ -785,6 +788,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					List<VenusServiceDO> services = cacheVenusServiceDAO.queryServices(url.getInterfaceName(),
 							url.getServiceName(), url.getVersion(),role);
 					if (CollectionUtils.isEmpty(services)) {
+						LogUtils.ERROR_LOG.info("heartbeat queryServices InterfaceName=>"+url.getInterfaceName()+",ServiceName=>"+url.getServiceName()+",Version=>"+url.getVersion());
 						services = venusServiceDAO.queryServices(url.getInterfaceName(), url.getServiceName(),
 								url.getVersion());
 					}/*else{
@@ -841,6 +845,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 
 			server = cacheVenusServerDAO.getServer(host, port);
 			if (null == server) {
+				LogUtils.ERROR_LOG.info("heartbeat getServer host=>" + host + ",port=>" + port);
 				try{
 					server = venusServerDAO.getServer(host, port);
 				} catch (Exception e) {
@@ -1192,11 +1197,10 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					if (null != heartbeatDto) {
 						int endSize = HEARTBEAT_QUEUE.size();
 						long start = System.currentTimeMillis();
-//						boolean update = venusServiceMappingDAO.updateHeartBeatTime(heartbeatDto.getServerId(),
-//								heartbeatDto.getServiceIds(), heartbeatDto.getRole());
 						List<Integer> ids = cacheVenusServiceMappingDAO.queryServiceMappingIds(
 								heartbeatDto.getServerId(), heartbeatDto.getServiceIds(), heartbeatDto.getRole());
 						if (CollectionUtils.isEmpty(ids)) {
+							LogUtils.ERROR_LOG.info("heartbeat queryServiceMappingIds ids=>"+ids);
 							ids = venusServiceMappingDAO.queryMappingIds(heartbeatDto.getServerId(),
 									heartbeatDto.getServiceIds(), heartbeatDto.getRole());
 						}

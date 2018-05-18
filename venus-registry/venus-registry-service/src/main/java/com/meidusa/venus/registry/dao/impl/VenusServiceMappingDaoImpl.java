@@ -518,7 +518,7 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	}
 	
 	public int getMappingCount() throws DAOException {
-		String sql = "SELECT count(id) as records FROM t_venus_service_mapping as map where role='"+RegisteConstant.PROVIDER+"' and is_delete=0";
+		String sql = "SELECT count(id) as records FROM t_venus_service_mapping as map ";//where role='"+RegisteConstant.PROVIDER+"' and is_delete=0
 		try {
 			return this.jdbcTemplate.queryForObject(sql, Integer.class);
 		} catch (Exception e) {
