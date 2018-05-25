@@ -1,10 +1,15 @@
 package com.meidusa.venus.registry;
 
 import com.caucho.hessian.client.HessianProxyFactory;
+import com.meidusa.venus.URL;
 import com.meidusa.venus.exception.VenusConfigException;
+import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
 import com.meidusa.venus.registry.mysql.MysqlRegister;
 import com.meidusa.venus.registry.service.RegisterService;
 import com.meidusa.venus.util.VenusLoggerFactory;
+
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
@@ -109,5 +114,24 @@ public class VenusRegistryFactory implements InitializingBean {
     public void setRegister(Register register) {
         this.register = register;
     }
+    
+/*    public static void main(String args[]){
+        HessianProxyFactory proxyFactory = new HessianProxyFactory();
+        proxyFactory.setReadTimeout(readTimeout);
+        proxyFactory.setConnectTimeout(connectTimeout);
+        String registerUrl="http://register.chexiangpre.com/registerService";
+        try {
+            RegisterService registerService = (RegisterService) proxyFactory.create(RegisterService.class, registerUrl);
+            URL url=new URL();
+            url.setInterfaceName("com.saic.lemon.cxh.service.IWXTokenBridgeService");
+            url.setServiceName("weixinTokenBridgeService");
+            List<VenusServiceDefinitionDO> findServiceDefinitions = registerService.findServiceDefinitions(url);
+            System.out.println(findServiceDefinitions);
+        } catch (Exception e) {
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("newHessianRegisterService error.",e);
+            }
+        }
+    }*/
 
 }

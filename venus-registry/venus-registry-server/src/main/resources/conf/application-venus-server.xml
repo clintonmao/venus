@@ -15,7 +15,7 @@
 	default-autowire="byName">
 
 	<context:annotation-config/>
-	<context:component-scan base-package="com.meidusa.venus.registry" />
+	<context:component-scan base-package="com.meidusa.venus.registry,com.saic.framework.athena" />
 	<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor" />
 
 <!-- 	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
@@ -183,5 +183,19 @@
             <ref bean="transactionManager"/>
         </property>
     </bean>
+    
+	<bean id="application" class="com.saike.commons.Application" init-method="init">
+	    <!--appName 可选，若不配置则默认通过UCM从CMDB获取关联的应用名称-->
+	    <!--
+	    <property name="appName" value="${venus.application.name}"/>
+	    -->
+	</bean>
+	    
+	<bean name="configManager" class="com.saic.framework.athena.configuration.DefaultClientConfigManager">
+	    <property name="application" ref="application"/>
+	    <property name="brokers" value="${athena.kafka.bootstrap.servers}"/>
+	</bean>
+	
+	<bean class="com.saic.framework.athena.module.base.AnnotationedAgentLogicScanner" init-method="init" autowire="byType"/>
 
 </beans>
