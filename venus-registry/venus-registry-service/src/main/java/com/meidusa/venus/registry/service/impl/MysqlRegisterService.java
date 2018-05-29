@@ -194,7 +194,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				LogUtils.DEFAULT_LOG.info("logicDeleteOldMappings 服务,appCode=>{},serverId=>{},appId=>{},result=>{}",
 						appCode, serverId, appId, deleteOldMappings);
 			}catch(Exception e){
-				LogUtils.ERROR_LOG.error("deleteOldMappings 服务异常,serviceId=>{},appId=>{}", serviceId,appId);
+				LogUtils.ERROR_LOG.error("deleteOldMappings 服务异常,serviceId=>"+serviceId+",appId=>"+serviceId,e);
 			}
 		}
 	}
@@ -490,7 +490,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				}
 			}
 		} catch (Exception e) {
-			LogUtils.ERROR_LOG.error("findServiceDefinitions调用异常,url=>{},异常原因：{}", url, e);
+			LogUtils.ERROR_LOG.error("findServiceDefinitions调用异常,url=>" + url + ",异常原因", e);
 			throw new VenusRegisteException("findServiceDefinitions调用异常,服务名：" + log_service_name(url), e);
 		}
 		long end = System.currentTimeMillis();
@@ -630,7 +630,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			}
 			}
 		} catch (Exception e) {
-			LogUtils.ERROR_LOG.error("findServiceDefinitions调用异常,url=>{},异常原因：{}", url, e);
+			LogUtils.ERROR_LOG.error("findServiceDefinitions调用异常,url=>" + url + "异常原因", e);
 			throw new VenusRegisteException("findServiceDefinitions调用异常,服务名：" + log_service_name(url), e);
 		}
 		long end = System.currentTimeMillis();
@@ -853,7 +853,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			}
 		} catch (Exception e) {
 			String name = log_service_name(url);
-			LogUtils.ERROR_LOG.error("服务{}subscrible更新heartBeatTime异常 ,异常原因：{}", name, e);
+			LogUtils.ERROR_LOG.error("服务"+name+"subscrible更新heartBeatTime异常 ,异常原因", e);
 			throw new VenusRegisteException("subscrible更新heartBeatTime异常,服务名：" + name, e);
 		}
 
@@ -876,7 +876,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			}
 		} catch (Exception e) {
 			String name = log_service_name(url);
-			LogUtils.ERROR_LOG.error("服务{}registe更新heartBeatTime异常 ,异常原因：{}", name, e);
+			LogUtils.ERROR_LOG.error("服务"+name+"registe更新heartBeatTime异常 ,异常原因", e);
 			throw new VenusRegisteException("registe更新heartBeatTime异常,服务名：" + name, e);
 		}
 
@@ -889,6 +889,15 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		Map<Integer, List<Integer>> maps = new HashMap<Integer, List<Integer>>();
 		try {
 			VenusServerDO server = getServer(urls);
+			String appCode="";
+			if((null != server) && System.currentTimeMillis() % sampleMod ==1){
+				for (Iterator<URL> iterator = urls.iterator(); iterator.hasNext();) {
+					URL url =  iterator.next();
+					appCode = url.getApplication();
+					break;
+				}
+				LogUtils.HEARTBEAT_LOG.info("heartbeatRegister host=>{},port=>{},app=>{},role=>{}",server.getHostname(),server.getPort(),appCode,role);
+			}
 			for (URL url : urls) {//订阅时不传version,注册时有version
 				if (null != server) {
 					List<VenusServiceDO> services = cacheVenusServiceDAO.queryServices(url.getInterfaceName(),
@@ -921,7 +930,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				}
 			}
 			if (HEARTBEAT_QUEUE.size() >= QUEUE_SIZE_10000 - 1) {
-				LogUtils.HEARTBEAT_LOG.info("venus heartbeat drop message=>" + JSON.toJSONString(maps));
+				LogUtils.HEARTBEAT_LOG.info("HEARTBEAT_QUEUE is full.");
 			} else {
 				for (Map.Entry<Integer, List<Integer>> ent : maps.entrySet()) {
 					UpdateHeartBeatTimeDTO heartBeatTimeDTO = new UpdateHeartBeatTimeDTO();
@@ -937,7 +946,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 
 			}
 		} catch (Exception e) {
-			LogUtils.ERROR_LOG.error("服务{}heartBeatTime入队列异常 ,异常原因：{}", JSON.toJSONString(urls, true), e);
+			LogUtils.ERROR_LOG.error("服务" + JSON.toJSONString(urls, true) + " heartBeatTime入队列异常 ,异常原因", e);
 			throw new VenusRegisteException("heartBeatTime入队列异常", e);
 		}
 
@@ -1000,7 +1009,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		}
 
 		List<VenusServiceMappingDO> needDeleteServiceMappings = venusServiceMappingDAO
-				.queryServiceMappings(VenusConstants.DELELE_INVALID_SERVICE_HOUR * 3);
+				.queryServiceMappings(VenusConstants.DELELE_INVALID_SERVICE_HOUR * 3 *7);
 		if (CollectionUtils.isNotEmpty(needDeleteServiceMappings)) {
 			List<Integer> delete_mapping_ids = new ArrayList<Integer>();
 			List<Integer> server_ids = new ArrayList<Integer>();
@@ -1304,9 +1313,12 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 						List<Integer> ids = cacheVenusServiceMappingDAO.queryServiceMappingIds(
 								heartbeatDto.getServerId(), heartbeatDto.getServiceIds(), heartbeatDto.getRole());
 						if (CollectionUtils.isEmpty(ids)) {
-							LogUtils.ERROR_LOG.info("heartbeat queryServiceMappingIds ids=>"+ids);
 							ids = venusServiceMappingDAO.queryMappingIds(heartbeatDto.getServerId(),
 									heartbeatDto.getServiceIds(), heartbeatDto.getRole());
+							if (CollectionUtils.isEmpty(ids)) {
+								LogUtils.DEFAULT_LOG.warn("heartbeat queryServiceMappingIds ids=>"+ids);
+								continue;
+							}
 						}
 						boolean update = false;
 						if (CollectionUtils.isNotEmpty(ids)) {

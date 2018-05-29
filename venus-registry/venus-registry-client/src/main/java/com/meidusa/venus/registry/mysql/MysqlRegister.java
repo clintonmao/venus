@@ -1,5 +1,6 @@
 package com.meidusa.venus.registry.mysql;
 
+import com.caucho.hessian.client.HessianProxyFactory;
 import com.meidusa.fastjson.JSON;
 import com.meidusa.fastjson.TypeReference;
 import com.meidusa.toolkit.common.runtime.GlobalScheduler;
@@ -813,6 +814,26 @@ public class MysqlRegister implements Register {
 			System.out.println(str);
 		}
 	}*/
+	
+/*    public static void main(String args[]){
+        HessianProxyFactory proxyFactory = new HessianProxyFactory();
+        proxyFactory.setReadTimeout(5000);
+        proxyFactory.setConnectTimeout(5000);
+        String registerUrl="http://register.chexiang.com/registerService";
+        try {
+            RegisterService registerService = (RegisterService) proxyFactory.create(RegisterService.class, registerUrl);
+            URL url=new URL();
+            url.setInterfaceName("com.saic.usedcar.weixin.api.WeixinSendMessageService");
+            url.setServiceName("weixinSendMessageService");
+            List<VenusServiceDefinitionDO> findServiceDefinitions = registerService.findServiceDefinitions(url);
+            System.out.println(findServiceDefinitions);
+        } catch (Exception e) {
+            if(exceptionLogger.isErrorEnabled()){
+                exceptionLogger.error("newHessianRegisterService error.",e);
+            }
+        }
+    }*/
+
 	
 
 }
