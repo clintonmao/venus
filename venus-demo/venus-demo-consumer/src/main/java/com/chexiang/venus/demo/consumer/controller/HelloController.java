@@ -3,7 +3,10 @@ package com.chexiang.venus.demo.consumer.controller;
 import com.chexiang.venus.demo.provider.HelloService;
 import com.chexiang.venus.demo.provider.HelloValidException;
 import com.chexiang.venus.demo.provider.InvalidParamException;
+import com.chexiang.venus.demo.provider.SaleLeadsService;
 import com.chexiang.venus.demo.provider.model.Hello;
+import com.chexiang.venus.demo.provider.model.SgmSaleLeadsDto;
+import com.chexiang.venus.demo.provider.model.SgmSaleLeadsRequest;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.notify.InvocationListener;
 import org.slf4j.Logger;
@@ -12,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * HelloController
@@ -25,6 +31,9 @@ public class HelloController {
 
     @Autowired
     HelloService helloService;
+
+    @Autowired
+    SaleLeadsService saleLeadsService;
 
     //@Autowired
     //UniMessageService uniMessageService;
@@ -76,7 +85,7 @@ public class HelloController {
     }
 
     @RequestMapping("/cal/{param}")
-    public Result cal(@PathVariable String param) throws HelloValidException,InvalidParamException {
+    public Result cal(@PathVariable String param) {
         try {
             int ret = helloService.cal(Integer.parseInt(param));
         } catch (HelloValidException e) {
@@ -90,7 +99,7 @@ public class HelloController {
     }
 
     @RequestMapping("/sms/{param}")
-    public Result sms(@PathVariable String param) throws HelloValidException,InvalidParamException {
+    public Result sms(@PathVariable String param) {
 //        Sms sms = new Sms("smsVenus","schemaId1");
 //
 //        List destPhoneList = new ArrayList();
@@ -107,6 +116,26 @@ public class HelloController {
 //        } catch (SMSValidateException e) {
 //            e.printStackTrace();
 //        }
+        return new Result("ok");
+    }
+
+    @RequestMapping("/fastmark/{param}")
+    public Result fastmark(@PathVariable String param) {
+        SgmSaleLeadsRequest request = new SgmSaleLeadsRequest();
+
+        //添加list
+        List<SgmSaleLeadsDto> saleLeadsList = new ArrayList<>();
+        SgmSaleLeadsDto item = new SgmSaleLeadsDto();
+        item.setAddress("shanghailu 1800");
+        saleLeadsList.add(item);
+        item = new SgmSaleLeadsDto();
+        item.setAddress("jiangshulv 1600");
+        saleLeadsList.add(item);
+
+        request.setSaleLeadsList(saleLeadsList);
+
+
+        saleLeadsService.receiveSgmSaleLeads(request);
         return new Result("ok");
     }
 
