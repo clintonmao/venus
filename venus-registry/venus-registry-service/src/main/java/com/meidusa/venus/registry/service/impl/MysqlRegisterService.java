@@ -214,23 +214,6 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	}
 
 	public int addService(String serviceName, String description, String versionRange) {
-		// VenusServiceDO service =
-		// venusServiceDAO.getService(serviceName,RegisteConstant.OPERATOR_REGISTE,versionRange);
-		// int serviceId = 0;
-		// if (null == service) {
-		// int appId = saveApplication(serviceName);
-		// VenusServiceDO venusServiceDO = new VenusServiceDO();
-		// venusServiceDO.setName(serviceName);
-		// venusServiceDO.setAppId(appId);
-		// venusServiceDO.setVersion(String.valueOf(VenusConstants.VERSION_DEFAULT));//导入时version默认为0
-		// venusServiceDO.setVersionRange(versionRange);
-		// venusServiceDO.setRegisteType(RegisteConstant.OPERATOR_REGISTE);
-		// venusServiceDO.setMethods(null);
-		// venusServiceDO.setDescription(description);
-		// venusServiceDO.setDelete(false);
-		// serviceId = venusServiceDAO.addService(venusServiceDO);
-		// }
-		// return serviceId;
 		return 0;
 	}
 
@@ -404,12 +387,11 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		String serviceName = url.getServiceName();
 		String version = url.getVersion();
 		List<VenusServiceDO> services = null;
-		try {
-			services = cacheVenusServiceDAO.queryServices(url);
-		} catch (Exception e) {
-			LogUtils.ERROR_LOG.error("findServiceDefinitions queryServices 调用异常,interfaceName=>"+interfaceName+",serviceName=>"+serviceName+",version=>"+version,e);
-		}
+
 		try{
+			//查询服务列表
+			services = cacheVenusServiceDAO.queryServices(url);
+
 			if(CollectionUtils.isNotEmpty(services)){
 				for (Iterator<VenusServiceDO> ite = services.iterator(); ite.hasNext();) {
 					List<Integer> serverIds = new ArrayList<Integer>();
@@ -510,7 +492,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		String serviceName = url.getServiceName();
 		String version = url.getVersion();
 		List<VenusServiceDO> services = null;
-		StringBuilder sb=new StringBuilder("");
+		StringBuilder sb=new StringBuilder();
 		try {
 			services = cacheVenusServiceDAO.queryServices(url);
 			
@@ -752,89 +734,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		} else {
 			// logger.error("exits=>"+sb.toString());
 		}
-	}/*
-		 * else { VenusServiceDO service =
-		 * venusServiceDAO.getService(serviceName,
-		 * RegisteConstant.OPERATOR_REGISTE,version); if (null != service) { if
-		 * (StringUtils.isNotBlank(service.getVersionRange()) &&
-		 * StringUtils.isNotBlank(version)) { if
-		 * (!service.getVersionRange().equals(version)) { String versionRange =
-		 * version; venusServiceDAO.updateServiceVersionRange(service.getId(),
-		 * versionRange); } } } }
-		 */
-
-	// public List<VenusServiceDefinitionDO> finderviceDefinitionList(String
-	// interfaceName, String serviceName)
-	// throws VenusRegisteException {
-	// List<Integer> serverIds = new ArrayList<Integer>();
-	// List<VenusServiceDefinitionDO> serviceDefinitions = new
-	// ArrayList<VenusServiceDefinitionDO>();
-	// try {
-	// List<VenusServiceDO> services =
-	// venusServiceDAO.getServices(interfaceName, serviceName);
-	// if (null == services) {
-	// return serviceDefinitions;
-	// }
-	// for (Iterator<VenusServiceDO> ite = services.iterator(); ite.hasNext();)
-	// {
-	// VenusServiceDO venusServiceDO = ite.next();
-	// if (venusServiceDO.getIsDelete()) {
-	// ite.remove();
-	// }
-	// }
-	// for (Iterator<VenusServiceDO> ite = services.iterator(); ite.hasNext();)
-	// {
-	// VenusServiceDO venusServiceDO = ite.next();
-	// Integer serviceId = venusServiceDO.getId();
-	//
-	// List<VenusServiceMappingDO> serviceMappings =
-	// venusServiceMappingDAO.getServiceMapping(serviceId,
-	// RegisteConstant.PROVIDER, false);
-	// if (CollectionUtils.isNotEmpty(serviceMappings)) {
-	// for (VenusServiceMappingDO venusServiceMappingDO : serviceMappings) {
-	// if (venusServiceMappingDO.isActive()) {// 只取active的
-	// Integer serverId = venusServiceMappingDO.getServerId();
-	// serverIds.add(serverId);
-	// }
-	// }
-	// }
-	//
-	// Set<String> hostPortSet = new HashSet<String>();
-	// if (CollectionUtils.isNotEmpty(serverIds)) {
-	// List<VenusServerDO> servers = venusServerDAO.getServers(serverIds);
-	// if (CollectionUtils.isNotEmpty(servers)) {
-	// for (Iterator<VenusServerDO> iterator = servers.iterator();
-	// iterator.hasNext();) {
-	// VenusServerDO venusServerDO = iterator.next();
-	// String hostPort = venusServerDO.getHostname() + ":" +
-	// venusServerDO.getPort();
-	// hostPortSet.add(hostPort);
-	// }
-	// }
-	// }
-	// if (CollectionUtils.isNotEmpty(hostPortSet)) {
-	// VenusServiceDefinitionDO def = new VenusServiceDefinitionDO();
-	// def.setInterfaceName(interfaceName);
-	// def.setName(serviceName);
-	// def.setIpAddress(hostPortSet);
-	// def.setActive(true);
-	// def.setDescription(venusServiceDO.getDescription());
-	// def.setSupportVersionRange(venusServiceDO.getSupportVersionRange());
-	// List<VenusServiceConfigDO> serviceConfigs =
-	// venusServiceConfigDAO.getServiceConfigs(serviceId);
-	// ResultUtils.setServiceConfigs(serviceConfigs);
-	// def.setServiceConfigs(serviceConfigs);
-	// serviceDefinitions.add(def);
-	// }
-	// return serviceDefinitions;
-	// }
-	// } catch (Exception e) {
-	// logger.error("服务{}ServiceDefineRunnable 运行异常 ,异常原因：{}", serviceName, e);
-	// throw new VenusRegisteException("ServiceDefineRunnable 运行异常,服务名：" +
-	// serviceName, e);
-	// }
-	// return serviceDefinitions;
-	// }
+	}
 
 	@Deprecated
 	public void heartbeatSubcribe(URL url) {
@@ -1347,7 +1247,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	}
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		needRun = false;
 		es.shutdown();
 	}
