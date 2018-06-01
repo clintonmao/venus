@@ -159,6 +159,11 @@
 		    <artifactId>athena-client</artifactId>
 		    <version>2.2.8</version>
 		</dependency>
+	  	<dependency>
+          <groupId>com.saic.healthcheck</groupId>
+          <artifactId>saic-healthcheck-web</artifactId>
+          <version>0.0.2</version>
+	    </dependency>
     </dependencies>
 
     <build>

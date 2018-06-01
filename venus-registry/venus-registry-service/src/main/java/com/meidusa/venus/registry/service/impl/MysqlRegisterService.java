@@ -93,6 +93,8 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 
 	public static final LinkedBlockingQueue<UpdateHeartBeatTimeDTO> HEARTBEAT_QUEUE = new LinkedBlockingQueue<UpdateHeartBeatTimeDTO>(
 			QUEUE_SIZE_10000);
+	
+	public static Map<String,Date> cacheHeartBeatMap=new HashMap<String,Date>();
 
 	/** 新注册中心数据库地址 */
 	private String connectUrl;
@@ -757,7 +759,17 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			List<Integer> logic_mapping_ids = new ArrayList<Integer>();
 			for (Iterator<VenusServiceMappingDO> iterator = serviceMappings.iterator(); iterator.hasNext();) {
 				VenusServiceMappingDO mapping = iterator.next();
-				logic_mapping_ids.add(mapping.getId());
+				String key = mapping.getServerId() + "_" + mapping.getServiceId() + "_" + mapping.getRole();
+				Date date = cacheHeartBeatMap.get(key);
+				if (null != date) {
+					Date curDate = new Date();
+					long cacheSecond = curDate.getTime() - date.getTime() / 1000;
+					if (cacheSecond >= VenusConstants.LOGIC_DEL_INVALID_SERVICE_TIME) {
+						logic_mapping_ids.add(mapping.getId());
+					}
+				}else{
+					logic_mapping_ids.add(mapping.getId());
+				}
 			}
 			if (CollectionUtils.isNotEmpty(logic_mapping_ids)) {
 				LogUtils.CLEAR_INVALID.info(
@@ -1072,6 +1084,12 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 						long start = System.currentTimeMillis();
 						List<Integer> ids = cacheVenusServiceMappingDAO.queryServiceMappingIds(
 								heartbeatDto.getServerId(), heartbeatDto.getServiceIds(), heartbeatDto.getRole());
+						if (CollectionUtils.isNotEmpty(heartbeatDto.getServiceIds())) {
+							for (Integer sid : heartbeatDto.getServiceIds()) {
+								String key = heartbeatDto.getServerId() + "_" + sid + "_" + heartbeatDto.getRole();
+								cacheHeartBeatMap.put(key, new Date());
+							}
+						}
 						if (CollectionUtils.isEmpty(ids)) {
 							ids = venusServiceMappingDAO.queryMappingIds(heartbeatDto.getServerId(),
 									heartbeatDto.getServiceIds(), heartbeatDto.getRole());
