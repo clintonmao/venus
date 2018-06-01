@@ -700,6 +700,12 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					heartBeatTimeDTO.setServerId(ent.getKey());
 					heartBeatTimeDTO.setServiceIds(ent.getValue());
 					heartBeatTimeDTO.setServerDO(server);
+					if (CollectionUtils.isNotEmpty(ent.getValue())) {
+						for (Integer sid : ent.getValue()) {
+							String key = ent.getKey() + "_" + sid + "_" + role;
+							cacheHeartBeatMap.put(key, new Date());
+						}
+					}
 					boolean offer = HEARTBEAT_QUEUE.offer(heartBeatTimeDTO);
 					if (!offer) {
 						LogUtils.HEARTBEAT_LOG.info("heartbeat_queue size=>{},venus heartbeat message maps=>{},urls=>{}", HEARTBEAT_QUEUE.size(),JSON.toJSONString(maps),JSON.toJSONString(urls));
@@ -1084,12 +1090,6 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 						long start = System.currentTimeMillis();
 						List<Integer> ids = cacheVenusServiceMappingDAO.queryServiceMappingIds(
 								heartbeatDto.getServerId(), heartbeatDto.getServiceIds(), heartbeatDto.getRole());
-						if (CollectionUtils.isNotEmpty(heartbeatDto.getServiceIds())) {
-							for (Integer sid : heartbeatDto.getServiceIds()) {
-								String key = heartbeatDto.getServerId() + "_" + sid + "_" + heartbeatDto.getRole();
-								cacheHeartBeatMap.put(key, new Date());
-							}
-						}
 						if (CollectionUtils.isEmpty(ids)) {
 							ids = venusServiceMappingDAO.queryMappingIds(heartbeatDto.getServerId(),
 									heartbeatDto.getServiceIds(), heartbeatDto.getRole());
