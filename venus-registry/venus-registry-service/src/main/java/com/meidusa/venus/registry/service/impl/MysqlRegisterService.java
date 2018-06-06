@@ -771,6 +771,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					Date curDate = new Date();
 					long cacheSecond = (curDate.getTime() - date.getTime()) / 1000;
 					if (cacheSecond >= VenusConstants.LOGIC_DEL_INVALID_SERVICE_TIME) {
+						LogUtils.CLEAR_INVALID.info("@@@@@@logicDeleteServiceMappings cacheSecond=>{}", cacheSecond);
 						logic_mapping_ids.add(mapping.getId());
 					}
 				}else{
