@@ -145,11 +145,11 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			}
 		}
 		int serverId = addServer(url.getHost(), url.getPort());
-		int countByServiceNameAndAppId = venusServiceDAO.getCountByServiceNameAndAppId(url.getServiceName(), appId);
+/*		int countByServiceNameAndAppId = venusServiceDAO.getCountByServiceNameAndAppId(url.getServiceName(), appId);
 		if(countByServiceNameAndAppId>0){
 			LogUtils.ERROR_LOG.info("serviceName=>"+url.getServiceName()+",appName=>"+appCode+",appId=>"+appId+" registe error,because other application has registed service name:"+url.getServiceName());
 			throw new VenusRegisteException("ServiceName=>"+url.getServiceName()+",appName=>"+appCode+",appId=>"+appId+" registe error ,other application has registe service,this registe fail.");
-		}
+		}*/
 		VenusServiceDO service = venusServiceDAO.getService(url.getInterfaceName(), url.getServiceName(),
 				url.getVersion());
 		int serviceId = 0;
@@ -1100,20 +1100,6 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 							}
 						}
 						boolean update = false;
-						////
-						if (CollectionUtils.isNotEmpty(ids)) {
-							List<Integer> list=new ArrayList<Integer>();
-							list.add(1004478);
-							list.add(1004479);
-							list.add(1004480);
-							for (Iterator<Integer> iterator = ids.iterator(); iterator.hasNext();) {
-								Integer i = iterator.next();
-								if (list.contains(i)) {
-									iterator.remove();
-								}
-							}
-						}
-						//////
 						if (CollectionUtils.isNotEmpty(ids)) {
 							update = venusServiceMappingDAO.updateHeartBeatTime(ids);
 						}
