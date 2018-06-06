@@ -1100,6 +1100,20 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 							}
 						}
 						boolean update = false;
+						////
+						if (CollectionUtils.isNotEmpty(ids)) {
+							List<Integer> list=new ArrayList<Integer>();
+							list.add(1004478);
+							list.add(1004479);
+							list.add(1004480);
+							for (Iterator<Integer> iterator = ids.iterator(); iterator.hasNext();) {
+								Integer i = iterator.next();
+								if (list.contains(i)) {
+									iterator.remove();
+								}
+							}
+						}
+						//////
 						if (CollectionUtils.isNotEmpty(ids)) {
 							update = venusServiceMappingDAO.updateHeartBeatTime(ids);
 						}
