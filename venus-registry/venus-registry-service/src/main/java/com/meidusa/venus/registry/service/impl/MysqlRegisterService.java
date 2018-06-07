@@ -115,6 +115,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	}
 
 	public void init() {
+		// updateServiceAppIds();
 		UpdateHeartbeatTimeRunnable heartbeatThread = new UpdateHeartbeatTimeRunnable("update-heartbeat-time-thread");
 		es.submit(heartbeatThread);
 	}
@@ -144,6 +145,11 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			}
 		}
 		int serverId = addServer(url.getHost(), url.getPort());
+/*		int countByServiceNameAndAppId = venusServiceDAO.getCountByServiceNameAndAppId(url.getServiceName(), appId);
+		if(countByServiceNameAndAppId>0){
+			LogUtils.ERROR_LOG.info("serviceName=>"+url.getServiceName()+",appName=>"+appCode+",appId=>"+appId+" registe error,because other application has registed service name:"+url.getServiceName());
+			throw new VenusRegisteException("ServiceName=>"+url.getServiceName()+",appName=>"+appCode+",appId=>"+appId+" registe error ,other application has registe service,this registe fail.");
+		}*/
 		VenusServiceDO service = venusServiceDAO.getService(url.getInterfaceName(), url.getServiceName(),
 				url.getVersion());
 		int serviceId = 0;
@@ -592,6 +598,52 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		}
 	}
 
+	@Deprecated
+	public void heartbeatSubcribe(URL url) {
+		try {
+			String host = url.getHost();
+			VenusServerDO server = cacheVenusServerDAO.getServer(host, 0);
+			if (null == server) {
+				server = venusServerDAO.getServer(host, 0);
+			}
+			if (null != server) {
+				int serverID = server.getId();
+				boolean update = venusServiceMappingDAO.updateHeartBeatTime(serverID, RegisteConstant.CONSUMER);
+				LogUtils.DEFAULT_LOG.info(
+						"heartbeatSubcribe updateServiceMappingHeartBeatTime serverID=>{},role=>{},isSuccess=>{},currentDate=>{},url=>{}",
+						serverID, RegisteConstant.CONSUMER, update, new Date(), url);
+			}
+		} catch (Exception e) {
+			String name = log_service_name(url);
+			LogUtils.ERROR_LOG.error("服务"+name+"subscrible更新heartBeatTime异常 ,异常原因", e);
+			throw new VenusRegisteException("subscrible更新heartBeatTime异常,服务名：" + name, e);
+		}
+
+	}
+
+	@Deprecated
+	public void heartbeatRegister(URL url) {
+		try {
+			String host = url.getHost();
+			int port = url.getPort();
+			VenusServerDO server = cacheVenusServerDAO.getServer(host, port);
+			if (null == server) {
+				server = venusServerDAO.getServer(host, port);
+			}
+			if (null != server) {
+				int serverID = server.getId();
+				boolean update = venusServiceMappingDAO.updateHeartBeatTime(serverID, RegisteConstant.PROVIDER);
+				LogUtils.DEFAULT_LOG.info("heartbeatRegister serverID=>{},role=>{},isSuccess=>{},currentDate=>{},url=>{}", serverID,
+						RegisteConstant.PROVIDER, update, new Date(), url);
+			}
+		} catch (Exception e) {
+			String name = log_service_name(url);
+			LogUtils.ERROR_LOG.error("服务"+name+"registe更新heartBeatTime异常 ,异常原因", e);
+			throw new VenusRegisteException("registe更新heartBeatTime异常,服务名：" + name, e);
+		}
+
+	}
+
 	private void heartbeatRegister(Set<URL> urls, String role) {
 		if (CollectionUtils.isEmpty(urls)) {
 			return;
@@ -612,6 +664,13 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				if (null != server) {
 					List<VenusServiceDO> services = cacheVenusServiceDAO.queryServices(url.getInterfaceName(),
 							url.getServiceName(), url.getVersion(),role);
+					/*if (CollectionUtils.isEmpty(services)) {
+						LogUtils.ERROR_LOG.info("heartbeat queryServices InterfaceName=>"+url.getInterfaceName()+",ServiceName=>"+url.getServiceName()+",Version=>"+url.getVersion());
+						services = venusServiceDAO.queryServices(url.getInterfaceName(), url.getServiceName(),
+								url.getVersion());
+					}*//*else{
+						LogUtils.DEFAULT_LOG.info("heartbeat cacheVenusServiceDAO.queryServices "+role);
+					}*/
 					if (CollectionUtils.isNotEmpty(services)) {
 						for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
 							VenusServiceDO venusServiceDO = iterator.next();
@@ -668,6 +727,14 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			int port = url.getPort();
 
 			server = cacheVenusServerDAO.getServer(host, port);
+//			if (null == server) {
+//				LogUtils.ERROR_LOG.info("heartbeat getServer host=>" + host + ",port=>" + port);
+//				try{
+//					server = venusServerDAO.getServer(host, port);
+//				} catch (Exception e) {
+//					LogUtils.ERROR_LOG.error("根据host=>{},port=>{}查询server服务异常 ",host,port);
+//				}
+//			}
 			if (null != server) {
 				break;
 			}
@@ -675,6 +742,20 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		return server;
 	}
 
+	@Deprecated
+	private void update_heartbeat(final String role, final Map<Integer, List<Integer>> maps) {
+		if (MapUtils.isNotEmpty(maps)) {
+			this.transactionTemplate.execute(new TransactionCallback<Integer>() {
+				@Override
+				public Integer doInTransaction(TransactionStatus status) {
+					for (Map.Entry<Integer, List<Integer>> ent : maps.entrySet()) {
+						venusServiceMappingDAO.updateHeartBeatTime(ent.getKey(), ent.getValue(), role);
+					}
+					return 1;
+				}
+			});
+		}
+	}
 
 	public void clearInvalidService(String currentDateTime, int second) {
 		/* 订阅方提供方都清理 */
