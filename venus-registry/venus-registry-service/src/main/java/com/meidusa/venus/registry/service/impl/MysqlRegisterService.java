@@ -145,11 +145,11 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			}
 		}
 		int serverId = addServer(url.getHost(), url.getPort());
-/*		int countByServiceNameAndAppId = venusServiceDAO.getCountByServiceNameAndAppId(url.getServiceName(), appId);
+		int countByServiceNameAndAppId = venusServiceDAO.getCountByServiceNameAndAppId(url.getServiceName(), appId);
 		if(countByServiceNameAndAppId>0){
 			LogUtils.ERROR_LOG.info("serviceName=>"+url.getServiceName()+",appName=>"+appCode+",appId=>"+appId+" registe error,because other application has registed service name:"+url.getServiceName());
 			throw new VenusRegisteException("ServiceName=>"+url.getServiceName()+",appName=>"+appCode+",appId=>"+appId+" registe error ,other application has registe service,this registe fail.");
-		}*/
+		}
 		VenusServiceDO service = venusServiceDAO.getService(url.getInterfaceName(), url.getServiceName(),
 				url.getVersion());
 		int serviceId = 0;
@@ -687,10 +687,13 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 								}
 								maps.put(server.getId(), list);
 							}
+							String key = server.getId() + "_" + serviceId + "_" + role;
+							cacheHeartBeatMap.put(key, new Date());
 						}
 					}
 				}
 			}
+			
 			if (HEARTBEAT_QUEUE.size() >= QUEUE_SIZE_10000 - 1) {
 				LogUtils.HEARTBEAT_LOG.info("HEARTBEAT_QUEUE is full.");
 			} else {
@@ -700,12 +703,6 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					heartBeatTimeDTO.setServerId(ent.getKey());
 					heartBeatTimeDTO.setServiceIds(ent.getValue());
 					heartBeatTimeDTO.setServerDO(server);
-					if (CollectionUtils.isNotEmpty(ent.getValue())) {
-						for (Integer sid : ent.getValue()) {
-							String key = ent.getKey() + "_" + sid + "_" + role;
-							cacheHeartBeatMap.put(key, new Date());
-						}
-					}
 					boolean offer = HEARTBEAT_QUEUE.offer(heartBeatTimeDTO);
 					if (!offer) {
 						LogUtils.HEARTBEAT_LOG.info("heartbeat_queue size=>{},venus heartbeat message maps=>{},urls=>{}", HEARTBEAT_QUEUE.size(),JSON.toJSONString(maps),JSON.toJSONString(urls));
