@@ -115,7 +115,6 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	}
 
 	public void init() {
-		// updateServiceAppIds();
 		UpdateHeartbeatTimeRunnable heartbeatThread = new UpdateHeartbeatTimeRunnable("update-heartbeat-time-thread");
 		es.submit(heartbeatThread);
 	}
