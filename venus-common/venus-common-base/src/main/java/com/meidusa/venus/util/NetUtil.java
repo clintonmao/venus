@@ -16,11 +16,16 @@ public class NetUtil {
 		if (isCache) {
 			return getLocalIp();
 		}
-		// InetAddress addr = InetAddress.getLocalHost();
-		// String localIp = addr.getHostAddress();
+		try {
+			InetAddress addr = InetAddress.getLocalHost();
+			String localIp = addr.getHostAddress();
+			return localIp;
+		} catch (UnknownHostException e) {
+			throw new RuntimeException(e);
+		}
+		/*
 		String localIp = NetInterfaceManager.INSTANCE.getLocalHostAddress();
-		return localIp;
-
+		*/
 	}
 
 	/**
@@ -32,10 +37,16 @@ public class NetUtil {
 		if (StringUtils.isNotEmpty(localIp)) {
 			return localIp;
 		}
-		// InetAddress addr = InetAddress.getLocalHost();
-		// String newLocalIp = addr.getHostAddress();
+		try {
+			InetAddress addr = InetAddress.getLocalHost();
+			String newLocalIp = addr.getHostAddress();
+			localIp = newLocalIp;
+			return localIp;
+		} catch (UnknownHostException e) {
+			throw new RuntimeException(e);
+		}
+		/*
 		String newLocalIp = NetInterfaceManager.INSTANCE.getLocalHostAddress();
-		localIp = newLocalIp;
-		return localIp;
+		*/
 	}
 }
