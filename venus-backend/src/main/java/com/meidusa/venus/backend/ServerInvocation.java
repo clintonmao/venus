@@ -75,8 +75,8 @@ public class ServerInvocation implements ServerInvocationOperation {
     //是否打印输入参数，默认true
     private boolean printParam = true;
 
-    //是否打印输出结果，默认false
-    private boolean printResult = false;
+    //是否打印输出结果，默认true
+    private boolean printResult = true;
 
     //-----------------------ext--------------------------
 

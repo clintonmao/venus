@@ -407,6 +407,14 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
                         String retries = parseProperty(referenceService.getRetries());
                         referenceService.setRetriesCfg(Integer.parseInt(retries));
                     }
+                    if(StringUtils.isNotEmpty(referenceService.getPrintParam())){
+                        String printParam = parseProperty(referenceService.getPrintParam());
+                        referenceService.setPrintParam(printParam);
+                    }
+                    if(StringUtils.isNotEmpty(referenceService.getPrintResult())){
+                        String printResult = parseProperty(referenceService.getPrintResult());
+                        referenceService.setPrintResult(printResult);
+                    }
 
                     //初始化方法配置
                     if(CollectionUtils.isNotEmpty(referenceService.getMethodList())){
@@ -421,6 +429,15 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
                                 String retries = parseProperty(referenceMethod.getRetries());
                                 referenceMethod.setRetriesCfg(Integer.parseInt(retries));
                             }
+                            if(StringUtils.isNotEmpty(referenceMethod.getPrintParam())){
+                                String printParam = parseProperty(referenceMethod.getPrintParam());
+                                referenceMethod.setPrintParam(printParam);
+                            }
+                            if(StringUtils.isNotEmpty(referenceMethod.getPrintResult())){
+                                String printResult = parseProperty(referenceMethod.getPrintResult());
+                                referenceMethod.setPrintResult(printResult);
+                            }
+
                         }
                     }
 

@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import com.meidusa.fastjson.JSON;
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
+import com.meidusa.toolkit.common.bean.config.ConfigUtil;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.VenusApplication;
@@ -21,6 +22,7 @@ import com.meidusa.venus.backend.services.xml.config.InterceptorDef;
 import com.meidusa.venus.backend.services.xml.config.VenusServerConfig;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanContext;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanUtilsBean;
+import com.meidusa.venus.client.factory.xml.config.ReferenceMethod;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.registry.Register;
@@ -283,6 +285,28 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                             exportService.setInterceptorList(interceptorList);
                         }
                     }
+                    //初始化服务参数配置
+                    if(StringUtils.isNotEmpty(exportService.getPrintParam())){
+                        String printParam = parseProperty(exportService.getPrintParam());
+                        exportService.setPrintParam(printParam);
+                    }
+                    if(StringUtils.isNotEmpty(exportService.getPrintResult())){
+                        String printResult = parseProperty(exportService.getPrintResult());
+                        exportService.setPrintResult(printResult);
+                    }
+                    //初始化方法参数配置
+                    if(CollectionUtils.isNotEmpty(exportService.getMethodList())){
+                        for(ExportMethod exportMethod:exportService.getMethodList()){
+                            if(StringUtils.isNotEmpty(exportMethod.getPrintParam())){
+                                String printParam = parseProperty(exportMethod.getPrintParam());
+                                exportMethod.setPrintParam(printParam);
+                            }
+                            if(StringUtils.isNotEmpty(exportMethod.getPrintResult())){
+                                String printResult = parseProperty(exportMethod.getPrintResult());
+                                exportMethod.setPrintResult(printResult);
+                            }
+                        }
+                    }
                 }
 
                 //添加到all列表
@@ -296,6 +320,23 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
             logger.info("##########export beans###########:\n{}.",JSON.toJSONString(exportBeanMap,true));
         }
         return allVenusServerConfig;
+    }
+
+    /**
+     * 解析spring或ucm属性配置，如${x.x.x}
+     * @param propertyValue
+     */
+    String parseProperty(String propertyValue){
+        if(StringUtils.isNotEmpty(propertyValue)){
+            if(propertyValue.startsWith("${") && propertyValue.endsWith("}")){
+                String ucmPropertyValue = (String) ConfigUtil.filter(propertyValue);
+                if(logger.isInfoEnabled()){
+                    logger.info("##########parse ucm config item,placeholder:{},value:{}#############.",propertyValue,ucmPropertyValue);
+                }
+                return ucmPropertyValue;
+            }
+        }
+        return propertyValue;
     }
 
     /**
