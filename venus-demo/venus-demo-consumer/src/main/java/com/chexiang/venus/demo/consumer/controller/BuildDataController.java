@@ -1,18 +1,14 @@
 package com.chexiang.venus.demo.consumer.controller;
 
-import com.chexiang.venus.demo.provider.EchoService;
-import com.chexiang.venus.demo.provider.HelloService;
-import com.chexiang.venus.demo.provider.model.Hello;
+import com.chexiang.venus.demo.provider.service.EchoService;
+import com.chexiang.venus.demo.provider.service.HelloService;
 import com.meidusa.venus.Result;
-import com.meidusa.venus.notify.InvocationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * HelloController
@@ -26,9 +22,6 @@ public class BuildDataController {
 
     @Autowired
     HelloService helloService;
-
-    @Autowired
-    EchoService echoService;
 
     @RequestMapping("/start/{total}")
     public Result start(@PathVariable int total){
@@ -52,14 +45,7 @@ public class BuildDataController {
             //begin for
             for(int i=0;i<count;i++){
                 try {
-                    helloService.getHello("jack" + i);
-                        /*
-                        if(ThreadLocalRandom.current().nextInt(100) < 70){
-                            helloService.getHello("jack" + i);
-                        }else{
-                            echoService.getEcho("jack" + i);
-                        }
-                        */
+                    helloService.queryHello("jack" + i);
                     logger.info("current index:{}.",i);
                 } catch (Exception e) {
                     logger.error("invoke error.",e);

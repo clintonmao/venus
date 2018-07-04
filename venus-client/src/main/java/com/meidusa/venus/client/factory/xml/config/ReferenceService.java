@@ -76,6 +76,14 @@ public class ReferenceService {
     @XStreamImplicit
     private List<ReferenceMethod> methodList = new ArrayList<ReferenceMethod>();
 
+    //tracer是否打印输入参数
+    @XStreamAsAttribute
+    private String printParam;
+
+    //tracer是否打印输出参数
+    @XStreamAsAttribute
+    private String printResult;
+
     private int timeWait;
 
     private boolean enabled = true;
@@ -224,4 +232,19 @@ public class ReferenceService {
         this.serviceName = serviceName;
     }
 
+    public String getPrintParam() {
+        return printParam;
+    }
+
+    public void setPrintParam(String printParam) {
+        this.printParam = printParam;
+    }
+
+    public String getPrintResult() {
+        return printResult;
+    }
+
+    public void setPrintResult(String printResult) {
+        this.printResult = printResult;
+    }
 }

@@ -18,8 +18,12 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class JsonSerializer extends AbstractSerializer implements PacketConstant {
+
+    //包含@Serialize注解的类对象映射表
+    private static Map<String,Boolean> serializeAnnoFieldMap = new ConcurrentHashMap<>();
 
     public Object decode(ServicePacketBuffer buffer, Type type) {
         if (buffer.hasRemaining()) {
@@ -54,63 +58,78 @@ public class JsonSerializer extends AbstractSerializer implements PacketConstant
             //处理MAP结构非字符串KEY未关闭字符问题 zhangzh 2018.1.17
             //String jsonValue = JSON.toJSONString(obj);
             SerializerFeature[] serializerFeature = new SerializerFeature[]{SerializerFeature.WriteNonStringKeyAsString,SerializerFeature.DisableCircularReferenceDetect};
-
-            //处理序列化别名向下兼容问题 zhangzh 2018.5.29
-            final List<EncodeItem> encodeItems = new ArrayList<>();
-            //构造filter，过滤@Serialize别名字段
-            SerializeFilter nameFilter = new NameFilter(){
-                @Override
-                public String process(Object object, String name, Object value) {
-                    try {
-                        if(object != null && StringUtils.isNotEmpty(name)){
-                            Field field = object.getClass().getDeclaredField(name);
-                            Serialize fieldAnnotation = field.getAnnotation(Serialize.class);
-                            if(fieldAnnotation != null){
-                                String aliaName = fieldAnnotation.name();
-                                if(StringUtils.isNotBlank(aliaName)){
-                                    //保存字段名称/值，用于afterFilter追加原始数据信息
-                                    if(value != null){
-                                        EncodeItem encodeItem = new EncodeItem();
-                                        encodeItem.setObject(object);
-                                        encodeItem.setName(field.getName());
-                                        encodeItem.setAliasName(aliaName);
-                                        encodeItem.setValue(value);
-                                        encodeItems.add(encodeItem);
-                                    }
-                                    return aliaName;
-                                }
-                            }
-                        }
-                    } catch (NoSuchFieldException e) {
-                        return name;
-                    }
-                    return name;
+            /*
+            final String clsName = obj.getClass().getName();
+            if(serializeAnnoFieldMap.get(clsName) == null){
+                serializeAnnoFieldMap.put(clsName,Boolean.FALSE);
+                return doEncode(obj,clsName,serializerFeature);
+            }else{
+                if(serializeAnnoFieldMap.get(clsName).booleanValue()){
+                    return doEncode(obj,clsName,serializerFeature);
+                }else{
+                    String jsonValue = JSON.toJSONString(obj,serializerFeature);
+                    return jsonValue.getBytes(PACKET_CHARSET);
                 }
-            };
-
-            //若包含有@Serialize别名字段，将原始字段属性名值也输出一份，为向下兼容
-            AfterFilter afterFilter = new AfterFilter() {
-                @Override
-                public void writeAfter(Object object) {
-                    if(object != null && encodeItems.size() > 0){
-                        for(EncodeItem encodeItem:encodeItems){
-                            if(encodeItem.getObject() == object){
-                                if(encodeItem.getName() != null && encodeItem.getAliasName() != null){
-                                    writeKeyValue(encodeItem.getName(),encodeItem.getValue());
-                                }
-                            }
-                        }
-                    }
-
-                }
-
-            };
-            SerializeFilter[] filters = new SerializeFilter[]{nameFilter,afterFilter};
-            String jsonValue = JSON.toJSONString(obj,filters,serializerFeature);
-            encodeItems.clear();
+            }
+            */
+            String jsonValue = JSON.toJSONString(obj,serializerFeature);
             return jsonValue.getBytes(PACKET_CHARSET);
         }
         return null;
+    }
+
+    byte[] doEncode(Object obj,final String clsName,SerializerFeature[] serializerFeature) {
+        //处理序列化别名向下兼容问题 zhangzh 2018.5.29
+        final List<EncodeItem> encodeItems = new ArrayList<>();
+        //构造filter，过滤@Serialize别名字段
+        SerializeFilter nameFilter = new NameFilter(){
+            @Override
+            public String process(Object object, String name, Object value) {
+                try {
+                    if(object != null && StringUtils.isNotEmpty(name)){
+                        Field field = object.getClass().getDeclaredField(name);
+                        Serialize fieldAnnotation = field.getAnnotation(Serialize.class);
+                        if(fieldAnnotation != null && StringUtils.isNotBlank(fieldAnnotation.name()) && value != null){
+                            serializeAnnoFieldMap.put(clsName,Boolean.TRUE);
+                            String aliaName = fieldAnnotation.name();
+                            //保存字段名称/值，用于afterFilter追加原始数据信息
+                            EncodeItem encodeItem = new EncodeItem();
+                            encodeItem.setObject(object);
+                            encodeItem.setName(field.getName());
+                            encodeItem.setAliasName(fieldAnnotation.name());
+                            encodeItem.setValue(value);
+                            encodeItems.add(encodeItem);
+                            return aliaName;
+                        }
+                    }
+                } catch (NoSuchFieldException e) {
+                    return name;
+                }
+                return name;
+            }
+        };
+
+        //若包含有@Serialize别名字段，将原始字段属性名值也输出一份，为向下兼容
+        AfterFilter afterFilter = new AfterFilter() {
+            @Override
+            public void writeAfter(Object object) {
+                if(object != null && encodeItems.size() > 0){
+                    for(EncodeItem encodeItem:encodeItems){
+                        if(encodeItem.getObject() == object){
+                            if(encodeItem.getName() != null && encodeItem.getAliasName() != null){
+                                writeKeyValue(encodeItem.getName(),encodeItem.getValue());
+                            }
+                        }
+                    }
+                }
+
+            }
+
+        };
+        SerializeFilter[] filters = new SerializeFilter[]{nameFilter,afterFilter};
+        String jsonValue = JSON.toJSONString(obj,filters,serializerFeature);
+        encodeItems.clear();
+        return jsonValue.getBytes(PACKET_CHARSET);
     }
 
     @Override

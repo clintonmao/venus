@@ -1,11 +1,11 @@
 package com.meidusa.venus.backend;
 
 import com.meidusa.toolkit.common.util.Tuple;
-import com.meidusa.venus.Invocation;
 import com.meidusa.venus.ServerInvocationOperation;
-import com.meidusa.venus.backend.services.Endpoint;
+import com.meidusa.venus.backend.services.EndpointItem;
 import com.meidusa.venus.backend.services.EndpointInvocation;
 import com.meidusa.venus.backend.context.RequestContext;
+import com.meidusa.venus.backend.services.ServiceObject;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.ServiceAPIPacket;
 import com.meidusa.venus.io.packet.ServicePacketBuffer;
@@ -72,6 +72,12 @@ public class ServerInvocation implements ServerInvocationOperation {
 
     boolean async;
 
+    //是否打印输入参数，默认true
+    private boolean printParam = true;
+
+    //是否打印输出结果，默认false
+    private boolean printResult = false;
+
     //-----------------------ext--------------------------
 
     VenusFrontendConnection conn;
@@ -79,7 +85,7 @@ public class ServerInvocation implements ServerInvocationOperation {
     /**
      * 服务端端点配置，非注释配置
      */
-    Endpoint endpointDef;
+    EndpointItem endpointDef;
 
     SerializeServiceRequestPacket serviceRequestPacket;
 
@@ -318,11 +324,11 @@ public class ServerInvocation implements ServerInvocationOperation {
         this.serializeType = serializeType;
     }
 
-    public Endpoint getEndpointDef() {
+    public EndpointItem getEndpointDef() {
         return endpointDef;
     }
 
-    public void setEndpointDef(Endpoint endpointDef) {
+    public void setEndpointDef(EndpointItem endpointDef) {
         this.endpointDef = endpointDef;
     }
 
@@ -379,7 +385,7 @@ public class ServerInvocation implements ServerInvocationOperation {
         if(this.serviceInterfaceName != null){
             return this.serviceInterfaceName;
         }else if(endpointDef != null){
-            com.meidusa.venus.backend.services.Service service = endpointDef.getService();
+            ServiceObject service = endpointDef.getService();
             return service.getType().getName();
         }else{
             return "null";
@@ -434,14 +440,6 @@ public class ServerInvocation implements ServerInvocationOperation {
 
     public String getInvokeModel(){
         return "sync";
-    }
-
-    public boolean isEnablePrintParam(){
-        return true;
-    }
-
-    public boolean isEnablePrintResult(){
-        return true;
     }
 
     public String getServicePath(){
@@ -525,5 +523,21 @@ public class ServerInvocation implements ServerInvocationOperation {
         }else{
             return null;
         }
+    }
+
+    public boolean isPrintParam() {
+        return printParam;
+    }
+
+    public void setPrintParam(boolean printParam) {
+        this.printParam = printParam;
+    }
+
+    public boolean isPrintResult() {
+        return printResult;
+    }
+
+    public void setPrintResult(boolean printResult) {
+        this.printResult = printResult;
     }
 }

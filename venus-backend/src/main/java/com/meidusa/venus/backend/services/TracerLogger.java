@@ -1,6 +1,6 @@
 package com.meidusa.venus.backend.services;
 
-public class PerformanceLogger {
+public class TracerLogger {
     private int error = 5 * 1000;
     private int warn = 3 * 1000;
     private int info = 1 * 1000;

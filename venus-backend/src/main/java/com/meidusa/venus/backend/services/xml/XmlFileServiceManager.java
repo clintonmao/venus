@@ -8,9 +8,17 @@ import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.venus.URL;
 import com.meidusa.venus.VenusApplication;
+import com.meidusa.venus.annotations.Endpoint;
+import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.backend.VenusProtocol;
-import com.meidusa.venus.backend.services.*;
-import com.meidusa.venus.backend.services.xml.config.*;
+import com.meidusa.venus.backend.services.AbstractServiceManager;
+import com.meidusa.venus.backend.services.EndpointItem;
+import com.meidusa.venus.backend.services.Interceptor;
+import com.meidusa.venus.backend.services.ServiceObject;
+import com.meidusa.venus.backend.services.xml.config.ExportMethod;
+import com.meidusa.venus.backend.services.xml.config.ExportService;
+import com.meidusa.venus.backend.services.xml.config.InterceptorDef;
+import com.meidusa.venus.backend.services.xml.config.VenusServerConfig;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanContext;
 import com.meidusa.venus.backend.services.xml.support.BackendBeanUtilsBean;
 import com.meidusa.venus.exception.VenusConfigException;
@@ -88,7 +96,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         //校验
         valid();
 
@@ -247,7 +255,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
                         throw new ConfigurationException("ref bean not found:" + refBeanName,e);
                     }
                     //服务定义
-                    com.meidusa.venus.annotations.Service serviceAnno = serviceInterface.getAnnotation(com.meidusa.venus.annotations.Service.class);
+                    Service serviceAnno = serviceInterface.getAnnotation(Service.class);
                     if(serviceAnno == null){
                         throw new VenusConfigException(String.format("service %s service annotation not declare",serviceInterface.getName()));
                     }
@@ -296,7 +304,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      */
     void initSerivce(ExportService exportService){
         //初始化服务stub
-        Service service = initServiceStub(exportService);
+        ServiceObject service = initServiceStub(exportService);
 
         //若开启注册中心，则注册服务
         if(isNeedRegiste(exportService)){
@@ -315,12 +323,12 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @param exportService
      * @return
      */
-    protected Service initServiceStub(ExportService exportService) {
+    protected ServiceObject initServiceStub(ExportService exportService) {
         if(logger.isInfoEnabled()){
             logger.info("init service stub:{}.",exportService.getServiceInterface().getName());
         }
         //初始化service
-        SingletonService service = new SingletonService();
+        ServiceObject service = new ServiceObject();
         service.setType(exportService.getServiceInterface());
         service.setInstance(exportService.getInstance());
         Class<?> serviceInterface = exportService.getServiceInterface();
@@ -331,10 +339,16 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         service.setAthenaFlag(exportService.isAthenaFlag());
         service.setDescription(exportService.getDescription());
         service.setActive(exportService.isActive());
+        //设置tracerLog日志输出设置参数
+        if(StringUtils.isNotBlank(exportService.getPrintParam())){
+            service.setPrintParam(exportService.getPrintParam());
+        }
+        if(StringUtils.isNotBlank(exportService.getPrintResult())){
+            service.setPrintResult(exportService.getPrintResult());
+        }
 
         //初始化endpoints
-        Method[] methods = service.getType().getMethods();
-        Multimap<String, Endpoint> endpoints = initEndpoinits(service,methods,exportService);
+        Multimap<String, EndpointItem> endpoints = initEndpoinits(service,exportService);
         service.setEndpoints(endpoints);
 
         this.serviceMap.put(exportService.getServiceName(), service);
@@ -353,7 +367,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     /**
      * 注册服务
      */
-    void registeService(ExportService exportService, Service service){
+    void registeService(ExportService exportService, ServiceObject service){
         String appName = venusApplication.getName();
         //String protocol = "venus";
         String serviceInterfaceName = exportService.getServiceInterface().getName();
@@ -390,7 +404,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     }
 
     @Override
-    public void destroy() throws Exception {
+    public void destroy() {
         //反注册
         if(venusRegistryFactory != null && venusRegistryFactory.getRegister() != null){
             Register register = venusRegistryFactory.getRegister();
@@ -405,13 +419,13 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @param service
      * @return
      */
-    String getMethodsDefOfService(Service service){
+    String getMethodsDefOfService(ServiceObject service){
         StringBuffer buf = new StringBuffer();
-        Multimap<String, Endpoint> endpointMultimap = service.getEndpoints();
-        Collection<Endpoint> endpoints = endpointMultimap.values();
+        Multimap<String, EndpointItem> endpointMultimap = service.getEndpoints();
+        Collection<EndpointItem> endpoints = endpointMultimap.values();
         if(CollectionUtils.isNotEmpty(endpoints)){
             int i = 0;
-            for(Endpoint endpoint:endpoints){
+            for(EndpointItem endpoint:endpoints){
                 String methodDef = getMethodDefOfEndpoint(endpoint);
                 buf.append(methodDef);
                 if(i < (endpoints.size()-1)){
@@ -429,7 +443,7 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @param endpoint
      * @return
      */
-    String getMethodDefOfEndpoint(Endpoint endpoint){
+    String getMethodDefOfEndpoint(EndpointItem endpoint){
         StringBuffer buf = new StringBuffer();
         buf.append(endpoint.getMethod().getName());
         buf.append("[");
@@ -453,13 +467,13 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
      * @param service
      * @return
      */
-    String getEndpointMethodsDefOfService(Service service){
+    String getEndpointMethodsDefOfService(ServiceObject service){
         StringBuffer buf = new StringBuffer();
-        Multimap<String, Endpoint> endpointMultimap = service.getEndpoints();
-        Collection<Endpoint> endpoints = endpointMultimap.values();
+        Multimap<String, EndpointItem> endpointMultimap = service.getEndpoints();
+        Collection<EndpointItem> endpoints = endpointMultimap.values();
         if(CollectionUtils.isNotEmpty(endpoints)){
             int i = 0;
-            for(Endpoint endpoint:endpoints){
+            for(EndpointItem endpoint:endpoints){
                 String endpointName = endpoint.getName();
                 buf.append(endpointName);
                 if(i < (endpoints.size()-1)){
@@ -475,18 +489,18 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
     /**
      * 初始化endpoints
      * @param service
-     * @param methods
      * @param exportService
      */
-    Multimap<String, Endpoint> initEndpoinits(Service service, Method[] methods, ExportService exportService){
-        Multimap<String, Endpoint> endpointMultimap = HashMultimap.create();
+    Multimap<String, EndpointItem> initEndpoinits(ServiceObject service, ExportService exportService){
+        Multimap<String, EndpointItem> endpointMultimap = HashMultimap.create();
+        Method[] methods = service.getType().getMethods();
         for (Method method : methods) {
-            if (!method.isAnnotationPresent(com.meidusa.venus.annotations.Endpoint.class)) {
+            if (!method.isAnnotationPresent(Endpoint.class)) {
                 continue;
             }
 
             //初始化endpoinit
-            Endpoint endpoint = initEndpoint(method);
+            EndpointItem endpoint = initEndpoint(method,getExportMethod(method,exportService));
             if(CollectionUtils.isNotEmpty(exportService.getInterceptorList())){
                 endpoint.setInterceptorList(exportService.getInterceptorList());
             }
@@ -496,37 +510,25 @@ public class XmlFileServiceManager extends AbstractServiceManager implements Ini
         return endpointMultimap;
     }
 
-    /*
-    protected void loadInterceptors(Map<String, InterceptorStackConfig> interceptorStatcks, Map<String, InterceptorDef> interceptors, String id,
-                                    List<InterceptorDef> result, Map<String, InterceptorConfig> configs, Class<?> clazz, String ep) throws VenusConfigException {
-        InterceptorStackConfig stackConfig = interceptorStatcks.get(id);
-        if (stackConfig == null) {
-            throw new VenusConfigException("filte stack not found with name=" + id);
+    /**
+     * 获取对应方法的发布配置
+     * @param method
+     * @param exportService
+     * @return
+     */
+    ExportMethod getExportMethod(Method method,ExportService exportService){
+        if(exportService == null || CollectionUtils.isEmpty(exportService.getMethodList())){
+            return null;
         }
-        for (Object s : stackConfig.getInterceptors()) {
-            if (s instanceof InterceptorRef) {
-                InterceptorDef mapping = interceptors.get(((InterceptorRef) s).getName());
-                if (mapping == null) {
-                    throw new VenusConfigException("filte not found with name=" + s);
-                }
-                Interceptor interceptor = mapping.getInterceptor();
-                if (configs != null) {
-                    InterceptorConfig config = configs.get(mapping.getName());
-                    if (config != null) {
-                        if (interceptor instanceof Configurable) {
-                            ((Configurable) interceptor).processConfig(clazz, ep, config);
-                        }
-                    }
-                }
-                result.add(mapping);
-            } else if (s instanceof InterceptorStackRef) {
-                loadInterceptors(interceptorStatcks, interceptors, ((InterceptorStackRef) s).getName(), result, configs, clazz, ep);
-            } else {
-                throw new VenusConfigException("unknow filte config with name=" + s);
+        String methodName = method.getName();
+        for(ExportMethod exportMethod:exportService.getMethodList()){
+            if(methodName.equals(exportMethod.getName())){
+                return exportMethod;
             }
         }
+        return null;
     }
-    */
+
 
     public VenusProtocol getVenusProtocol() {
         return venusProtocol;

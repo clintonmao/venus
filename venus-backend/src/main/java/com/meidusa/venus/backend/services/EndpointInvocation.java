@@ -18,7 +18,7 @@ public interface EndpointInvocation {
 
     RequestContext getContext();
 
-    Endpoint getEndpoint();
+    EndpointItem getEndpoint();
 
     Object getResult();
 }

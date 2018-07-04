@@ -24,8 +24,8 @@ public interface EndpointLocator extends Destroyier {
      * @return
      * @throws EndPointNotFoundException
      */
-    Endpoint getEndpoint(String serviceName, String endpointName, String[] paramNames) throws ServiceNotFoundException, EndPointNotFoundException,
+    EndpointItem getEndpoint(String serviceName, String endpointName, String[] paramNames) throws ServiceNotFoundException, EndPointNotFoundException,
             SystemParameterRequiredException;
 
-    Endpoint getEndpoint(String apiName) throws ServiceNotFoundException, EndPointNotFoundException, SystemParameterRequiredException;
+    EndpointItem getEndpoint(String apiName) throws ServiceNotFoundException, EndPointNotFoundException, SystemParameterRequiredException;
 }

@@ -11,11 +11,11 @@ public class VenusMonitorConstants {
     //provider
     public static int ROLE_PROVIDER = 2;
     //一次处理记录条数
-    public static int perDetailProcessNum = 200;
+    public static int FETCH_NUM = 1000;
     //一次上报记录条数
-    public static int perDetailReportNum = 500;
+    public static int REPORT_NUM = 500;
     //慢操作耗时
     public static int SLOW_COST_TIME = 500;
     //支持最大队列长度
-    public static int QUEU_MAX_SIZE = 50000;
+    public static int QUEU_MAX_SIZE = 10000;
 }

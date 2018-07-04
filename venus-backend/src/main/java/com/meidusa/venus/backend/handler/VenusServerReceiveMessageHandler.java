@@ -1,5 +1,7 @@
 package com.meidusa.venus.backend.handler;
 
+import com.meidusa.fastjson.JSON;
+import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.toolkit.common.bean.util.Initialisable;
 import com.meidusa.toolkit.common.bean.util.InitialisationException;
 import com.meidusa.toolkit.common.util.Tuple;
@@ -35,7 +37,6 @@ import org.slf4j.Logger;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * venus服务端服务调用消息处理
@@ -61,7 +62,7 @@ public class VenusServerReceiveMessageHandler extends Venus4FrontendMessageHandl
     private VenusServerInvokerProxy venusServerInvokerProxy = new VenusServerInvokerProxy();
 
     @Override
-    public void init() throws InitialisationException {
+    public void init() {
     }
 
 
@@ -93,9 +94,7 @@ public class VenusServerReceiveMessageHandler extends Venus4FrontendMessageHandl
     boolean isNeedPrintLog(Connection conn){
         if(conn != null && conn instanceof VenusFrontendConnection){
             String targetIp = getTargetAddress((VenusFrontendConnection)conn);
-            if(targetIp.contains("10.47.16.8")){
-                return true;
-            }
+            return targetIp.contains("10.47.16.8");
         }
         return false;
     }
@@ -262,9 +261,9 @@ public class VenusServerReceiveMessageHandler extends Venus4FrontendMessageHandl
         ServicePacketBuffer packetBuffer = invocation.getPacketBuffer();
 
         //获取endpoint定义
-        Endpoint endpoint = getServiceManager().getEndpoint(apiPacket.apiName);
+        EndpointItem endpoint = getServiceManager().getEndpoint(apiPacket.apiName);
         invocation.setEndpointDef(endpoint);
-        Service service = endpoint.getService();
+        ServiceObject service = endpoint.getService();
         invocation.setServiceInterface(service.getType());
         invocation.setMethod(endpoint.getMethod());
         invocation.setResultType(getResultType(endpoint));
@@ -275,6 +274,19 @@ public class VenusServerReceiveMessageHandler extends Venus4FrontendMessageHandl
         packetBuffer.setPosition(0);
         serviceRequestPacket.init(packetBuffer);
 
+        //printParam支持方法级设置
+        if(endpoint != null && StringUtils.isNotEmpty(endpoint.getPrintParam())){
+            invocation.setPrintParam(Boolean.valueOf(endpoint.getPrintParam()));
+        }else if(StringUtils.isNotEmpty(service.getPrintParam())){
+            invocation.setPrintParam(Boolean.valueOf(service.getPrintParam()));
+        }
+        //printResult支持方法级设置
+        if(endpoint != null && StringUtils.isNotEmpty(endpoint.getPrintResult())){
+            invocation.setPrintResult(Boolean.valueOf(endpoint.getPrintResult()));
+        }else if(StringUtils.isNotEmpty(service.getPrintResult())){
+            invocation.setPrintResult(Boolean.valueOf(service.getPrintResult()));
+        }
+
         invocation.setServiceRequestPacket(serviceRequestPacket);
     }
 
@@ -283,7 +295,7 @@ public class VenusServerReceiveMessageHandler extends Venus4FrontendMessageHandl
      * @return
      */
     void parseParamsAndListener(ServerInvocation invocation){
-        Endpoint endpoint = invocation.getEndpointDef();
+        EndpointItem endpoint = invocation.getEndpointDef();
         VenusRouterPacket routerPacket = invocation.getRouterPacket();
         SerializeServiceRequestPacket serviceRequestPacket = invocation.getServiceRequestPacket();
         if(MapUtils.isNotEmpty(serviceRequestPacket.parameterMap)){
@@ -343,7 +355,7 @@ public class VenusServerReceiveMessageHandler extends Venus4FrontendMessageHandl
      * @param endpoint
      * @return
      */
-    EndpointInvocation.ResultType getResultType(Endpoint endpoint){
+    EndpointInvocation.ResultType getResultType(EndpointItem endpoint){
         EndpointInvocation.ResultType resultType = EndpointInvocation.ResultType.RESPONSE;
         if (endpoint.isVoid()) {
             resultType = EndpointInvocation.ResultType.OK;
@@ -367,7 +379,7 @@ public class VenusServerReceiveMessageHandler extends Venus4FrontendMessageHandl
      */
     RequestContext getRequestContext(ServerInvocation invocation){
         byte packetSerializeType = invocation.getPacketSerializeType();
-        Endpoint endpoint = invocation.getEndpointDef();
+        EndpointItem endpoint = invocation.getEndpointDef();
         VenusRouterPacket routerPacket = invocation.getRouterPacket();
         SerializeServiceRequestPacket serviceRequestPacket = invocation.getServiceRequestPacket();
 
@@ -445,24 +457,24 @@ public class VenusServerReceiveMessageHandler extends Venus4FrontendMessageHandl
         String methodPath = invocation.getMethodPath();
         //参数
         String param = "{}";
-        if(invocation.isEnablePrintParam() && !VenusUtil.isAthenaInterface(invocation)){
+        if(!VenusUtil.isAthenaInterface(invocation) && invocation.isPrintParam()){
             if(invocation.getArgs() != null){
-                param = JSONUtil.toJSONString(invocation.getArgs());
+                param = JSON.toJSONString(invocation.getArgs(),SerializerFeature.DisableCircularReferenceDetect);
             }
         }
         //结果
         Object ret = "{}";
-        if(invocation.isEnablePrintResult() && !VenusUtil.isAthenaInterface(invocation)){
+        if(!VenusUtil.isAthenaInterface(invocation) && invocation.isPrintResult()){
             if(result.getErrorCode() == 0 && result.getException() == null && result.getResult() != null){
-                ret = JSONUtil.toJSONString(result.getResult());
+                ret = JSON.toJSONString(result.getResult(),SerializerFeature.DisableCircularReferenceDetect);
             }
         }
         //异常
         Object error = "{}";
-        if(invocation.isEnablePrintResult() && !VenusUtil.isAthenaInterface(invocation)){
+        if(!VenusUtil.isAthenaInterface(invocation)){
             if(result.getException() != null){
                 hasException = true;
-                error = result.getException();
+                error = result.getException().getMessage();
                 //过滤venus.ServiceRegistry服务不存在异常
                 if(error != null && error instanceof ServiceNotFoundException){
                     ServiceNotFoundException serviceNotFoundException = (ServiceNotFoundException)error;

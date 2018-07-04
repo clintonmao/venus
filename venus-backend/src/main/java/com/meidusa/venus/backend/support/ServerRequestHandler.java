@@ -4,7 +4,7 @@ import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.venus.backend.ServerInvocation;
 import com.meidusa.venus.backend.context.RequestContext;
 import com.meidusa.venus.backend.serializer.MediaTypes;
-import com.meidusa.venus.backend.services.Endpoint;
+import com.meidusa.venus.backend.services.EndpointItem;
 import com.meidusa.venus.backend.services.RequestInfo;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
@@ -35,7 +35,7 @@ public class ServerRequestHandler {
         return info;
     }
 
-    public RequestContext createContext(RequestInfo info, Endpoint endpoint, SerializeServiceRequestPacket request) {
+    public RequestContext createContext(RequestInfo info, EndpointItem endpoint, SerializeServiceRequestPacket request) {
         RequestContext context = new RequestContext();
         context.setParameters(request.parameterMap);
         context.setEndPointer(endpoint);

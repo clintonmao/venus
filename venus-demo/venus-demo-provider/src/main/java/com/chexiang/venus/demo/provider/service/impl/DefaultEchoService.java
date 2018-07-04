@@ -1,6 +1,6 @@
-package com.chexiang.venus.demo.provider.impl;
+package com.chexiang.venus.demo.provider.service.impl;
 
-import com.chexiang.venus.demo.provider.EchoService;
+import com.chexiang.venus.demo.provider.service.EchoService;
 import com.chexiang.venus.demo.provider.model.Echo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

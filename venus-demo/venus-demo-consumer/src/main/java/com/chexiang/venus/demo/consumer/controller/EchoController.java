@@ -1,6 +1,6 @@
 package com.chexiang.venus.demo.consumer.controller;
 
-import com.chexiang.venus.demo.provider.EchoService;
+import com.chexiang.venus.demo.provider.service.EchoService;
 import com.meidusa.venus.Result;
 import com.chexiang.venus.demo.provider.model.Echo;
 import org.slf4j.Logger;

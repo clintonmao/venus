@@ -50,6 +50,7 @@ public class VenusMonitorReporter {
         Producer<String,String> kafkaProducer = getKafkaProducer();
         if(kafkaProducer != null){
             String reportMsg = JSON.toJSONString(reportDO);
+            //logger.info("reportMsg:{}",reportMsg);
             logger.info("report venus monitor info,static size:{},detail size:{}.",staticNum,detailNum);
             kafkaProducer.send(new ProducerRecord<String, String>(
                     getTopic(),

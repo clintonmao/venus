@@ -1,6 +1,6 @@
 package com.meidusa.venus.backend.interceptor;
 
-import com.meidusa.venus.backend.services.Endpoint;
+import com.meidusa.venus.backend.services.EndpointItem;
 import com.meidusa.venus.backend.services.EndpointInvocation;
 import com.meidusa.venus.exception.InvalidParameterException;
 import com.meidusa.venus.validate.ValidatorManager;
@@ -23,7 +23,7 @@ public class ValidatorInterceptor extends AbstractInterceptor {
     @Override
     public Object intercept(EndpointInvocation invocation) {
         logger.info("invoke ValidatorInterceptor...");
-        Endpoint endpoint = invocation.getEndpoint();
+        EndpointItem endpoint = invocation.getEndpoint();
         Validator chain = validatorManager.getValidatorChain(endpoint.getMethod());
         try {
             chain.validate(invocation.getContext().getParameters());

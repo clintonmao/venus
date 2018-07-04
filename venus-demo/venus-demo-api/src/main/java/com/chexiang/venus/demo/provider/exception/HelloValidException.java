@@ -1,4 +1,4 @@
-package com.chexiang.venus.demo.provider;
+package com.chexiang.venus.demo.provider.exception;
 
 import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.annotations.RemoteException.Level;

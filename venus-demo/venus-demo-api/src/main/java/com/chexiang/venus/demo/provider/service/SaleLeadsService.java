@@ -1,4 +1,4 @@
-package com.chexiang.venus.demo.provider;/*
+package com.chexiang.venus.demo.provider.service;/*
  * Copyright (C), 2013-2014, 上海汽车集团股份有限公司
  * FileName: SgmSaleLeadsService.java
  * Author:   zhaomeng

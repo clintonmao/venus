@@ -2,11 +2,13 @@ package com.meidusa.venus.backend.services.xml.config;
 
 import com.meidusa.toolkit.common.util.StringUtil;
 import com.meidusa.venus.backend.services.Interceptor;
+import com.meidusa.venus.client.factory.xml.config.ReferenceMethod;
 import com.meidusa.venus.util.ArrayRange;
 import com.meidusa.venus.util.BetweenRange;
 import com.meidusa.venus.util.Range;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamImplicit;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -35,6 +37,17 @@ public class ExportService {
     //拦截器名称
     @XStreamAsAttribute
     private String interceptors;
+
+    @XStreamImplicit
+    private List<ExportMethod> methodList = new ArrayList<ExportMethod>();
+
+    //tracer是否打印输入参数
+    @XStreamAsAttribute
+    private String printParam;
+
+    //tracer是否打印输出参数
+    @XStreamAsAttribute
+    private String printResult;
 
     private List<Interceptor> interceptorList = new ArrayList<>();
 
@@ -186,5 +199,29 @@ public class ExportService {
 
     public void setInterceptorList(List<Interceptor> interceptorList) {
         this.interceptorList = interceptorList;
+    }
+
+    public List<ExportMethod> getMethodList() {
+        return methodList;
+    }
+
+    public void setMethodList(List<ExportMethod> methodList) {
+        this.methodList = methodList;
+    }
+
+    public String getPrintParam() {
+        return printParam;
+    }
+
+    public void setPrintParam(String printParam) {
+        this.printParam = printParam;
+    }
+
+    public String getPrintResult() {
+        return printResult;
+    }
+
+    public void setPrintResult(String printResult) {
+        this.printResult = printResult;
     }
 }

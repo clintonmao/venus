@@ -3,8 +3,8 @@ package com.meidusa.venus.backend.filter.valid;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.venus.*;
 import com.meidusa.venus.backend.ServerInvocation;
-import com.meidusa.venus.backend.services.Endpoint;
-import com.meidusa.venus.backend.services.Service;
+import com.meidusa.venus.backend.services.EndpointItem;
+import com.meidusa.venus.backend.services.ServiceObject;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.io.packet.AbstractServicePacket;
@@ -63,7 +63,7 @@ public class ServerValidFilter implements Filter {
         byte serializeType = invocation.getSerializeType();
         SerializeServiceRequestPacket request = invocation.getServiceRequestPacket();
         final String apiName = request.apiName;
-        final Endpoint endpoint = invocation.getEndpointDef();
+        final EndpointItem endpoint = invocation.getEndpointDef();
 
         checkVersion(endpoint, request);
         checkActive(endpoint, request);
@@ -77,7 +77,7 @@ public class ServerValidFilter implements Filter {
      * @param waitTime
      * @param invocation
      */
-    void checkTimeout(Endpoint endpoint, AbstractServiceRequestPacket request, long waitTime, ServerInvocation invocation) {
+    void checkTimeout(EndpointItem endpoint, AbstractServiceRequestPacket request, long waitTime, ServerInvocation invocation) {
         if (waitTime > endpoint.getTimeWait()) {
             ErrorPacket error = new ErrorPacket();
             AbstractServicePacket.copyHead(request, error);
@@ -92,8 +92,8 @@ public class ServerValidFilter implements Filter {
      * @param endpoint
      * @param request
      */
-    void checkActive(Endpoint endpoint, AbstractServiceRequestPacket request) {
-        Service service = endpoint.getService();
+    void checkActive(EndpointItem endpoint, AbstractServiceRequestPacket request) {
+        ServiceObject service = endpoint.getService();
         if (!service.isActive() || !endpoint.isActive()) {
             ErrorPacket error = new ErrorPacket();
             AbstractServicePacket.copyHead(request, error);
@@ -119,8 +119,8 @@ public class ServerValidFilter implements Filter {
      * @param endpoint
      * @param request
      */
-    void checkVersion(Endpoint endpoint, AbstractServiceRequestPacket request) {
-        Service service = endpoint.getService();
+    void checkVersion(EndpointItem endpoint, AbstractServiceRequestPacket request) {
+        ServiceObject service = endpoint.getService();
 
         // service version check
         Range range = service.getSupportVersionRange();

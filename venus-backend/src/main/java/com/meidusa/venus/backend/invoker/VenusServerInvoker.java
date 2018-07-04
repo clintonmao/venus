@@ -1,11 +1,10 @@
 package com.meidusa.venus.backend.invoker;
 
 import com.meidusa.fastmark.feature.SerializerFeature;
-import com.meidusa.toolkit.net.Connection;
 import com.meidusa.venus.*;
 import com.meidusa.venus.backend.ServerInvocation;
 import com.meidusa.venus.backend.context.RequestContext;
-import com.meidusa.venus.backend.services.Endpoint;
+import com.meidusa.venus.backend.services.EndpointItem;
 import com.meidusa.venus.backend.services.ServiceManager;
 import com.meidusa.venus.backend.support.UtilTimerStack;
 import com.meidusa.venus.exception.RpcException;
@@ -40,7 +39,7 @@ public class VenusServerInvoker implements Invoker {
     public Result invoke(Invocation invocation, URL url) throws RpcException {
         ServerInvocation serverInvocation = (ServerInvocation)invocation;
         //获取调用信息
-        Endpoint endpointDef = serverInvocation.getEndpointDef();
+        EndpointItem endpointDef = serverInvocation.getEndpointDef();
         //构造请求上下文信息
         RequestContext requestContext = serverInvocation.getRequestContext();
 

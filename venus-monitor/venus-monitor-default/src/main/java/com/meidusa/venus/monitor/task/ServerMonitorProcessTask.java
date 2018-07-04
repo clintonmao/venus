@@ -40,31 +40,19 @@ public class ServerMonitorProcessTask implements Runnable{
     public void run() {
         while(true){
             try {
-                int fetchNum = VenusMonitorConstants.perDetailProcessNum;
+                int fetchNum = VenusMonitorConstants.FETCH_NUM;
                 if(detailQueue.size() < fetchNum){
                     fetchNum = detailQueue.size();
                 }
                 for(int i=0;i<fetchNum;i++){
                     InvocationDetail detail = detailQueue.poll();
                     //1、过滤明细，异常或慢操作
-                    if(VenusMonitorUtil.isExceptionOperation(detail) || VenusMonitorUtil.isSlowOperation(detail)){
+                    if(detail.isExceptionOperation() || detail.isSlowOperation()){
                         if(reportDetailQueue.size() < VenusMonitorConstants.QUEU_MAX_SIZE){
                             reportDetailQueue.add(detail);
                         }
                     }
 
-                    //2、汇总统计，查1m内汇总记录，若不存在则新建
-                    if(getRole() != VenusMonitorConstants.ROLE_CONSUMER){//只consumer处理汇总统计
-                        continue;
-                    }
-                    String methodAndEnvPath = getMethodAndEnvPath(detail);
-                    if(statisticMap.get(methodAndEnvPath) == null){
-                        InvocationStatistic statistic = new InvocationStatistic();
-                        statistic.init(detail);
-                        statisticMap.put(methodAndEnvPath,statistic);
-                    }
-                    InvocationStatistic invocationStatistic = statisticMap.get(methodAndEnvPath);
-                    invocationStatistic.append(detail);
                 }
             } catch (Exception e) {
                 if(exceptionLogger.isErrorEnabled()){

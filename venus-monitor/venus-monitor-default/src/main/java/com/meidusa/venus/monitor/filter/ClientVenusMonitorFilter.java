@@ -7,6 +7,7 @@ import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.monitor.support.InvocationDetail;
 import com.meidusa.venus.monitor.support.InvocationStatistic;
 import com.meidusa.venus.monitor.support.VenusMonitorConstants;
+import com.meidusa.venus.monitor.support.VenusMonitorUtil;
 import com.meidusa.venus.monitor.task.ClientMonitorProcessTask;
 import com.meidusa.venus.monitor.task.ClientMonitorReportTask;
 import com.meidusa.venus.support.VenusThreadContext;
@@ -79,16 +80,24 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
             //响应异常
             Throwable e = (Throwable)VenusThreadContext.get(VenusThreadContext.RESPONSE_EXCEPTION);
 
-            InvocationDetail invocationDetail = new InvocationDetail();
-            invocationDetail.setFrom(InvocationDetail.FROM_CLIENT);
-            invocationDetail.setInvocation(clientInvocation);
-            invocationDetail.setUrl(url);
-            invocationDetail.setResponseTime(new Date());
-            invocationDetail.setResult(result);
-            invocationDetail.setException(e);
+            InvocationDetail detail = new InvocationDetail();
+            detail.setFrom(InvocationDetail.FROM_CLIENT);
+            detail.setUrl(url);
+            detail.setRequestTime(clientInvocation.getRequestTime());
+            detail.setInvocation(clientInvocation);
+            detail.setResponseTime(new Date());
+            detail.setResult(cloneResult(result));
+            detail.setException(e);
+            if(VenusMonitorUtil.isExceptionOperation(detail)){
+                detail.setExceptionOperation(true);
+            }else{
+                if(VenusMonitorUtil.isSlowOperation(detail)){
+                    detail.setSlowOperation(true);
+                }
+            }
 
             //添加到明细队列
-            putDetail2Queue(invocationDetail);
+            putDetail2Queue(detail);
             return null;
         }catch(Throwable e){
             //对于非rpc异常，也即filter内部执行异常，只记录异常，避免影响正常调用
@@ -97,6 +106,22 @@ public class ClientVenusMonitorFilter extends AbstractMonitorFilter implements F
             }
             return null;
         }
+    }
+
+    /**
+     * 复制Result，去除result.object返回结果
+     * @param result
+     * @return
+     */
+    Result cloneResult(Result result){
+        if(result == null){
+            return null;
+        }
+        Result ret = new Result();
+        ret.setException(result.getException());
+        ret.setErrorCode(result.getErrorCode());
+        ret.setErrorMessage(result.getErrorMessage());
+        return ret;
     }
 
     /**

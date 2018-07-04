@@ -5,13 +5,13 @@ package com.meidusa.venus.backend.context;
 
 import java.util.Map;
 
-import com.meidusa.venus.backend.services.Endpoint;
+import com.meidusa.venus.backend.services.EndpointItem;
 import com.meidusa.venus.backend.services.RequestInfo;
 import com.meidusa.venus.util.ThreadLocalConstant;
 import com.meidusa.venus.util.ThreadLocalMap;
 
 public class RequestContext {
-    private Endpoint endPointer;
+    private EndpointItem endPointer;
     private Map<String, Object> paramters;
     private RequestInfo requestInfo;
     private String clientId;
@@ -72,11 +72,11 @@ public class RequestContext {
         this.paramters = convertedParameters;
     }
 
-    public Endpoint getEndPointer() {
+    public EndpointItem getEndPointer() {
         return endPointer;
     }
 
-    public void setEndPointer(Endpoint endPointer) {
+    public void setEndPointer(EndpointItem endPointer) {
         this.endPointer = endPointer;
     }
 

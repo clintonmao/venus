@@ -1,7 +1,7 @@
-package com.chexiang.venus.demo.provider.impl;
+package com.chexiang.venus.demo.provider.service.impl;
 
-import com.chexiang.venus.demo.provider.OrderService;
-import com.chexiang.venus.demo.provider.ProductService;
+import com.chexiang.venus.demo.provider.service.OrderService;
+import com.chexiang.venus.demo.provider.service.ProductService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -20,7 +20,7 @@ public class OrderServiceImpl implements OrderService,InitializingBean{
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.chexiang.venus.demo.consumer;
 
-import com.chexiang.venus.demo.provider.HelloService;
+import com.chexiang.venus.demo.provider.service.HelloService;
 import com.chexiang.venus.demo.provider.model.Hello;
 import com.meidusa.venus.notify.InvocationListener;
 import org.junit.Test;

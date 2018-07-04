@@ -1,7 +1,7 @@
 package com.meidusa.venus.backend.invoker;
 
 import com.meidusa.venus.backend.context.RequestContext;
-import com.meidusa.venus.backend.services.Endpoint;
+import com.meidusa.venus.backend.services.EndpointItem;
 import com.meidusa.venus.backend.services.EndpointInvocation;
 import com.meidusa.venus.backend.services.Interceptor;
 import com.meidusa.venus.exception.RpcException;
@@ -39,7 +39,7 @@ public class VenusServerInvocationEndpoint implements EndpointInvocation {
     /**
      * 相关的endpoint
      */
-    private Endpoint endpoint;
+    private EndpointItem endpoint;
 
     /**
      * 请求上下文
@@ -51,7 +51,7 @@ public class VenusServerInvocationEndpoint implements EndpointInvocation {
      */
     private ResultType type = ResultType.RESPONSE;
 
-    public VenusServerInvocationEndpoint(RequestContext context, Endpoint endpoint) {
+    public VenusServerInvocationEndpoint(RequestContext context, EndpointItem endpoint) {
         this.endpoint = endpoint;
         this.context = context;
         if (CollectionUtils.isNotEmpty(endpoint.getInterceptorList())) {
@@ -69,7 +69,7 @@ public class VenusServerInvocationEndpoint implements EndpointInvocation {
     }
 
     @Override
-    public Endpoint getEndpoint() {
+    public EndpointItem getEndpoint() {
         return endpoint;
     }
 
@@ -87,7 +87,7 @@ public class VenusServerInvocationEndpoint implements EndpointInvocation {
             try {
                 Object[] parameters = getContext().getEndPointer().getParameterValues(getContext().getParameters());
 
-                Endpoint ep = this.getEndpoint();
+                EndpointItem ep = this.getEndpoint();
                 if (ep.isAsync()) {
                     this.type = ResultType.NONE;
                 }

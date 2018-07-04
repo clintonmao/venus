@@ -16,15 +16,15 @@ import java.util.Map;
  * @author Sun Ning
  * @since 2010-3-4
  */
-public class Endpoint {
+public class EndpointItem {
 
     private String name;
     private Method method;
     private int timeWait;
     private boolean async = false;
-    private Parameter[] parameters;
+    private ParameterItem[] parameters;
     private boolean hasCtxParam;
-    private Service service;
+    private ServiceObject service;
     private String keyExpression;
     // cache
     private volatile transient String[] parameterNames;
@@ -33,13 +33,18 @@ public class Endpoint {
     // cache
     private volatile transient Map<String, Type> parameterTypeDict;
 
-    private PerformanceLogger performanceLogger;
-
     private List<Interceptor> interceptorList = new ArrayList<>();
 
     private boolean active = true;
 
     private boolean isVoid = true;
+
+    //是否打印输入参数
+    private String printParam;
+
+    //是否打印输出结果
+    private String printResult;
+
 
     public int getTimeWait() {
         return timeWait;
@@ -140,7 +145,7 @@ public class Endpoint {
         if (requiredParameterNames == null) {
             List<String> requiredSubList = new ArrayList<String>();
 
-            for (Parameter p : this.getParameters()) {
+            for (ParameterItem p : this.getParameters()) {
                 if (!p.isOptional()) {
                     requiredSubList.add(p.getParamName());
                 }
@@ -182,28 +187,28 @@ public class Endpoint {
     /**
      * @return the arguments
      */
-    public Parameter[] getParameters() {
+    public ParameterItem[] getParameters() {
         return parameters;
     }
 
     /**
      * @param arguments the arguments to set
      */
-    public void setParameters(Parameter[] arguments) {
+    public void setParameters(ParameterItem[] arguments) {
         this.parameters = arguments;
     }
 
     /**
      * @return the service
      */
-    public Service getService() {
+    public ServiceObject getService() {
         return service;
     }
 
     /**
      * @param service the service to set
      */
-    public void setService(Service service) {
+    public void setService(ServiceObject service) {
         this.service = service;
     }
 
@@ -231,19 +236,27 @@ public class Endpoint {
         this.hasCtxParam = hasCtxParam;
     }
 
-    public PerformanceLogger getPerformanceLogger() {
-        return performanceLogger;
-    }
-
-    public void setPerformanceLogger(PerformanceLogger performanceLogger) {
-        this.performanceLogger = performanceLogger;
-    }
-
     public List<Interceptor> getInterceptorList() {
         return interceptorList;
     }
 
     public void setInterceptorList(List<Interceptor> interceptorList) {
         this.interceptorList = interceptorList;
+    }
+
+    public String getPrintParam() {
+        return printParam;
+    }
+
+    public void setPrintParam(String printParam) {
+        this.printParam = printParam;
+    }
+
+    public String getPrintResult() {
+        return printResult;
+    }
+
+    public void setPrintResult(String printResult) {
+        this.printResult = printResult;
     }
 }

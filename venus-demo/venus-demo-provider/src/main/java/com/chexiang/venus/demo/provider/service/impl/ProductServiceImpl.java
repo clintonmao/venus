@@ -1,6 +1,6 @@
-package com.chexiang.venus.demo.provider.impl;
+package com.chexiang.venus.demo.provider.service.impl;
 
-import com.chexiang.venus.demo.provider.ProductService;
+import com.chexiang.venus.demo.provider.service.ProductService;
 
 /**
  * Created by Zhangzhihua on 2018/1/16.

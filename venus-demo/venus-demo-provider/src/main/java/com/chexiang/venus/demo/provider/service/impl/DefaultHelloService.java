@@ -1,13 +1,11 @@
-package com.chexiang.venus.demo.provider.impl;
+package com.chexiang.venus.demo.provider.service.impl;
 
-import com.chexiang.venus.demo.provider.EchoService;
-import com.chexiang.venus.demo.provider.HelloService;
-import com.chexiang.venus.demo.provider.HelloValidException;
-import com.chexiang.venus.demo.provider.InvalidParamException;
+import com.chexiang.venus.demo.provider.service.EchoService;
+import com.chexiang.venus.demo.provider.service.HelloService;
+import com.chexiang.venus.demo.provider.exception.HelloValidException;
+import com.chexiang.venus.demo.provider.exception.InvalidParamException;
 import com.chexiang.venus.demo.provider.model.Hello;
 import com.chexiang.venus.demo.provider.model.HelloEx;
-import com.meidusa.fastjson.JSONArray;
-import com.meidusa.fastjson.JSONObject;
 import com.meidusa.venus.VenusApplication;
 import com.meidusa.venus.backend.VenusProtocol;
 import com.meidusa.venus.notify.InvocationListener;
@@ -15,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -59,12 +59,31 @@ public class DefaultHelloService implements HelloService {
     }
 
     @Override
+    public int sayHelloForException(int param)  throws HelloValidException,InvalidParamException {
+        if(param > 10000){
+            throw new InvalidParamException();
+        }
+        if(param > 1000){
+            throw new HelloValidException(200001,"param is invalid.");
+        }
+
+
+        try{
+            int ret=100/param;
+            logger.info("ret:{}",ret);
+            return ret;
+        }catch(Exception e){
+            throw e;
+        }
+    }
+
+    @Override
     public Hello getHello(String name) {
         //logger.info("invoke getHello,param:" + name);
         int ran = ThreadLocalRandom.current().nextInt(100);
-        if( ran > 80){
+        if("error".equals(name)){
             throw new IllegalArgumentException("param invalid.");
-        }else if(ran > 50){
+        }else if("slow".equals(name)){
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {}
@@ -85,22 +104,22 @@ public class DefaultHelloService implements HelloService {
     }
 
     @Override
-    public int cal(int param)  throws HelloValidException,InvalidParamException {
-        if(param > 10000){
-            throw new InvalidParamException();
+    public List<Hello> queryHello(String name) {
+        //错误及慢操作
+        int ran = ThreadLocalRandom.current().nextInt(100);
+        if( ran > 90){
+            throw new IllegalArgumentException("param invalid.");
+        }else if(ran > 50){
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {}
         }
-        if(param > 1000){
-            throw new HelloValidException(200001,"param is invalid.");
+        List<Hello> list = new ArrayList<>();
+        for(int i=0;i<300;i++){
+            list.add(new Hello(name,name));
         }
 
-
-        try{
-            int ret=100/param;
-            logger.info("ret:{}",ret);
-            return ret;
-        }catch(Exception e){
-            throw e;
-        }
+        return list;
     }
 
     public VenusApplication getVenusApplication() {

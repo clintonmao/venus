@@ -33,9 +33,9 @@
 	</bean>
 
 	<!--业务bean，也可通过注解声明-->
-	<bean id="helloService" class="com.chexiang.venus.demo.provider.impl.DefaultHelloService"/>
-	<bean id="orderService" class="com.chexiang.venus.demo.provider.impl.OrderServiceImpl"/>
-	<bean id="productService" class="com.chexiang.venus.demo.provider.impl.ProductServiceImpl"/>
+	<bean id="helloService" class="com.chexiang.venus.demo.provider.service.impl.DefaultHelloService"/>
+	<bean id="orderService" class="com.chexiang.venus.demo.provider.service.impl.OrderServiceImpl"/>
+	<bean id="productService" class="com.chexiang.venus.demo.provider.service.impl.ProductServiceImpl"/>
 
 	<!--saike应用配置-->
 	<bean id="application" class="com.saike.commons.Application" init-method="init">

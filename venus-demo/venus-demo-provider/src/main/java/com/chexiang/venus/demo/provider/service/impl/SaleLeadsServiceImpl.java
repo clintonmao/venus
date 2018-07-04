@@ -1,6 +1,6 @@
-package com.chexiang.venus.demo.provider.impl;
+package com.chexiang.venus.demo.provider.service.impl;
 
-import com.chexiang.venus.demo.provider.SaleLeadsService;
+import com.chexiang.venus.demo.provider.service.SaleLeadsService;
 import com.chexiang.venus.demo.provider.model.SgmSaleLeadsRequest;
 import com.chexiang.venus.demo.provider.model.SgmSaleLeadsResponse;
 import org.slf4j.Logger;

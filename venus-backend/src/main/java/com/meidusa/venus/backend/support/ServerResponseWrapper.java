@@ -2,7 +2,7 @@ package com.meidusa.venus.backend.support;
 
 import com.meidusa.venus.Result;
 import com.meidusa.venus.backend.ServerInvocation;
-import com.meidusa.venus.backend.services.Endpoint;
+import com.meidusa.venus.backend.services.EndpointItem;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.ServiceAPIPacket;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
@@ -17,7 +17,7 @@ public class ServerResponseWrapper {
     VenusFrontendConnection conn;
     ServiceAPIPacket apiPacket;
     VenusRouterPacket routerPacket;
-    Endpoint endpoint;
+    EndpointItem endpoint;
     SerializeServiceRequestPacket request;
     InvocationListener invocationListener;
     short serializeType;
@@ -57,11 +57,11 @@ public class ServerResponseWrapper {
         this.routerPacket = routerPacket;
     }
 
-    public Endpoint getEndpoint() {
+    public EndpointItem getEndpoint() {
         return endpoint;
     }
 
-    public void setEndpoint(Endpoint endpoint) {
+    public void setEndpoint(EndpointItem endpoint) {
         this.endpoint = endpoint;
     }
 

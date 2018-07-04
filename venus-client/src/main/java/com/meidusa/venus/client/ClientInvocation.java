@@ -89,6 +89,12 @@ public class ClientInvocation implements ClientInvocationOperation {
 
     private boolean isAthenaInvoker = false;
 
+    //是否打印输入参数，默认true
+    private boolean printParam = true;
+
+    //是否打印输出结果，默认false
+    private boolean printResult = false;
+
     public int getClientId() {
         return clientId;
     }
@@ -324,14 +330,6 @@ public class ClientInvocation implements ClientInvocationOperation {
         this.version = version;
     }
 
-    public boolean isEnablePrintParam(){
-        return true;
-    }
-
-    public boolean isEnablePrintResult(){
-        return true;
-    }
-
     public String getInvokeModel(){
         return "sync";
     }
@@ -355,5 +353,21 @@ public class ClientInvocation implements ClientInvocationOperation {
     @Override
     public String getServiceName() {
         return serviceName;
+    }
+
+    public boolean isPrintParam() {
+        return printParam;
+    }
+
+    public void setPrintParam(boolean printParam) {
+        this.printParam = printParam;
+    }
+
+    public boolean isPrintResult() {
+        return printResult;
+    }
+
+    public void setPrintResult(boolean printResult) {
+        this.printResult = printResult;
     }
 }

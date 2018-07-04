@@ -6,7 +6,7 @@ package com.meidusa.venus.backend.support;
 
 import com.meidusa.toolkit.net.Connection;
 import com.meidusa.venus.Result;
-import com.meidusa.venus.backend.services.Endpoint;
+import com.meidusa.venus.backend.services.EndpointItem;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.DefaultVenusException;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
@@ -48,7 +48,7 @@ public class ServerResponseHandler {
         VenusRouterPacket routerPacket = wrapper.getRouterPacket();
         ServiceAPIPacket apiPacket = wrapper.getApiPacket();
         SerializeServiceRequestPacket request = wrapper.getRequest();
-        Endpoint endpoint = wrapper.getEndpoint();
+        EndpointItem endpoint = wrapper.getEndpoint();
         Result result = wrapper.getResult();
         short serializeType = wrapper.getSerializeType();
         Serializer serializer = SerializerFactory.getSerializer(serializeType);
@@ -131,9 +131,8 @@ public class ServerResponseHandler {
     /**
      * 处理listener调用
      * @param wrapper
-     * @throws Exception
      */
-    public void writeResponseForNotify(ServerResponseWrapper wrapper) throws Exception{
+    public void writeResponseForNotify(ServerResponseWrapper wrapper) {
         VenusFrontendConnection conn = wrapper.getConn();
         VenusRouterPacket routerPacket = wrapper.getRouterPacket();
         ServiceAPIPacket apiPacket = wrapper.getApiPacket();
@@ -172,9 +171,8 @@ public class ServerResponseHandler {
      * @param request
      * @param serializer
      * @return
-     * @throws Exception
      */
-    ServiceNofityPacket toNotifyPacket(Result result, AbstractServicePacket request, ServiceAPIPacket apiPacket,ReferenceInvocationListener referenceInvocationListener, Serializer serializer) throws Exception{
+    ServiceNofityPacket toNotifyPacket(Result result, AbstractServicePacket request, ServiceAPIPacket apiPacket,ReferenceInvocationListener referenceInvocationListener, Serializer serializer) {
         Throwable e = null;
         if (result.getException() == null) {
             e = new DefaultVenusException(result.getErrorCode(), result.getErrorMessage());

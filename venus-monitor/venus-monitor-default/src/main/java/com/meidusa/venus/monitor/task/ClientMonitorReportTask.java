@@ -53,11 +53,11 @@ public class ClientMonitorReportTask implements Runnable{
             try {
                 //1、构造明细上报数据
                 List<InvocationDetail> reportDetailList = new ArrayList<InvocationDetail>();
-                int fetchNum = VenusMonitorConstants.perDetailReportNum;
-                if(reportDetailQueue.size() < fetchNum){
-                    fetchNum = reportDetailQueue.size();
+                int reportNum = VenusMonitorConstants.REPORT_NUM;
+                if(reportDetailQueue.size() < reportNum){
+                    reportNum = reportDetailQueue.size();
                 }
-                for(int i=0;i<fetchNum;i++){
+                for(int i=0;i<reportNum;i++){
                     InvocationDetail exceptionDetail = reportDetailQueue.poll();
                     reportDetailList.add(exceptionDetail);
                 }
@@ -91,9 +91,7 @@ public class ClientMonitorReportTask implements Runnable{
                 //4、清空统计信息
                 if(MapUtils.isNotEmpty(statisticMap) && CollectionUtils.isNotEmpty(deleteKeys)){
                     for(String delKey:deleteKeys){
-                        if(statisticMap.containsKey(delKey)){
-                            statisticMap.remove(delKey);
-                        }
+                        statisticMap.remove(delKey);
                     }
                 }
             } catch (Exception e) {
@@ -103,8 +101,8 @@ public class ClientMonitorReportTask implements Runnable{
             }
 
             try {
-                //1m上报一次
-                Thread.sleep(1000*60);
+                //3s上报一次
+                Thread.sleep(1000*3);
             } catch (InterruptedException e) {
             }
         }
@@ -121,7 +119,7 @@ public class ClientMonitorReportTask implements Runnable{
             return detailDOList;
         }
         for(InvocationDetail detail:detailList){
-            VenusMethodCallDetailDO detailDO = convertDetail(detail);
+            VenusMethodCallDetailDO detailDO = toDetail(detail);
             detailDOList.add(detailDO);
         }
         return detailDOList;
@@ -132,7 +130,7 @@ public class ClientMonitorReportTask implements Runnable{
      * @param detail
      * @return
      */
-    VenusMethodCallDetailDO convertDetail(InvocationDetail detail){
+    VenusMethodCallDetailDO toDetail(InvocationDetail detail){
         ClientInvocationOperation clientInvocation = (ClientInvocationOperation)detail.getInvocation();
         URL url = detail.getUrl();
         Result result = detail.getResult();
@@ -174,17 +172,15 @@ public class ClientMonitorReportTask implements Runnable{
         detailDO.setResponseTime(detail.getResponseTime());
         if(result != null){ //响应结果
             if(result.getErrorCode() == 0){//成功
-                String responseJson = serialize(result.getResult());
-                detailDO.setReponseJson(responseJson);
                 detailDO.setStatus(1);
             }else{//失败
-                String responseJson = String.format("%s-%s",result.getErrorCode(),result.getErrorMessage());
-                detailDO.setReponseJson(responseJson);
+                String errorInfo = String.format("%s-%s",result.getErrorCode(),result.getErrorMessage());
+                detailDO.setErrorInfo(errorInfo);
                 detailDO.setStatus(0);
             }
         } else if(exception != null){//响应异常
-            String responseJsonForException = serialize(exception);
-            detailDO.setErrorInfo(responseJsonForException);
+            String errorInfo = serialize(exception);
+            detailDO.setErrorInfo(errorInfo);
             detailDO.setStatus(0);
         }
         //耗时
@@ -206,7 +202,7 @@ public class ClientMonitorReportTask implements Runnable{
             if(statistic.getTotalNum().intValue() < 1){
                 continue;
             }
-            VenusMethodStaticDO staticDO = convertStatistic(statistic);
+            VenusMethodStaticDO staticDO = toStatistic(statistic);
             staticDOList.add(staticDO);
         }
         return staticDOList;
@@ -217,7 +213,7 @@ public class ClientMonitorReportTask implements Runnable{
      * @param statistic
      * @return
      */
-    VenusMethodStaticDO convertStatistic(InvocationStatistic statistic){
+    VenusMethodStaticDO toStatistic(InvocationStatistic statistic){
         VenusMethodStaticDO staticDO = new VenusMethodStaticDO();
         staticDO.setInterfaceName(statistic.getServiceInterfaceName());
         staticDO.setServiceName(statistic.getServiceName());

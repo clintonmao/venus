@@ -11,9 +11,11 @@
 		ref:引用spring bean名称
 		-->
 		<!--interceptors="acl-interceptor,validator-interceptor"-->
-		<service type="com.chexiang.venus.demo.provider.HelloService" ref="helloService" supportVersion="{0,1,2,3,4,5,6}"/>
-		<service type="com.chexiang.venus.demo.provider.EchoService" ref="echoService" supportVersion="{1}"/>
-		<service type="com.chexiang.venus.demo.provider.SaleLeadsService" ref="saleLeadsService"/>
+		<service type="com.chexiang.venus.demo.provider.service.HelloService" ref="helloService" supportVersion="{0,1,2,3,4,5,6}">
+			<!--<method name="getHello" printResult="true"/>-->
+		</service>
+		<service type="com.chexiang.venus.demo.provider.service.EchoService" ref="echoService" supportVersion="{1}"/>
+		<service type="com.chexiang.venus.demo.provider.service.SaleLeadsService" ref="saleLeadsService"/>
 
 	</services>
 </venus-server>

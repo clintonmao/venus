@@ -12,7 +12,7 @@ import com.meidusa.venus.util.Range;
  * @author Sun Ning
  * @since 2010-3-4
  */
-public abstract class Service {
+public class ServiceObject {
 
     private Class<?> type;
 
@@ -24,13 +24,35 @@ public abstract class Service {
     //当前版本向下支持版本范围
     private Range supportVersionRange;
 
-    private Multimap<String, Endpoint> endpoints;
+    private Multimap<String, EndpointItem> endpoints;
 
     private String description;
 
     private boolean athenaFlag;
 
     private boolean active = true;
+
+    private Object instance;
+
+    //是否打印输入参数
+    private String printParam;
+
+    //是否打印输出结果
+    private String printResult;
+
+    /**
+     * @return the instance
+     */
+    public Object getInstance() {
+        return instance;
+    }
+
+    /**
+     * @param instance the instance to set
+     */
+    public void setInstance(Object instance) {
+        this.instance = instance;
+    }
 
     public Range getSupportVersionRange() {
         return supportVersionRange;
@@ -47,12 +69,6 @@ public abstract class Service {
     public boolean getAthenaFlag(){
         return this.athenaFlag;
     }
-
-    /**
-     * 
-     * @return
-     */
-    public abstract Object getInstance();
 
     /**
      * @return the interfaceName
@@ -85,14 +101,14 @@ public abstract class Service {
     /**
      * @return the endpoint
      */
-    public Multimap<String, Endpoint> getEndpoints() {
+    public Multimap<String, EndpointItem> getEndpoints() {
         return endpoints;
     }
 
     /**
      * @param endpoint the endpoint to set
      */
-    public void setEndpoints(Multimap<String, Endpoint> endpoint) {
+    public void setEndpoints(Multimap<String, EndpointItem> endpoint) {
         this.endpoints = endpoint;
     }
 
@@ -118,5 +134,21 @@ public abstract class Service {
 
     public void setVersion(int version) {
         this.version = version;
+    }
+
+    public String getPrintParam() {
+        return printParam;
+    }
+
+    public void setPrintParam(String printParam) {
+        this.printParam = printParam;
+    }
+
+    public String getPrintResult() {
+        return printResult;
+    }
+
+    public void setPrintResult(String printResult) {
+        this.printResult = printResult;
     }
 }

@@ -86,11 +86,11 @@ public class VenusHttpServlet extends HttpServlet {
         serviceManager = context.getBean(ServiceManager.class);
     }
 
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         doPost(req, resp);
     }
 
-    protected void doPost(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(final HttpServletRequest req, final HttpServletResponse resp) throws IOException {
         String uri = req.getRequestURI().trim();
 
         if (!req.getContextPath().equals("/")) {
@@ -118,7 +118,7 @@ public class VenusHttpServlet extends HttpServlet {
         String method = matcher.group(2);
         String clientID = req.getHeader("_venus_client_id_");
         String apiName = service + "." + method;
-        Endpoint endpoint = null;
+        EndpointItem endpoint = null;
         // ResultType resultType = ResultType.RESPONSE;
         String v = req.getParameter("v");
         // String sign = req.getParameter("sign");
@@ -234,8 +234,8 @@ public class VenusHttpServlet extends HttpServlet {
 
 
 
-    private static Response checkActive(Endpoint endpoint) {
-        Service service = endpoint.getService();
+    private static Response checkActive(EndpointItem endpoint) {
+        ServiceObject service = endpoint.getService();
         if (!service.isActive() || !endpoint.isActive()) {
             Response result = new Response();
             result.setErrorCode(VenusExceptionCodeConstant.SERVICE_INACTIVE_EXCEPTION);
@@ -255,8 +255,8 @@ public class VenusHttpServlet extends HttpServlet {
         return null;
     }
 
-    private static Response checkVersion(Endpoint endpoint, int version) {
-        Service service = endpoint.getService();
+    private static Response checkVersion(EndpointItem endpoint, int version) {
+        ServiceObject service = endpoint.getService();
 
         // service version check
         Range range = service.getSupportVersionRange();
@@ -276,7 +276,7 @@ public class VenusHttpServlet extends HttpServlet {
         resp.getOutputStream().write(serializer.encode(result));
     }
 
-    private Response handleRequest(RequestInfo info, Endpoint endpoint, Map<String, Object> paramters) {
+    private Response handleRequest(RequestInfo info, EndpointItem endpoint, Map<String, Object> paramters) {
         RequestContext context = new RequestContext();
         context.setParameters(paramters);
         context.setEndPointer(endpoint);
@@ -313,7 +313,7 @@ public class VenusHttpServlet extends HttpServlet {
                 }
                 response.setErrorMessage(e.getMessage());
             }
-            Service service = endpoint.getService();
+            ServiceObject service = endpoint.getService();
             if (e instanceof VenusExceptionLevel) {
                 if (((VenusExceptionLevel) e).getLevel() != null) {
                     LogHandler.logDependsOnLevel(((VenusExceptionLevel) e).getLevel(), logger, e.getMessage() + ",ip=" + context.getRequestInfo().getRemoteIp() + " ,api="

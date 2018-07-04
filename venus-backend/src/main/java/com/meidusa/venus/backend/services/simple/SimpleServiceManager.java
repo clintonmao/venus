@@ -3,24 +3,24 @@
  */
 package com.meidusa.venus.backend.services.simple;
 
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.meidusa.venus.annotations.Endpoint;
+import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.backend.services.AbstractServiceManager;
-import com.meidusa.venus.backend.services.Endpoint;
-import com.meidusa.venus.backend.services.Service;
-import com.meidusa.venus.backend.services.SingletonService;
+import com.meidusa.venus.backend.services.EndpointItem;
+import com.meidusa.venus.backend.services.ServiceObject;
+import com.meidusa.venus.exception.ConvertException;
+import com.meidusa.venus.exception.ServiceDefinitionException;
+import com.meidusa.venus.exception.VenusConfigException;
+import com.meidusa.venus.metainfo.AnnotationUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.meidusa.venus.metainfo.AnnotationUtil;
-import com.meidusa.venus.exception.ConvertException;
-import com.meidusa.venus.exception.ServiceDefinitionException;
-import com.meidusa.venus.exception.VenusConfigException;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 基于简单API方式服务管理类
@@ -31,15 +31,15 @@ public class SimpleServiceManager extends AbstractServiceManager implements Init
 
     private List<Object> serviceInstances;
 
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         for (Object instance : serviceInstances) {
-            Service[] loadedServices = loadService(instance);
+            ServiceObject[] loadedServices = loadService(instance);
 
             if (loadedServices == null) {
                 continue;
             }
 
-            for (Service service : loadedServices) {
+            for (ServiceObject service : loadedServices) {
                 serviceMap.put(service.getName(), service);
             }
         }
@@ -59,7 +59,7 @@ public class SimpleServiceManager extends AbstractServiceManager implements Init
         this.serviceInstances = serviceInstances;
     }
 
-    public Map<String, Service> getServicesAsMap() {
+    public Map<String, ServiceObject> getServicesAsMap() {
         return serviceMap;
     }
 
@@ -68,14 +68,14 @@ public class SimpleServiceManager extends AbstractServiceManager implements Init
      * 
      * 
      */
-    protected Service[] loadService(Object instance) throws ServiceDefinitionException, ConvertException {
+    protected ServiceObject[] loadService(Object instance) throws ServiceDefinitionException, ConvertException {
         Class<?>[] interfaces = instance.getClass().getInterfaces();
         Class<?>[] types = AnnotationUtil.getAnnotatedClasses(interfaces, com.meidusa.venus.annotations.Service.class);
 
         if (types != null && types.length > 0) {
-            Service[] services = new Service[types.length];
+            ServiceObject[] services = new ServiceObject[types.length];
             for (int i = 0; i < types.length; i++) {
-                services[i] = loadService0(types[i], instance);
+                services[i] = doLoadService(types[i], instance);
             }
             return services;
         }
@@ -83,8 +83,8 @@ public class SimpleServiceManager extends AbstractServiceManager implements Init
         return null;
     }
 
-    protected Service loadService0(Class<?> type, Object instance) throws ServiceDefinitionException, ConvertException {
-        SingletonService service = new SingletonService();
+    protected ServiceObject doLoadService(Class<?> type, Object instance) throws ServiceDefinitionException, ConvertException {
+        ServiceObject service = new ServiceObject();
         if (logger.isInfoEnabled()) {
             logger.info("Loading From: " + instance.getClass().getCanonicalName());
         }
@@ -100,7 +100,7 @@ public class SimpleServiceManager extends AbstractServiceManager implements Init
         service.setType(type);
 
         // set name
-        com.meidusa.venus.annotations.Service serviceAnnotation = type.getAnnotation(com.meidusa.venus.annotations.Service.class);
+        Service serviceAnnotation = type.getAnnotation(Service.class);
         if (!serviceAnnotation.name().isEmpty()) {
             service.setName(serviceAnnotation.name());
         } else {
@@ -112,10 +112,10 @@ public class SimpleServiceManager extends AbstractServiceManager implements Init
 
         // cache all methods
         Method[] methods = type.getMethods();
-        Multimap<String, Endpoint> endpoints = HashMultimap.create();
+        Multimap<String, EndpointItem> endpoints = HashMultimap.create();
         for (Method method : methods) {
-            if (method.isAnnotationPresent(com.meidusa.venus.annotations.Endpoint.class)) {
-                Endpoint ep = initEndpoint(method);
+            if (method.isAnnotationPresent(Endpoint.class)) {
+                EndpointItem ep = initEndpoint(method,null);
                 ep.setService(service);
                 if (logger.isInfoEnabled()) {
                     logger.info("Add Endpoint: " + ep.getService().getName() + "." + ep.getName());
@@ -132,6 +132,6 @@ public class SimpleServiceManager extends AbstractServiceManager implements Init
     }
 
     @Override
-    public void destroy() throws Exception {
+    public void destroy() {
     }
 }

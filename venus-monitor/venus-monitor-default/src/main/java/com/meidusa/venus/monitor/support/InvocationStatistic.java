@@ -111,9 +111,9 @@ public class InvocationStatistic {
      */
     public void append(InvocationDetail detail){
         totalNum.incrementAndGet();
-        if(VenusMonitorUtil.isExceptionOperation(detail)){
+        if(detail.isExceptionOperation()){
             failNum.incrementAndGet();
-        }else if(VenusMonitorUtil.isSlowOperation(detail)){
+        }else if(detail.isSlowOperation()){
             slowNum.incrementAndGet();
         }
         //若超过，更新最大耗时

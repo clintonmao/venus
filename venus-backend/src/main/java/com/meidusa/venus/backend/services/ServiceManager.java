@@ -21,9 +21,9 @@ public interface ServiceManager extends EndpointLocator {
      * @return
      * @throws ServiceNotFoundException
      */
-    Service getService(String serviceName) throws ServiceNotFoundException;
+    ServiceObject getService(String serviceName) throws ServiceNotFoundException;
 
-    Collection<Service> getServices();
+    Collection<ServiceObject> getServices();
 
     /**
      * 资源释放

@@ -1,9 +1,10 @@
 package com.chexiang.venus.demo.consumer.controller;
 
-import com.chexiang.venus.demo.provider.HelloService;
-import com.chexiang.venus.demo.provider.HelloValidException;
-import com.chexiang.venus.demo.provider.InvalidParamException;
-import com.chexiang.venus.demo.provider.SaleLeadsService;
+import com.alibaba.fastjson.JSON;
+import com.chexiang.venus.demo.provider.service.HelloService;
+import com.chexiang.venus.demo.provider.exception.HelloValidException;
+import com.chexiang.venus.demo.provider.exception.InvalidParamException;
+import com.chexiang.venus.demo.provider.service.SaleLeadsService;
 import com.chexiang.venus.demo.provider.model.Hello;
 import com.chexiang.venus.demo.provider.model.SgmSaleLeadsDto;
 import com.chexiang.venus.demo.provider.model.SgmSaleLeadsRequest;
@@ -32,11 +33,11 @@ public class HelloController {
     @Autowired
     HelloService helloService;
 
-    @Autowired
-    SaleLeadsService saleLeadsService;
-
-    //@Autowired
-    //UniMessageService uniMessageService;
+    @RequestMapping("/exit")
+    public void exit(){
+        logger.info("exit...");
+        System.exit(0);
+    }
 
     @RequestMapping("/sayHello")
     public Result sayHello(){
@@ -61,10 +62,18 @@ public class HelloController {
         return new Result("callback.");
     }
 
-    @RequestMapping("/exit")
-    public void exit(){
-        logger.info("exit...");
-        System.exit(0);
+    @RequestMapping("/sayHelloForException/{param}")
+    public Result sayHelloForException(@PathVariable String param) {
+        try {
+            int ret = helloService.sayHelloForException(Integer.parseInt(param));
+        } catch (HelloValidException e) {
+            logger.error("HelloValidException error",e);
+        } catch (InvalidParamException e) {
+            logger.error("InvalidParamException error",e);
+        } catch (NumberFormatException e) {
+            logger.error("NumberFormatException error",e);
+        }
+        return new Result("ok");
     }
 
     @RequestMapping("/getHello/{name}")
@@ -84,59 +93,37 @@ public class HelloController {
         return new Result(hello);
     }
 
-    @RequestMapping("/cal/{param}")
-    public Result cal(@PathVariable String param) {
+    @RequestMapping("/queryHello/{name}")
+    public Result queryHello(@PathVariable String name){
         try {
-            int ret = helloService.cal(Integer.parseInt(param));
-        } catch (HelloValidException e) {
-            logger.error("HelloValidException error",e);
-        } catch (InvalidParamException e) {
-            logger.error("InvalidParamException error",e);
-        } catch (NumberFormatException e) {
-            logger.error("NumberFormatException error",e);
+            List<Hello> list = helloService.queryHello(name);
+            logger.info("list:{}", JSON.toJSONString(list));
+            return new Result(list);
+        } catch (Exception e) {
+            logger.error("e:{}.",e);
+            return new Result(e);
         }
-        return new Result("ok");
     }
 
-    @RequestMapping("/sms/{param}")
-    public Result sms(@PathVariable String param) {
-//        Sms sms = new Sms("smsVenus","schemaId1");
-//
-//        List destPhoneList = new ArrayList();
-//        destPhoneList.add("18588888888");
-//        sms.setDestPhones(destPhoneList);
-//
-//        Map<String, String> paramMap = new HashMap<>();
-//        paramMap.put("key1","value1");
-//        paramMap.put("key2","value2");
-//        sms.setParams(paramMap);
-//
-//        try {
-//            uniMessageService.sendSms(sms);
-//        } catch (SMSValidateException e) {
-//            e.printStackTrace();
-//        }
-        return new Result("ok");
+    @RequestMapping("/testJson/{name}")
+    public Result testJsonFieldAnno(@PathVariable String name){
+        try {
+            SgmSaleLeadsRequest dto = new SgmSaleLeadsRequest();
+            List<SgmSaleLeadsDto> list = new ArrayList<>();
+            SgmSaleLeadsDto dtoItem = new SgmSaleLeadsDto();
+            dtoItem.setAddress("adress");
+            list.add(dtoItem);
+            dto.setSaleLeadsList(list);
+           saleLeadsService.receiveSgmSaleLeads(dto);
+            return new Result("OK");
+        } catch (Exception e) {
+            logger.error("e:{}.",e);
+            return new Result(e);
+        }
     }
 
-    @RequestMapping("/fastmark/{param}")
-    public Result fastmark(@PathVariable String param) {
-        SgmSaleLeadsRequest request = new SgmSaleLeadsRequest();
 
-        //添加list
-        List<SgmSaleLeadsDto> saleLeadsList = new ArrayList<>();
-        SgmSaleLeadsDto item = new SgmSaleLeadsDto();
-        item.setAddress("shanghailu 1800");
-        saleLeadsList.add(item);
-        item = new SgmSaleLeadsDto();
-        item.setAddress("jiangshulv 1600");
-        saleLeadsList.add(item);
-
-        request.setSaleLeadsList(saleLeadsList);
-
-
-        saleLeadsService.receiveSgmSaleLeads(request);
-        return new Result("ok");
-    }
+    @Autowired
+    SaleLeadsService saleLeadsService;
 
 }

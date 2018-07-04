@@ -11,7 +11,7 @@ import java.lang.reflect.Type;
  * @author Sun Ning
  * @since 2010-3-4
  */
-public class Parameter {
+public class ParameterItem {
 
     private String paramName;
     private Type type;

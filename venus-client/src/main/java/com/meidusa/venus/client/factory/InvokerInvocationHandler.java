@@ -1,5 +1,7 @@
 package com.meidusa.venus.client.factory;
 
+import com.meidusa.fastjson.JSON;
+import com.meidusa.fastmark.feature.SerializerFeature;
 import com.meidusa.venus.client.ClientInvocation;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.ServiceFactory;
@@ -190,16 +192,29 @@ public class InvokerInvocationHandler implements InvocationHandler {
             if(referenceService.getCoreConnections() != 0){
                 invocation.setCoreConnections(referenceService.getCoreConnections());
             }
-            //timeout、retries支持方法级设置
+            //timeout支持方法级设置
             if(referenceMethod != null && referenceMethod.getTimeoutCfg() != 0){
                 invocation.setTimeout(referenceMethod.getTimeoutCfg());
             }else if(referenceService.getTimeoutCfg() != 0){
                 invocation.setTimeout(referenceService.getTimeoutCfg());
             }
+            //retries支持方法级设置
             if(referenceMethod != null && referenceMethod.getRetriesCfg() != 0){
                 invocation.setRetries(referenceMethod.getRetriesCfg());
             }else if(referenceService.getRetriesCfg() != 0){
                 invocation.setRetries(referenceService.getRetriesCfg());
+            }
+            //printParam支持方法级设置
+            if(referenceMethod != null && StringUtils.isNotEmpty(referenceMethod.getPrintParam())){
+                invocation.setPrintParam(Boolean.valueOf(referenceMethod.getPrintParam()));
+            }else if(StringUtils.isNotEmpty(referenceService.getPrintParam())){
+                invocation.setPrintParam(Boolean.valueOf(referenceService.getPrintParam()));
+            }
+            //printResult支持方法级设置
+            if(referenceMethod != null && StringUtils.isNotEmpty(referenceMethod.getPrintResult())){
+                invocation.setPrintResult(Boolean.valueOf(referenceMethod.getPrintResult()));
+            }else if(StringUtils.isNotEmpty(referenceService.getPrintResult())){
+                invocation.setPrintResult(Boolean.valueOf(referenceService.getPrintResult()));
             }
             if(StringUtils.isNotEmpty(referenceService.getCluster())){
                 invocation.setCluster(referenceService.getCluster());
@@ -269,24 +284,24 @@ public class InvokerInvocationHandler implements InvocationHandler {
         String methodPath = invocation.getMethodPath();
         //参数
         String param = "{}";
-        if(invocation.isEnablePrintParam() && !VenusUtil.isAthenaInterface(invocation)){
+        if(!VenusUtil.isAthenaInterface(invocation) && invocation.isPrintParam()){
             if(invocation.getArgs() != null){
-                param = JSONUtil.toJSONString(invocation.getArgs());
+                param = JSON.toJSONString(invocation.getArgs(),SerializerFeature.DisableCircularReferenceDetect);
             }
         }
         //结果
         Object ret = "{}";
-        if(invocation.isEnablePrintResult() && !VenusUtil.isAthenaInterface(invocation)){
+        if(!VenusUtil.isAthenaInterface(invocation) && invocation.isPrintResult()){
             if(object != null){
-                ret = JSONUtil.toJSONString(object);
+                ret = JSON.toJSONString(object,SerializerFeature.DisableCircularReferenceDetect);
             }
         }
         //异常
         Object error = "{}";
-        if(invocation.isEnablePrintResult() && !VenusUtil.isAthenaInterface(invocation)){
+        if(!VenusUtil.isAthenaInterface(invocation)){
             if(exception != null){
                 hasException = true;
-                error = exception;
+                error = exception.getMessage();
             }
         }
         String status = "";

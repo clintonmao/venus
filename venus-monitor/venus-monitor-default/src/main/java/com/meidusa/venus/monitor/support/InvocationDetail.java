@@ -34,14 +34,16 @@ public class InvocationDetail {
     String providerApp;
 
     /**
-     * 请求对象
-     */
-    Invocation invocation;
-
-    /**
      * 请求Url
      */
     URL url;
+
+    Date requestTime;
+
+    /**
+     * 请求对象
+     */
+    Invocation invocation;
 
     /**
      * 响应时间
@@ -57,6 +59,10 @@ public class InvocationDetail {
      * 响应异常
      */
     Throwable exception;
+
+    boolean isExceptionOperation;
+
+    boolean isSlowOperation;
 
     public int getFrom() {
         return from;
@@ -120,5 +126,29 @@ public class InvocationDetail {
 
     public void setProviderApp(String providerApp) {
         this.providerApp = providerApp;
+    }
+
+    public Date getRequestTime() {
+        return requestTime;
+    }
+
+    public void setRequestTime(Date requestTime) {
+        this.requestTime = requestTime;
+    }
+
+    public boolean isExceptionOperation() {
+        return isExceptionOperation;
+    }
+
+    public void setExceptionOperation(boolean exceptionOperation) {
+        isExceptionOperation = exceptionOperation;
+    }
+
+    public boolean isSlowOperation() {
+        return isSlowOperation;
+    }
+
+    public void setSlowOperation(boolean slowOperation) {
+        isSlowOperation = slowOperation;
     }
 }

@@ -1,4 +1,4 @@
-package com.chexiang.venus.demo.provider;
+package com.chexiang.venus.demo.provider.service;
 
 import com.meidusa.venus.annotations.Endpoint;
 import com.meidusa.venus.annotations.Param;

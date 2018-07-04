@@ -24,6 +24,14 @@ public class ReferenceMethod {
 
     private int retriesCfg;
 
+    //tracer是否打印输入参数
+    @XStreamAsAttribute
+    private String printParam;
+
+    //tracer是否打印输出参数
+    @XStreamAsAttribute
+    private String printResult;
+
     public int getTimeoutCfg() {
         return timeoutCfg;
     }
@@ -62,5 +70,21 @@ public class ReferenceMethod {
 
     public void setRetries(String retries) {
         this.retries = retries;
+    }
+
+    public String getPrintParam() {
+        return printParam;
+    }
+
+    public void setPrintParam(String printParam) {
+        this.printParam = printParam;
+    }
+
+    public String getPrintResult() {
+        return printResult;
+    }
+
+    public void setPrintResult(String printResult) {
+        this.printResult = printResult;
     }
 }

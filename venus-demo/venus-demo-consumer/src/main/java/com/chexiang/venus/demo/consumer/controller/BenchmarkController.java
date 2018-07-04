@@ -1,6 +1,6 @@
 package com.chexiang.venus.demo.consumer.controller;
 
-import com.chexiang.venus.demo.provider.HelloService;
+import com.chexiang.venus.demo.provider.service.HelloService;
 import com.chexiang.venus.demo.provider.model.HelloEx;
 import com.meidusa.venus.Result;
 import org.apache.commons.lang.StringUtils;
