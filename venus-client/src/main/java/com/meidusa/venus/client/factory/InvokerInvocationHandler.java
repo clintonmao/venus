@@ -297,11 +297,11 @@ public class InvokerInvocationHandler implements InvocationHandler {
             }
         }
         //异常
-        Object error = "{}";
+        Throwable error = null;
         if(!VenusUtil.isAthenaInterface(invocation)){
             if(exception != null){
                 hasException = true;
-                error = exception.getMessage();
+                error = exception;
             }
         }
         String status = "";
@@ -323,7 +323,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
             trLogger = logger;
         }
         if(hasException){
-            String tpl = "[C] [{},{}],consumer invoke,rpcId:{},method:{},param:{},error:{}.";
+            String tpl = "[C] [{},{}],consumer invoke,rpcId:{},method:{},param{},error:{}";
             Object[] arguments = new Object[]{
                     status,
                     usedTime + "ms",
@@ -332,10 +332,10 @@ public class InvokerInvocationHandler implements InvocationHandler {
                     param,
                     error
             };
+
             if(trLogger.isErrorEnabled()){
                 trLogger.error(tpl,arguments);
             }
-            //错误日志
             if(exceptionLogger.isErrorEnabled()){
                 exceptionLogger.error(tpl,arguments);
             }
@@ -349,14 +349,8 @@ public class InvokerInvocationHandler implements InvocationHandler {
                     param,
                     ret
             };
-            if(usedTime > 200){
-                if(trLogger.isWarnEnabled()){
-                    trLogger.warn(tpl,arguments);
-                }
-            }else{
-                if(trLogger.isInfoEnabled()){
-                    trLogger.info(tpl,arguments);
-                }
+            if(trLogger.isInfoEnabled()){
+                trLogger.info(tpl,arguments);
             }
         }
 

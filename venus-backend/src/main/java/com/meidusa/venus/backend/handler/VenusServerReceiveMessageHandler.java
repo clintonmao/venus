@@ -474,7 +474,7 @@ public class VenusServerReceiveMessageHandler extends Venus4FrontendMessageHandl
         if(!VenusUtil.isAthenaInterface(invocation)){
             if(result.getException() != null){
                 hasException = true;
-                error = result.getException().getMessage();
+                error = result.getException();
                 //过滤venus.ServiceRegistry服务不存在异常
                 if(error != null && error instanceof ServiceNotFoundException){
                     ServiceNotFoundException serviceNotFoundException = (ServiceNotFoundException)error;
@@ -520,7 +520,6 @@ public class VenusServerReceiveMessageHandler extends Venus4FrontendMessageHandl
                 if(tracerLogger.isErrorEnabled()){
                     tracerLogger.error(tpl,arguments);
                 }
-                //异常日志
                 if(exceptionLogger.isErrorEnabled()){
                     exceptionLogger.error(tpl,arguments);
                 }
@@ -540,14 +539,8 @@ public class VenusServerReceiveMessageHandler extends Venus4FrontendMessageHandl
                     param,
                     ret
             };
-            if(usedTime > 200){
-                if(tracerLogger.isWarnEnabled()){
-                    tracerLogger.warn(tpl,arguments);
-                }
-            }else{
-                if(tracerLogger.isInfoEnabled()){
-                    tracerLogger.info(tpl,arguments);
-                }
+            if(tracerLogger.isInfoEnabled()){
+                tracerLogger.info(tpl,arguments);
             }
         }
     }

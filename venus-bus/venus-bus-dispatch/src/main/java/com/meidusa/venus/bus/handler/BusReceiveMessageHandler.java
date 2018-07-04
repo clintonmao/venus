@@ -53,7 +53,7 @@ public class BusReceiveMessageHandler extends Venus4FrontendMessageHandler imple
     private ServerResponseHandler responseHandler = new ServerResponseHandler();
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         if(venusRegistryFactory == null){
             throw new VenusConfigException("venusRegistryFactory not config.");
         }
@@ -67,7 +67,7 @@ public class BusReceiveMessageHandler extends Venus4FrontendMessageHandler imple
     }
 
     @Override
-    public void init() throws InitialisationException {
+    public void init() {
     }
 
 
@@ -132,9 +132,7 @@ public class BusReceiveMessageHandler extends Venus4FrontendMessageHandler imple
             }
             result = buildResult(t);
             //若分发异常，则删除连接关系记录
-            if(reqFrontConnMap.containsKey(rpcId)){
-                reqFrontConnMap.remove(rpcId);
-            }
+            reqFrontConnMap.remove(rpcId);
         }finally {
             try {
                 //输出tracer日志
@@ -190,11 +188,11 @@ public class BusReceiveMessageHandler extends Venus4FrontendMessageHandler imple
         String rpcId = invocation.getRpcId();
         String methodPath = invocation.getMethodPath();
         String param = "";
-        if(invocation.isEnablePrintParam() && invocation.getArgs() != null){
+        if(invocation.isPrintParam() && invocation.getArgs() != null){
             param = JSONUtil.toJSONString(invocation.getArgs());
         }
         Object output = "";
-        if(invocation.isEnablePrintResult()){
+        if(invocation.isPrintResult()){
             if(result.getErrorCode() == 0 && result.getException() == null){
                 output = JSONUtil.toJSONString(result.getResult());
             }else if(result.getException() != null){
