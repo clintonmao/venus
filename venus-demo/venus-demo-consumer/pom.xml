@@ -152,6 +152,11 @@
             <groupId>com.saike.athena</groupId>
             <artifactId>athena-client</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.saike.framework</groupId>
+            <artifactId>framework-service-ums-api</artifactId>
+            <version>1.0.6-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     
     <build>

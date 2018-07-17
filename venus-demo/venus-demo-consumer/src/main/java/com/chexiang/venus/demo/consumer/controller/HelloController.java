@@ -1,13 +1,10 @@
 package com.chexiang.venus.demo.consumer.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.chexiang.venus.demo.provider.service.HelloService;
 import com.chexiang.venus.demo.provider.exception.HelloValidException;
 import com.chexiang.venus.demo.provider.exception.InvalidParamException;
-import com.chexiang.venus.demo.provider.service.SaleLeadsService;
 import com.chexiang.venus.demo.provider.model.Hello;
-import com.chexiang.venus.demo.provider.model.SgmSaleLeadsDto;
-import com.chexiang.venus.demo.provider.model.SgmSaleLeadsRequest;
+import com.chexiang.venus.demo.provider.service.HelloService;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.notify.InvocationListener;
 import org.slf4j.Logger;
@@ -17,7 +14,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -104,26 +100,5 @@ public class HelloController {
             return new Result(e);
         }
     }
-
-    @RequestMapping("/testJson/{name}")
-    public Result testJsonFieldAnno(@PathVariable String name){
-        try {
-            SgmSaleLeadsRequest dto = new SgmSaleLeadsRequest();
-            List<SgmSaleLeadsDto> list = new ArrayList<>();
-            SgmSaleLeadsDto dtoItem = new SgmSaleLeadsDto();
-            dtoItem.setAddress("adress");
-            list.add(dtoItem);
-            dto.setSaleLeadsList(list);
-           saleLeadsService.receiveSgmSaleLeads(dto);
-            return new Result("OK");
-        } catch (Exception e) {
-            logger.error("e:{}.",e);
-            return new Result(e);
-        }
-    }
-
-
-    @Autowired
-    SaleLeadsService saleLeadsService;
 
 }

@@ -17,6 +17,9 @@
 		</service>
 		<service type="com.chexiang.venus.demo.provider.service.EchoService"/>
 
-		<service type="com.chexiang.venus.demo.provider.service.SaleLeadsService" ipAddressList="127.0.0.1:16800"/>
+		<!--<service type="com.saic.framework.message.UniMessageService" ipAddressList="172.17.71.23:16800"/>-->
+		<service type="com.saic.framework.message.UniMessageService" ipAddressList="10.47.19.208:16800"/>
+		<!--<service type="com.saic.framework.message.UniMessageService" ipAddressList="127.0.0.1:16800"/>-->
+		<!--<service type="com.saic.framework.message.UniMessageService"/>-->
 	</services>
 </venus-client>
