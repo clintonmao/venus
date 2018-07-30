@@ -1,6 +1,7 @@
 package com.meidusa.venus.registry.service.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -91,10 +92,10 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	
 	private String envIpRange;
 
-	public static final LinkedBlockingQueue<UpdateHeartBeatTimeDTO> HEARTBEAT_QUEUE = new LinkedBlockingQueue<UpdateHeartBeatTimeDTO>(
+	private static final LinkedBlockingQueue<UpdateHeartBeatTimeDTO> HEARTBEAT_QUEUE = new LinkedBlockingQueue<UpdateHeartBeatTimeDTO>(
 			QUEUE_SIZE_10000);
 	
-	public static Map<String,Date> cacheHeartBeatMap=new HashMap<String,Date>();
+	private static Map<String, Date> cacheHeartBeatMap = Collections.synchronizedMap(new HashMap<String, Date>());
 
 	/** 新注册中心数据库地址 */
 	private String connectUrl;
