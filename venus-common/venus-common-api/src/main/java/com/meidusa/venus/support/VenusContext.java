@@ -1,12 +1,9 @@
 package com.meidusa.venus.support;
 
 import com.meidusa.toolkit.common.bean.BeanContext;
-import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.venus.ConnectionFactory;
-import com.meidusa.venus.Invoker;
+import com.meidusa.venus.ConnectionProcesser;
 import org.springframework.context.ApplicationContext;
-
-import java.util.Map;
 
 /**
  * venus应用上下文信息
@@ -26,6 +23,8 @@ public class VenusContext {
     private String application;
 
     private ConnectionFactory connectionFactory;
+
+    private ConnectionProcesser connectionProcesser;
 
     public static VenusContext getInstance(){
         if(venusContext == null){
@@ -64,5 +63,13 @@ public class VenusContext {
 
     public void setConnectionFactory(ConnectionFactory connectionFactory) {
         this.connectionFactory = connectionFactory;
+    }
+
+    public ConnectionProcesser getConnectionProcesser() {
+        return connectionProcesser;
+    }
+
+    public void setConnectionProcesser(ConnectionProcesser connectionProcesser) {
+        this.connectionProcesser = connectionProcesser;
     }
 }

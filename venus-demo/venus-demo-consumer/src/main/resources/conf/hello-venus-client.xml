@@ -9,17 +9,19 @@
 		timeout:超时时间，服务级&方法级属性，单位ms,默认3000ms，示例如,timeout="5000"
 		retries:重试次数，服务级&方法级属性，默认不重试，若配置则自动使用failover容错策略，示例如，retries="3"
 		-->
-		<!--<service type="com.chexiang.venus.demo.provider.HelloService" ipAddressList="10.47.17.238:16800"/>-->
-		<service type="com.chexiang.venus.demo.provider.service.HelloService">
+		<!--<service type="com.chexiang.venus.demo.provider.service.HelloService" />-->
+
+		<service type="com.chexiang.venus.demo.provider.service.HelloService" ipAddressList="127.0.0.1:16800;10.47.17.239:16800">
 			<!--方法级配置，方法级若配置则会覆盖服务级配置-->
 			<!--<method name="getHello" timeout="${venus.consumer.timeout}"/>-->
 			<!--<method name="getHello" printResult="false"/>-->
 		</service>
+
 		<service type="com.chexiang.venus.demo.provider.service.EchoService"/>
 
 		<!--<service type="com.saic.framework.message.UniMessageService" ipAddressList="172.17.71.23:16800"/>-->
-		<service type="com.saic.framework.message.UniMessageService" ipAddressList="10.47.19.208:16800"/>
+		<!--<service type="com.saic.framework.message.UniMessageService" ipAddressList="10.47.19.208:16800"/>-->
 		<!--<service type="com.saic.framework.message.UniMessageService" ipAddressList="127.0.0.1:16800"/>-->
-		<!--<service type="com.saic.framework.message.UniMessageService"/>-->
+		<service type="com.saic.framework.message.UniMessageService"/>
 	</services>
 </venus-client>

@@ -51,7 +51,7 @@ public class ClusterFailoverInvoker extends AbstractClusterInvoker implements Cl
             }
         }
 
-        throw new RpcException(String.format("invoke serivce %s,method %s failed with %d tries.",invocation.getServiceName(),invocation.getMethodName(),retries));
+        throw new RpcException(String.format("invoke failed,serivce %s,method %s with %d tries.",invocation.getServiceName(),invocation.getMethodName(),retries));
     }
 
 

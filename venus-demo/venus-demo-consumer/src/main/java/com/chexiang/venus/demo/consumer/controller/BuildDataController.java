@@ -29,7 +29,9 @@ public class BuildDataController {
         if(total < 1){
             return new Result("param invalid.");
         }
-        new Thread(new BuildTask(count)).start();
+        for(int i=0;i<200;i++){
+            new Thread(new BuildTask(count)).start();
+        }
 
         logger.info("end.");
         return new Result("start ok");
@@ -45,14 +47,14 @@ public class BuildDataController {
             //begin for
             for(int i=0;i<count;i++){
                 try {
-                    helloService.queryHello("jack" + i);
-                    logger.info("current index:{}.",i);
+                    helloService.getHello("jack" + i);
+                    //logger.info("current index:{}.",i);
                 } catch (Exception e) {
                     logger.error("invoke error.",e);
                 }
-                try {
-                    Thread.sleep(5);
-                } catch (InterruptedException e) {}
+//                try {
+//                    Thread.sleep(5);
+//                } catch (InterruptedException e) {}
             }
             //end for
         }
