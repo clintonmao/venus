@@ -91,6 +91,8 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	private String enableFilterIp="off"; //是否开启开发机器ip过滤
 	
 	private String envIpRange;
+	
+	private boolean serviceNameOnlyOneCheck = false;
 
 	private static final LinkedBlockingQueue<UpdateHeartBeatTimeDTO> HEARTBEAT_QUEUE = new LinkedBlockingQueue<UpdateHeartBeatTimeDTO>(
 			QUEUE_SIZE_10000);
@@ -145,10 +147,12 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			}
 		}
 		int serverId = addServer(url.getHost(), url.getPort());
-		int countByServiceNameAndAppId = venusServiceDAO.getCountByServiceNameAndAppId(url.getServiceName(), appId);
-		if(countByServiceNameAndAppId>0){
-			LogUtils.ERROR_LOG.info("serviceName=>"+url.getServiceName()+",appName=>"+appCode+",appId=>"+appId+" registe error,because other application has registed service name:"+url.getServiceName());
-			throw new VenusRegisteException("ServiceName=>"+url.getServiceName()+",appName=>"+appCode+",appId=>"+appId+" registe error ,other application has registe service,this registe fail.");
+		if(isServiceNameOnlyOneCheck()){
+			int countByServiceNameAndAppId = venusServiceDAO.getCountByServiceNameAndAppId(url.getServiceName(), appId);
+			if(countByServiceNameAndAppId>0){
+				LogUtils.ERROR_LOG.info("serviceName=>"+url.getServiceName()+",appName=>"+appCode+",appId=>"+appId+" registe error,because other application has registed service name:"+url.getServiceName());
+				throw new VenusRegisteException("ServiceName=>"+url.getServiceName()+",appName=>"+appCode+",appId=>"+appId+" registe error ,other application has registe service,this registe fail.");
+			}
 		}
 		VenusServiceDO service = venusServiceDAO.getService(url.getInterfaceName(), url.getServiceName(),
 				url.getVersion());
@@ -1177,6 +1181,14 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	@Override
 	public List<VenusServiceDO> searchServices(String keyword,String version) {
 		return venusServiceDAO.queryServicesByKeyWord(keyword, version, 50);
+	}
+
+	public boolean isServiceNameOnlyOneCheck() {
+		return serviceNameOnlyOneCheck;
+	}
+
+	public void setServiceNameOnlyOneCheck(boolean serviceNameOnlyOneCheck) {
+		this.serviceNameOnlyOneCheck = serviceNameOnlyOneCheck;
 	}
 
 }

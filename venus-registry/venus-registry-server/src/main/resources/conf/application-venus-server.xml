@@ -151,6 +151,7 @@
 		<property name="enableLocalIp" value="${venus4.loaddef.enable.local.ip}"></property>
 		<property name="enableFilterIp" value="${venus4.loaddef.enable.filter.ip}"></property>
 		<property name="envIpRange" value="${environment.ip.range}"></property>
+		<property name="serviceNameOnlyOneCheck" value="${service.name.only.one.check}"></property>
 	</bean>
 
 	<!--清理服务-->
