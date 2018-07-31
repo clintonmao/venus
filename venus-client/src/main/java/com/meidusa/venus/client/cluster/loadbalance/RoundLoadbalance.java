@@ -1,6 +1,8 @@
 package com.meidusa.venus.client.cluster.loadbalance;
 
 import com.meidusa.venus.URL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -9,6 +11,8 @@ import java.util.List;
  * Created by Zhangzhihua on 2017/8/1.
  */
 public class RoundLoadbalance implements Loadbalance {
+
+    private static Logger lbLogger = LoggerFactory.getLogger("venus.lb");
 
     //下标位置
     private Integer position = 0;
@@ -34,6 +38,7 @@ public class RoundLoadbalance implements Loadbalance {
                 position = 0;
             }
             URL url = urlList.get(position);
+            //lbLogger.info("thread:{},position:{},address:{}",Thread.currentThread(),position,url.getHost() +":" +  url.getPort());
             position++;
             return url;
         }

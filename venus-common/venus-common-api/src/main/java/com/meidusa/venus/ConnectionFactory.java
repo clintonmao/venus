@@ -8,6 +8,20 @@ import com.meidusa.toolkit.net.Connection;
 public interface ConnectionFactory {
 
     /**
+     * 判断连接池是否存在
+     * @param address
+     * @return
+     */
+    boolean isExistConnPool(String address);
+
+    /**
+     * 判断连接池是否有效
+     * @param address
+     * @return
+     */
+    boolean isValidConnPool(String address);
+
+    /**
      * 释放连接资源，connetionObserver调用
      * @param conn
      */

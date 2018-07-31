@@ -5,12 +5,9 @@ import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.*;
 import com.meidusa.venus.client.ClientInvocation;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
-import com.meidusa.venus.client.factory.xml.config.FactoryConfig;
-import com.meidusa.venus.client.factory.xml.config.PoolConfig;
 import com.meidusa.venus.client.invoker.AbstractClientInvoker;
 import com.meidusa.venus.exception.InvalidParameterException;
 import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.io.network.VenusBackendConnectionFactory;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.io.packet.ServicePacketBuffer;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
@@ -21,15 +18,12 @@ import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
 import com.meidusa.venus.support.*;
 import com.meidusa.venus.util.VenusLoggerFactory;
-import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -245,7 +239,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
         //获取连接
         try {
-            VenusClientConnectionFactory.BackendConnectionWrapper connectionWrapper = venusClientConnectionFactory.getConnection(url,invocation,remoteConfig);
+            VenusClientConnectionFactory.BackendConnectionWrapper connectionWrapper = venusClientConnectionFactory.getConnection(url);
             nioConnPool = connectionWrapper.getBackendConnectionPool();
             conn = connectionWrapper.getBackendConnection();
             borrowed = System.currentTimeMillis();

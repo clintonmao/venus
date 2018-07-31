@@ -156,6 +156,7 @@ public class VenusServerReceiveMessageHandler extends Venus4FrontendMessageHandl
             result = getVenusServerInvokerProxy().invoke(invocation, null);
         } catch (Throwable e) {
             //将exception转化为result
+            //TODO 1，异常类型恢复还原
             result = buildResultFromException(e);
         }finally {
             try {

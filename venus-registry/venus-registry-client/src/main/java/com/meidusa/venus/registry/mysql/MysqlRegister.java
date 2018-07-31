@@ -79,9 +79,8 @@ public class MysqlRegister implements Register {
 
 	/**
 	 * 初始化
-	 * @throws Exception
 	 */
-	void init() throws Exception {
+	void init() {
 		if (isWindows()) {
 			String property = System.getProperty("user.home");
 			fileCachePath = property + File.separator + "venus" + File.separator
@@ -240,16 +239,18 @@ public class MysqlRegister implements Register {
 			try {
 				localDefinitionMap  = batchQueryServiceDefines(copySubscribleUrls);
 				for (URL url : subscribleUrls) {
-					String key = RegistryUtil.getKeyFromUrl(url);
-					List<VenusServiceDefinitionDO> serviceDefinitions = localDefinitionMap.get(key);
+					String servicePath = RegistryUtil.getKeyFromUrl(url);
+					List<VenusServiceDefinitionDO> serviceDefinitions = localDefinitionMap.get(servicePath);
 					if (CollectionUtils.isNotEmpty(serviceDefinitions)) {
-						//处理服务节点变化事件
-						processNodeChanged(url,subscribleServiceDefinitionMap.get(key),serviceDefinitions);
-						subscribleServiceDefinitionMap.put(key, serviceDefinitions);
+						subscribleServiceDefinitionMap.put(servicePath, serviceDefinitions);
+
+						//初始化或更新服务连接
+						VenusContext.getInstance().getConnectionProcesser().put(servicePath,getServiceAddressList(serviceDefinitions));
 					} else {
-						//处理服务节点变化事件
-						processNodeChanged(url,subscribleServiceDefinitionMap.get(key),serviceDefinitions);
-						subscribleServiceDefinitionMap.remove(key);
+						subscribleServiceDefinitionMap.remove(servicePath);
+
+						//删除服务及连接资源
+						VenusContext.getInstance().getConnectionProcesser().remove(servicePath);
 					}
 				}
 			} catch (Exception e) {
@@ -257,12 +258,8 @@ public class MysqlRegister implements Register {
 				exceptionLogger.error("load service definition failed.", e);
 			}
 			
-			// 查询接口有异常 不写本地缓存
-			if (hasException) {
-				return;
-			}
-			// 查询数据为空，不写本地缓存
-			if (MapUtils.isEmpty(localDefinitionMap)) {
+			// 查询有异常或数据为空 不写本地缓存
+			if (hasException || MapUtils.isEmpty(localDefinitionMap)) {
 				return;
 			}
 
@@ -275,82 +272,19 @@ public class MysqlRegister implements Register {
 	}
 
 	/**
-	 * 处理服务定义变化事件，释放下线连接资源
-	 * @param url
-	 * @param oldSrvDefList
-	 * @param newSrvDefList
+	 * 获取服务地址列表
+	 * @param serviceDefinitionDOList
+	 * @return
 	 */
-	void processNodeChanged(URL url,List<VenusServiceDefinitionDO> oldSrvDefList,List<VenusServiceDefinitionDO> newSrvDefList){
-		long bTime = System.currentTimeMillis();
-		if(CollectionUtils.isEmpty(oldSrvDefList)){
-			return;
-		}
-		//比较新旧服务节点数据，寻找下线节点并释放连接
-		for(VenusServiceDefinitionDO odlSrvDef:oldSrvDefList){
-			String servicePath = odlSrvDef.getPath();
-			String version = odlSrvDef.getVersion();
-			if(CollectionUtils.isEmpty(newSrvDefList)){//未查找到任何版本号的服务定义
-				for(String address:odlSrvDef.getIpAddress()){
-					releaseConnection(url,version,address);
-				}
-			}else{
-				VenusServiceDefinitionDO matchNewSrvDef = null;
-				for(VenusServiceDefinitionDO newSrvDef:newSrvDefList){
-					if(servicePath.equals(newSrvDef.getPath())){
-						matchNewSrvDef = newSrvDef;
-					}
-				}
-
-				if(matchNewSrvDef == null){//未查找到相同版本的的服务定义，已下线
-					for(String address:odlSrvDef.getIpAddress()){
-						releaseConnection(url,version,address);
-					}
-				}else{//查找到相同版本号的服务定义，对比节点变化
-					for(String ipAddress:odlSrvDef.getIpAddress()){
-						boolean isFound = false;
-						Set<String> newIpAddressSet = matchNewSrvDef.getIpAddress();
-						if(CollectionUtils.isNotEmpty(newIpAddressSet)){
-							for(String newIpAddress:newIpAddressSet){
-								if(ipAddress.equals(newIpAddress)){
-									isFound = true;
-									break;
-								}
-							}
-						}
-						//若未找到同节点地址，则视为下线
-						if(!isFound){
-							releaseConnection(url,version,ipAddress);
-						}
-					}
-				}
+	List<String> getServiceAddressList(List<VenusServiceDefinitionDO> serviceDefinitionDOList){
+		List<String> list = new ArrayList<>();
+		for(VenusServiceDefinitionDO srvDef:serviceDefinitionDOList){
+			Set<String> sets = srvDef.getIpAddress();
+			for(String item:sets){
+				list.add(item);
 			}
 		}
-
-		//logger.info("####process node changed cost time:{}",System.currentTimeMillis()-bTime);
-	}
-
-	/**
-	 * 释放连接资源
-	 * @param address
-	 */
-	void releaseConnection(URL url,String version,String address){
-		if(logger.isWarnEnabled()){
-			String serviceUrl  = new StringBuilder()
-					.append("/")
-					.append(url.getInterfaceName())
-					.append("/")
-					.append(url.getServiceName())
-					.append("?version=")
-					.append(version)
-					.toString();
-			logger.warn("######service:{},node:{} offline,release connection.",serviceUrl,address);
-		}
-		VenusContext context = VenusContext.getInstance();
-		//释放连接相关资源
-		ConnectionFactory connectionFactory = context.getConnectionFactory();
-		if(connectionFactory != null){
-			connectionFactory.releaseConnection(address);
-		}
+		return list;
 	}
 
 	/**

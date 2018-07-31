@@ -1,14 +1,10 @@
 package com.chexiang.venus.demo.consumer.controller;
 
-import com.chexiang.venus.demo.provider.model.Echo;
-import com.chexiang.venus.demo.provider.service.EchoService;
 import com.meidusa.venus.Result;
 import com.saic.framework.message.Mail;
-import com.saic.framework.message.UniMessageService;
 import com.saic.framework.service.mail.api.MailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,8 +28,8 @@ public class UmsController {
 
     private static Logger logger = LoggerFactory.getLogger(UmsController.class);
 
-    @Autowired
-    UniMessageService uniMessageService;
+    //@Autowired
+    //UniMessageService uniMessageService;
 
     @RequestMapping("/sendMail/{param}")
     public Result sendMail(@PathVariable String param){
@@ -73,7 +69,7 @@ public class UmsController {
         //Mail mail2=JSON.toJavaObject(encode, Mail.class)
         System.err.println();
         //mail.setSubject("nbxqtet");
-        uniMessageService.sendMail(mail); //使用UMS服务发送mail
+        //uniMessageService.sendMail(mail); //使用UMS服务发送mail
     }
 
 }

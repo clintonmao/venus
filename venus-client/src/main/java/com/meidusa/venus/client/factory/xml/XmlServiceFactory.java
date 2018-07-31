@@ -32,6 +32,7 @@ import com.meidusa.venus.client.factory.xml.config.VenusClientConfig;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanContext;
 import com.meidusa.venus.client.factory.xml.support.ClientBeanUtilsBean;
 import com.meidusa.venus.client.factory.xml.support.ServiceDefinedBean;
+import com.meidusa.venus.client.invoker.venus.VenusClientConnectionManager;
 import com.meidusa.venus.exception.*;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.metainfo.AnnotationUtil;
@@ -62,7 +63,9 @@ import org.springframework.core.io.Resource;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -140,7 +143,7 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
 
 
     @SuppressWarnings("unchecked")
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
     	if(inited){
     		return;
     	}
@@ -194,9 +197,8 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
 
     /**
      * 初始化配置
-     * @throws Exception
      */
-    private void initConfiguration() throws Exception {
+    private void initConfiguration() {
         //解析客户端配置信息
         VenusClientConfig venusClientConfig = parseClientConfig();
 
@@ -204,9 +206,16 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
             return;
         }
 
+        //VenusClientConnectionManager connectionManager = new VenusClientConnectionManager();
+
         //初始化service实例
         for (ReferenceService referenceService : venusClientConfig.getReferenceServices()) {
             initService(referenceService);
+
+            //初始化服务相关连接
+            if(StringUtils.isNotBlank(referenceService.getIpAddressList())){
+                VenusClientConnectionManager.getInstance().put(getServicePath(referenceService),getServiceAddressList(referenceService));
+            }
         }
 
         //加载注册信息
@@ -214,8 +223,39 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
             venusRegistryFactory.getRegister().load();
         }
 
-        //TODO 设置序列化类型
         //target.getMessageHandler().setSerializeType((byte) source.getMessageHandler().getSerializeType());
+    }
+
+    /**
+     * 获取服务路径
+     * @param referenceService
+     * @return
+     */
+    String getServicePath(ReferenceService referenceService){
+        StringBuilder buf = new StringBuilder();
+        buf.append("/");
+        buf.append(referenceService.getServiceInterface().getName());
+        buf.append("/");
+        buf.append(referenceService.getServiceName());
+        if (referenceService.getVersion() != 0) {
+            buf.append("?version=").append(referenceService.getVersion());
+        }
+        return buf.toString();
+    }
+
+    /**
+     * 获取服务地址列表
+     * @param referenceService
+     * @return
+     */
+    List<String> getServiceAddressList(ReferenceService referenceService){
+        List<String> list = new ArrayList<>();
+        String addresses = referenceService.getIpAddressList();
+        String[] items = addresses.split(";");
+        for(String item:items){
+            list.add(item);
+        }
+        return list;
     }
 
     /**
