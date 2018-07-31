@@ -4,4 +4,13 @@
 
 <web-app>
   <display-name>Archetype Created Web Application</display-name>
+  <servlet>
+  	<servlet-name>HealthCheckServlet</servlet-name>
+  	<servlet-class>com.saic.healthcheck.web.servlet.HealthCheckServlet.HealthCheckServlet</servlet-class>
+  </servlet>
+  
+  <servlet-mapping>
+  	<servlet-name>HealthCheckServlet</servlet-name>
+  	<url-pattern>/background-healthcheck</url-pattern>
+  </servlet-mapping>
 </web-app>
