@@ -1,8 +1,12 @@
 package com.meidusa.venus.client.invoker.venus;
 
-import com.meidusa.toolkit.net.*;
+import com.meidusa.toolkit.net.BackendConnection;
+import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.toolkit.util.TimeUtil;
-import com.meidusa.venus.*;
+import com.meidusa.venus.Invoker;
+import com.meidusa.venus.Result;
+import com.meidusa.venus.URL;
+import com.meidusa.venus.VenusApplication;
 import com.meidusa.venus.client.ClientInvocation;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
 import com.meidusa.venus.client.invoker.AbstractClientInvoker;
@@ -16,7 +20,10 @@ import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
-import com.meidusa.venus.support.*;
+import com.meidusa.venus.support.EndpointWrapper;
+import com.meidusa.venus.support.ServiceWrapper;
+import com.meidusa.venus.support.VenusThreadContext;
+import com.meidusa.venus.support.VenusUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.slf4j.Logger;
 
@@ -25,8 +32,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -48,18 +53,9 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      */
     private ClientRemoteConfig remoteConfig;
 
-    private VenusClientConnectionFactory venusClientConnectionFactory = new VenusClientConnectionFactory();
-
-    //rpcId-请求&响应映射表
-    private static Map<String, VenusReqRespWrapper> serviceReqRespMap = new ConcurrentHashMap<String, VenusReqRespWrapper>();
-
-    //rpcId-请求&回调映射表
-    private static Map<String, ClientInvocation> serviceReqCallbackMap = new ConcurrentHashMap<String, ClientInvocation>();
+    private VenusClientConnectionFactory connectionFactory = VenusClientConnectionFactory.getInstance();
 
     public VenusClientInvoker(){
-        //设置connectionFactory属性
-        venusClientConnectionFactory.setServiceReqRespMap(serviceReqRespMap);
-        venusClientConnectionFactory.setServiceReqCallbackMap(serviceReqCallbackMap);
         //添加invoker资源
         VenusApplication.addInvoker(this);
     }
@@ -113,7 +109,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         //添加rpcId -> reqResp映射表
         String rpcId = invocation.getRpcId();
         VenusReqRespWrapper reqRespWrapper = new VenusReqRespWrapper(invocation);
-        serviceReqRespMap.put(rpcId,reqRespWrapper);
+        connectionFactory.getServiceReqRespMap().put(rpcId,reqRespWrapper);
 
         //发送消息
         sendRequest(invocation, request, url,reqRespWrapper);
@@ -127,8 +123,8 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             throw new RpcException(e);
         }finally {
             if(isAwaitException){
-                if(serviceReqRespMap.get(rpcId) != null){
-                    serviceReqRespMap.remove(rpcId);
+                if(connectionFactory.getServiceReqRespMap().get(rpcId) != null){
+                    connectionFactory.getServiceReqRespMap().remove(rpcId);
                 }
             }
         }
@@ -153,7 +149,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         SerializeServiceRequestPacket request = buildRequest(invocation);
 
         //添加rpcId-> reqResp映射表
-        serviceReqCallbackMap.put(invocation.getRpcId(),invocation);
+        connectionFactory.getServiceReqCallbackMap().put(invocation.getRpcId(),invocation);
 
         //发送消息
         sendRequest(invocation, request, url,null);
@@ -239,7 +235,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
 
         //获取连接
         try {
-            VenusClientConnectionFactory.BackendConnectionWrapper connectionWrapper = venusClientConnectionFactory.getConnection(url);
+            VenusClientConnectionFactory.BackendConnectionWrapper connectionWrapper = connectionFactory.getConnection(url);
             nioConnPool = connectionWrapper.getBackendConnectionPool();
             conn = connectionWrapper.getBackendConnection();
             borrowed = System.currentTimeMillis();
@@ -318,18 +314,18 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
      * @return
      */
     Result fetchResponse(String rpcId){
-        VenusReqRespWrapper reqRespWrapper = serviceReqRespMap.get(rpcId);
+        VenusReqRespWrapper reqRespWrapper = connectionFactory.getServiceReqRespMap().get(rpcId);
         if(reqRespWrapper == null){
             return null;
         }
 
         Result result = reqRespWrapper.getResult();
         if(result == null){
-            serviceReqRespMap.remove(rpcId);
+            connectionFactory.getServiceReqRespMap().remove(rpcId);
             return null;
         }else {
             //删除映射数据
-            serviceReqRespMap.remove(rpcId);
+            connectionFactory.getServiceReqRespMap().remove(rpcId);
             return result;
         }
     }
@@ -356,7 +352,7 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
             logger.info("destroy invoker:{}.",this);
         }
 
-        venusClientConnectionFactory.destroy();
+        connectionFactory.destroy();
     }
 
 

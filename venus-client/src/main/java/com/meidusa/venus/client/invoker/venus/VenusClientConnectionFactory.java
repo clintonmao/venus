@@ -42,12 +42,25 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
     private static Map<String, BackendConnectionPool> connectionPoolMap = new ConcurrentHashMap<String, BackendConnectionPool>();
 
     //rpcId-请求&响应映射表
-    private Map<String, VenusReqRespWrapper> serviceReqRespMap;
+    private static Map<String, VenusReqRespWrapper> serviceReqRespMap = new ConcurrentHashMap<String, VenusReqRespWrapper>();
 
-    //rpcId-请求映射表
-    private Map<String, ClientInvocation> serviceReqCallbackMap;
+    //rpcId-请求&回调映射表
+    private static Map<String, ClientInvocation> serviceReqCallbackMap = new ConcurrentHashMap<String, ClientInvocation>();
 
-    public VenusClientConnectionFactory() {
+    private static VenusClientConnectionFactory instance;
+
+    private static Object lock = new Object();
+
+    public static VenusClientConnectionFactory getInstance(){
+        synchronized (lock){
+            if(instance == null){
+                instance = new VenusClientConnectionFactory();
+            }
+        }
+        return instance;
+    }
+
+    private VenusClientConnectionFactory() {
         init();
     }
 
@@ -209,9 +222,7 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
         nioFactory.setConnector(connector);
 
         //初始化messageHandler
-        VenusClientInvokerMessageHandler messageHandler = new VenusClientInvokerMessageHandler();
-        messageHandler.setServiceReqRespMap(serviceReqRespMap);
-        messageHandler.setServiceReqCallbackMap(serviceReqCallbackMap);
+        VenusClientInvokerMessageHandler messageHandler = new VenusClientInvokerMessageHandler(this);
         nioFactory.setMessageHandler(messageHandler);
         //nioFactory.setSendBufferSize(2);
         //nioFactory.setReceiveBufferSize(4);
@@ -234,7 +245,7 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
                 if (!nioPool.isClosed()) {
                     nioPool.close();
                 }
-                throw new RpcException(RpcException.NETWORK_EXCEPTION, "create connection pool invalid:" + address);
+                throw new RpcException(RpcException.NETWORK_EXCEPTION, "create connection pool failed:" + address);
             }
             connectionPoolMap.put(address, nioPool);
         } catch (Exception e) {
@@ -332,7 +343,7 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
     }
 
     public void setServiceReqRespMap(Map<String, VenusReqRespWrapper> serviceReqRespMap) {
-        this.serviceReqRespMap = serviceReqRespMap;
+        VenusClientConnectionFactory.serviceReqRespMap = serviceReqRespMap;
     }
 
     public Map<String, ClientInvocation> getServiceReqCallbackMap() {
@@ -340,7 +351,7 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
     }
 
     public void setServiceReqCallbackMap(Map<String, ClientInvocation> serviceReqCallbackMap) {
-        this.serviceReqCallbackMap = serviceReqCallbackMap;
+        VenusClientConnectionFactory.serviceReqCallbackMap = serviceReqCallbackMap;
     }
 
     @Override
@@ -614,5 +625,7 @@ public class VenusClientConnectionFactory implements ConnectionFactory {
         }
 
     }
+
+
 
 }

@@ -22,7 +22,7 @@ public class VenusClientConnectionManager implements ConnectionProcesser {
     //所有服务地址映射表
     private static Map<String,List<String>> serviceAddressesMap = new ConcurrentHashMap<>();
 
-    private VenusClientConnectionFactory connectionFactory;
+    private VenusClientConnectionFactory connectionFactory = VenusClientConnectionFactory.getInstance();
 
     private static VenusClientConnectionManager instance;
 
@@ -42,10 +42,6 @@ public class VenusClientConnectionManager implements ConnectionProcesser {
     }
 
     void init(){
-        if(connectionFactory == null){
-            connectionFactory = (VenusClientConnectionFactory)VenusContext.getInstance().getConnectionFactory();
-        }
-
         GlobalScheduler.getInstance().scheduleAtFixedRate(new VenusClientConnectionManagerTask(), 0, 10, TimeUnit.SECONDS);
 
         //设置上下文
@@ -149,7 +145,7 @@ public class VenusClientConnectionManager implements ConnectionProcesser {
         @Override
         public void run() {
             try {
-                logger.info("initConnectionPool...");
+                //logger.info("initConnectionPool...");
                 initConnectionPool();
             } catch (Throwable e) {
                 logger.error("connectionManagerTask errror.",e);

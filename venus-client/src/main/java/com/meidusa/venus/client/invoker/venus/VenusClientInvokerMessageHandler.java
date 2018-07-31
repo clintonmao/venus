@@ -14,8 +14,8 @@
 package com.meidusa.venus.client.invoker.venus;
 
 import com.meidusa.toolkit.net.MessageHandler;
-import com.meidusa.venus.client.ClientInvocation;
 import com.meidusa.venus.Result;
+import com.meidusa.venus.client.ClientInvocation;
 import com.meidusa.venus.exception.DefaultVenusException;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
@@ -35,8 +35,6 @@ import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 
-import java.util.Map;
-
 /**
  * 服务调用NIO消息响应处理
  */
@@ -48,11 +46,11 @@ public class VenusClientInvokerMessageHandler extends Venus4BackendMessageHandle
 
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
-    //rpcId-请求&响应映射表
-    private Map<String, VenusReqRespWrapper> serviceReqRespMap;
+    private VenusClientConnectionFactory connectionFactory;
 
-    //rpcId-请求&回调映射表
-    private Map<String, ClientInvocation> serviceReqCallbackMap;
+    public VenusClientInvokerMessageHandler(VenusClientConnectionFactory connectionFactory){
+        this.connectionFactory = connectionFactory;
+    }
 
     public void handle(final Venus4BackendConnection conn, final byte[] message) {
         doHandle(conn, message);
@@ -109,7 +107,7 @@ public class VenusClientInvokerMessageHandler extends Venus4BackendMessageHandle
             errorPacket.init(message);
             String rpcId = RpcIdUtil.getRpcId(errorPacket);
 
-            reqRespWrapper = serviceReqRespMap.get(rpcId);
+            reqRespWrapper = connectionFactory.getServiceReqRespMap().get(rpcId);
             if(reqRespWrapper != null){
                 Logger trLogger = tracerLogger;
                 if(VenusUtil.isAthenaInterface(reqRespWrapper.getInvocation())){
@@ -154,7 +152,7 @@ public class VenusClientInvokerMessageHandler extends Venus4BackendMessageHandle
             AbstractServicePacket packet = parseServicePacket(message);
             String rpcId = RpcIdUtil.getRpcId(packet);
             //获取clientId/clientRequestId，用于获取invocation请求信息
-            reqRespWrapper = serviceReqRespMap.get(rpcId);
+            reqRespWrapper = connectionFactory.getServiceReqRespMap().get(rpcId);
 
             if(reqRespWrapper != null){
                 Logger trLogger = tracerLogger;
@@ -202,7 +200,7 @@ public class VenusClientInvokerMessageHandler extends Venus4BackendMessageHandle
             okPacket.init(message);
             String rpcId = RpcIdUtil.getRpcId(okPacket);
 
-            reqRespWrapper = serviceReqRespMap.get(rpcId);
+            reqRespWrapper = connectionFactory.getServiceReqRespMap().get(rpcId);
 
             if(reqRespWrapper != null){
                 Logger trLogger = tracerLogger;
@@ -243,7 +241,7 @@ public class VenusClientInvokerMessageHandler extends Venus4BackendMessageHandle
         try {
             rpcId = RpcIdUtil.getRpcId(parseServicePacket(message));
 
-            asyncInvocation = serviceReqCallbackMap.get(rpcId);
+            asyncInvocation = connectionFactory.getServiceReqCallbackMap().get(rpcId);
             if(asyncInvocation != null){
                 Logger trLogger = tracerLogger;
                 if(VenusUtil.isAthenaInterface(asyncInvocation)){
@@ -283,8 +281,8 @@ public class VenusClientInvokerMessageHandler extends Venus4BackendMessageHandle
         } catch (Exception e) {
             asyncInvocation.getInvocationListener().onException(e);
         } finally {
-            if(rpcId != null && serviceReqCallbackMap.containsKey(rpcId)){
-                serviceReqCallbackMap.remove(rpcId);
+            if(rpcId != null){
+                connectionFactory.getServiceReqCallbackMap().remove(rpcId);
             }
         }
     }
@@ -293,9 +291,8 @@ public class VenusClientInvokerMessageHandler extends Venus4BackendMessageHandle
      * 将errorPacket转化为exception
      * @param errorPacket
      * @return
-     * @throws Exception
      */
-    Throwable buildExceptionFromErrorPacket(ErrorPacket errorPacket, Serializer serializer, VenusExceptionFactory venusExceptionFactory) throws Exception{
+    Throwable buildExceptionFromErrorPacket(ErrorPacket errorPacket, Serializer serializer, VenusExceptionFactory venusExceptionFactory) {
         if(venusExceptionFactory == null){
             RpcException rpcException = new RpcException(errorPacket.errorCode,errorPacket.message);
             return rpcException;
@@ -322,9 +319,8 @@ public class VenusClientInvokerMessageHandler extends Venus4BackendMessageHandle
      * 将notifyPacket错误信息转化为exception
      * @param nofityPacket
      * @return
-     * @throws Exception
      */
-    Throwable buildExceptionFromNotifyPacket(SerializeServiceNofityPacket nofityPacket, Serializer serializer, VenusExceptionFactory venusExceptionFactory) throws Exception{
+    Throwable buildExceptionFromNotifyPacket(SerializeServiceNofityPacket nofityPacket, Serializer serializer, VenusExceptionFactory venusExceptionFactory) {
         if(venusExceptionFactory == null){
             RpcException rpcException = new RpcException(nofityPacket.errorCode,nofityPacket.errorMessage);
             return rpcException;
@@ -357,19 +353,4 @@ public class VenusClientInvokerMessageHandler extends Venus4BackendMessageHandle
         return okPacket;
     }
 
-    public Map<String, ClientInvocation> getServiceReqCallbackMap() {
-        return serviceReqCallbackMap;
-    }
-
-    public void setServiceReqCallbackMap(Map<String, ClientInvocation> serviceReqCallbackMap) {
-        this.serviceReqCallbackMap = serviceReqCallbackMap;
-    }
-
-    public Map<String, VenusReqRespWrapper> getServiceReqRespMap() {
-        return serviceReqRespMap;
-    }
-
-    public void setServiceReqRespMap(Map<String, VenusReqRespWrapper> serviceReqRespMap) {
-        this.serviceReqRespMap = serviceReqRespMap;
-    }
 }

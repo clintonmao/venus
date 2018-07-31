@@ -8,6 +8,8 @@ import com.meidusa.venus.annotations.Service;
 import com.meidusa.venus.client.factory.AbstractServiceFactory;
 import com.meidusa.venus.client.factory.InvokerInvocationHandler;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
+import com.meidusa.venus.client.invoker.venus.VenusClientConnectionFactory;
+import com.meidusa.venus.client.invoker.venus.VenusClientConnectionManager;
 import com.meidusa.venus.exception.CodedException;
 import com.meidusa.venus.exception.VenusConfigException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
@@ -62,11 +64,19 @@ public class SimpleServiceFactory extends AbstractServiceFactory implements Serv
     private Map<Class<?>, Tuple<Object, InvokerInvocationHandler>> servicesMap = new HashMap<Class<?>, Tuple<Object, InvokerInvocationHandler>>();
 
     public SimpleServiceFactory() {
+        init();
     }
 
     public SimpleServiceFactory(String host, int port) {
         String address = String.format("%s:%s",host,String.valueOf(port));
         this.ipAddressList = address;
+        init();
+    }
+
+    void init(){
+        //初始化连接工厂/连接管理
+        VenusClientConnectionFactory.getInstance();
+        VenusClientConnectionManager.getInstance();
     }
 
     @Override
