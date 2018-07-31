@@ -120,6 +120,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	public void init() {
 		UpdateHeartbeatTimeRunnable heartbeatThread = new UpdateHeartbeatTimeRunnable("update-heartbeat-time-thread");
 		es.submit(heartbeatThread);
+		System.out.println("isServiceNameOnlyOneCheck=>"+isServiceNameOnlyOneCheck());
 	}
 
 	@Override
