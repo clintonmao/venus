@@ -20,6 +20,8 @@ public interface VenusServiceMappingDAO {
 	boolean deleteServiceMapping(int id) throws DAOException;
 
 	VenusServiceMappingDO getServiceMapping(Integer serverId, Integer serviceId, String role) throws DAOException;
+	
+	VenusServiceMappingDO getConsumerServiceMapping(Integer serverId, Integer serviceId, Integer consumerAppId) throws DAOException;
 
 	List<VenusServiceMappingDO> getServiceMapping(Integer serviceId, String role, boolean isDelete) throws DAOException;
 
@@ -76,5 +78,7 @@ public interface VenusServiceMappingDAO {
 	boolean updateHeartBeatTime(List<Integer> Ids) throws DAOException;
 
 	List<Integer> queryMappingIds(int serverId, List<Integer> serviceIds, String role) throws DAOException;
+	
+	List<Integer> queryMappingIds(int serverId, List<Integer> serviceIds, int consumerAppId) throws DAOException;
 
 }

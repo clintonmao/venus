@@ -10,5 +10,7 @@ public interface CacheVenusServiceMappingDAO {
 	List<VenusServiceMappingDO> queryServiceMappings(int serviceId) throws DAOException;
 	
 	List<Integer> queryServiceMappingIds(int serverId,List<Integer> serviceIds,String role) throws DAOException;
+	
+	List<Integer> queryConsumerServiceMappingIds(int serverId,List<Integer> serviceIds,String role,int consumerAppId) throws DAOException;
 
 }

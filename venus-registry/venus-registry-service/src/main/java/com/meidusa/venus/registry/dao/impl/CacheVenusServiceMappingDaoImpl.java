@@ -151,5 +151,28 @@ public class CacheVenusServiceMappingDaoImpl implements CacheVenusServiceMapping
 		}
 		return returnList;
 	}
+	
+	public List<Integer> queryConsumerServiceMappingIds(int serverId, List<Integer> serviceIds, String role,int consumerAppId)
+			throws DAOException {
+		List<Integer> returnList = new ArrayList<Integer>();
+		if (serverId > 0) {
+			List<VenusServiceMappingDO> list = cacheServerMappingMap.get(serverId);
+			if (CollectionUtils.isNotEmpty(list)) {
+				for (Iterator<VenusServiceMappingDO> iterator = list.iterator(); iterator.hasNext();) {
+					VenusServiceMappingDO vs = iterator.next();
+					for (Iterator<Integer> it = serviceIds.iterator(); it.hasNext();) {
+						Integer serviceId = it.next();
+						if (null != vs.getServiceId() && vs.getServiceId().intValue() == serviceId.intValue()
+								&& vs.getRole().equals(role)) {
+							if (consumerAppId == vs.getConsumerAppId()) {
+								returnList.add(vs.getId());
+							}
+						}
+					}
+				}
+			}
+		}
+		return returnList;
+	}
 
 }

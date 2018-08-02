@@ -15,9 +15,11 @@ public class UpdateHeartBeatTimeDTO implements Serializable {
 	private List<Integer> serviceIds;
 
 	private String role;
-	
+
 	private VenusServerDO serverDO;
-	
+
+	private int consumerAppId;
+
 	public int getServerId() {
 		return serverId;
 	}
@@ -49,5 +51,13 @@ public class UpdateHeartBeatTimeDTO implements Serializable {
 	public void setServerDO(VenusServerDO serverDO) {
 		this.serverDO = serverDO;
 	}
-	
+
+	public int getConsumerAppId() {
+		return consumerAppId;
+	}
+
+	public void setConsumerAppId(int consumerAppId) {
+		this.consumerAppId = consumerAppId;
+	}
+
 }

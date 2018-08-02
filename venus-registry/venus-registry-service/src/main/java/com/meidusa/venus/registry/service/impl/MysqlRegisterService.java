@@ -120,7 +120,6 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 	public void init() {
 		UpdateHeartbeatTimeRunnable heartbeatThread = new UpdateHeartbeatTimeRunnable("update-heartbeat-time-thread");
 		es.submit(heartbeatThread);
-		System.out.println("isServiceNameOnlyOneCheck=>"+isServiceNameOnlyOneCheck());
 	}
 
 	@Override
@@ -332,8 +331,7 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				serverId = server.getId();
 			}
 			int serviceId = service.getId();
-			VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(serverId, serviceId,
-					RegisteConstant.CONSUMER);
+			VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getConsumerServiceMapping(serverId, serviceId,appId);
 			if (null == serviceMapping) {
 				VenusServiceMappingDO venusServiceMappingDO = new VenusServiceMappingDO();
 				venusServiceMappingDO.setServerId(serverId);
@@ -354,25 +352,30 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 
 	@Override
 	public boolean unsubscrible(URL url) throws VenusRegisteException {
+		String appCode = url.getApplication();
+		VenusApplicationDO application = cacheApplicationDAO.getApplication(appCode);
+		if (null == application) {
+			application = venusApplicationDAO.getApplication(appCode);
+		}
 		List<VenusServiceDO> services = venusServiceDAO.queryServices(url.getInterfaceName(), url.getServiceName(),
 				url.getVersion());
-		if(CollectionUtils.isNotEmpty(services)){
-		for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
-			VenusServiceDO service = iterator.next();
-			if (null != service) {
-				VenusServerDO server = venusServerDAO.getServer(url.getHost(), 0);
-				if (null != server) {
-					VenusServiceMappingDO serviceMapping = venusServiceMappingDAO.getServiceMapping(server.getId(),
-							service.getId(), RegisteConstant.CONSUMER);
-					if (null != serviceMapping) {
-						boolean deleteServiceMapping = venusServiceMappingDAO
-								.deleteServiceMapping(serviceMapping.getId());
-						deleteServer(server.getId());
-						return deleteServiceMapping;
+		if (null != application && CollectionUtils.isNotEmpty(services)) {
+			for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
+				VenusServiceDO service = iterator.next();
+				if (null != service) {
+					VenusServerDO server = venusServerDAO.getServer(url.getHost(), 0);
+					if (null != server) {
+						VenusServiceMappingDO serviceMapping = venusServiceMappingDAO
+								.getConsumerServiceMapping(server.getId(), service.getId(), application.getId());
+						if (null != serviceMapping) {
+							boolean deleteServiceMapping = venusServiceMappingDAO
+									.deleteServiceMapping(serviceMapping.getId());
+							deleteServer(server.getId());
+							return deleteServiceMapping;
+						}
 					}
 				}
 			}
-		}
 		}
 		return false;
 	}
@@ -665,17 +668,14 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 				}
 				LogUtils.HEARTBEAT_LOG.info("heartbeatRegister host=>{},port=>{},app=>{},role=>{}",server.getHostname(),server.getPort(),appCode,role);
 			}
+			int consumerAppId = 0;
+			if (role.equals(RegisteConstant.CONSUMER)) {
+				consumerAppId = get_application_id(urls);
+			}
 			for (URL url : urls) {//订阅时不传version,注册时有version
 				if (null != server) {
 					List<VenusServiceDO> services = cacheVenusServiceDAO.queryServices(url.getInterfaceName(),
 							url.getServiceName(), url.getVersion(),role);
-					/*if (CollectionUtils.isEmpty(services)) {
-						LogUtils.ERROR_LOG.info("heartbeat queryServices InterfaceName=>"+url.getInterfaceName()+",ServiceName=>"+url.getServiceName()+",Version=>"+url.getVersion());
-						services = venusServiceDAO.queryServices(url.getInterfaceName(), url.getServiceName(),
-								url.getVersion());
-					}*//*else{
-						LogUtils.DEFAULT_LOG.info("heartbeat cacheVenusServiceDAO.queryServices "+role);
-					}*/
 					if (CollectionUtils.isNotEmpty(services)) {
 						for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
 							VenusServiceDO venusServiceDO = iterator.next();
@@ -705,6 +705,9 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					heartBeatTimeDTO.setServerId(ent.getKey());
 					heartBeatTimeDTO.setServiceIds(ent.getValue());
 					heartBeatTimeDTO.setServerDO(server);
+					if (role.equals(RegisteConstant.CONSUMER)) {
+						heartBeatTimeDTO.setConsumerAppId(consumerAppId);
+					}
 					if (CollectionUtils.isNotEmpty(ent.getValue())) {
 						for (Integer sid : ent.getValue()) {
 							String key = ent.getKey() + "_" + sid + "_" + role;
@@ -723,6 +726,24 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			throw new VenusRegisteException("heartBeatTime入队列异常", e);
 		}
 
+	}
+
+	private int get_application_id(Set<URL> urls) {
+		int appId = 0;
+		for (URL url : urls) {
+			String appCode = url.getApplication();
+			if (StringUtils.isNotBlank(appCode)) {
+				VenusApplicationDO application = cacheApplicationDAO.getApplication(appCode);
+				if (null == application) {
+					application = venusApplicationDAO.getApplication(appCode);
+				}
+				if (null != application) {
+					appId = application.getId();
+					return appId;
+				}
+			}
+		}
+		return appId;
 	}
 
 	private VenusServerDO getServer(Set<URL> urls) {
@@ -1094,15 +1115,27 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 					if (null != heartbeatDto) {
 						int endSize = HEARTBEAT_QUEUE.size();
 						long start = System.currentTimeMillis();
-						List<Integer> ids = cacheVenusServiceMappingDAO.queryServiceMappingIds(
-								heartbeatDto.getServerId(), heartbeatDto.getServiceIds(), heartbeatDto.getRole());
-						if (CollectionUtils.isEmpty(ids)) {
-							ids = venusServiceMappingDAO.queryMappingIds(heartbeatDto.getServerId(),
-									heartbeatDto.getServiceIds(), heartbeatDto.getRole());
+						List<Integer> ids = null;
+						if (heartbeatDto.getRole().equals(RegisteConstant.PROVIDER)) {
+							ids = cacheVenusServiceMappingDAO.queryServiceMappingIds(heartbeatDto.getServerId(),
+									heartbeatDto.getServiceIds(), RegisteConstant.PROVIDER);
 							if (CollectionUtils.isEmpty(ids)) {
-								LogUtils.DEFAULT_LOG.warn("heartbeat queryServiceMappingIds ids=>"+ids);
-								continue;
+								ids = venusServiceMappingDAO.queryMappingIds(heartbeatDto.getServerId(),
+										heartbeatDto.getServiceIds(), RegisteConstant.PROVIDER);
 							}
+						} else {
+							ids = cacheVenusServiceMappingDAO.queryConsumerServiceMappingIds(heartbeatDto.getServerId(),
+									heartbeatDto.getServiceIds(), RegisteConstant.CONSUMER,
+									heartbeatDto.getConsumerAppId());
+							if (CollectionUtils.isEmpty(ids)) {
+								ids = venusServiceMappingDAO.queryMappingIds(heartbeatDto.getServerId(),
+										heartbeatDto.getServiceIds(), heartbeatDto.getConsumerAppId());
+							}
+						}
+
+						if (CollectionUtils.isEmpty(ids)) {
+							LogUtils.DEFAULT_LOG.warn("heartbeat queryServiceMappingIds ids=>" + ids);
+							continue;
 						}
 						boolean update = false;
 						if (CollectionUtils.isNotEmpty(ids)) {
@@ -1115,12 +1148,15 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 									"UpdateHeartbeatTimeRunnable.poll startSize=>{},endSize=>{},update=>{},heartbeatDto=>{},ids=>{}",
 									startSize, endSize, update, JSON.toJSONString(heartbeatDto), ids);
 						}
-						if(start % sampleMod ==1){
-							LogUtils.HEARTBEAT_LOG.info("UpdateHeartbeatTimeRunnable.sampling startSize=>{},endSize=>{},update=>{},consumerTime=>{},ids=>{},heartbeatDto=>{}", startSize, endSize,update,consumerTime,ids,JSON.toJSONString(heartbeatDto));
+						if (start % sampleMod == 1) {
+							LogUtils.HEARTBEAT_LOG.info(
+									"UpdateHeartbeatTimeRunnable.sampling startSize=>{},endSize=>{},update=>{},consumerTime=>{},ids=>{},heartbeatDto=>{}",
+									startSize, endSize, update, consumerTime, ids, JSON.toJSONString(heartbeatDto));
 						}
 					}
 				} catch (Throwable e) {
-					LogUtils.ERROR_LOG.error("UpdateHeartbeatTimeRunnable consumer thread is error" + e.getMessage(), e);
+					LogUtils.ERROR_LOG.error("UpdateHeartbeatTimeRunnable consumer thread is error" + e.getMessage(),
+							e);
 				}
 			}
 		}

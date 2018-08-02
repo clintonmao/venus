@@ -129,9 +129,31 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 	public VenusServiceMappingDO getServiceMapping(Integer serverId, Integer serviceId, String role)
 			throws DAOException {
 		String sql = SELECT_FIELDS_TABLE + " where server_id = ? and service_id = ? and role=?";
-
+		
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] { serverId, serviceId, role },
+					new ResultSetExtractor<VenusServiceMappingDO>() {
+				@Override
+				public VenusServiceMappingDO extractData(ResultSet rs)
+						throws SQLException, DataAccessException {
+					if (rs.next()) {
+						return ResultUtils.resultToVenusServiceMappingDO(rs);
+					}
+					return null;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据serverId=>" + serverId + ",serviceId=>" + serviceId + "获取服务映射关系异常", e);
+		}
+	}
+	@Override
+	public VenusServiceMappingDO getConsumerServiceMapping(Integer serverId, Integer serviceId, Integer consumerAppId)
+			throws DAOException {
+		String role=RegisteConstant.CONSUMER;
+		String sql = SELECT_FIELDS_TABLE + " where server_id = ? and service_id = ? and consumer_app_id=? and role=?";
+
+		try {
+			return this.jdbcTemplate.query(sql, new Object[] { serverId, serviceId, consumerAppId, role },
 					new ResultSetExtractor<VenusServiceMappingDO>() {
 						@Override
 						public VenusServiceMappingDO extractData(ResultSet rs)
@@ -435,6 +457,35 @@ public class VenusServiceMappingDaoImpl implements VenusServiceMappingDAO {
 		String sql = "select id  from t_venus_service_mapping where server_id = ? and role=? and service_id in(" + str + ")";
 		try {
 			return this.jdbcTemplate.query(sql, new Object[] { serverId, role },
+					new ResultSetExtractor<List<Integer>>() {
+				@Override
+				public List<Integer> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<Integer> returnList = new ArrayList<Integer>();
+					while (rs.next()) {
+						returnList.add(rs.getInt("id"));
+					}
+					return returnList;
+				}
+			});
+		} catch (Exception e) {
+			throw new DAOException("根据等于serverId＝>" + serverId + "获取服务映射关系列表异常", e);
+		}
+	}
+	
+	public List<Integer> queryMappingIds(int serverId, List<Integer> serviceIds, int consumerAppId) throws DAOException {
+		if (serviceIds.isEmpty()) {
+			return new ArrayList<Integer>();
+		}
+		StringBuilder sb = new StringBuilder();
+		for (Integer id : serviceIds) {
+			sb.append(id);
+			sb.append(",");
+		}
+		String str = sb.substring(0, sb.length() - 1);
+		String role=RegisteConstant.CONSUMER;
+		String sql = "select id  from t_venus_service_mapping where server_id = ? and consumer_app_id=? and role=? and service_id in(" + str + ")";
+		try {
+			return this.jdbcTemplate.query(sql, new Object[] { serverId, consumerAppId, role },
 					new ResultSetExtractor<List<Integer>>() {
 						@Override
 						public List<Integer> extractData(ResultSet rs) throws SQLException, DataAccessException {
