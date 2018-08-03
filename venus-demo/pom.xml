@@ -16,6 +16,7 @@
         <module>venus-demo-api</module>
         <module>venus-demo-provider</module>
         <module>venus-demo-consumer</module>
+		<module>venus-demo-consumer2</module>
     </modules>
 
     <dependencies>

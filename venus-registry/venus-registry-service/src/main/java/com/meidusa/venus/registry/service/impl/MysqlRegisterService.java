@@ -656,76 +656,103 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 		if (CollectionUtils.isEmpty(urls)) {
 			return;
 		}
-		Map<Integer, List<Integer>> maps = new HashMap<Integer, List<Integer>>();
+		
 		try {
 			VenusServerDO server = getServer(urls);
-			String appCode="";
-			if((null != server) && System.currentTimeMillis() % sampleMod ==1){
-				for (Iterator<URL> iterator = urls.iterator(); iterator.hasNext();) {
-					URL url =  iterator.next();
-					appCode = url.getApplication();
-					break;
+			printLog(urls, role, server);
+			if (null != server) {
+				int consumerAppId = 0;
+				if (role.equals(RegisteConstant.CONSUMER)) {
+					consumerAppId = get_application_id(urls);
 				}
-				LogUtils.HEARTBEAT_LOG.info("heartbeatRegister host=>{},port=>{},app=>{},role=>{}",server.getHostname(),server.getPort(),appCode,role);
-			}
-			int consumerAppId = 0;
-			if (role.equals(RegisteConstant.CONSUMER)) {
-				consumerAppId = get_application_id(urls);
-			}
-			for (URL url : urls) {//订阅时不传version,注册时有version
-				if (null != server) {
-					List<VenusServiceDO> services = cacheVenusServiceDAO.queryServices(url.getInterfaceName(),
-							url.getServiceName(), url.getVersion(),role);
-					if (CollectionUtils.isNotEmpty(services)) {
-						for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
-							VenusServiceDO venusServiceDO = iterator.next();
-							List<Integer> list = maps.get(server.getId());
-							Integer serviceId = venusServiceDO.getId();
-							if (list != null) {
-								if(!list.contains(serviceId)){
-									list.add(serviceId);
-								}
-							} else {
-								list = new ArrayList<>();
-								if(!list.contains(serviceId)){
-									list.add(serviceId);
-								}
-								maps.put(server.getId(), list);
-							}
-						}
-					}
-				}
-			}
-			if (HEARTBEAT_QUEUE.size() >= QUEUE_SIZE_10000 - 1) {
-				LogUtils.HEARTBEAT_LOG.info("HEARTBEAT_QUEUE is full.");
-			} else {
-				for (Map.Entry<Integer, List<Integer>> ent : maps.entrySet()) {
+				List<Integer> serviceIds = getServiceIds(urls, role);
+				if (HEARTBEAT_QUEUE.size() >= QUEUE_SIZE_10000 - 1) {
+					LogUtils.HEARTBEAT_LOG.info("HEARTBEAT_QUEUE is full.");
+				} else {
 					UpdateHeartBeatTimeDTO heartBeatTimeDTO = new UpdateHeartBeatTimeDTO();
 					heartBeatTimeDTO.setRole(role);
-					heartBeatTimeDTO.setServerId(ent.getKey());
-					heartBeatTimeDTO.setServiceIds(ent.getValue());
-					heartBeatTimeDTO.setServerDO(server);
+					heartBeatTimeDTO.setServerId(server.getId());
+					heartBeatTimeDTO.setServiceIds(serviceIds);
 					if (role.equals(RegisteConstant.CONSUMER)) {
 						heartBeatTimeDTO.setConsumerAppId(consumerAppId);
 					}
-					if (CollectionUtils.isNotEmpty(ent.getValue())) {
-						for (Integer sid : ent.getValue()) {
-							String key = ent.getKey() + "_" + sid + "_" + role;
+					if (CollectionUtils.isNotEmpty(serviceIds)) {
+						for (Integer sid : serviceIds) {
+							String key = server.getId() + "_" + sid + "_" + role;
 							cacheHeartBeatMap.put(key, new Date());
 						}
 					}
 					boolean offer = HEARTBEAT_QUEUE.offer(heartBeatTimeDTO);
 					if (!offer) {
-						LogUtils.HEARTBEAT_LOG.info("heartbeat_queue size=>{},venus heartbeat message maps=>{},urls=>{}", HEARTBEAT_QUEUE.size(),JSON.toJSONString(maps),JSON.toJSONString(urls));
+						LogUtils.HEARTBEAT_LOG.info(
+								"heartbeat_queue size=>{},venus heartbeat message heartBeatTimeDTO=>{},urls=>{}",
+								HEARTBEAT_QUEUE.size(), JSON.toJSONString(heartBeatTimeDTO), JSON.toJSONString(urls));
 					}
 				}
-
 			}
 		} catch (Exception e) {
 			LogUtils.ERROR_LOG.error("服务" + JSON.toJSONString(urls, true) + " heartBeatTime入队列异常 ,异常原因", e);
 			throw new VenusRegisteException("heartBeatTime入队列异常", e);
 		}
 
+	}
+
+	private Map<Integer, List<Integer>> get_service_ids(Set<URL> urls, String role, VenusServerDO server) {
+		Map<Integer, List<Integer>> maps = new HashMap<Integer, List<Integer>>();
+		for (URL url : urls) {//订阅时不传version,注册时有version
+			if (null != server) {
+				List<VenusServiceDO> services = cacheVenusServiceDAO.queryServices(url.getInterfaceName(),
+						url.getServiceName(), url.getVersion(),role);
+				if (CollectionUtils.isNotEmpty(services)) {
+					for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
+						VenusServiceDO venusServiceDO = iterator.next();
+						List<Integer> list = maps.get(server.getId());
+						Integer serviceId = venusServiceDO.getId();
+						if (list != null) {
+							if(!list.contains(serviceId)){
+								list.add(serviceId);
+							}
+						} else {
+							list = new ArrayList<>();
+							if(!list.contains(serviceId)){
+								list.add(serviceId);
+							}
+							maps.put(server.getId(), list);
+						}
+					}
+				}
+			}
+		}
+		return maps;
+	}
+	
+	private List<Integer> getServiceIds(Set<URL> urls, String role) {
+		List<Integer> returnList = new ArrayList<>();
+		for (URL url : urls) {// 订阅时不传version,注册时有version
+			List<VenusServiceDO> services = cacheVenusServiceDAO.queryServices(url.getInterfaceName(),
+					url.getServiceName(), url.getVersion(), role);
+			if (CollectionUtils.isNotEmpty(services)) {
+				for (Iterator<VenusServiceDO> iterator = services.iterator(); iterator.hasNext();) {
+					VenusServiceDO venusServiceDO = iterator.next();
+					if (null != venusServiceDO && !returnList.contains(venusServiceDO.getId())) {
+						returnList.add(venusServiceDO.getId());
+					}
+				}
+			}
+		}
+		return returnList;
+	}
+
+	private void printLog(Set<URL> urls, String role, VenusServerDO server) {
+		if ((null != server) && System.currentTimeMillis() % sampleMod == 1) {
+			String appCode="";
+			for (Iterator<URL> iterator = urls.iterator(); iterator.hasNext();) {
+				URL url =  iterator.next();
+				appCode = url.getApplication();
+				break;
+			}
+			LogUtils.HEARTBEAT_LOG.info("heartbeatRegister host=>{},port=>{},app=>{},role=>{}",server.getHostname(),server.getPort(),appCode,role);
+		}
 	}
 
 	private int get_application_id(Set<URL> urls) {
@@ -1035,32 +1062,35 @@ public class MysqlRegisterService implements RegisterService, DisposableBean {
 			heartbeatRegister(ent.getValue(), ent.getKey());
 		}
 		long end = System.currentTimeMillis() - start;
-		
 		if (end > 200) {
-			String logMsg="";
-			for (Map.Entry<String, Set<URL>> ent : maps.entrySet()) {
-				String key = ent.getKey();
-				if (key.equals(RegisteConstant.PROVIDER) || key.equals(RegisteConstant.CONSUMER)) {
-					Set<URL> urls = ent.getValue();
-					if (CollectionUtils.isNotEmpty(urls) && StringUtils.isBlank(logMsg)) {
-						logMsg = getLogMsg(urls);
-					}
-					
-					if(start % sampleMod ==1){
-						for (URL u : urls) {
-							u.setPath(null);
-							u.setProtocol(null);
-						}
-					}
-					
+			printRandHeartbeatLog(maps, start, end);
+		}
+	}
+
+	private void printRandHeartbeatLog(Map<String, Set<URL>> maps, long start, long end) {
+		String logMsg="";
+		for (Map.Entry<String, Set<URL>> ent : maps.entrySet()) {
+			String key = ent.getKey();
+			if (key.equals(RegisteConstant.PROVIDER) || key.equals(RegisteConstant.CONSUMER)) {
+				Set<URL> urls = ent.getValue();
+				if (CollectionUtils.isNotEmpty(urls) && StringUtils.isBlank(logMsg)) {
+					logMsg = getLogMsg(urls);
 				}
+				
+				if(start % sampleMod ==1){
+					for (URL u : urls) {
+						u.setPath(null);
+						u.setProtocol(null);
+					}
+				}
+				
 			}
-			if(start % sampleMod ==1){
-				LogUtils.logSlow(end,"heartbeat maps=> " + JSON.toJSONString(maps));
-			}
-			if(StringUtils.isNotBlank(logMsg)){
-				LogUtils.logSlow(end, "heartbeat maps msg=> " + logMsg);
-			}
+		}
+		if(start % sampleMod ==1){
+			LogUtils.logSlow(end,"heartbeat maps=> " + JSON.toJSONString(maps));
+		}
+		if(StringUtils.isNotBlank(logMsg)){
+			LogUtils.logSlow(end, "heartbeat maps msg=> " + logMsg);
 		}
 	}
 
