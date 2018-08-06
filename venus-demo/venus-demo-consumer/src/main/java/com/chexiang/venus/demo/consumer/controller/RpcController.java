@@ -24,24 +24,37 @@ public class RpcController {
 
     private static Logger logger = LoggerFactory.getLogger(RpcController.class);
 
+    JsonRpc jsonRpc;
+
+    Object lock = new Object();
+
     @RequestMapping("/invoke/{name}")
     public Result invoke(@PathVariable String name){
         try {
-
-            String appName = VenusContext.getInstance().getApplication();
-            Register register = RegisterContext.getInstance().getRegister();
-            JsonRpc jsonRpc = new JsonRpc(appName,register);
             String serviceName = "helloService";
             String endpointName = "getHello";
             Map<String,Object> parameterMap = new HashMap<>();
             parameterMap.put("name","zhangzh");
-            String result = jsonRpc.invoke(serviceName,endpointName,parameterMap);
+            String result = getJsonRpc().invoke(serviceName,endpointName,parameterMap);
             logger.info("result:{}",result);
             return new Result("OK");
         } catch (Exception e) {
             logger.error("e:{}.",e);
             return new Result(e);
         }
+    }
+
+    public JsonRpc getJsonRpc() {
+        if(jsonRpc == null){
+           synchronized (lock){
+               if(jsonRpc == null){
+                   String appName = VenusContext.getInstance().getApplication();
+                   Register register = RegisterContext.getInstance().getRegister();
+                   jsonRpc = new JsonRpc(appName,register);
+               }
+           }
+        }
+        return jsonRpc;
     }
 
     void buildParam(){
