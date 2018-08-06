@@ -1,6 +1,5 @@
 package com.meidusa.venus.client.invoker;
 
-import com.meidusa.toolkit.net.Connection;
 import com.meidusa.venus.*;
 import com.meidusa.venus.client.ClientInvocation;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
@@ -10,16 +9,15 @@ import com.meidusa.venus.client.filter.mock.ClientCallbackMockFilter;
 import com.meidusa.venus.client.filter.mock.ClientReturnMockFilter;
 import com.meidusa.venus.client.filter.mock.ClientThrowMockFilter;
 import com.meidusa.venus.client.filter.valid.ClientValidFilter;
+import com.meidusa.venus.client.invoker.injvm.InjvmInvoker;
+import com.meidusa.venus.client.invoker.venus.VenusClientInvoker;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.monitor.VenusMonitorFactory;
 import com.meidusa.venus.monitor.athena.filter.ClientAthenaMonitorFilter;
 import com.meidusa.venus.monitor.filter.ClientVenusMonitorFilter;
 import com.meidusa.venus.registry.Register;
-import com.meidusa.venus.support.EndpointWrapper;
-import com.meidusa.venus.support.ServiceWrapper;
 import com.meidusa.venus.support.VenusThreadContext;
 import com.meidusa.venus.util.VenusLoggerFactory;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -46,12 +44,12 @@ public class ClientInvokerProxy implements Invoker {
     /**
      * injvm调用
      */
-    private ClientLocalInvoker injvmInvoker = new ClientLocalInvoker();
+    private InjvmInvoker injvmInvoker = new InjvmInvoker();
 
     /**
      * 远程(包含同ip实例间)调用
      */
-    private ClientRemoteInvoker clientRemoteInvoker = new ClientRemoteInvoker();
+    private VenusClientInvoker venusInvoker = new VenusClientInvoker();
 
     //前置filters
     private List<Filter> beforeFilters = new ArrayList<Filter>();
@@ -113,7 +111,7 @@ public class ClientInvokerProxy implements Invoker {
                 VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
                 return result;
             }else{
-                Result result = getRemoteInvoker().invoke(invocation, url);
+                Result result = getVenusInvoker().invoke(invocation, url);
                 VenusThreadContext.set(VenusThreadContext.RESPONSE_RESULT,result);
                 return result;
             }
@@ -142,6 +140,7 @@ public class ClientInvokerProxy implements Invoker {
      * @return
      */
     boolean isInjvmInvoke(ClientInvocation invocation){
+        /*
         ServiceWrapper service = invocation.getService();
         EndpointWrapper endpoint = invocation.getEndpoint();
         if (endpoint != null && service != null) {
@@ -150,9 +149,12 @@ public class ClientInvokerProxy implements Invoker {
             //本地调用
             return true;
         }
+        */
+        //TODO 处理判断逻辑
+        return false;
     }
 
-    public ClientLocalInvoker getInjvmInvoker() {
+    public InjvmInvoker getInjvmInvoker() {
         return injvmInvoker;
     }
 
@@ -160,14 +162,14 @@ public class ClientInvokerProxy implements Invoker {
      * 获取remote Invoker
      * @return
      */
-    public ClientRemoteInvoker getRemoteInvoker() {
+    public VenusClientInvoker getVenusInvoker() {
         if(remoteConfig != null){
-            clientRemoteInvoker.setRemoteConfig(remoteConfig);
+            venusInvoker.setRemoteConfig(remoteConfig);
         }
         if(register != null){
-            clientRemoteInvoker.setRegister(register);
+            venusInvoker.setRegister(register);
         }
-        return clientRemoteInvoker;
+        return venusInvoker;
     }
 
     /**

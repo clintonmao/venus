@@ -27,7 +27,7 @@ public class ClientValidFilter implements Filter {
         //endpoint定义校验
         if(clientInvocation.getEndpoint() == null){
             Method method = clientInvocation.getMethod();
-            if (!method.getDeclaringClass().equals(Object.class)) {
+            if (method != null && !method.getDeclaringClass().equals(Object.class)) {
                 logger.error("remote invoke error: endpoint annotation not declare on method=" + method.getName());
                 throw new RpcException("remote invoke error: endpoint annotation not declare on method=" + method.getName());
             }

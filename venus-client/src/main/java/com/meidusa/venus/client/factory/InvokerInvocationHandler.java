@@ -123,6 +123,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
      * @return
      */
     public ClientInvokerProxy getClientInvokerProxy() {
+        VenusContext.getInstance().setEncodeType("venus");
         clientInvokerProxy.setRemoteConfig(getRemoteConfig());
         clientInvokerProxy.setRegister(register);
         return clientInvokerProxy;

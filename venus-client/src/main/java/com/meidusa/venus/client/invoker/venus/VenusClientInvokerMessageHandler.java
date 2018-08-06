@@ -16,6 +16,8 @@ package com.meidusa.venus.client.invoker.venus;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.client.ClientInvocation;
+import com.meidusa.venus.client.invoker.venus.encode.BaseEncoder;
+import com.meidusa.venus.client.invoker.venus.encode.DefaultEncoderFactory;
 import com.meidusa.venus.exception.DefaultVenusException;
 import com.meidusa.venus.exception.RpcException;
 import com.meidusa.venus.exception.VenusExceptionFactory;
@@ -24,19 +26,20 @@ import com.meidusa.venus.io.handler.Venus4BackendMessageHandler;
 import com.meidusa.venus.io.network.Venus4BackendConnection;
 import com.meidusa.venus.io.network.VenusBackendConnection;
 import com.meidusa.venus.io.packet.*;
-import com.meidusa.venus.io.packet.serialize.SerializeServiceNofityPacket;
-import com.meidusa.venus.io.packet.serialize.SerializeServiceResponsePacket;
 import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.io.serializer.SerializerFactory;
 import com.meidusa.venus.io.utils.RpcIdUtil;
+import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.support.VenusUtil;
 import com.meidusa.venus.util.Utils;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 
+import java.lang.reflect.Type;
+
 /**
- * 服务调用NIO消息响应处理
+ * venus服务调用NIO消息响应处理
  */
 public class VenusClientInvokerMessageHandler extends Venus4BackendMessageHandler implements MessageHandler<Venus4BackendConnection, byte[]> {
 
@@ -47,6 +50,8 @@ public class VenusClientInvokerMessageHandler extends Venus4BackendMessageHandle
     private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
 
     private VenusClientConnectionFactory connectionFactory;
+
+    private BaseEncoder encoder = null;
 
     public VenusClientInvokerMessageHandler(VenusClientConnectionFactory connectionFactory){
         this.connectionFactory = connectionFactory;
@@ -172,8 +177,13 @@ public class VenusClientInvokerMessageHandler extends Venus4BackendMessageHandle
 
             ClientInvocation syncInvocation = reqRespWrapper.getInvocation();
 
-            ServiceResponsePacket responsePacket = new SerializeServiceResponsePacket(serializer, syncInvocation.getMethod().getGenericReturnType());
-            responsePacket.init(message);
+            //ServiceResponsePacket responsePacket = new SerializeServiceResponsePacket(serializer, syncInvocation.getMethod().getGenericReturnType());
+            //responsePacket.init(message);
+            Type retType = null;
+            if(syncInvocation.getMethod() != null){
+                retType = syncInvocation.getMethod().getGenericReturnType();
+            }
+            ServiceResponsePacket responsePacket = getEncoder().decode(message,retType,serializer);
 
             //添加rpcId->response映射表
             reqRespWrapper.setResult(new Result(responsePacket.result));
@@ -263,8 +273,10 @@ public class VenusClientInvokerMessageHandler extends Venus4BackendMessageHandle
             //原来用于标识callback请求的listenerClass与identityHashCode统一改为根据rpcId来处理
             String listenerClass = buffer.readLengthCodedString("utf-8");
             int identityHashCode = buffer.readInt();
-            SerializeServiceNofityPacket nofityPacket = new SerializeServiceNofityPacket(serializer, asyncInvocation.getType());
-            nofityPacket.init(message);
+
+            //SerializeServiceNofityPacket nofityPacket = new SerializeServiceNofityPacket(serializer, asyncInvocation.getType());
+            //nofityPacket.init(message);
+            ServiceNofityPacket nofityPacket = getEncoder().decodeForNotify(message,asyncInvocation.getType(),serializer);
 
             if (nofityPacket.errorCode != 0) {
                 Throwable t = buildExceptionFromNotifyPacket(nofityPacket,serializer, XmlVenusExceptionFactory.getInstance());
@@ -320,7 +332,7 @@ public class VenusClientInvokerMessageHandler extends Venus4BackendMessageHandle
      * @param nofityPacket
      * @return
      */
-    Throwable buildExceptionFromNotifyPacket(SerializeServiceNofityPacket nofityPacket, Serializer serializer, VenusExceptionFactory venusExceptionFactory) {
+    Throwable buildExceptionFromNotifyPacket(ServiceNofityPacket nofityPacket, Serializer serializer, VenusExceptionFactory venusExceptionFactory) {
         if(venusExceptionFactory == null){
             RpcException rpcException = new RpcException(nofityPacket.errorCode,nofityPacket.errorMessage);
             return rpcException;
@@ -353,4 +365,11 @@ public class VenusClientInvokerMessageHandler extends Venus4BackendMessageHandle
         return okPacket;
     }
 
+    public BaseEncoder getEncoder() {
+        //初始化encoder
+        if(encoder == null){
+            encoder = DefaultEncoderFactory.newInstance(VenusContext.getInstance().getEncodeType());
+        }
+        return encoder;
+    }
 }

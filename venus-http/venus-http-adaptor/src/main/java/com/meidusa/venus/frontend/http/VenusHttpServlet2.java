@@ -9,6 +9,9 @@ import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.annotations.RemoteException;
 import com.meidusa.venus.backend.services.RequestInfo;
+import com.meidusa.venus.io.packet.json.JsonVenusNotifyPacket;
+import com.meidusa.venus.io.packet.json.JsonVenusRequestPacket;
+import com.meidusa.venus.io.packet.json.JsonVenusResponsePacket;
 import com.meidusa.venus.metainfo.AnnotationUtil;
 import com.meidusa.venus.frontend.support.LogHandler;
 import com.meidusa.venus.backend.serializer.MediaTypes;
@@ -178,11 +181,11 @@ public class VenusHttpServlet2 extends HttpServlet {
     }
     
     
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         doPost(req, resp);
     }
 
-    protected void doPost(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(final HttpServletRequest req, final HttpServletResponse resp) throws IOException {
         String uri = req.getRequestURI().trim();
 
         if (!req.getContextPath().equals("/")) {
@@ -317,7 +320,7 @@ public class VenusHttpServlet2 extends HttpServlet {
             final HttpServletResponse resp, Response result) throws IOException {
         resp.setContentType(MediaTypes.APPLICATION_JSON);
         resp.getOutputStream().write(
-                JSON.toJSONString(result, new SerializerFeature[] {SerializerFeature.PrettyFormat }).getBytes(
+                JSON.toJSONString(result, SerializerFeature.PrettyFormat).getBytes(
                         PacketConstant.PACKET_CHARSET));
     }
 

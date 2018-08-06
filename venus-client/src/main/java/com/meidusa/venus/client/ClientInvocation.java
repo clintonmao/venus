@@ -11,6 +11,7 @@ import com.meidusa.venus.support.VenusUtil;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * client请求对象
@@ -39,6 +40,8 @@ public class ClientInvocation implements ClientInvocationOperation {
 
     private String serviceName;
 
+    private String endpointName;
+
     private String apiName;
 
     private ServiceWrapper service;
@@ -50,6 +53,8 @@ public class ClientInvocation implements ClientInvocationOperation {
     private EndpointParameter[] params;
 
     private Object[] args;
+
+    private Map<String, Object> parameterMap = null;
 
     //callback回调listener
     private InvocationListener invocationListener;
@@ -249,12 +254,20 @@ public class ClientInvocation implements ClientInvocationOperation {
 
     @Override
     public String getServiceInterfaceName() {
-        return serviceInterface.getName();
+        if(serviceInterface != null){
+            return serviceInterface.getName();
+        }else{
+            return serviceName;
+        }
     }
 
     @Override
     public String getMethodName() {
-        return this.getMethod().getName();
+        if(getMethod() != null){
+            return this.getMethod().getName();
+        }{
+            return endpointName;
+        }
     }
 
     public int getLookupType() {
@@ -335,6 +348,7 @@ public class ClientInvocation implements ClientInvocationOperation {
     }
 
     public String getApiName() {
+        //VenusUtil.getApiName(method,service,endpoint);
         return apiName;
     }
 
@@ -369,5 +383,21 @@ public class ClientInvocation implements ClientInvocationOperation {
 
     public void setPrintResult(boolean printResult) {
         this.printResult = printResult;
+    }
+
+    public String getEndpointName() {
+        return endpointName;
+    }
+
+    public void setEndpointName(String endpointName) {
+        this.endpointName = endpointName;
+    }
+
+    public Map<String, Object> getParameterMap() {
+        return parameterMap;
+    }
+
+    public void setParameterMap(Map<String, Object> parameterMap) {
+        this.parameterMap = parameterMap;
     }
 }

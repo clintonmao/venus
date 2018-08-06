@@ -1,4 +1,4 @@
-package com.meidusa.venus.client.invoker;
+package com.meidusa.venus.client.invoker.injvm;
 
 import com.meidusa.toolkit.net.Connection;
 import com.meidusa.venus.*;
@@ -16,7 +16,7 @@ import java.util.Map;
  * injvm协议调用invoker，jvm内部调用
  * Created by Zhangzhihua on 2017/8/1.
  */
-public class ClientLocalInvoker implements Invoker {
+public class InjvmInvoker implements Invoker {
 
     private Map<String, Object> singletonServiceMap = new HashMap<String, Object>();
 

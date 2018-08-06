@@ -1,4 +1,4 @@
-package com.meidusa.venus.frontend.http;
+package com.meidusa.venus.io.packet.json;
 
 import com.meidusa.venus.io.packet.ServiceNofityPacket;
 import com.meidusa.venus.io.packet.ServicePacketBuffer;

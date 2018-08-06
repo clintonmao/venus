@@ -11,7 +11,7 @@
  * 	You should have received a copy of the GNU AFFERO GENERAL PUBLIC LICENSE along with this program; 
  * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package com.meidusa.venus.frontend.http;
+package com.meidusa.venus.io.packet.json;
 
 import java.io.UnsupportedEncodingException;
 
@@ -30,6 +30,9 @@ public class JsonVenusRequestPacket extends AbstractServiceRequestPacket {
 
     public String params;
     public byte[] traceId;
+    public byte[] rootId;
+    public byte[] parentId;
+    public byte[] messageId;
 
     protected void readBody(ServicePacketBuffer buffer) {
         super.readBody(buffer);
@@ -52,6 +55,16 @@ public class JsonVenusRequestPacket extends AbstractServiceRequestPacket {
         if (buffer.hasRemaining()) {
             traceId = new byte[16];
             buffer.readBytes(traceId);
+        }
+
+        if (buffer.hasRemaining()) {
+            rootId = buffer.readLengthCodedBytes();
+        }
+        if (buffer.hasRemaining()) {
+            parentId = buffer.readLengthCodedBytes();
+        }
+        if (buffer.hasRemaining()) {
+            messageId = buffer.readLengthCodedBytes();
         }
     }
 
@@ -78,6 +91,9 @@ public class JsonVenusRequestPacket extends AbstractServiceRequestPacket {
             traceId = EMPTY_TRACE_ID;
         }
         buffer.writeBytes(traceId);
+        buffer.writeLengthCodedBytes(rootId);
+        buffer.writeLengthCodedBytes(parentId);
+        buffer.writeLengthCodedBytes(messageId);
     }
 
 }

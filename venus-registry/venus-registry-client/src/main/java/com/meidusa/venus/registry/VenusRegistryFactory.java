@@ -40,7 +40,7 @@ public class VenusRegistryFactory implements InitializingBean {
     private Register register;
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         //valid
         valid();
 
@@ -74,6 +74,7 @@ public class VenusRegistryFactory implements InitializingBean {
             throw new VenusRegisteException("init register failed.");
         }
         this.register = register;
+        RegisterContext.getInstance().setRegister(register);
     }
 
     /**
@@ -114,24 +115,5 @@ public class VenusRegistryFactory implements InitializingBean {
     public void setRegister(Register register) {
         this.register = register;
     }
-    
-/*    public static void main(String args[]){
-        HessianProxyFactory proxyFactory = new HessianProxyFactory();
-        proxyFactory.setReadTimeout(readTimeout);
-        proxyFactory.setConnectTimeout(connectTimeout);
-        String registerUrl="http://register.chexiangpre.com/registerService";
-        try {
-            RegisterService registerService = (RegisterService) proxyFactory.create(RegisterService.class, registerUrl);
-            URL url=new URL();
-            url.setInterfaceName("com.saic.lemon.cxh.service.IWXTokenBridgeService");
-            url.setServiceName("weixinTokenBridgeService");
-            List<VenusServiceDefinitionDO> findServiceDefinitions = registerService.findServiceDefinitions(url);
-            System.out.println(findServiceDefinitions);
-        } catch (Exception e) {
-            if(exceptionLogger.isErrorEnabled()){
-                exceptionLogger.error("newHessianRegisterService error.",e);
-            }
-        }
-    }*/
 
 }

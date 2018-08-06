@@ -26,6 +26,8 @@ public class VenusContext {
 
     private ConnectionProcesser connectionProcesser;
 
+    private String encodeType = "venus";
+
     public static VenusContext getInstance(){
         if(venusContext == null){
             venusContext = new VenusContext();
@@ -71,5 +73,13 @@ public class VenusContext {
 
     public void setConnectionProcesser(ConnectionProcesser connectionProcesser) {
         this.connectionProcesser = connectionProcesser;
+    }
+
+    public String getEncodeType() {
+        return encodeType;
+    }
+
+    public void setEncodeType(String encodeType) {
+        this.encodeType = encodeType;
     }
 }

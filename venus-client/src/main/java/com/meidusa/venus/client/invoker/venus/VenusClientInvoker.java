@@ -1,341 +1,297 @@
 package com.meidusa.venus.client.invoker.venus;
 
-import com.meidusa.toolkit.net.BackendConnection;
-import com.meidusa.toolkit.net.BackendConnectionPool;
-import com.meidusa.toolkit.util.TimeUtil;
-import com.meidusa.venus.Invoker;
-import com.meidusa.venus.Result;
-import com.meidusa.venus.URL;
-import com.meidusa.venus.VenusApplication;
+import com.meidusa.venus.*;
 import com.meidusa.venus.client.ClientInvocation;
+import com.meidusa.venus.client.cluster.ClusterFailoverInvoker;
+import com.meidusa.venus.client.cluster.ClusterFastfailInvoker;
 import com.meidusa.venus.client.factory.xml.config.ClientRemoteConfig;
-import com.meidusa.venus.client.invoker.AbstractClientInvoker;
-import com.meidusa.venus.exception.InvalidParameterException;
+import com.meidusa.venus.client.router.Router;
+import com.meidusa.venus.client.router.condition.ConditionRuleRouter;
 import com.meidusa.venus.exception.RpcException;
-import com.meidusa.venus.io.packet.PacketConstant;
-import com.meidusa.venus.io.packet.ServicePacketBuffer;
-import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
-import com.meidusa.venus.io.serializer.Serializer;
-import com.meidusa.venus.io.serializer.SerializerFactory;
-import com.meidusa.venus.metainfo.EndpointParameter;
-import com.meidusa.venus.notify.InvocationListener;
-import com.meidusa.venus.notify.ReferenceInvocationListener;
-import com.meidusa.venus.support.EndpointWrapper;
-import com.meidusa.venus.support.ServiceWrapper;
-import com.meidusa.venus.support.VenusThreadContext;
-import com.meidusa.venus.support.VenusUtil;
+import com.meidusa.venus.exception.VenusConfigException;
+import com.meidusa.venus.registry.Register;
+import com.meidusa.venus.registry.domain.VenusServiceDefinitionDO;
+import com.meidusa.venus.support.VenusConstants;
+import com.meidusa.venus.util.JSONUtil;
+import com.meidusa.venus.util.Range;
+import com.meidusa.venus.util.RangeUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * venus协议服务调用实现
- * Created by Zhangzhihua on 2017/7/31.
+ * venus服务调用，包括实现寻址
+ * Created by Zhangzhihua on 2017/8/24.
  */
-public class VenusClientInvoker extends AbstractClientInvoker implements Invoker{
+public class VenusClientInvoker implements Invoker{
 
     private static Logger logger = VenusLoggerFactory.getDefaultLogger();
 
-    private static Logger tracerLogger = VenusLoggerFactory.getTracerLogger();
-
-    private static Logger exceptionLogger = VenusLoggerFactory.getExceptionLogger();
-
-    private byte serializeType = PacketConstant.CONTENT_TYPE_JSON;
-
     /**
-     * 远程连接配置，包含ip相关信息
+     * 静态地址配置
      */
     private ClientRemoteConfig remoteConfig;
 
-    private VenusClientConnectionFactory connectionFactory = VenusClientConnectionFactory.getInstance();
+    /**
+     * 静态地址列表，第一次调用初始化
+     */
+    private List<URL> cacheUrlList;
 
-    public VenusClientInvoker(){
-        //添加invoker资源
-        VenusApplication.addInvoker(this);
-    }
+    /**
+     * 注册中心
+     */
+    private Register register;
 
+    /**
+     * 条件路由服务
+     */
+    private Router router = new ConditionRuleRouter();
+
+    /**
+     * venus协议调用invoker
+     */
+    private VenusClientInvokerExecuter invoker = new VenusClientInvokerExecuter();
+
+    private ClusterFailoverInvoker clusterFailoverInvoker = new ClusterFailoverInvoker(invoker);
+
+    private ClusterFastfailInvoker clusterFastfailInvoker = new ClusterFastfailInvoker(invoker);
 
     @Override
     public void init() throws RpcException {
     }
 
     @Override
-    public Result doInvoke(ClientInvocation invocation, URL url) throws RpcException {
-        if(!isCallbackInvocation(invocation)){
-            return doInvokeWithSync(invocation, url);
+    public Result invoke(Invocation invocation, URL url) throws RpcException {
+        if(isRegisterLookup()){
+            //走注册中心寻址调用
+            return this.invokeByRegisterLookup(invocation, url);
         }else{
-            return doInvokeWithCallback(invocation, url);
+            //静态地址调用
+            return this.invokeByStaticLookup(invocation, url);
         }
     }
 
     /**
-     * 判断是否callback异步调用
-     * @param invocation
-     * @return
-     */
-    boolean isCallbackInvocation(ClientInvocation invocation){
-        EndpointParameter[] params = invocation.getParams();
-        if (params != null) {
-            Object[] args = invocation.getArgs();
-            for (int i = 0; i < params.length; i++) {
-                if (args[i] instanceof InvocationListener) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * sync同步调用
+     * 走静态寻址调用
      * @param invocation
      * @param url
      * @return
-     * @throws Exception
+     * @throws RpcException
      */
-    public Result doInvokeWithSync(ClientInvocation invocation, URL url) throws RpcException {
-        Result result = null;
-        int timeout = invocation.getTimeout();
+    Result invokeByStaticLookup(Invocation invocation, URL url) throws RpcException {
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
+        //静态寻址
+        List<URL> urlList = lookupByStatic(clientInvocation);
 
-        //构造请求消息
-        SerializeServiceRequestPacket request = buildRequest(invocation);
-
-        //添加rpcId -> reqResp映射表
-        String rpcId = invocation.getRpcId();
-        VenusReqRespWrapper reqRespWrapper = new VenusReqRespWrapper(invocation);
-        connectionFactory.getServiceReqRespMap().put(rpcId,reqRespWrapper);
-
-        //发送消息
-        sendRequest(invocation, request, url,reqRespWrapper);
-
-        //latch阻塞等待
-        boolean isAwaitException = false;
-        try {
-            reqRespWrapper.getReqRespLatch().await(timeout,TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            isAwaitException = true;
-            throw new RpcException(e);
-        }finally {
-            if(isAwaitException){
-                if(connectionFactory.getServiceReqRespMap().get(rpcId) != null){
-                    connectionFactory.getServiceReqRespMap().remove(rpcId);
-                }
-            }
-        }
-
-        //处理响应
-        result = fetchResponse(rpcId);
-        if(result == null){
-            throw new RpcException(RpcException.TIMEOUT_EXCEPTION,String.format("invoke api:%s,service:%s timeout,timeout:%dms",invocation.getApiName(),url.getPath(),timeout));
-        }
+        //集群容错调用
+        Result result = getClusterInvoker(clientInvocation,url).invoke(invocation, urlList);
         return result;
     }
 
     /**
-     * callback异步调用
+     * 走注册中心寻址调用
      * @param invocation
      * @param url
      * @return
-     * @throws Exception
+     * @throws RpcException
      */
-    public Result doInvokeWithCallback(ClientInvocation invocation, URL url) throws RpcException {
-        //构造请求消息
-        SerializeServiceRequestPacket request = buildRequest(invocation);
+    Result invokeByRegisterLookup(Invocation invocation, URL url) throws RpcException {
+        ClientInvocation clientInvocation = (ClientInvocation)invocation;
+        //注册中心寻址及版本校验
+        List<URL> urlList = lookupByRegister(clientInvocation);
 
-        //添加rpcId-> reqResp映射表
-        connectionFactory.getServiceReqCallbackMap().put(invocation.getRpcId(),invocation);
+        //自定义路由过滤
+        urlList = router.filte(clientInvocation, urlList);
 
-        //发送消息
-        sendRequest(invocation, request, url,null);
-
-        //立即返回，响应由invocationListener处理
-        return new Result(null);
+        //集群容错调用
+        Result result = getClusterInvoker(clientInvocation,url).invoke(invocation, urlList);
+        return result;
     }
 
     /**
-     * 构造请求消息
+     * 判断是否注册中心寻址
+     * @return
+     */
+    boolean isRegisterLookup(){
+        if(remoteConfig != null){//静态地址
+            return false;
+        }else if(register != null){//走注册中心寻址
+            return true;
+        }else{
+            throw new VenusConfigException("remoteConfig and registerUrl not allow empty.");
+        }
+    }
+
+    /**
+     * 静态寻址，直接配置addressList或remote
      * @param invocation
      * @return
      */
-    SerializeServiceRequestPacket buildRequest(ClientInvocation invocation){
-        Method method = invocation.getMethod();
-        ServiceWrapper service = invocation.getService();
-        EndpointWrapper endpoint = invocation.getEndpoint();
-        EndpointParameter[] params = invocation.getParams();
-        Object[] args = invocation.getArgs();
-
-        //构造请求报文
-        Serializer serializer = SerializerFactory.getSerializer(serializeType);
-        SerializeServiceRequestPacket serviceRequestPacket = new SerializeServiceRequestPacket(serializer, null);
-        serviceRequestPacket.clientId = invocation.getClientId();
-        serviceRequestPacket.clientRequestId = invocation.getClientRequestId();
-        //设置traceId
-        serviceRequestPacket.traceId = invocation.getTraceID();
-        //设置athenaId
-        if (invocation.getAthenaId() != null) {
-            serviceRequestPacket.rootId = invocation.getAthenaId();
-        }
-        if (invocation.getParentId() != null) {
-            serviceRequestPacket.parentId = invocation.getParentId();
-        }
-        if (invocation.getMessageId() != null) {
-            serviceRequestPacket.messageId = invocation.getMessageId();
-        }
-        serviceRequestPacket.apiName = VenusUtil.getApiName(method,service,endpoint);//VenusAnnotationUtils.getApiname(method, service, endpoint);
-        serviceRequestPacket.serviceVersion = service.getVersion();
-        serviceRequestPacket.parameterMap = new HashMap<String, Object>();
-        if (params != null) {
-            for (int i = 0; i < params.length; i++) {
-                if (args[i] instanceof InvocationListener) {
-                    ReferenceInvocationListener listener = new ReferenceInvocationListener();
-                    ServicePacketBuffer buffer = new ServicePacketBuffer(16);
-                    buffer.writeLengthCodedString(args[i].getClass().getName(), "utf-8");
-                    buffer.writeInt(System.identityHashCode(args[i]));
-                    listener.setIdentityData(buffer.toByteBuffer().array());
-                    Type type = method.getGenericParameterTypes()[i];
-                    if (type instanceof ParameterizedType) {
-                        ParameterizedType genericType = ((ParameterizedType) type);
-                        //container.putInvocationListener((InvocationListener) args[i], genericType.getActualTypeArguments()[0]);
-                        invocation.setInvocationListener((InvocationListener)args[i]);
-                        invocation.setType(genericType.getActualTypeArguments()[0]);
-                    } else {
-                        throw new InvalidParameterException("invocationListener is not generic");
-                    }
-                    serviceRequestPacket.parameterMap.put(params[i].getParamName(), listener);
-                } else {
-                    serviceRequestPacket.parameterMap.put(params[i].getParamName(), args[i]);
-                }
-
+    List<URL> lookupByStatic(ClientInvocation invocation){
+        List<URL> urlList = new ArrayList<URL>();
+        if(cacheUrlList == null){
+            String ipAddressList = remoteConfig.getFactory().getIpAddressList();
+            String[] addressArr = ipAddressList.split(";");
+            for(String address:addressArr){
+                String[] arr = address.split(":");
+                URL url = new URL();
+                url.setHost(arr[0]);
+                url.setPort(Integer.parseInt(arr[1]));
+                url.setRemoteConfig(remoteConfig);
+                urlList.add(url);
             }
-        }
-        return serviceRequestPacket;
-    }
-
-    /**
-     * 发送远程调用消息
-     * @param invocation
-     * @param serviceRequestPacket
-     * @param url 目标地址
-     * @return
-     * @throws Exception
-     */
-    void sendRequest(ClientInvocation invocation, SerializeServiceRequestPacket serviceRequestPacket, URL url,VenusReqRespWrapper reqRespWrapper) throws RpcException{
-        long start = TimeUtil.currentTimeMillis();
-        long borrowed = start;
-        BackendConnectionPool nioConnPool = null;
-        BackendConnection conn = null;
-        String rpcId = invocation.getRpcId();
-        Throwable exception = null;
-
-        //获取连接
-        try {
-            VenusClientConnectionFactory.BackendConnectionWrapper connectionWrapper = connectionFactory.getConnection(url);
-            nioConnPool = connectionWrapper.getBackendConnectionPool();
-            conn = connectionWrapper.getBackendConnection();
-            borrowed = System.currentTimeMillis();
-            if(reqRespWrapper != null){
-                reqRespWrapper.setBackendConnection(conn);
-            }
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if (conn != null && nioConnPool != null) {
-                nioConnPool.returnObject(conn);
-            }
-        }
-
-        //发送请求消息，响应由handler类处理
-        try {
-            ByteBuffer buffer = serviceRequestPacket.toByteBuffer();
-            VenusThreadContext.set(VenusThreadContext.CLIENT_OUTPUT_SIZE,Integer.valueOf(buffer.limit()));
-            conn.write(buffer);
-        } catch (RpcException e){
-            exception = e;
-            throw e;
-        }catch (Throwable e){
-            exception = e;
-            throw new RpcException(e);
-        }finally {
-            //返连接
-            if (conn != null && nioConnPool != null) {
-                nioConnPool.returnObject(conn);
-            }
-
-            //打印trace logger
-            long connTime = borrowed - start;
-            long totalTime = System.currentTimeMillis() - start;
-            //athena调用输出到default
-            Logger trLogger = tracerLogger;
-            if(VenusUtil.isAthenaInterface(invocation)){
-                trLogger = logger;
-            }
-
-            if(exception != null){
-                //输出异常日志
-                if (trLogger.isErrorEnabled()) {
-                    String tpl = "[C] [failed,{}] send request failed,rpcId:{},api:{},method:{},targetIp:{},exception:{}.";
-                    Object[] arguments = new Object[]{
-                            totalTime + "ms," + connTime+"ms",
-                            rpcId,
-                            invocation.getApiName(),
-                            invocation.getMethodPath(),
-                            url.getHost(),
-                            exception
-                    };
-                    trLogger.error(tpl,arguments);
-                    //错误日志
-                    exceptionLogger.error(tpl,arguments);
-                }
-            }else{
-                if(trLogger.isInfoEnabled()){
-                    String tpl = "[C] [{}] send request,rpcId:{},api:{},method:{},targetIp:{}.";
-                    Object[] arguments = new Object[]{
-                            totalTime + "ms," + connTime+"ms",
-                            rpcId,
-                            invocation.getApiName(),
-                            invocation.getMethodPath(),
-                            url.getHost(),
-                    };
-                    trLogger.info(tpl,arguments);
-                }
-            }
-        }
-    }
-
-    /**
-     * 获取对应请求的响应结果
-     * @param rpcId
-     * @return
-     */
-    Result fetchResponse(String rpcId){
-        VenusReqRespWrapper reqRespWrapper = connectionFactory.getServiceReqRespMap().get(rpcId);
-        if(reqRespWrapper == null){
-            return null;
-        }
-
-        Result result = reqRespWrapper.getResult();
-        if(result == null){
-            connectionFactory.getServiceReqRespMap().remove(rpcId);
-            return null;
+            cacheUrlList = urlList;
         }else {
-            //删除映射数据
-            connectionFactory.getServiceReqRespMap().remove(rpcId);
-            return result;
+            urlList = cacheUrlList;
+        }
+
+        if(CollectionUtils.isEmpty(urlList)){
+            throw new RpcException("not found avalid service providers.");
+        }
+
+
+        //输出寻址结果信息
+        if(logger.isDebugEnabled()){
+            List<String> targets = new ArrayList<String>();
+            if(CollectionUtils.isNotEmpty(urlList)){
+                for(URL url:urlList){
+                    String target = new StringBuilder()
+                            .append(url.getHost())
+                            .append(":")
+                            .append(url.getPort())
+                            .toString();
+                    targets.add(target);
+                }
+            }
+            logger.debug("static lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
+        }
+        return urlList;
+    }
+
+    /**
+     * 动态寻址，注册中心查找
+     * @param invocation
+     * @return
+     */
+    List<URL> lookupByRegister(ClientInvocation invocation){
+        List<URL> urlList = new ArrayList<URL>();
+
+        //当前接口定义版本号
+        int currentVersion = Integer.parseInt(invocation.getVersion());
+
+        //解析请求Url
+        URL requestUrl = parseRequestUrl(invocation);
+
+        //查找服务定义
+        List<VenusServiceDefinitionDO> srvDefList = getRegister().lookup(requestUrl);
+        if(CollectionUtils.isEmpty(srvDefList)){
+            throw new RpcException(String.format("not found available service providers,service:%s",requestUrl.getPath()));
+        }
+        for(VenusServiceDefinitionDO srvDef:srvDefList){
+            //若提供者列表为空，则跳过
+            if(CollectionUtils.isEmpty(srvDef.getIpAddress())){
+                continue;
+            }
+            //判断是否允许访问版本
+            if(isAllowVersion(srvDef,currentVersion)){
+                for(String addresss:srvDef.getIpAddress()){
+                    String[] arr = addresss.split(":");
+                    URL url = new URL();
+                    url.setHost(arr[0]);
+                    url.setPort(Integer.parseInt(arr[1]));
+                    url.setServiceDefinition(srvDef);
+                    if(StringUtils.isNotEmpty(srvDef.getProvider())){
+                        url.setApplication(srvDef.getProvider());
+                    }
+                    urlList.add(url);
+                }
+                //若找到，则跳出
+                break;
+            }
+        }
+
+        if(CollectionUtils.isEmpty(urlList)){
+            throw new RpcException("with filter,not found allowed service providers,service:" + requestUrl.toString());
+        }
+
+        //输出寻址结果信息
+        if(logger.isDebugEnabled()){
+            List<String> targets = new ArrayList<String>();
+            if(CollectionUtils.isNotEmpty(urlList)){
+                for(URL url:urlList){
+                    String target = new StringBuilder()
+                            .append(url.getHost())
+                            .append(":")
+                            .append(url.getPort())
+                            .toString();
+                    targets.add(target);
+                }
+            }
+            logger.debug("lookup service providers num:{},providers:{}.",targets.size(), JSONUtil.toJSONString(targets));
+        }
+        return urlList;
+    }
+
+    /**
+     * 判断是否允许访问版本
+     * @param srvDef
+     * @return
+     */
+    boolean isAllowVersion(VenusServiceDefinitionDO srvDef,int currentVersion){
+        //若兼容版本范围未定义，则都可访问
+        String versionRange = srvDef.getVersionRange();
+        if(StringUtils.isEmpty(versionRange)){
+            return true;
+        }
+
+        //若兼容版本范围不为空，则校验访问权限
+        Range supportVersioRange = RangeUtil.getVersionRange(versionRange);
+        return supportVersioRange.contains(currentVersion);
+    }
+
+    /**
+     * 解析请求url
+     * @param invocation
+     * @return
+     */
+    URL parseRequestUrl(ClientInvocation invocation){
+        String serviceInterfaceName = null;
+        if(invocation.getServiceInterface() != null){
+            serviceInterfaceName = invocation.getServiceInterface().getName();
+        }else{
+            serviceInterfaceName = invocation.getServiceName();
+        }
+        String serviceName = invocation.getServiceName();
+        StringBuilder buf = new StringBuilder();
+        buf.append("/").append(serviceInterfaceName);
+        buf.append("/").append(serviceName);
+        buf.append("?");
+        String serviceUrl = buf.toString();
+        URL url = URL.parse(serviceUrl);
+        return url;
+    }
+
+    /**
+     * 获取集群容错invoker
+     * @return
+     */
+    ClusterInvoker getClusterInvoker(ClientInvocation invocation,URL url){
+        String cluster = invocation.getCluster();
+        if(VenusConstants.CLUSTER_FAILOVER.equals(cluster) || invocation.getRetries() > 0){
+            return clusterFailoverInvoker;
+        }else if(VenusConstants.CLUSTER_FASTFAIL.equals(cluster)){
+            return clusterFastfailInvoker;
+        }else{
+            throw new RpcException(String.format("invalid cluster policy:%s.",cluster));
         }
     }
 
-    public short getSerializeType() {
-        return serializeType;
-    }
-
-    public void setSerializeType(byte serializeType) {
-        this.serializeType = serializeType;
+    @Override
+    public void destroy() throws RpcException {
     }
 
     public ClientRemoteConfig getRemoteConfig() {
@@ -346,14 +302,11 @@ public class VenusClientInvoker extends AbstractClientInvoker implements Invoker
         this.remoteConfig = remoteConfig;
     }
 
-    @Override
-    public void destroy() throws RpcException{
-        if(logger.isInfoEnabled()){
-            logger.info("destroy invoker:{}.",this);
-        }
-
-        connectionFactory.destroy();
+    public Register getRegister() {
+        return register;
     }
 
-
+    public void setRegister(Register register) {
+        this.register = register;
+    }
 }
