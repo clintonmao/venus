@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!--在没有定义${LOG_HOME}系统变量的时候，可以设置此本地变量。提交测试、上线时，要将其注释掉，使用系统变量。-->
+    <!--
+    <property name="LOG_HOME" value="${user.home}/data/applogs" />
+    -->
+    <!-- 应用名称：和统一配置中的项目代码保持一致（小写） -->
+    <property name="APP_NAME" value="venus-demo-consumer"/>
+    <!--日志文件保留天数-->
+    <property name="LOG_MAX_HISTORY" value="30"/>
+    <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径-->
+    <!--应用日志文件保存路径-->
+    <property name="LOG_APP_HOME" value="${LOG_HOME}/${APP_NAME}/app"/>
+    <!--系统日志文件保存路径-->
+    <property name="LOG_SYS_HOME" value="${LOG_HOME}/${APP_NAME}/sys"/>
+
+    <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!-- 格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符 -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="APP" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_APP_HOME}/saic-project.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <FileNamePattern>${LOG_APP_HOME}/saic-project.log.%d{yyyy-MM-dd}.log</FileNamePattern>
+            <!--日志文件保留天数-->
+            <MaxHistory>${LOG_MAX_HISTORY}</MaxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="venus.default" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_SYS_HOME}/venus-default.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!-- 格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符 -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <FileNamePattern>${LOG_SYS_HOME}/venus-default.log.%d{yyyy-MM-dd}</FileNamePattern>
+            <!--日志文件保留天数-->
+            <MaxHistory>${LOG_MAX_HISTORY}</MaxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="venus.tracer" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_SYS_HOME}/venus-tracer.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!-- 格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符 -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <FileNamePattern>${LOG_SYS_HOME}/venus-tracer.log.%d{yyyy-MM-dd}</FileNamePattern>
+            <!--日志文件保留天数-->
+            <MaxHistory>${LOG_MAX_HISTORY}</MaxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="venus.exception" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_SYS_HOME}/venus-exception.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!-- 格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符 -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <FileNamePattern>${LOG_SYS_HOME}/venus-exception.log.%d{yyyy-MM-dd}</FileNamePattern>
+            <!--日志文件保留天数-->
+            <MaxHistory>${LOG_MAX_HISTORY}</MaxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <!--<appender name="athenaAppender" class="com.saic.framework.athena.log4j.AthenaAppender"></appender>-->
+
+    <logger name="venus.default" additivity="true">
+        <level value="info"/>
+        <appender-ref ref="venus.default"/>
+    </logger>
+
+    <logger name="venus.tracer" additivity="true">
+        <level value="info"/>
+        <appender-ref ref="venus.tracer"/>
+    </logger>
+
+    <logger name="venus.exception" additivity="true">
+        <level value="info"/>
+        <appender-ref ref="venus.exception"/>
+    </logger>
+
+    <!--root-->
+    <root level="info">
+        <appender-ref ref="stdout" />
+        <appender-ref ref="APP" />
+        <!--<appender-ref ref="athenaAppender" />-->
+    </root>
+
+</configuration>

@@ -42,18 +42,6 @@ public class CacheVenusServerDaoImpl implements CacheVenusServerDAO {
 		return cacheServerMap.get(getKey(host, port));
 	}
 
-//	private VenusServerDO getOneServer(String host, int port) {
-//		for (Iterator<VenusServerDO> iterator = cacheServers.iterator(); iterator.hasNext();) {
-//			VenusServerDO server = iterator.next();
-//			if (server.getHostname().equals(host)) {
-//				if (server.getPort().intValue() == port) {
-//					return server;
-//				}
-//			}
-//		}
-//		return null;
-//	}
-
 	private String getKey(String host, int port) {
 		return host + ":" + port;
 	}
@@ -89,24 +77,6 @@ public class CacheVenusServerDaoImpl implements CacheVenusServerDAO {
 			cacheIdServerMap=localCacheIdServerMap;
 		}
 	}
-
-//	private boolean contains(VenusServerDO serverDO) {
-//		if (CollectionUtils.isNotEmpty(cacheServers)) {
-//			for (Iterator<VenusServerDO> iterator = cacheServers.iterator(); iterator.hasNext();) {
-//				VenusServerDO ser = iterator.next();
-//				if (ser.getHostname().equals(serverDO.getHostname())) {
-//					if (null != serverDO.getPort() && (serverDO.getPort().intValue() == ser.getPort().intValue())) {
-//						if (ser.getId() == serverDO.getId()) {
-//							return true;
-//						} else {
-//							iterator.remove();// host port 相同，但id不同，删除旧的数据
-//						}
-//					}
-//				}
-//			}
-//		}
-//		return false;
-//	}
 
 	private class LoadCacheServersRunnable implements Runnable {
 

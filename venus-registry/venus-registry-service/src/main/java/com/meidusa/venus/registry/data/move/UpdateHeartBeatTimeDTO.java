@@ -3,9 +3,6 @@ package com.meidusa.venus.registry.data.move;
 import java.io.Serializable;
 import java.util.List;
 
-import com.meidusa.venus.URL;
-import com.meidusa.venus.registry.domain.VenusServerDO;
-
 public class UpdateHeartBeatTimeDTO implements Serializable {
 
 	private static final long serialVersionUID = -4957292074836153116L;
@@ -15,8 +12,6 @@ public class UpdateHeartBeatTimeDTO implements Serializable {
 	private List<Integer> serviceIds;
 
 	private String role;
-
-	private VenusServerDO serverDO;
 
 	private int consumerAppId;
 
@@ -42,14 +37,6 @@ public class UpdateHeartBeatTimeDTO implements Serializable {
 
 	public void setRole(String role) {
 		this.role = role;
-	}
-
-	public VenusServerDO getServerDO() {
-		return serverDO;
-	}
-
-	public void setServerDO(VenusServerDO serverDO) {
-		this.serverDO = serverDO;
 	}
 
 	public int getConsumerAppId() {
