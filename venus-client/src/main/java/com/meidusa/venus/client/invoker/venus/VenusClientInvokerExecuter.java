@@ -85,7 +85,7 @@ public class VenusClientInvokerExecuter implements Invoker{
      * @return
      */
     boolean isCallbackInvocation(ClientInvocation invocation){
-        EndpointParameter[] params = invocation.getParams();
+        EndpointParameter[] params = invocation.getEndpointParameters();
         if (params != null) {
             Object[] args = invocation.getArgs();
             for (int i = 0; i < params.length; i++) {

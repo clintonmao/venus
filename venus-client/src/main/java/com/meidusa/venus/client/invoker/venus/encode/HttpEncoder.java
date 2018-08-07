@@ -11,7 +11,6 @@ import com.meidusa.venus.io.packet.json.JsonVenusResponsePacket;
 import com.meidusa.venus.io.serializer.Serializer;
 
 import java.lang.reflect.Type;
-import java.util.HashMap;
 
 public class HttpEncoder implements BaseEncoder {
 
@@ -19,6 +18,10 @@ public class HttpEncoder implements BaseEncoder {
     public AbstractServiceRequestPacket encode(Object object, Serializer serializer) {
         ClientInvocation invocation = (ClientInvocation)object;
         JsonVenusRequestPacket serviceRequestPacket = new JsonVenusRequestPacket();
+
+        serviceRequestPacket.apiName = invocation.getApiName();
+        serviceRequestPacket.serviceVersion = Integer.parseInt(invocation.getVersion());
+        serviceRequestPacket.params = JSON.toJSONString(invocation.getParameterMap());
 
         serviceRequestPacket.clientId = invocation.getClientId();
         serviceRequestPacket.clientRequestId = invocation.getClientRequestId();
@@ -34,10 +37,6 @@ public class HttpEncoder implements BaseEncoder {
         if (invocation.getMessageId() != null) {
             serviceRequestPacket.messageId = invocation.getMessageId();
         }
-        serviceRequestPacket.apiName = invocation.getApiName();
-        serviceRequestPacket.serviceVersion = Integer.parseInt(invocation.getVersion());
-        serviceRequestPacket.params = JSON.toJSONString(invocation.getParameterMap());
-
         return serviceRequestPacket;
     }
 

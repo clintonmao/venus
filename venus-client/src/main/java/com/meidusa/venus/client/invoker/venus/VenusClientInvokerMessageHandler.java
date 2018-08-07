@@ -276,7 +276,7 @@ public class VenusClientInvokerMessageHandler extends Venus4BackendMessageHandle
 
             //SerializeServiceNofityPacket nofityPacket = new SerializeServiceNofityPacket(serializer, asyncInvocation.getType());
             //nofityPacket.init(message);
-            ServiceNofityPacket nofityPacket = getEncoder().decodeForNotify(message,asyncInvocation.getType(),serializer);
+            ServiceNofityPacket nofityPacket = getEncoder().decodeForNotify(message,asyncInvocation.getParamType(),serializer);
 
             if (nofityPacket.errorCode != 0) {
                 Throwable t = buildExceptionFromNotifyPacket(nofityPacket,serializer, XmlVenusExceptionFactory.getInstance());

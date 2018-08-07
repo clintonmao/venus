@@ -13,8 +13,6 @@ import com.meidusa.venus.io.serializer.Serializer;
 import com.meidusa.venus.metainfo.EndpointParameter;
 import com.meidusa.venus.notify.InvocationListener;
 import com.meidusa.venus.notify.ReferenceInvocationListener;
-import com.meidusa.venus.support.EndpointWrapper;
-import com.meidusa.venus.support.ServiceWrapper;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -27,9 +25,9 @@ public class VenusEncoder implements BaseEncoder {
     public AbstractServiceRequestPacket encode(Object object,Serializer serializer) {
         ClientInvocation invocation = (ClientInvocation)object;
         Method method = invocation.getMethod();
-        ServiceWrapper service = invocation.getService();
-        EndpointWrapper endpoint = invocation.getEndpoint();
-        EndpointParameter[] params = invocation.getParams();
+        //ServiceWrapper service = invocation.getService();
+        //EndpointWrapper endpoint = invocation.getEndpoint();
+        EndpointParameter[] endpointParameters = invocation.getEndpointParameters();
         Object[] args = invocation.getArgs();
 
         //构造请求报文
@@ -51,8 +49,8 @@ public class VenusEncoder implements BaseEncoder {
         serviceRequestPacket.apiName = invocation.getApiName();
         serviceRequestPacket.serviceVersion = Integer.parseInt(invocation.getVersion());
         serviceRequestPacket.parameterMap = new HashMap<String, Object>();
-        if (params != null) {
-            for (int i = 0; i < params.length; i++) {
+        if (endpointParameters != null) {
+            for (int i = 0; i < endpointParameters.length; i++) {
                 if (args[i] instanceof InvocationListener) {
                     ReferenceInvocationListener listener = new ReferenceInvocationListener();
                     ServicePacketBuffer buffer = new ServicePacketBuffer(16);
@@ -64,13 +62,13 @@ public class VenusEncoder implements BaseEncoder {
                         ParameterizedType genericType = ((ParameterizedType) type);
                         //container.putInvocationListener((InvocationListener) args[i], genericType.getActualTypeArguments()[0]);
                         invocation.setInvocationListener((InvocationListener)args[i]);
-                        invocation.setType(genericType.getActualTypeArguments()[0]);
+                        invocation.setParamType(genericType.getActualTypeArguments()[0]);
                     } else {
                         throw new InvalidParameterException("invocationListener is not generic");
                     }
-                    serviceRequestPacket.parameterMap.put(params[i].getParamName(), listener);
+                    serviceRequestPacket.parameterMap.put(endpointParameters[i].getParamName(), listener);
                 } else {
-                    serviceRequestPacket.parameterMap.put(params[i].getParamName(), args[i]);
+                    serviceRequestPacket.parameterMap.put(endpointParameters[i].getParamName(), args[i]);
                 }
 
             }

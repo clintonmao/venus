@@ -19,6 +19,7 @@ import java.util.Map;
  */
 public class ClientInvocation implements ClientInvocationOperation {
 
+    //------------共通参数----------------
     private int clientId;
 
     private long clientRequestId;
@@ -35,32 +36,44 @@ public class ClientInvocation implements ClientInvocationOperation {
 
     private byte[] messageId;
 
-    //服务接口
-    private Class<?> serviceInterface;
+    //接口名称
+    private String serviceInterfaceName;
 
+    //服务名称
     private String serviceName;
 
+    //版本号
+    private String version;
+
+    //endpoint名称
     private String endpointName;
 
+    //api(serviceName+"."+endpointName)
     private String apiName;
+
+    //--------------rpc调用相关参数------------------
+    //服务接口
+    private Class<?> serviceInterface;
 
     private ServiceWrapper service;
 
     private EndpointWrapper endpoint;
 
+    private EndpointParameter[] endpointParameters;
+
     private Method method;
 
-    private EndpointParameter[] params;
-
     private Object[] args;
-
-    private Map<String, Object> parameterMap = null;
 
     //callback回调listener
     private InvocationListener invocationListener;
 
-    private Type type;
+    private Type paramType;
 
+    //------------http调用相关参数------------------
+    private Map<String, Object> parameterMap = null;
+
+    //------------其它共通相关参数-------------------
     private Date requestTime;
 
     //消费方应用名称
@@ -69,6 +82,7 @@ public class ClientInvocation implements ClientInvocationOperation {
     //消费方ip
     private String consumerIp;
 
+    //是否异步
     boolean async;
 
     //寻址方式，默认本地，0:本地;1:注册中心
@@ -88,9 +102,6 @@ public class ClientInvocation implements ClientInvocationOperation {
 
     //负载均衡策略,默认random
     private String loadbalance = VenusConstants.LOADBALANCE_DEFAULT;
-
-    //版本号
-    private String version;
 
     private boolean isAthenaInvoker = false;
 
@@ -180,12 +191,12 @@ public class ClientInvocation implements ClientInvocationOperation {
         this.endpoint = endpoint;
     }
 
-    public EndpointParameter[] getParams() {
-        return params;
+    public EndpointParameter[] getEndpointParameters() {
+        return endpointParameters;
     }
 
-    public void setParams(EndpointParameter[] params) {
-        this.params = params;
+    public void setEndpointParameters(EndpointParameter[] endpointParameters) {
+        this.endpointParameters = endpointParameters;
     }
 
     public byte[] getTraceID() {
@@ -220,12 +231,12 @@ public class ClientInvocation implements ClientInvocationOperation {
         this.invocationListener = invocationListener;
     }
 
-    public Type getType() {
-        return type;
+    public Type getParamType() {
+        return paramType;
     }
 
-    public void setType(Type type) {
-        this.type = type;
+    public void setParamType(Type paramType) {
+        this.paramType = paramType;
     }
 
     public Date getRequestTime() {
@@ -399,5 +410,9 @@ public class ClientInvocation implements ClientInvocationOperation {
 
     public void setParameterMap(Map<String, Object> parameterMap) {
         this.parameterMap = parameterMap;
+    }
+
+    public void setServiceInterfaceName(String serviceInterfaceName) {
+        this.serviceInterfaceName = serviceInterfaceName;
     }
 }

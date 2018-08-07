@@ -16,7 +16,6 @@ import com.meidusa.venus.util.VenusLoggerFactory;
 import com.meidusa.venus.util.VenusTracerUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -150,6 +149,8 @@ public class JsonRpc {
      */
     ClientInvocation buildInvocation(String serviceName,String endpointName,String version,Map<String,Object> parameterMap){
         ClientInvocation invocation = new ClientInvocation();
+        //服务及参数信息
+        invocation.setServiceInterfaceName(serviceName);
         invocation.setServiceName(serviceName);
         invocation.setEndpointName(endpointName);
         invocation.setApiName(serviceName + "." + endpointName);
@@ -164,12 +165,9 @@ public class JsonRpc {
         invocation.setConsumerApp(consumerApp);
         invocation.setConsumerIp(NetUtil.getLocalIp(true));
         invocation.setAsync(false);
-        //clientId
         invocation.setClientId(PacketConstant.VENUS_CLIENT_ID);
         invocation.setClientRequestId(sequenceId.getAndIncrement());
-        //设置rpcId
         invocation.setRpcId(RpcIdUtil.getRpcId(invocation.getClientId(),invocation.getClientRequestId()));
-        //设置traceId
         byte[] traceID = VenusTracerUtil.getTracerID();
         if (traceID == null) {
             traceID = VenusTracerUtil.randomTracerID();

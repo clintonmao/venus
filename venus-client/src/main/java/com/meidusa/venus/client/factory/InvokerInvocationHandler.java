@@ -23,7 +23,6 @@ import com.meidusa.venus.support.EndpointWrapper;
 import com.meidusa.venus.support.ServiceWrapper;
 import com.meidusa.venus.support.VenusContext;
 import com.meidusa.venus.support.VenusUtil;
-import com.meidusa.venus.util.JSONUtil;
 import com.meidusa.venus.util.NetUtil;
 import com.meidusa.venus.util.VenusLoggerFactory;
 import com.meidusa.venus.util.VenusTracerUtil;
@@ -139,6 +138,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
     ClientInvocation buildInvocation(Object proxy, Method method, Object[] args){
         ClientInvocation invocation = new ClientInvocation();
         invocation.setServiceInterface(serviceInterface);
+        invocation.setServiceInterfaceName(serviceInterface.getName());
         //初始化service
         Service serviceAnno = AnnotationUtil.getAnnotation(method.getDeclaringClass().getAnnotations(), Service.class);
         if(serviceAnno == null){
@@ -164,7 +164,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
         invocation.setApiName(apiName);
         //方法相关
         EndpointParameter[] params = EndpointParameterUtil.getPrameters(method);
-        invocation.setParams(params);
+        invocation.setEndpointParameters(params);
         invocation.setMethod(method);
         invocation.setArgs(args);
         //其它设置
@@ -173,12 +173,9 @@ public class InvokerInvocationHandler implements InvocationHandler {
         invocation.setConsumerApp(consumerApp);
         invocation.setConsumerIp(NetUtil.getLocalIp(true));
         invocation.setAsync(false);
-        //clientId
         invocation.setClientId(PacketConstant.VENUS_CLIENT_ID);
         invocation.setClientRequestId(sequenceId.getAndIncrement());
-        //设置rpcId
         invocation.setRpcId(RpcIdUtil.getRpcId(invocation.getClientId(),invocation.getClientRequestId()));
-        //设置traceId
         byte[] traceID = VenusTracerUtil.getTracerID();
         if (traceID == null) {
             traceID = VenusTracerUtil.randomTracerID();
