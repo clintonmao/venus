@@ -203,10 +203,6 @@ public class XmlServiceFactory extends AbstractServiceFactory implements Service
         //解析客户端配置信息
         VenusClientConfig venusClientConfig = parseClientConfig();
 
-        if(CollectionUtils.isEmpty(venusClientConfig.getReferenceServices())){
-            return;
-        }
-
         //初始化连接工厂/连接管理
         VenusClientConnectionFactory.getInstance();
         VenusClientConnectionManager.getInstance();
