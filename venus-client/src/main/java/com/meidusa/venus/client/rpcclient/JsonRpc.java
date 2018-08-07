@@ -60,11 +60,11 @@ public class JsonRpc {
         }
     }
 
-    public String invoke(String serviceName,String endpointName,Map<String,Object> parameterMap){
+    public Result invoke(String serviceName,String endpointName,Map<String,Object> parameterMap){
         return invoke(serviceName,endpointName,null,parameterMap);
     }
 
-    public String invoke(String serviceName,String endpointName,String version,Map<String,Object> parameterMap){
+    public Result invoke(String serviceName,String endpointName,String version,Map<String,Object> parameterMap){
         long bTime = System.currentTimeMillis();
         ClientInvocation invocation = null;
         String ret = "";
@@ -77,25 +77,27 @@ public class JsonRpc {
             invocation = buildInvocation(serviceName,endpointName,version,parameterMap);
 
             Result result = doInvoke(invocation);
-            if(result.getErrorCode() == 0){
-                Object object = result.getResult();
-                ret = JSON.toJSONString(object);
-                return ret;
+            if(result != null){
+                if(result.getErrorCode() == 0 && result.getResult() !=null){
+                    ret = JSON.toJSONString(result.getResult());
+                }else{
+                    exception = result.getErrorMessage();
+                }
             }else{
-                //TODO 错误处理优化
-                Map<String,String> error = new HashMap<>();
-                error.put("errorCode",String.valueOf(result.getErrorCode()));
-                error.put("errorMsg",result.getErrorMessage());
-                exception = JSON.toJSONString(error);
-                return exception;
+                result = new Result();
+                result.setErrorCode(500);
+                result.setErrorMessage("unknow error.");
+
+                exception = "unknow error.";
             }
+            return result;
         } catch (Throwable ex) {
-            //TODO 错误处理优化
-            Map<String,String> error = new HashMap<>();
-            error.put("errorCode","500");
-            error.put("errorMsg",ex.getMessage());
-            exception = JSON.toJSONString(error);
-            return exception;
+            Result result = new Result();
+            result.setErrorCode(500);
+            result.setErrorMessage(ex.getMessage());
+
+            exception = ex.getMessage();
+            return result;
         } finally {
             printTracerLogger(invocation,parameterMap,ret,exception,bTime);
         }

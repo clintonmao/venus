@@ -1,5 +1,6 @@
 package com.chexiang.venus.demo.consumer.controller;
 
+import com.meidusa.fastjson.JSON;
 import com.meidusa.venus.Result;
 import com.meidusa.venus.client.rpcclient.JsonRpc;
 import com.meidusa.venus.registry.Register;
@@ -35,9 +36,9 @@ public class RpcController {
             String endpointName = "getHello";
             Map<String,Object> parameterMap = new HashMap<>();
             parameterMap.put("name","zhangzh");
-            String result = getJsonRpc().invoke(serviceName,endpointName,parameterMap);
-            logger.info("result:{}",result);
-            return new Result("OK");
+            Result result = getJsonRpc().invoke(serviceName,endpointName,parameterMap);
+            logger.info("result:{}", JSON.toJSONString(result));
+            return result;
         } catch (Exception e) {
             logger.error("e:{}.",e);
             return new Result(e);
